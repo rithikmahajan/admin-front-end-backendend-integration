@@ -1,29 +1,11 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { Search, Edit2, Trash2, ChevronDown, Upload, Plus, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { CATEGORY_OPTIONS, SUBCATEGORY_OPTIONS, STATUS_STYLES } from '../constants';
-import { useDebounce } from '../hooks';
-
-/**
- * ManageItems Component
- * 
- * Main product management interface providing:
- * - Product listing with search and filtering
- * - Bulk operations and single item actions
- * - Navigation to product upload forms
- * - Edit modal with detailed product information
- * 
- * Performance Optimizations:
- * - useMemo for filtered items to prevent unnecessary recalculations
- * - useCallback for event handlers to prevent child re-renders
- * - Efficient state management with minimal re-renders
- * - Optimized table rendering with proper key props
- */
 
 const ManageItems = React.memo(() => {
   const navigate = useNavigate();
   
-  // State management - grouped by functionality for better organization
+  // State management
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All categories');
   const [selectedSubCategory, setSelectedSubCategory] = useState('All subcategories');
@@ -35,52 +17,101 @@ const ManageItems = React.memo(() => {
   const [newDetails, setNewDetails] = useState('');
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
 
-  // Debounced search term for performance optimization
-  const debouncedSearchTerm = useDebounce(searchTerm, 300);
+  // Bulk action states
+  const [moveToSale, setMoveToSale] = useState(false);
+  const [keepCopyAndMove, setKeepCopyAndMove] = useState(false);
+  const [moveToEyx, setMoveToEyx] = useState(false);
 
-  // Sample items data - in production, this would come from an API or state management
-  // TODO: Replace with actual data fetching logic
-  // Memoized to prevent unnecessary re-renders
+  // Sample items data
   const items = useMemo(() => [
     {
       id: 1,
-      image: '/api/placeholder/80/80',
+      image: '/api/placeholder/120/116',
       productName: 'T shirt',
       category: 'T shirt',
-      subCategories: 't shirt',
+      subCategories: 'T shirt',
+      hsn: 'HSN123',
       size: ['small', 'medium', 'large'],
       quantity: 5,
       price: 4566,
       salePrice: 4566,
-      sku: 'lakm7mix23',
-      barcodeNo: '420000000000',
-      status: 'live',
+      platforms: {
+        myntra: { enabled: true, price: 4566 },
+        amazon: { enabled: true, price: 4566 },
+        flipkart: { enabled: true, price: 4566 },
+        nykaa: { enabled: true, price: 4566 }
+      },
+      sku: 'blk/m/inso123',
+      barcodeNo: '45600000000000',
+      status: 'draft',
       metaData: 'they meta data'
     },
     {
       id: 2,
-      image: '/api/placeholder/80/80',
+      image: '/api/placeholder/120/116',
       productName: 'T shirt',
       category: 'T shirt',
-      subCategories: 't shirt',
+      subCategories: 'T shirt',
+      hsn: 'HSN124',
       size: ['large'],
       quantity: 10,
       price: 4566,
       salePrice: 4566,
-      sku: 'lakm7mix23',
-      barcodeNo: '420000000000',
-      status: 'Scheduled',
+      platforms: {
+        myntra: { enabled: true, price: 4566 },
+        amazon: { enabled: false, price: 4566 },
+        flipkart: { enabled: true, price: 4566 },
+        nykaa: { enabled: false, price: 4566 }
+      },
+      sku: 'blk/m/inso123',
+      barcodeNo: '45600000000000',
+      status: 'live',
+      metaData: 'they meta data'
+    },
+    {
+      id: 3,
+      image: '/api/placeholder/120/116',
+      productName: 'T shirt',
+      category: 'T shirt',
+      subCategories: 'T shirt',
+      hsn: 'HSN125',
+      size: ['medium', 'large'],
+      quantity: 8,
+      price: 4566,
+      salePrice: 4566,
+      platforms: {
+        myntra: { enabled: false, price: 4566 },
+        amazon: { enabled: true, price: 4566 },
+        flipkart: { enabled: false, price: 4566 },
+        nykaa: { enabled: true, price: 4566 }
+      },
+      sku: 'blk/m/inso123',
+      barcodeNo: '45600000000000',
+      status: 'scheduled',
       metaData: 'they meta data'
     }
   ], []);
 
-  // Memoized filtered items - only recalculates when dependencies change
-  // Now using debounced search term for better performance
+  const categoryOptions = [
+    'All categories',
+    'T shirt',
+    'Clothing',
+    'Accessories'
+  ];
+
+  const subCategoryOptions = [
+    'All subcategories',
+    'T shirt',
+    'Casual wear',
+    'Formal wear'
+  ];
+
+  // Filtered items
   const filteredItems = useMemo(() => {
     return items.filter(item => {
-      const matchesSearch = item.productName.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
-                           item.category.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
-                           item.subCategories.toLowerCase().includes(debouncedSearchTerm.toLowerCase());
+      const matchesSearch = item.productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           item.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           item.subCategories.toLowerCase().includes(searchTerm.toLowerCase());
       
       const matchesCategory = selectedCategory === 'All categories' || 
                              item.category === selectedCategory;
@@ -90,9 +121,9 @@ const ManageItems = React.memo(() => {
       
       return matchesSearch && matchesCategory && matchesSubCategory;
     });
-  }, [items, debouncedSearchTerm, selectedCategory, selectedSubCategory]);
+  }, [items, searchTerm, selectedCategory, selectedSubCategory]);
 
-  // Memoized handlers to prevent unnecessary re-renders
+  // Handlers
   const handleSelectItem = useCallback((itemId) => {
     setSelectedItems(prev => 
       prev.includes(itemId) 
@@ -107,17 +138,14 @@ const ManageItems = React.memo(() => {
     );
   }, [filteredItems]);
 
-  // Navigation handlers
   const handleBulkUpload = useCallback(() => {
     console.log('Bulk upload');
-    // TODO: Implement bulk upload functionality
   }, []);
 
   const handleUploadSingleProduct = useCallback(() => {
     navigate('/single-product-upload');
   }, [navigate]);
 
-  // Edit modal handlers
   const handleEdit = useCallback((itemId) => {
     const itemToEdit = items.find(item => item.id === itemId);
     setEditingItem(itemToEdit);
@@ -127,7 +155,6 @@ const ManageItems = React.memo(() => {
 
   const handleSaveEdit = useCallback(() => {
     console.log('Saving edit for item:', editingItem.id, 'New details:', newDetails);
-    // TODO: Implement actual save logic with API call
     setIsEditModalOpen(false);
     setEditingItem(null);
     setNewDetails('');
@@ -146,247 +173,309 @@ const ManageItems = React.memo(() => {
 
   const handleDelete = useCallback((itemId) => {
     console.log('Delete item:', itemId);
-    // TODO: Implement delete functionality
   }, []);
 
-  // Utility functions
   const getSizeDisplay = useCallback((sizes) => {
     return sizes.join(', ');
   }, []);
 
   const getStatusStyle = useCallback((status) => {
-    return STATUS_STYLES[status] || STATUS_STYLES.draft;
+    const styles = {
+      'live': 'text-[#00b69b]',
+      'draft': 'text-[#ef3826]',
+      'scheduled': 'text-[#ffd56d]'
+    };
+    return styles[status.toLowerCase()] || styles.draft;
+  }, []);
+
+  const handleViewMetaData = useCallback((item) => {
+    console.log('View meta data for:', item);
   }, []);
 
   return (
-    <div className="bg-gray-50 min-h-screen">
-      {/* Main Content Container with shadow and styling */}
-      <div className="max-w-full mx-auto bg-white rounded-xl shadow-lg overflow-hidden">
+    <div className="bg-white min-h-screen">
+      {/* Main Content Container */}
+      <div className="max-w-full mx-auto bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] overflow-hidden">
         
-        {/* Header Section - Title and Action Buttons */}
+        {/* Header Section */}
         <div className="p-6 border-b border-gray-200">
           <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-bold text-gray-900">Manage Items</h1>
-            {/* Action buttons container */}
+            <h1 className="text-[24px] font-bold text-[#111111] font-['Montserrat']">Manage Items</h1>
             <div className="flex gap-3">
               <button 
                 onClick={handleBulkUpload}
-                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                aria-label="Upload multiple products at once"
+                className="flex items-center gap-2 bg-[#000aff] hover:bg-blue-700 text-white font-['Montserrat'] font-normal py-2.5 px-4 rounded-lg transition-colors shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] border border-[#7280ff] text-[14px]"
               >
-                <Upload className="h-4 w-4" />
-                Bulk Upload
+                <Plus className="h-5 w-5" />
+                <span className="leading-[20px]">Bulk Upload</span>
               </button>
               <button 
                 onClick={handleUploadSingleProduct}
-                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                aria-label="Upload a single product"
+                className="flex items-center gap-2 bg-[#000aff] hover:bg-blue-700 text-white font-['Montserrat'] font-normal py-2.5 px-4 rounded-lg transition-colors shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] border border-[#7280ff] text-[14px]"
               >
-                <Plus className="h-4 w-4" />
-                Upload single product
+                <Plus className="h-5 w-5" />
+                <span className="leading-[20px]">Upload single product</span>
               </button>
             </div>
           </div>
           
-          {/* Search and Filter Controls Section */}
+          {/* Search and Filter Controls */}
           <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center">
             
-            {/* Search Bar with icon */}
+            {/* Search Bar */}
             <div className="relative flex-1 max-w-sm">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Search className="h-5 w-5 text-gray-400" />
+              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                <Search className="h-5 w-5 text-[#667085]" />
               </div>
               <input
                 type="text"
-                placeholder="Search products, categories..."
+                placeholder="Search"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="block w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                aria-label="Search products"
+                className="block w-full pl-10 pr-3 py-2.5 border border-[#d0d5dd] rounded-lg bg-white placeholder-[#667085] focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] font-['Montserrat'] text-[16px] leading-[24px]"
               />
             </div>
 
-            {/* Category Filter Dropdown */}
+            {/* Category Dropdown */}
             <div className="relative">
               <select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
-                className="appearance-none bg-white border border-gray-400 rounded-xl px-4 py-3 pr-8 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-w-[200px]"
-                aria-label="Filter by category"
+                className="appearance-none bg-white border-2 border-black rounded-xl px-4 py-3 pr-8 text-black focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-w-[153px] h-[47px] font-['Montserrat'] text-[14px] text-center leading-[16px]"
               >
-                {CATEGORY_OPTIONS.map((option, index) => (
+                {categoryOptions.map((option, index) => (
                   <option key={index} value={option}>{option}</option>
                 ))}
               </select>
               <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-                <ChevronDown className="h-4 w-4 text-gray-400" />
+                <ChevronDown className="h-4 w-4 text-black" />
               </div>
             </div>
 
-            {/* Sub Category Filter Dropdown */}
+            {/* Sub Category Dropdown */}
             <div className="relative">
               <select
                 value={selectedSubCategory}
                 onChange={(e) => setSelectedSubCategory(e.target.value)}
-                className="appearance-none bg-white border border-gray-400 rounded-xl px-4 py-3 pr-8 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-w-[200px]"
-                aria-label="Filter by subcategory"
+                className="appearance-none bg-white border-2 border-black rounded-xl px-4 py-3 pr-8 text-black focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-w-[153px] h-[47px] font-['Montserrat'] text-[14px] text-center leading-[16px]"
               >
-                {SUBCATEGORY_OPTIONS.map((option, index) => (
+                {subCategoryOptions.map((option, index) => (
                   <option key={index} value={option}>{option}</option>
                 ))}
               </select>
               <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-                <ChevronDown className="h-4 w-4 text-gray-400" />
+                <ChevronDown className="h-4 w-4 text-black" />
               </div>
             </div>
           </div>
         </div>
 
-        {/* Table Section with Product Data */}
+        {/* Table Section */}
         <div className="p-6">
           
-          {/* Responsive Table Container */}
-          <div className="bg-white border border-gray-300 rounded-lg overflow-hidden">
-            {/* Table Header - Column definitions */}
-            <div className="bg-gray-50 border-b border-gray-200">
-              <div className="grid grid-cols-12 gap-2 p-4 text-xs font-bold text-gray-700">
-                <div className="col-span-1 flex items-center">
+          {/* Table Container */}
+          <div className="bg-white border border-[#d5d5d5] rounded-lg overflow-hidden">
+            {/* Table Header */}
+            <div className="bg-[#ffffff] border-b border-[#d5d5d5]">
+              <div className="grid grid-cols-[50px_140px_120px_100px_120px_60px_80px_80px_80px_80px_160px_120px_80px_80px_120px_80px] gap-1 p-3 text-[15px] font-normal text-black font-['Montserrat']">
+                <div className="flex items-center justify-center">
                   <input
                     type="checkbox"
                     checked={selectedItems.length === filteredItems.length && filteredItems.length > 0}
                     onChange={handleSelectAll}
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                    aria-label="Select all items"
+                    className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                   />
                 </div>
-                <div className="col-span-1">Image</div>
-                <div className="col-span-1">Product Name</div>
-                <div className="col-span-1">Category</div>
-                <div className="col-span-1">sub categories</div>
-                <div className="col-span-1">size</div>
-                <div className="col-span-1">quantity</div>
-                <div className="col-span-1">Price</div>
-                <div className="col-span-1">sale price</div>
-                <div className="col-span-1">SKU</div>
-                <div className="col-span-1">status</div>
-                <div className="col-span-1">Action</div>
+                <div className="text-left">Image</div>
+                <div className="text-left">Product Name</div>
+                <div className="text-left">Category</div>
+                <div className="text-center">sub categories</div>
+                <div className="text-center">Hsn</div>
+                <div className="text-center">size</div>
+                <div className="text-center">quantity</div>
+                <div className="text-center">Price</div>
+                <div className="text-center">sale price</div>
+                <div className="text-center">al price</div>
+                <div className="text-center">SKU</div>
+                <div className="text-center">barcode no.</div>
+                <div className="text-center">status</div>
+                <div className="text-center">meta data</div>
+                <div className="text-center">Action</div>
               </div>
             </div>
 
-            {/* Table Rows - Optimized rendering with proper keys */}
+            {/* Platform Headers Row */}
+            <div className="bg-[#ffffff] border-b border-[#d5d5d5]">
+              <div className="grid grid-cols-[50px_140px_120px_100px_120px_60px_80px_80px_80px_80px_160px_120px_80px_80px_120px_80px] gap-1 p-3">
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+                <div className="flex items-center justify-center gap-3 text-[10px] font-['Montserrat']">
+                  <div className="flex items-center gap-1">
+                    <span className="text-green-600">✓</span>
+                    <span>myntra</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="text-green-600">✓</span>
+                    <span>amazon</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="text-green-600">✓</span>
+                    <span>flipkart</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="text-green-600">✓</span>
+                    <span>nykaa</span>
+                  </div>
+                </div>
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+              </div>
+            </div>
+
+            {/* Table Rows */}
             <div className="divide-y divide-gray-100">
-              {filteredItems.map((item) => (
-                <div 
-                  key={item.id} 
-                  className="grid grid-cols-12 gap-2 p-4 items-center hover:bg-gray-50 transition-colors text-sm"
-                >
+              {filteredItems.map((item, index) => (
+                <div key={item.id} className="grid grid-cols-[50px_140px_120px_100px_120px_60px_80px_80px_80px_80px_160px_120px_80px_80px_120px_80px] gap-1 p-3 items-center hover:bg-gray-50 transition-colors">
                   
-                  {/* Checkbox Column */}
-                  <div className="col-span-1">
+                  {/* Checkbox */}
+                  <div className="flex justify-center">
                     <input
                       type="checkbox"
                       checked={selectedItems.includes(item.id)}
                       onChange={() => handleSelectItem(item.id)}
-                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                      aria-label={`Select ${item.productName}`}
+                      className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                     />
                   </div>
 
-                  {/* Product Image Column */}
-                  <div className="col-span-1">
-                    <div className="w-12 h-12 bg-gray-200 rounded-lg overflow-hidden">
+                  {/* Product Image */}
+                  <div className="flex justify-center">
+                    <div className="w-[120px] h-[116px] bg-gray-200 rounded overflow-hidden">
                       <img
                         src={item.image}
-                        alt={`${item.productName} product image`}
+                        alt={item.productName}
                         className="w-full h-full object-cover"
-                        loading="lazy"
                       />
                     </div>
                   </div>
 
-                  {/* Product Name Column */}
-                  <div className="col-span-1">
-                    <p className="font-medium text-gray-900 truncate" title={item.productName}>
-                      {item.productName}
-                    </p>
+                  {/* Product Name */}
+                  <div className="text-[#111111] text-[14px] font-medium font-['Montserrat'] text-left">
+                    {item.productName}
                   </div>
 
-                  {/* Category Column */}
-                  <div className="col-span-1">
-                    <p className="text-gray-600 truncate" title={item.category}>
-                      {item.category}
-                    </p>
+                  {/* Category */}
+                  <div className="text-[#111111] text-[14px] font-medium font-['Montserrat'] text-left">
+                    {item.category}
                   </div>
 
-                  {/* Sub Categories Column */}
-                  <div className="col-span-1">
-                    <p className="text-gray-600 truncate" title={item.subCategories}>
-                      {item.subCategories}
-                    </p>
+                  {/* Sub Categories */}
+                  <div className="text-[#111111] text-[14px] font-medium font-['Montserrat'] text-center">
+                    {item.subCategories}
                   </div>
 
-                  {/* Size Column */}
-                  <div className="col-span-1">
-                    <p className="text-gray-600 truncate" title={getSizeDisplay(item.size)}>
-                      {getSizeDisplay(item.size)}
-                    </p>
+                  {/* HSN */}
+                  <div className="text-[#010101] text-[10px] font-['Montserrat'] text-center">
+                    {item.hsn}
                   </div>
 
-                  {/* Quantity Column */}
-                  <div className="col-span-1">
-                    <p className="text-gray-600">{item.quantity}</p>
+                  {/* Size */}
+                  <div className="flex flex-col gap-1 text-[14px] font-medium text-[#010101] font-['Montserrat'] text-center">
+                    {item.size.map((size, idx) => (
+                      <div key={idx}>{size}</div>
+                    ))}
                   </div>
 
-                  {/* Price Column */}
-                  <div className="col-span-1">
-                    <p className="text-gray-600">₹{item.price}</p>
+                  {/* Quantity */}
+                  <div className="text-[#010101] text-[14px] font-medium font-['Montserrat'] text-center">
+                    {item.quantity}
                   </div>
 
-                  {/* Sale Price Column */}
-                  <div className="col-span-1">
-                    <p className="text-gray-600">₹{item.salePrice}</p>
+                  {/* Price */}
+                  <div className="text-[#111111] text-[11px] font-medium font-['Montserrat'] text-center">
+                    {item.price}
                   </div>
 
-                  {/* SKU Column */}
-                  <div className="col-span-1">
-                    <p className="text-gray-600 text-xs truncate" title={item.sku}>
-                      {item.sku}
-                    </p>
+                  {/* Sale Price */}
+                  <div className="text-[#111111] text-[11px] font-medium font-['Montserrat'] text-center">
+                    {item.salePrice}
                   </div>
 
-                  {/* Status Column with colored badges */}
-                  <div className="col-span-1">
-                    <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStatusStyle(item.status)}`}>
+                  {/* Platform Prices */}
+                  <div className="flex items-center justify-center">
+                    <div className="grid grid-cols-4 gap-3 text-center">
+                      <div className="text-[11px] font-medium text-[#111111] font-['Montserrat']">
+                        {item.platforms.myntra.enabled ? item.platforms.myntra.price : '-'}
+                      </div>
+                      <div className="text-[11px] font-medium text-[#111111] font-['Montserrat']">
+                        {item.platforms.amazon.enabled ? item.platforms.amazon.price : '-'}
+                      </div>
+                      <div className="text-[11px] font-medium text-[#111111] font-['Montserrat']">
+                        {item.platforms.flipkart.enabled ? item.platforms.flipkart.price : '-'}
+                      </div>
+                      <div className="text-[11px] font-medium text-[#111111] font-['Montserrat']">
+                        {item.platforms.nykaa.enabled ? item.platforms.nykaa.price : '-'}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* SKU */}
+                  <div className="text-[#111111] text-[11px] font-medium font-['Montserrat'] text-center">
+                    {item.sku}
+                  </div>
+
+                  {/* Barcode */}
+                  <div className="text-[#111111] text-[11px] font-medium font-['Montserrat'] text-center">
+                    {item.barcodeNo}
+                  </div>
+
+                  {/* Status */}
+                  <div className="text-center">
+                    <span className={`${getStatusStyle(item.status)} text-[15px] font-['Montserrat']`}>
                       {item.status}
                     </span>
                   </div>
 
-                  {/* Action Column with edit and delete buttons */}
-                  <div className="col-span-1">
-                    <div className="flex space-x-1">
-                      <button
-                        onClick={() => handleEdit(item.id)}
-                        className="p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors"
-                        title={`Edit ${item.productName}`}
-                        aria-label={`Edit ${item.productName}`}
-                      >
-                        <Edit2 className="h-3 w-3" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(item.id)}
-                        className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
-                        title={`Delete ${item.productName}`}
-                        aria-label={`Delete ${item.productName}`}
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </button>
-                    </div>
+                  {/* Meta Data */}
+                  <div className="flex justify-center">
+                    <button
+                      onClick={() => handleViewMetaData(item)}
+                      className="bg-[#000aff] text-white text-[14px] font-['Montserrat'] px-4 py-1 rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      view meta data
+                    </button>
+                  </div>
+
+                  {/* Action */}
+                  <div className="flex justify-center gap-1">
+                    <button
+                      onClick={() => handleEdit(item.id)}
+                      className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors"
+                    >
+                      <Edit2 className="h-4 w-4" />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(item.id)}
+                      className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
                   </div>
                 </div>
               ))}
             </div>
 
-            {/* Empty State - shown when no items match filters */}
+            {/* Empty State */}
             {filteredItems.length === 0 && (
               <div className="p-8 text-center text-gray-500">
                 <p className="text-lg font-medium mb-2">No items found</p>
@@ -402,23 +491,38 @@ const ManageItems = React.memo(() => {
 
           {/* Bulk Actions */}
           {selectedItems.length > 0 && (
-            <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+            <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <p className="text-sm text-blue-800 font-medium">
-                    {selectedItems.length} item{selectedItems.length > 1 ? 's' : ''} selected
-                  </p>
-                  <div className="flex items-center gap-2 text-sm">
-                    <input type="checkbox" id="move-to-sale" className="rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
-                    <label htmlFor="move-to-sale" className="text-blue-700">move to sale</label>
+                <div className="flex items-center gap-8">
+                  <div className="flex items-center gap-2 text-[15px] font-['Montserrat']">
+                    <input 
+                      type="checkbox" 
+                      id="move-to-sale" 
+                      checked={moveToSale}
+                      onChange={(e) => setMoveToSale(e.target.checked)}
+                      className="w-5 h-5 rounded-[3px] border-[#bcbcbc]" 
+                    />
+                    <label htmlFor="move-to-sale" className="text-black">move to sale</label>
                   </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <input type="checkbox" id="keep-copy" className="rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
-                    <label htmlFor="keep-copy" className="text-blue-700">keep a copy and move</label>
+                  <div className="flex items-center gap-2 text-[15px] font-['Montserrat']">
+                    <input 
+                      type="checkbox" 
+                      id="keep-copy" 
+                      checked={keepCopyAndMove}
+                      onChange={(e) => setKeepCopyAndMove(e.target.checked)}
+                      className="w-5 h-5 rounded-[3px] border-[#bcbcbc]" 
+                    />
+                    <label htmlFor="keep-copy" className="text-black">keep a copy and move</label>
                   </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <input type="checkbox" id="move-to-eye" className="rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
-                    <label htmlFor="move-to-eye" className="text-blue-700">move to eye</label>
+                  <div className="flex items-center gap-2 text-[15px] font-['Montserrat']">
+                    <input 
+                      type="checkbox" 
+                      id="move-to-eyx" 
+                      checked={moveToEyx}
+                      onChange={(e) => setMoveToEyx(e.target.checked)}
+                      className="w-5 h-5 rounded-[3px] border-[#bcbcbc]" 
+                    />
+                    <label htmlFor="move-to-eyx" className="text-black">move to eyx</label>
                   </div>
                 </div>
                 <div className="flex gap-2">
@@ -438,11 +542,11 @@ const ManageItems = React.memo(() => {
       {/* Edit Item Modal */}
       {isEditModalOpen && editingItem && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full mx-4 overflow-hidden max-h-screen overflow-y-auto">
+          <div className="bg-white rounded-xl shadow-2xl max-w-6xl w-full mx-4 overflow-hidden max-h-screen overflow-y-auto">
             
             {/* Modal Header */}
             <div className="relative p-6 border-b border-gray-200">
-              <h2 className="text-xl font-bold text-gray-900">Edit now</h2>
+              <h2 className="text-xl font-bold text-gray-900 font-['Montserrat']">Edit now</h2>
               <button
                 onClick={handleCloseEdit}
                 className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
@@ -456,7 +560,7 @@ const ManageItems = React.memo(() => {
               
               {/* Current Item Details Table */}
               <div className="mb-6 overflow-x-auto">
-                <table className="w-full border border-gray-300 rounded-lg">
+                <table className="w-full border border-gray-300 rounded-lg font-['Montserrat']">
                   <thead className="bg-gray-50">
                     <tr className="text-xs font-bold text-gray-700">
                       <th className="p-3 text-left border-r border-gray-300">Image</th>
@@ -492,7 +596,7 @@ const ManageItems = React.memo(() => {
                       <td className="p-3 border-r border-gray-200">{editingItem.sku}</td>
                       <td className="p-3 border-r border-gray-200">{editingItem.barcodeNo}</td>
                       <td className="p-3 border-r border-gray-200">
-                        <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStatusStyle(editingItem.status)}`}>
+                        <span className={`${getStatusStyle(editingItem.status)} text-[15px] font-['Montserrat']`}>
                           {editingItem.status}
                         </span>
                       </td>
@@ -504,13 +608,13 @@ const ManageItems = React.memo(() => {
 
               {/* Edit Section */}
               <div className="mb-6">
-                <label className="block text-lg font-bold text-gray-900 mb-4">
+                <label className="block text-lg font-bold text-gray-900 mb-4 font-['Montserrat']">
                   Type new details
                 </label>
                 <textarea
                   value={newDetails}
                   onChange={(e) => setNewDetails(e.target.value)}
-                  className="w-full h-32 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                  className="w-full h-32 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none font-['Montserrat']"
                   placeholder="Enter new details..."
                 />
               </div>
@@ -519,13 +623,13 @@ const ManageItems = React.memo(() => {
               <div className="flex gap-4 justify-center">
                 <button
                   onClick={handleSaveEdit}
-                  className="bg-black hover:bg-gray-800 text-white font-medium py-3 px-8 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+                  className="bg-black hover:bg-gray-800 text-white font-['Montserrat'] font-medium py-3 px-8 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
                 >
                   save
                 </button>
                 <button
                   onClick={handleCloseEdit}
-                  className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 px-8 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2"
+                  className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-['Montserrat'] font-medium py-3 px-8 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2"
                 >
                   go back
                 </button>
@@ -552,14 +656,14 @@ const ManageItems = React.memo(() => {
             <div className="p-8 text-center">
               
               {/* Success Message */}
-              <h2 className="text-lg font-bold text-black mb-8 leading-tight">
+              <h2 className="text-lg font-bold text-black mb-8 leading-tight font-['Montserrat']">
                 Item Details updated successfully!
               </h2>
 
               {/* Done Button */}
               <button
                 onClick={handleCloseSuccess}
-                className="bg-black hover:bg-gray-800 text-white font-semibold py-3 px-8 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 min-w-[120px]"
+                className="bg-black hover:bg-gray-800 text-white font-['Montserrat'] font-semibold py-3 px-8 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 min-w-[120px]"
               >
                 Done
               </button>
@@ -571,7 +675,6 @@ const ManageItems = React.memo(() => {
   );
 });
 
-// Set display name for debugging
 ManageItems.displayName = 'ManageItems';
 
 export default ManageItems;
