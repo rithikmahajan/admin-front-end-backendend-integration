@@ -11,7 +11,6 @@ const Orders = React.lazy(() => import('./pages/Orders'));
 const ReturnOrders = React.lazy(() => import('./pages/ReturnOrders'));
 const Analytics = React.lazy(() => import('./pages/Analytics'));
 const Filters = React.lazy(() => import('./pages/Filters'));
-const ItemDetails = React.lazy(() => import('./pages/ItemDetails'));
 const Profile = React.lazy(() => import('./pages/Profile'));
 const Messages = React.lazy(() => import('./pages/Messages'));
 const Settings = React.lazy(() => import('./pages/Settings'));
@@ -90,11 +89,6 @@ function App() {
           <Route path="filters" element={
             <Suspense fallback={<LoadingSpinner />}>
               <Filters />
-            </Suspense>
-          } />
-          <Route path="item-details" element={
-            <Suspense fallback={<LoadingSpinner />}>
-              <ItemDetails />
             </Suspense>
           } />
           <Route path="profile" element={

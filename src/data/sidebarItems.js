@@ -14,7 +14,7 @@ const sidebarItems = [
   },
   {
     title: "App uploading area",
-    items: ["Category", "Subcategory", "Items", "Item details"],
+    items: ["Category", "Subcategory", "Items"],
   },
   {
     title: "App functional area",

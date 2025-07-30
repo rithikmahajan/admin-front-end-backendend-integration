@@ -46,8 +46,7 @@ const Sidebar = React.memo(({ sidebarOpen, setSidebarOpen, sidebarHidden, onTogg
       items: [
         { name: 'Category', path: '/upload-category' },
         { name: 'Subcategory', path: '/subcategory' },
-        { name: 'Items', path: '/manage-items' },
-        { name: 'Item details', path: '/item-details' }
+        { name: 'Items', path: '/manage-items' }
       ]
     },
     {
