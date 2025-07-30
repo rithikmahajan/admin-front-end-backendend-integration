@@ -3,10 +3,47 @@
 // - Navbar/Header at the top
 // - Sidebar below navbar
 // - Main content area uses React Router Outlet for dynamic page rendering
-import { Outlet } from "react-router-dom";
+import { Outlet, Link, useLocation } from "react-router-dom";
 import sidebarItems from "../data/sidebarItems";
 
 const Layout = () => {
+  const location = useLocation();
+
+  // Map sidebar items to routes
+  const getRouteForItem = (item) => {
+    const routeMap = {
+      "Dashboard": "/",
+      "orders": "/orders",
+      "return and exchange requests": "/return-orders",
+      "support messages": "/messages",
+      "vendor msg and in app notifications": "/messages",
+      "Category": "/upload-category",
+      "Subcategory": "/subcategory",
+      "Items": "/manage-items",
+      "Filters": "/filters",
+      "join us control screen": "/join-control",
+      "Manage banners rewards": "/manage-banners-rewards",
+      "manage product and category": "/manage-items",
+      "product bundling": "/bundling",
+      "Arrangement control": "/arrangement",
+      "new admin partner": "/new-partner",
+      "users /block user": "/users",
+      "send notification in app(inbuilt)": "/in-app-notification",
+      "push notification": "/push-notification",
+      "manage and post reviews": "/manage-reviews",
+      "Promo codes": "/promo-code-management",
+      "Points management and issue": "/points",
+      "Invite a friend with promo code": "/invite",
+      "Cart abandonment recovery": "/cart-recovery",
+      "(bulk message and email)": "/bulk-messages",
+      "analytics report(google)": "/analytics",
+      "Data base": "/database",
+      "support chat log": "/support-logs",
+      "Settings": "/settings"
+    };
+    return routeMap[item] || "#";
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Navbar/Header at the top */}
@@ -34,13 +71,31 @@ const Layout = () => {
                   {section.title}
                 </h3>
                 <ul className="space-y-1">
-                  {section.items.map((item, itemIndex) => (
-                    <li key={itemIndex}>
-                      <button className="text-sm text-gray-600 hover:text-gray-900 block py-1 w-full text-left">
-                        {item}
-                      </button>
-                    </li>
-                  ))}
+                  {section.items.map((item, itemIndex) => {
+                    const route = getRouteForItem(item);
+                    const isActive = location.pathname === route;
+                    
+                    return (
+                      <li key={itemIndex}>
+                        {route !== "#" ? (
+                          <Link
+                            to={route}
+                            className={`text-sm block py-1 w-full text-left transition-colors ${
+                              isActive
+                                ? "text-blue-600 font-medium"
+                                : "text-gray-600 hover:text-gray-900"
+                            }`}
+                          >
+                            {item}
+                          </Link>
+                        ) : (
+                          <button className="text-sm text-gray-600 hover:text-gray-900 block py-1 w-full text-left">
+                            {item}
+                          </button>
+                        )}
+                      </li>
+                    );
+                  })}
                 </ul>
               </div>
             ))}

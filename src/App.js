@@ -28,6 +28,7 @@ const NewPartner = React.lazy(() => import('./pages/NewPartner'));
 const BlockUser = React.lazy(() => import('./pages/BlockUser'));
 const NotificationFromApp = React.lazy(() => import('./pages/NotificationFromApp'));
 const Points = React.lazy(() => import('./pages/points'));
+const InviteAFriend = React.lazy(() => import('./pages/inviteafriend'));
 
 // Loading component for Suspense fallback
 const LoadingSpinner = () => (
@@ -175,6 +176,11 @@ function App() {
           <Route path="points" element={
             <Suspense fallback={<LoadingSpinner />}>
               <Points />
+            </Suspense>
+          } />
+          <Route path="invite" element={
+            <Suspense fallback={<LoadingSpinner />}>
+              <InviteAFriend />
             </Suspense>
           } />
         </Route>

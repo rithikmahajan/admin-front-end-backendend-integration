@@ -3,6 +3,7 @@ import ConfirmationDialogue from "./components/confirmationDialogue";
 import Layout from "./layout/Layout";
 import PushNotification from "./pages/pushNotification";
 import NotificationPreview from "./pages/notificationPreview";
+import InviteAFriend from "./pages/inviteafriend";
 
 const App = () => {
   return (
@@ -15,6 +16,7 @@ const App = () => {
             path="/notification-preview"
             element={<NotificationPreview />}
           />
+          <Route path="/invite" element={<InviteAFriend />} />
         </Route>
       </Routes>
     </>
