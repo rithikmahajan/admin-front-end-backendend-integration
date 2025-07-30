@@ -1,6 +1,12 @@
 import React, { useState } from 'react';
 import { X } from 'lucide-react';
 
+// Image constants from Figma design
+const imgProgressBar = "http://localhost:3845/assets/910f1120d3bdc0f6938634d6aef7d55a7bec572e.svg";
+const imgProgressBar1 = "http://localhost:3845/assets/34772e9eec583c7c3b05d958ac9b0f08ea0df778.svg";
+const imgProgressBar2 = "http://localhost:3845/assets/03d7a9eb0b3a258f8463991e4d3604bb169d1d1f.svg";
+const imgProgressBar3 = "http://localhost:3845/assets/f3f85ecfe751f814840dadb647864a547b36ca15.svg";
+
 const NewPartner = () => {
   const [formData, setFormData] = useState({
     name: '',
@@ -13,41 +19,45 @@ const NewPartner = () => {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [selectedVendorId, setSelectedVendorId] = useState(null);
+  const [blockAction, setBlockAction] = useState(''); // 'block' or 'unblock'
 
   const [vendors, setVendors] = useState([
     {
       id: 1,
-      vendorName: 'Item id',
-      vendorId: 'Item id',
+      vendorName: 'rithik',
+      vendorId: 'rithik09/28/1998',
       password: '************',
       editPassword: '************',
       status: 'active'
     },
     {
       id: 2,
-      vendorName: 'Item id',
-      vendorId: 'Item id',
+      vendorName: 'pearl',
+      vendorId: 'rithik09/28/1998',
       password: '************',
       editPassword: '************',
-      status: 'active'
+      status: 'blocked'
     },
     {
       id: 3,
-      vendorName: 'Item id',
-      vendorId: 'Item id',
+      vendorName: 'saksham',
+      vendorId: 'rithik09/28/1998',
       password: '************',
       editPassword: '************',
       status: 'active'
     },
     {
       id: 4,
-      vendorName: 'Item id',
-      vendorId: 'Item id',
+      vendorName: 'meetu',
+      vendorId: 'rithik09/28/1998',
       password: '************',
       editPassword: '************',
       status: 'active'
     }
   ]);
+
+  const [editingPassword, setEditingPassword] = useState({});
+  const [editingEditPassword, setEditingEditPassword] = useState({});
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -64,9 +74,17 @@ const NewPartner = () => {
       return;
     }
     
-    // Add logic to create new partner
-    console.log('Creating new partner:', formData);
-    alert('New partner created successfully!');
+    // Create new vendor
+    const newVendor = {
+      id: Date.now(), // Simple ID generation
+      vendorName: formData.name,
+      vendorId: formData.newId,
+      password: '************',
+      editPassword: '************',
+      status: 'active'
+    };
+    
+    setVendors(prev => [...prev, newVendor]);
     
     // Reset form
     setFormData({
@@ -75,10 +93,13 @@ const NewPartner = () => {
       password: '',
       confirmPassword: ''
     });
+    
+    alert('New partner created successfully!');
   };
 
-  const handleBlockVendor = (vendorId) => {
+  const handleBlockVendor = (vendorId, action) => {
     setSelectedVendorId(vendorId);
+    setBlockAction(action);
     setShowConfirmModal(true);
   };
 
@@ -86,7 +107,7 @@ const NewPartner = () => {
     setVendors(prev => 
       prev.map(vendor => 
         vendor.id === selectedVendorId 
-          ? { ...vendor, status: vendor.status === 'active' ? 'blocked' : 'active' }
+          ? { ...vendor, status: blockAction === 'block' ? 'blocked' : 'active' }
           : vendor
       )
     );
@@ -104,156 +125,242 @@ const NewPartner = () => {
     setShowSuccessModal(false);
   };
 
+  const handlePasswordEdit = (vendorId, field, value) => {
+    if (field === 'password') {
+      setEditingPassword(prev => ({
+        ...prev,
+        [vendorId]: value
+      }));
+    } else if (field === 'editPassword') {
+      setEditingEditPassword(prev => ({
+        ...prev,
+        [vendorId]: value
+      }));
+    }
+  };
+
+  const savePassword = (vendorId, field) => {
+    const newValue = field === 'password' ? editingPassword[vendorId] : editingEditPassword[vendorId];
+    if (newValue) {
+      setVendors(prev => 
+        prev.map(vendor => 
+          vendor.id === vendorId 
+            ? { ...vendor, [field]: newValue }
+            : vendor
+        )
+      );
+      
+      // Clear editing state
+      if (field === 'password') {
+        setEditingPassword(prev => {
+          const updated = { ...prev };
+          delete updated[vendorId];
+          return updated;
+        });
+      } else {
+        setEditingEditPassword(prev => {
+          const updated = { ...prev };
+          delete updated[vendorId];
+          return updated;
+        });
+      }
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="bg-[#ffffff] relative min-h-screen w-full">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div className="text-2xl font-bold text-gray-900">
-            New Partner
-          </div>
-        </div>
+      <div className="text-left pt-10 pb-8 px-8">
+        <h1 className="font-bold text-[#000000] text-[24px] leading-[22px]">New Partner</h1>
       </div>
 
-      {/* Main Content */}
-      <div className="flex">
-        {/* Main Panel */}
-        <div className="flex-1 p-6">
-          <div className="bg-white rounded-xl shadow-sm p-8 max-w-4xl mx-auto">
-            
-            {/* Form Section */}
-            <div className="mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
-                New Partner
-              </h2>
-              
-              <form onSubmit={handleSubmit} className="space-y-6 max-w-md mx-auto">
-                {/* Name Field */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Name
-                  </label>
-                  <input
-                    type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full px-4 py-3 border-2 border-black rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Enter partner name"
-                  />
-                </div>
-
-                {/* Make new id Field */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Make new id
-                  </label>
-                  <input
-                    type="text"
-                    name="newId"
-                    value={formData.newId}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full px-4 py-3 border-2 border-black rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Enter new ID"
-                  />
-                </div>
-
-                {/* Password Field */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Password
-                  </label>
-                  <input
-                    type="password"
-                    name="password"
-                    value={formData.password}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full px-4 py-3 border-2 border-black rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Enter password"
-                  />
-                </div>
-
-                {/* Confirm Password Field */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Confirm password
-                  </label>
-                  <input
-                    type="password"
-                    name="confirmPassword"
-                    value={formData.confirmPassword}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full px-4 py-3 border-2 border-black rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Confirm password"
-                  />
-                </div>
-
-                {/* Submit Button */}
-                <button
-                  type="submit"
-                  className="w-full bg-blue-600 text-white py-3 px-4 rounded-xl hover:bg-blue-700 transition-colors duration-200 font-medium"
-                >
-                  Create Partner
-                </button>
-              </form>
-            </div>
-
-            {/* Vendors Table Section */}
-            <div className="mt-12">
-              <h3 className="text-xl font-bold text-gray-900 mb-6">Existing Partners</h3>
-              
-              <div className="overflow-x-auto">
-                <table className="w-full border-collapse">
-                  <thead>
-                    <tr className="border-b border-gray-200">
-                      <th className="text-left py-4 px-4 font-medium text-gray-700">Vendor Name</th>
-                      <th className="text-left py-4 px-4 font-medium text-gray-700">Vendor ID</th>
-                      <th className="text-left py-4 px-4 font-medium text-gray-700">Password</th>
-                      <th className="text-left py-4 px-4 font-medium text-gray-700">Edit Password</th>
-                      <th className="text-left py-4 px-4 font-medium text-gray-700">Status</th>
-                      <th className="text-left py-4 px-4 font-medium text-gray-700">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {vendors.map((vendor) => (
-                      <tr key={vendor.id} className="border-b border-gray-100 hover:bg-gray-50">
-                        <td className="py-4 px-4 text-gray-900">{vendor.vendorName}</td>
-                        <td className="py-4 px-4 text-gray-900">{vendor.vendorId}</td>
-                        <td className="py-4 px-4 text-gray-500">{vendor.password}</td>
-                        <td className="py-4 px-4 text-gray-500">{vendor.editPassword}</td>
-                        <td className="py-4 px-4">
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            vendor.status === 'active' 
-                              ? 'bg-green-100 text-green-800' 
-                              : 'bg-red-100 text-red-800'
-                          }`}>
-                            {vendor.status}
-                          </span>
-                        </td>
-                        <td className="py-4 px-4">
-                          <button
-                            onClick={() => handleBlockVendor(vendor.id)}
-                            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                              vendor.status === 'active'
-                                ? 'bg-red-600 text-white hover:bg-red-700'
-                                : 'bg-green-600 text-white hover:bg-green-700'
-                            }`}
-                          >
-                            {vendor.status === 'active' ? 'Block' : 'Unblock'}
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+      {/* Form Section */}
+      <div className="max-w-sm ml-8 px-0">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Name Field */}
+          <div>
+            <label className="block text-[#000000] text-[20px] text-left mb-2 tracking-[-0.5px]">
+              Name
+            </label>
+            <div className="relative">
+              <input
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleInputChange}
+                required
+                className="w-full h-[47px] px-4 border-2 border-[#000000] rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder=""
+              />
             </div>
           </div>
-        </div>
+
+          {/* Make new id Field */}
+          <div>
+            <label className="block text-[#000000] text-[20px] text-left mb-2 tracking-[-0.5px]">
+              Make new id
+            </label>
+            <div className="relative">
+              <input
+                type="text"
+                name="newId"
+                value={formData.newId}
+                onChange={handleInputChange}
+                required
+                className="w-full h-[47px] px-4 border-2 border-[#000000] rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder=""
+              />
+            </div>
+          </div>
+
+          {/* Password Field */}
+          <div>
+            <label className="block text-[#000000] text-[20px] text-left mb-2 tracking-[-0.5px]">
+              Password
+            </label>
+            <div className="relative">
+              <input
+                type="password"
+                name="password"
+                value={formData.password}
+                onChange={handleInputChange}
+                required
+                className="w-full h-[47px] px-4 border-2 border-[#000000] rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder=""
+              />
+            </div>
+          </div>
+
+          {/* Confirm Password Field */}
+          <div>
+            <label className="block text-[#000000] text-[20px] text-left mb-2 tracking-[-0.5px]">
+              Confirm password
+            </label>
+            <div className="relative">
+              <input
+                type="password"
+                name="confirmPassword"
+                value={formData.confirmPassword}
+                onChange={handleInputChange}
+                required
+                className="w-full h-[47px] px-4 border-2 border-[#000000] rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder=""
+              />
+            </div>
+          </div>
+
+          {/* Create Partner Button */}
+          <div className="pt-4">
+            <button
+              type="submit"
+              className="bg-[#000000] text-[#ffffff] text-[14px] font-medium px-8 py-3 rounded-full hover:bg-gray-800 transition-colors"
+            >
+              create partner
+            </button>
+          </div>
+        </form>
+      </div>
+
+      {/* Vendors Table Section */}
+      <div className="mt-16 px-8">
+        {vendors.length > 0 ? (
+          <div className="max-w-6xl">
+            {/* Table Headers */}
+            <div className="grid grid-cols-6 gap-8 mb-4">
+              <div className="text-[#000000] text-[20px] text-left tracking-[-0.5px]">vendor name</div>
+              <div className="text-[#000000] text-[20px] text-left tracking-[-0.5px]">vendor id</div>
+              <div className="text-[#000000] text-[20px] text-center tracking-[-0.5px]">password</div>
+              <div className="text-[#000000] text-[20px] text-center tracking-[-0.5px]">edit password</div>
+              <div className="text-[#000000] text-[20px] text-center tracking-[-0.5px]">block</div>
+              <div className="text-[#000000] text-[20px] text-center tracking-[-0.5px]">unblock</div>
+            </div>
+
+            {/* Table Rows */}
+            {vendors.map((vendor, index) => (
+              <div key={vendor.id} className="grid grid-cols-6 gap-8 items-center py-4">
+                <div className="text-[#202224] text-[14px] font-bold">{vendor.vendorName}</div>
+                <div className="text-[#202224] text-[14px] font-bold">{vendor.vendorId}</div>
+                <div className="flex items-center justify-center">
+                  {/* Editable Password Field */}
+                  {editingPassword[vendor.id] !== undefined ? (
+                    <input
+                      type="text"
+                      value={editingPassword[vendor.id]}
+                      onChange={(e) => handlePasswordEdit(vendor.id, 'password', e.target.value)}
+                      onBlur={() => savePassword(vendor.id, 'password')}
+                      onKeyPress={(e) => e.key === 'Enter' && savePassword(vendor.id, 'password')}
+                      className="w-32 px-2 py-1 border border-gray-300 rounded text-sm text-center"
+                      autoFocus
+                    />
+                  ) : (
+                    <span 
+                      className="text-[#000000] text-[20px] tracking-[-0.5px] cursor-pointer hover:bg-gray-100 px-2 py-1 rounded"
+                      onClick={() => handlePasswordEdit(vendor.id, 'password', vendor.password)}
+                    >
+                      {vendor.password}
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center justify-center">
+                  {/* Editable Edit Password Field */}
+                  {editingEditPassword[vendor.id] !== undefined ? (
+                    <input
+                      type="text"
+                      value={editingEditPassword[vendor.id]}
+                      onChange={(e) => handlePasswordEdit(vendor.id, 'editPassword', e.target.value)}
+                      onBlur={() => savePassword(vendor.id, 'editPassword')}
+                      onKeyPress={(e) => e.key === 'Enter' && savePassword(vendor.id, 'editPassword')}
+                      className="w-32 px-2 py-1 border border-gray-300 rounded text-sm text-center"
+                      autoFocus
+                    />
+                  ) : (
+                    <span 
+                      className="text-[#000000] text-[20px] tracking-[-0.5px] cursor-pointer hover:bg-gray-100 px-2 py-1 rounded"
+                      onClick={() => handlePasswordEdit(vendor.id, 'editPassword', vendor.editPassword)}
+                    >
+                      {vendor.editPassword}
+                    </span>
+                  )}
+                </div>
+                <div className="flex justify-center">
+                  <button
+                    onClick={() => handleBlockVendor(vendor.id, 'block')}
+                    disabled={vendor.status === 'blocked'}
+                    className={`text-[#ffffff] text-[14px] font-normal px-4 py-2.5 rounded-lg border shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] transition-colors ${
+                      vendor.status === 'blocked'
+                        ? 'bg-gray-400 border-gray-400 cursor-not-allowed opacity-50'
+                        : 'bg-[#000000] border-[#333333] hover:bg-gray-800 cursor-pointer'
+                    }`}
+                  >
+                    Block NOW
+                  </button>
+                </div>
+                <div className="flex justify-center">
+                  <button
+                    onClick={() => handleBlockVendor(vendor.id, 'unblock')}
+                    disabled={vendor.status === 'active'}
+                    className={`text-[#ffffff] text-[14px] font-normal px-4 py-2.5 rounded-lg border shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] transition-colors ${
+                      vendor.status === 'active'
+                        ? 'bg-gray-400 border-gray-400 cursor-not-allowed opacity-50'
+                        : 'bg-[#dc2626] border-[#dc2626] hover:bg-red-700 cursor-pointer'
+                    }`}
+                  >
+                    Unblock NOW
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          // Empty State
+          <div className="max-w-6xl">
+            <div className="text-center py-16">
+              <div className="text-gray-400 text-6xl mb-4">👥</div>
+              <h3 className="text-xl font-medium text-gray-600 mb-2">No vendors yet</h3>
+              <p className="text-gray-500">Create your first vendor to get started</p>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Confirmation Modal */}
@@ -271,7 +378,7 @@ const NewPartner = () => {
             {/* Modal content */}
             <div className="text-center">
               <h2 className="text-lg font-bold text-black mb-8 leading-6">
-                are you sure you want to block
+                are you sure you want to {blockAction}
               </h2>
               
               <div className="flex justify-center space-x-4">
@@ -319,9 +426,15 @@ const NewPartner = () => {
                 </div>
               </div>
               
-              <h2 className="text-lg font-bold text-black mb-6">
-                Vendor blocked successfully
-              </h2>
+              {(() => {
+                const vendor = vendors.find(v => v.id === selectedVendorId);
+                const wasBlocked = vendor?.status === 'blocked';
+                return (
+                  <h2 className="text-lg font-bold text-black mb-6">
+                    Vendor {wasBlocked ? 'blocked' : 'unblocked'} successfully
+                  </h2>
+                );
+              })()}
               
               <button
                 onClick={closeSuccessModal}

@@ -98,6 +98,12 @@ const SubCategory = () => {
     setDeletingSubCategory(null);
   };
 
+  const handleAddNewSubCategory = () => {
+    setEditingSubCategory({ id: null, name: '', image: '', description: '' });
+    setNewSubCategoryName('');
+    setIsEditModalOpen(true);
+  };
+
   const filteredSubCategories = subCategories.filter(subCategory =>
     subCategory.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     subCategory.description.toLowerCase().includes(searchTerm.toLowerCase())
@@ -238,7 +244,10 @@ const SubCategory = () => {
 
           {/* Add SubCategory Button */}
           <div className="mt-6 flex justify-center">
-            <button className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+            <button 
+              onClick={handleAddNewSubCategory}
+              className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            >
               Add New SubCategory
             </button>
           </div>
@@ -252,7 +261,9 @@ const SubCategory = () => {
             
             {/* Modal Header */}
             <div className="relative p-6 border-b border-gray-200">
-              <h2 className="text-xl font-bold text-gray-900 text-center">Edit subcategory</h2>
+              <h2 className="text-xl font-bold text-gray-900 text-center">
+                {editingSubCategory.id ? 'Edit subcategory' : 'Add new subcategory'}
+              </h2>
               <button
                 onClick={handleCloseEdit}
                 className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
@@ -268,28 +279,36 @@ const SubCategory = () => {
               <div className="mb-6">
                 <p className="text-sm font-medium text-gray-700 mb-3">Image</p>
                 <div className="w-24 h-24 bg-gray-200 rounded-lg overflow-hidden mx-auto">
-                  <img
-                    src={editingSubCategory.image}
-                    alt={editingSubCategory.name}
-                    className="w-full h-full object-cover"
-                  />
+                  {editingSubCategory.id ? (
+                    <img
+                      src={editingSubCategory.image}
+                      alt={editingSubCategory.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-gray-400">
+                      <span className="text-xs">No image</span>
+                    </div>
+                  )}
                 </div>
               </div>
 
               {/* SubCategory Info */}
               <div className="mb-6">
                 <p className="text-sm font-medium text-gray-700 mb-2">SubCategory</p>
-                <p className="text-gray-900 mb-4">{editingSubCategory.description}</p>
+                {editingSubCategory.id && (
+                  <p className="text-gray-900 mb-4">{editingSubCategory.description}</p>
+                )}
                 
                 <label className="block text-sm font-medium text-gray-700 mb-3">
-                  Type new subcategory
+                  {editingSubCategory.id ? 'Type new subcategory' : 'SubCategory name'}
                 </label>
                 <input
                   type="text"
                   value={newSubCategoryName}
                   onChange={(e) => setNewSubCategoryName(e.target.value)}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Enter new subcategory name"
+                  placeholder={editingSubCategory.id ? "Enter new subcategory name" : "Enter subcategory name"}
                 />
               </div>
 
@@ -299,7 +318,7 @@ const SubCategory = () => {
                   onClick={handleSaveEdit}
                   className="w-full bg-black hover:bg-gray-800 text-white font-medium py-3 px-6 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
                 >
-                  save
+                  {editingSubCategory.id ? 'save' : 'Add SubCategory'}
                 </button>
                 <button
                   onClick={handleCloseEdit}
@@ -323,7 +342,9 @@ const SubCategory = () => {
               
               {/* Success Message */}
               <div className="mb-8">
-                <h2 className="text-xl font-bold text-gray-900 mb-2">subcategory updated</h2>
+                <h2 className="text-xl font-bold text-gray-900 mb-2">
+                  subcategory {editingSubCategory && !editingSubCategory.id ? 'added' : 'updated'}
+                </h2>
                 <h2 className="text-xl font-bold text-gray-900">successfully!</h2>
               </div>
 

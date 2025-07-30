@@ -19,32 +19,27 @@ const UploadCategory = () => {
       id: 1,
       name: 'Category 1',
       image: '/api/placeholder/208/208',
-      description: 'What\'s your contact informati'
+      description: 'men'
     },
     {
       id: 2,
       name: 'Category 2',
       image: '/api/placeholder/208/208',
-      description: 'What\'s your contact informati'
+      description: 'women'
     }
   ];
 
   const categoryOptions = [
-    'Category',
-    'Electronics',
-    'Clothing',
-    'Home & Garden',
-    'Sports',
-    'Books',
-    'Toys'
+    'men',
+    'women',
+    'kids'
   ];
 
   const subCategoryOptions = [
-    'sub category',
-    'Smartphones',
-    'Laptops',
-    'Cameras',
-    'Accessories'
+    'jacket',
+    'tshirt',
+    'shirt',
+    'lower'
   ];
 
   const handleEdit = (categoryId) => {
@@ -98,6 +93,12 @@ const UploadCategory = () => {
   const handleCloseDeleteSuccess = () => {
     setIsDeleteSuccessModalOpen(false);
     setDeletingCategory(null);
+  };
+
+  const handleAddNewCategory = () => {
+    setEditingCategory({ id: null, name: '', image: '', description: '' });
+    setNewCategoryName('');
+    setIsEditModalOpen(true);
   };
 
   const filteredCategories = categories.filter(category =>
@@ -231,7 +232,10 @@ const UploadCategory = () => {
 
       {/* Add Category Button */}
       <div className="mt-6 flex justify-center">
-        <button className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+        <button 
+          onClick={handleAddNewCategory}
+          className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+        >
           Add New Category
         </button>
       </div>
@@ -243,7 +247,9 @@ const UploadCategory = () => {
             
             {/* Modal Header */}
             <div className="relative p-6 border-b border-gray-200">
-              <h2 className="text-xl font-bold text-gray-900 text-center">Edit category</h2>
+              <h2 className="text-xl font-bold text-gray-900 text-center">
+                {editingCategory.id ? 'Edit category' : 'Add new category'}
+              </h2>
               <button
                 onClick={handleCloseEdit}
                 className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
@@ -259,28 +265,36 @@ const UploadCategory = () => {
               <div className="mb-6">
                 <p className="text-sm font-medium text-gray-700 mb-3">Image</p>
                 <div className="w-24 h-24 bg-gray-200 rounded-lg overflow-hidden mx-auto">
-                  <img
-                    src={editingCategory.image}
-                    alt={editingCategory.name}
-                    className="w-full h-full object-cover"
-                  />
+                  {editingCategory.id ? (
+                    <img
+                      src={editingCategory.image}
+                      alt={editingCategory.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-gray-400">
+                      <span className="text-xs">No image</span>
+                    </div>
+                  )}
                 </div>
               </div>
 
               {/* Category Info */}
               <div className="mb-6">
                 <p className="text-sm font-medium text-gray-700 mb-2">Category</p>
-                <p className="text-gray-900 mb-4">{editingCategory.description}</p>
+                {editingCategory.id && (
+                  <p className="text-gray-900 mb-4">{editingCategory.description}</p>
+                )}
                 
                 <label className="block text-sm font-medium text-gray-700 mb-3">
-                  Type new category
+                  {editingCategory.id ? 'Type new category' : 'Category name'}
                 </label>
                 <input
                   type="text"
                   value={newCategoryName}
                   onChange={(e) => setNewCategoryName(e.target.value)}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Enter new category name"
+                  placeholder={editingCategory.id ? "Enter new category name" : "Enter category name"}
                 />
               </div>
 
@@ -290,7 +304,7 @@ const UploadCategory = () => {
                   onClick={handleSaveEdit}
                   className="w-full bg-black hover:bg-gray-800 text-white font-medium py-3 px-6 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
                 >
-                  save
+                  {editingCategory.id ? 'save' : 'Add Category'}
                 </button>
                 <button
                   onClick={handleCloseEdit}
@@ -314,7 +328,9 @@ const UploadCategory = () => {
               
               {/* Success Message */}
               <div className="mb-8">
-                <h2 className="text-xl font-bold text-gray-900 mb-2">category updated</h2>
+                <h2 className="text-xl font-bold text-gray-900 mb-2">
+                  category {editingCategory && !editingCategory.id ? 'added' : 'updated'}
+                </h2>
                 <h2 className="text-xl font-bold text-gray-900">successfully!</h2>
               </div>
 
