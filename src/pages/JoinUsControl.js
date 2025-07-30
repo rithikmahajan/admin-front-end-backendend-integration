@@ -879,7 +879,6 @@ const JoinUsControl = memo(() => {
                       <p className="text-sm text-gray-700">Manage banners rewards</p>
                       <p className="text-sm font-medium text-black">join us control screen</p>
                       <p className="text-sm text-gray-700">Invite a friend</p>
-                      <p className="text-sm text-gray-700">new admin</p>
                       <p className="text-sm text-gray-700">Arrangement control</p>
                       <p className="text-sm text-gray-700">product bundling</p>
                     </div>

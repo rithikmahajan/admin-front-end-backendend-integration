@@ -83,7 +83,7 @@ const BlockUser = () => {
 
       {/* Main Content */}
       
-        <div className="bg-white rounded-xl shadow-sm p-6 max-w-7xl m-0">
+        <div className="max-w-7xl m-0 p-6">
           
           {/* Page Title */}
           <div className="mb-8">

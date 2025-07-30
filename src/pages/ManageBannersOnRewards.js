@@ -420,7 +420,6 @@ const ScreenViewModal = ({ banners, onClose }) => {
                   <div className="text-gray-700">Manage banners rewards</div>
                   <div className="text-gray-700">join us control screen</div>
                   <div className="text-gray-700">Invite a friend</div>
-                  <div className="text-gray-700">new admin</div>
                   <div className="text-gray-700">Arrangement control</div>
                   <div className="text-gray-700">product bundling</div>
                 </div>

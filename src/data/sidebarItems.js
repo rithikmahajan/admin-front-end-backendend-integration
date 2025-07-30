@@ -20,7 +20,6 @@ const sidebarItems = [
     title: "App functional area",
     items: [
       "Filters",
-      "manage and Add Faq",
       "join us control screen",
       "Manage banners rewards",
       "manage product and category",
