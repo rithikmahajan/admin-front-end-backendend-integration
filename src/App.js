@@ -27,6 +27,7 @@ const ArrangementControl = React.lazy(() => import('./pages/ArrangementControl')
 const NewPartner = React.lazy(() => import('./pages/NewPartner'));
 const BlockUser = React.lazy(() => import('./pages/BlockUser'));
 const NotificationFromApp = React.lazy(() => import('./pages/NotificationFromApp'));
+const Points = React.lazy(() => import('./pages/points'));
 
 // Loading component for Suspense fallback
 const LoadingSpinner = () => (
@@ -169,6 +170,11 @@ function App() {
           <Route path="notifications-from-app" element={
             <Suspense fallback={<LoadingSpinner />}>
               <NotificationFromApp />
+            </Suspense>
+          } />
+          <Route path="points" element={
+            <Suspense fallback={<LoadingSpinner />}>
+              <Points />
             </Suspense>
           } />
         </Route>
