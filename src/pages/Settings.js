@@ -136,6 +136,69 @@ const Settings = () => {
   const [editingHsnCode, setEditingHsnCode] = useState(null);
   const [deletingHsnCodeId, setDeletingHsnCodeId] = useState(null);
 
+  // Language, Country, Region form state
+  const [locationSettings, setLocationSettings] = useState({
+    searchTerm: '',
+    selectedCountry: '',
+    selectedLanguage: '',
+    selectedCurrency: '',
+    countries: [],
+    languages: [],
+    currencies: []
+  });
+
+  // Modal states for location settings
+  const [locationModals, setLocationModals] = useState({
+    languageCountryModal: false,
+    editOrderModal: false,
+    ordersSavedSuccess: false,
+    countryCreatedSuccess: false,
+    languageCreatedSuccess: false,
+    currencyCreatedSuccess: false,
+    deleteCountryConfirm: false,
+    deleteLanguageConfirm: false,
+    deleteCurrencyConfirm: false,
+    countryDeletedSuccess: false,
+    languageDeletedSuccess: false,
+    currencyDeletedSuccess: false
+  });
+
+  // Edit states for location settings
+  const [editingCountry, setEditingCountry] = useState(null);
+  const [editingLanguage, setEditingLanguage] = useState(null);
+  const [editingCurrency, setEditingCurrency] = useState(null);
+  const [deletingCountryId, setDeletingCountryId] = useState(null);
+  const [deletingLanguageId, setDeletingLanguageId] = useState(null);
+  const [deletingCurrencyId, setDeletingCurrencyId] = useState(null);
+
+  // Order editing states
+  const [editingOrders, setEditingOrders] = useState({
+    countries: {},
+    languages: {},
+    currencies: {}
+  });
+  const [newOrderInput, setNewOrderInput] = useState('');
+
+  // Predefined options
+  const countryOptions = [
+    'United States', 'Canada', 'United Kingdom', 'Germany', 'France', 'Spain', 'Italy', 
+    'Netherlands', 'Sweden', 'Norway', 'Denmark', 'Australia', 'New Zealand', 'Japan', 
+    'South Korea', 'Singapore', 'India', 'China', 'Brazil', 'Mexico'
+  ];
+
+  const languageOptions = [
+    'English', 'Spanish', 'French', 'German', 'Italian', 'Portuguese', 'Dutch', 
+    'Swedish', 'Norwegian', 'Danish', 'Japanese', 'Korean', 'Chinese (Simplified)', 
+    'Chinese (Traditional)', 'Hindi', 'Arabic', 'Russian', 'Polish'
+  ];
+
+  const currencyOptions = [
+    'USD - US Dollar', 'EUR - Euro', 'GBP - British Pound', 'JPY - Japanese Yen', 
+    'CAD - Canadian Dollar', 'AUD - Australian Dollar', 'CHF - Swiss Franc', 
+    'CNY - Chinese Yuan', 'INR - Indian Rupee', 'KRW - South Korean Won',
+    'SEK - Swedish Krona', 'NOK - Norwegian Krone', 'DKK - Danish Krone'
+  ];
+
   // Discount modal handlers
   const handleOpenDiscountModal = () => {
     setModals(prev => ({ ...prev, discountModal: true }));
@@ -578,6 +641,307 @@ const Settings = () => {
     setModals(prev => ({ ...prev, hsnCodeDeletedModal: false, hsnCodeModal: false }));
   };
 
+  // Language, Country, Region handlers
+  const handleOpenLanguageCountryModal = () => {
+    setLocationModals(prev => ({ ...prev, languageCountryModal: true }));
+  };
+
+  const handleCloseLanguageCountryModal = () => {
+    setLocationModals(prev => ({ ...prev, languageCountryModal: false }));
+    setLocationSettings(prev => ({
+      ...prev,
+      searchTerm: '',
+      selectedCountry: '',
+      selectedLanguage: '',
+      selectedCurrency: ''
+    }));
+    setEditingCountry(null);
+    setEditingLanguage(null);
+    setEditingCurrency(null);
+  };
+
+  const handleLocationSettingChange = (field, value) => {
+    setLocationSettings(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleAddCountry = () => {
+    if (locationSettings.selectedCountry) {
+      const newCountry = {
+        id: Date.now(),
+        name: locationSettings.selectedCountry,
+        order: locationSettings.countries.length + 1
+      };
+      setLocationSettings(prev => ({
+        ...prev,
+        countries: [...prev.countries, newCountry],
+        selectedCountry: ''
+      }));
+      setLocationModals(prev => ({ ...prev, countryCreatedSuccess: true }));
+    }
+  };
+
+  const handleAddLanguage = () => {
+    if (locationSettings.selectedLanguage) {
+      const newLanguage = {
+        id: Date.now(),
+        name: locationSettings.selectedLanguage,
+        order: locationSettings.languages.length + 1
+      };
+      setLocationSettings(prev => ({
+        ...prev,
+        languages: [...prev.languages, newLanguage],
+        selectedLanguage: ''
+      }));
+      setLocationModals(prev => ({ ...prev, languageCreatedSuccess: true }));
+    }
+  };
+
+  const handleAddCurrency = () => {
+    if (locationSettings.selectedCurrency) {
+      const newCurrency = {
+        id: Date.now(),
+        name: locationSettings.selectedCurrency,
+        order: locationSettings.currencies.length + 1
+      };
+      setLocationSettings(prev => ({
+        ...prev,
+        currencies: [...prev.currencies, newCurrency],
+        selectedCurrency: ''
+      }));
+      setLocationModals(prev => ({ ...prev, currencyCreatedSuccess: true }));
+    }
+  };
+
+  const handleEditCountry = (id) => {
+    const country = locationSettings.countries.find(c => c.id === id);
+    if (country) {
+      setEditingCountry(country);
+      setLocationSettings(prev => ({ ...prev, selectedCountry: country.name }));
+    }
+  };
+
+  const handleEditLanguage = (id) => {
+    const language = locationSettings.languages.find(l => l.id === id);
+    if (language) {
+      setEditingLanguage(language);
+      setLocationSettings(prev => ({ ...prev, selectedLanguage: language.name }));
+    }
+  };
+
+  const handleEditCurrency = (id) => {
+    const currency = locationSettings.currencies.find(c => c.id === id);
+    if (currency) {
+      setEditingCurrency(currency);
+      setLocationSettings(prev => ({ ...prev, selectedCurrency: currency.name }));
+    }
+  };
+
+  const handleSaveEditedCountry = () => {
+    if (editingCountry && locationSettings.selectedCountry) {
+      setLocationSettings(prev => ({
+        ...prev,
+        countries: prev.countries.map(c => 
+          c.id === editingCountry.id 
+            ? { ...c, name: locationSettings.selectedCountry }
+            : c
+        ),
+        selectedCountry: ''
+      }));
+      setEditingCountry(null);
+    }
+  };
+
+  const handleSaveEditedLanguage = () => {
+    if (editingLanguage && locationSettings.selectedLanguage) {
+      setLocationSettings(prev => ({
+        ...prev,
+        languages: prev.languages.map(l => 
+          l.id === editingLanguage.id 
+            ? { ...l, name: locationSettings.selectedLanguage }
+            : l
+        ),
+        selectedLanguage: ''
+      }));
+      setEditingLanguage(null);
+    }
+  };
+
+  const handleSaveEditedCurrency = () => {
+    if (editingCurrency && locationSettings.selectedCurrency) {
+      setLocationSettings(prev => ({
+        ...prev,
+        currencies: prev.currencies.map(c => 
+          c.id === editingCurrency.id 
+            ? { ...c, name: locationSettings.selectedCurrency }
+            : c
+        ),
+        selectedCurrency: ''
+      }));
+      setEditingCurrency(null);
+    }
+  };
+
+  const handleDeleteCountry = (id) => {
+    setDeletingCountryId(id);
+    setLocationModals(prev => ({ ...prev, deleteCountryConfirm: true }));
+  };
+
+  const handleDeleteLanguage = (id) => {
+    setDeletingLanguageId(id);
+    setLocationModals(prev => ({ ...prev, deleteLanguageConfirm: true }));
+  };
+
+  const handleDeleteCurrency = (id) => {
+    setDeletingCurrencyId(id);
+    setLocationModals(prev => ({ ...prev, deleteCurrencyConfirm: true }));
+  };
+
+  const handleConfirmDeleteCountry = () => {
+    if (deletingCountryId) {
+      setLocationSettings(prev => ({
+        ...prev,
+        countries: prev.countries.filter(c => c.id !== deletingCountryId)
+      }));
+      setLocationModals(prev => ({
+        ...prev,
+        deleteCountryConfirm: false,
+        countryDeletedSuccess: true
+      }));
+      setDeletingCountryId(null);
+    }
+  };
+
+  const handleConfirmDeleteLanguage = () => {
+    if (deletingLanguageId) {
+      setLocationSettings(prev => ({
+        ...prev,
+        languages: prev.languages.filter(l => l.id !== deletingLanguageId)
+      }));
+      setLocationModals(prev => ({
+        ...prev,
+        deleteLanguageConfirm: false,
+        languageDeletedSuccess: true
+      }));
+      setDeletingLanguageId(null);
+    }
+  };
+
+  const handleConfirmDeleteCurrency = () => {
+    if (deletingCurrencyId) {
+      setLocationSettings(prev => ({
+        ...prev,
+        currencies: prev.currencies.filter(c => c.id !== deletingCurrencyId)
+      }));
+      setLocationModals(prev => ({
+        ...prev,
+        deleteCurrencyConfirm: false,
+        currencyDeletedSuccess: true
+      }));
+      setDeletingCurrencyId(null);
+    }
+  };
+
+  const handleCancelDeleteCountry = () => {
+    setLocationModals(prev => ({ ...prev, deleteCountryConfirm: false }));
+    setDeletingCountryId(null);
+  };
+
+  const handleCancelDeleteLanguage = () => {
+    setLocationModals(prev => ({ ...prev, deleteLanguageConfirm: false }));
+    setDeletingLanguageId(null);
+  };
+
+  const handleCancelDeleteCurrency = () => {
+    setLocationModals(prev => ({ ...prev, deleteCurrencyConfirm: false }));
+    setDeletingCurrencyId(null);
+  };
+
+  // Location success modal handlers
+  const handleLocationSuccessDone = (type) => {
+    setLocationModals(prev => ({ ...prev, [`${type}CreatedSuccess`]: false }));
+  };
+
+  const handleLocationDeletedSuccessDone = (type) => {
+    setLocationModals(prev => ({ ...prev, [`${type}DeletedSuccess`]: false }));
+  };
+
+  // Order editing handlers
+  const handleOpenEditOrderModal = () => {
+    setLocationModals(prev => ({ ...prev, editOrderModal: true }));
+    // Initialize editing orders with current values
+    const currentOrders = {
+      countries: {},
+      languages: {},
+      currencies: {}
+    };
+    locationSettings.countries.forEach(country => {
+      currentOrders.countries[country.id] = country.order;
+    });
+    locationSettings.languages.forEach(language => {
+      currentOrders.languages[language.id] = language.order;
+    });
+    locationSettings.currencies.forEach(currency => {
+      currentOrders.currencies[currency.id] = currency.order;
+    });
+    setEditingOrders(currentOrders);
+  };
+
+  const handleCloseEditOrderModal = () => {
+    setLocationModals(prev => ({ ...prev, editOrderModal: false }));
+    setEditingOrders({ countries: {}, languages: {}, currencies: {} });
+    setNewOrderInput('');
+  };
+
+  const handleOrderChange = (type, id, newOrder) => {
+    setEditingOrders(prev => ({
+      ...prev,
+      [type]: {
+        ...prev[type],
+        [id]: parseInt(newOrder) || 1
+      }
+    }));
+  };
+
+  const handleSaveOrders = () => {
+    // Update countries
+    setLocationSettings(prev => ({
+      ...prev,
+      countries: prev.countries.map(country => ({
+        ...country,
+        order: editingOrders.countries[country.id] || country.order
+      })).sort((a, b) => a.order - b.order),
+      languages: prev.languages.map(language => ({
+        ...language,
+        order: editingOrders.languages[language.id] || language.order
+      })).sort((a, b) => a.order - b.order),
+      currencies: prev.currencies.map(currency => ({
+        ...currency,
+        order: editingOrders.currencies[currency.id] || currency.order
+      })).sort((a, b) => a.order - b.order)
+    }));
+    
+    handleCloseEditOrderModal();
+    setLocationModals(prev => ({ ...prev, ordersSavedSuccess: true }));
+  };
+
+  const handleBulkOrderChange = () => {
+    if (!newOrderInput.trim()) return;
+    
+    const newOrder = parseInt(newOrderInput);
+    if (!newOrder || newOrder <= 0) return;
+    
+    // Find the next available order number
+    const allOrders = [
+      ...Object.values(editingOrders.countries),
+      ...Object.values(editingOrders.languages),
+      ...Object.values(editingOrders.currencies)
+    ];
+    const maxOrder = Math.max(...allOrders, 0);
+    
+    // You can implement bulk order logic here
+    setNewOrderInput('');
+  };
+
   // OTP input handler
   const handleOtpChange = (index, value) => {
     if (value.length <= 1 && /^\d*$/.test(value)) {
@@ -591,6 +955,14 @@ const Settings = () => {
         if (nextInput) nextInput.focus();
       }
     }
+  };
+
+  // Filter options based on search term
+  const getFilteredOptions = (options, searchTerm) => {
+    if (!searchTerm) return options;
+    return options.filter(option => 
+      option.toLowerCase().includes(searchTerm.toLowerCase())
+    );
   };
 
   // Render modals for a specific setting
@@ -982,6 +1354,419 @@ const Settings = () => {
     );
   };
 
+  // Language, Country, Currency Management Component
+  const LanguageCountryRegionModal = () => (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-6xl mx-4 max-h-[90vh] overflow-auto">
+        <button 
+          onClick={handleCloseLanguageCountryModal}
+          className="absolute right-8 top-8 w-6 h-6 text-gray-500 hover:text-gray-700 z-10"
+        >
+          <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+
+        <div className="p-8">
+          <h2 className="text-center font-bold text-[24px] mb-8 font-montserrat">Add Country and Language</h2>
+          
+          {/* Applicable On Section */}
+          <div className="mb-8">
+            <h3 className="font-bold text-[21px] mb-4 font-montserrat">Applicable On</h3>
+            
+            {/* Search Input */}
+            <div className="mb-6">
+              <div className="relative max-w-sm">
+                <div className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5">
+                  <svg className="w-full h-full text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </div>
+                <input
+                  type="text"
+                  placeholder="Search"
+                  value={locationSettings.searchTerm}
+                  onChange={(e) => handleLocationSettingChange('searchTerm', e.target.value)}
+                  className="w-full pl-12 pr-4 py-3 border border-[#d0d5dd] rounded-lg focus:border-blue-500 focus:outline-none shadow-sm"
+                />
+              </div>
+            </div>
+
+            {/* Dropdown Selectors */}
+            <div className="grid grid-cols-3 gap-6 mb-6">
+              {/* Country Selector */}
+              <div>
+                <select
+                  value={locationSettings.selectedCountry}
+                  onChange={(e) => handleLocationSettingChange('selectedCountry', e.target.value)}
+                  className="w-full px-4 py-3 border border-[#979797] rounded-xl focus:border-blue-500 focus:outline-none text-[15px] font-montserrat"
+                >
+                  <option value="">country</option>
+                  {getFilteredOptions(countryOptions, locationSettings.searchTerm).map(country => (
+                    <option key={country} value={country}>{country}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Language Selector */}
+              <div>
+                <select
+                  value={locationSettings.selectedLanguage}
+                  onChange={(e) => handleLocationSettingChange('selectedLanguage', e.target.value)}
+                  className="w-full px-4 py-3 border border-[#979797] rounded-xl focus:border-blue-500 focus:outline-none text-[15px] font-montserrat"
+                >
+                  <option value="">language</option>
+                  {getFilteredOptions(languageOptions, locationSettings.searchTerm).map(language => (
+                    <option key={language} value={language}>{language}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Currency Selector */}
+              <div>
+                <select
+                  value={locationSettings.selectedCurrency}
+                  onChange={(e) => handleLocationSettingChange('selectedCurrency', e.target.value)}
+                  className="w-full px-4 py-3 border border-[#979797] rounded-xl focus:border-blue-500 focus:outline-none text-[15px] font-montserrat"
+                >
+                  <option value="">currency</option>
+                  {getFilteredOptions(currencyOptions, locationSettings.searchTerm).map(currency => (
+                      <option key={currency} value={currency}>{currency}</option>
+                    ))
+                  }
+                </select>
+              </div>
+            </div>
+
+            {/* Add Buttons */}
+            <div className="grid grid-cols-3 gap-6 mb-8">
+              <button
+                onClick={handleAddCountry}
+                disabled={!locationSettings.selectedCountry}
+                className="bg-[#202224] text-white px-12 py-3 rounded-full font-medium text-[16px] hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-black font-montserrat"
+              >
+                add country
+              </button>
+              <button
+                onClick={handleAddLanguage}
+                disabled={!locationSettings.selectedLanguage}
+                className="bg-[#202224] text-white px-12 py-3 rounded-full font-medium text-[16px] hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-black font-montserrat"
+              >
+                add language
+              </button>
+              <button
+                onClick={handleAddCurrency}
+                disabled={!locationSettings.selectedCurrency}
+                className="bg-[#202224] text-white px-12 py-3 rounded-full font-medium text-[16px] hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-black font-montserrat"
+              >
+                add currency
+              </button>
+            </div>
+          </div>
+
+          {/* Lists Section */}
+          <div className="grid grid-cols-3 gap-8">
+            {/* Countries List */}
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-bold text-[21px] font-montserrat">countries</h3>
+                <div className="flex items-center gap-4">
+                  <span className="font-bold text-[21px] font-montserrat">Order</span>
+                  <span className="font-bold text-[21px] font-montserrat">edit</span>
+                </div>
+              </div>
+              <div className="space-y-2">
+                {locationSettings.countries.map((country) => (
+                  <div key={country.id} className="flex items-center justify-between p-3 border-2 border-black rounded-xl">
+                    <span className="font-medium text-[16px] font-montserrat">{country.name}</span>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="number"
+                        value={country.order}
+                        readOnly
+                        className="w-12 h-12 text-center border-2 border-black rounded-xl"
+                      />
+                      <button
+                        onClick={() => handleEditCountry(country.id)}
+                        className="p-2 hover:bg-gray-100 rounded-lg"
+                      >
+                        <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                      </button>
+                      <button
+                        onClick={() => handleDeleteCountry(country.id)}
+                        className="p-2 hover:bg-gray-100 rounded-lg"
+                      >
+                        <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Languages List */}
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-bold text-[21px] font-montserrat">language</h3>
+                <div className="flex items-center gap-4">
+                  <span className="font-bold text-[21px] font-montserrat">Order</span>
+                  <span className="font-bold text-[21px] font-montserrat">edit</span>
+                </div>
+              </div>
+              <div className="space-y-2">
+                {locationSettings.languages.map((language) => (
+                  <div key={language.id} className="flex items-center justify-between p-3 border-2 border-black rounded-xl">
+                    <span className="font-medium text-[16px] font-montserrat">{language.name}</span>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="number"
+                        value={language.order}
+                        readOnly
+                        className="w-12 h-12 text-center border-2 border-black rounded-xl"
+                      />
+                      <button
+                        onClick={() => handleEditLanguage(language.id)}
+                        className="p-2 hover:bg-gray-100 rounded-lg"
+                      >
+                        <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                      </button>
+                      <button
+                        onClick={() => handleDeleteLanguage(language.id)}
+                        className="p-2 hover:bg-gray-100 rounded-lg"
+                      >
+                        <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Currencies List */}
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-bold text-[21px] font-montserrat">currency</h3>
+                <div className="flex items-center gap-4">
+                  <span className="font-bold text-[21px] font-montserrat">Order</span>
+                  <span className="font-bold text-[21px] font-montserrat">edit</span>
+                </div>
+              </div>
+              <div className="space-y-2">
+                {locationSettings.currencies.map((currency) => (
+                  <div key={currency.id} className="flex items-center justify-between p-3 border-2 border-black rounded-xl">
+                    <span className="font-medium text-[16px] font-montserrat">{currency.name}</span>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="number"
+                        value={currency.order}
+                        readOnly
+                        className="w-12 h-12 text-center border-2 border-black rounded-xl"
+                      />
+                      <button
+                        onClick={() => handleEditCurrency(currency.id)}
+                        className="p-2 hover:bg-gray-100 rounded-lg"
+                      >
+                        <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                      </button>
+                      <button
+                        onClick={() => handleDeleteCurrency(currency.id)}
+                        className="p-2 hover:bg-gray-100 rounded-lg"
+                      >
+                        <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex justify-end gap-4 mt-8">
+            <button
+              onClick={handleOpenEditOrderModal}
+              className="bg-blue-600 text-white px-6 py-2 rounded-full font-medium hover:bg-blue-700 transition-colors"
+            >
+              Edit Orders
+            </button>
+            {editingCountry && (
+              <button
+                onClick={handleSaveEditedCountry}
+                className="bg-green-600 text-white px-6 py-2 rounded-full font-medium hover:bg-green-700 transition-colors"
+              >
+                Save Country
+              </button>
+            )}
+            {editingLanguage && (
+              <button
+                onClick={handleSaveEditedLanguage}
+                className="bg-green-600 text-white px-6 py-2 rounded-full font-medium hover:bg-green-700 transition-colors"
+              >
+                Save Language
+              </button>
+            )}
+            {editingCurrency && (
+              <button
+                onClick={handleSaveEditedCurrency}
+                className="bg-green-600 text-white px-6 py-2 rounded-full font-medium hover:bg-green-700 transition-colors"
+              >
+                Save Currency
+              </button>
+            )}
+            <button
+              onClick={handleCloseLanguageCountryModal}
+              className="border border-gray-300 text-black px-6 py-2 rounded-full font-medium hover:bg-gray-50 transition-colors"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  // Edit Order Modal Component
+  const EditOrderModal = () => (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-6xl mx-4 max-h-[90vh] overflow-auto">
+        <button 
+          onClick={handleCloseEditOrderModal}
+          className="absolute right-8 top-8 w-6 h-6 text-gray-500 hover:text-gray-700 z-10"
+        >
+          <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+
+        <div className="p-8">
+          <h2 className="text-center font-regular text-[24px] mb-8 font-montserrat tracking-[-0.6px]">
+            Edit country language region
+          </h2>
+          
+          {/* Three Column Layout for Order Editing */}
+          <div className="grid grid-cols-3 gap-8 mb-8">
+            {/* Countries Column */}
+            <div>
+              <div className="mb-4">
+                <h3 className="font-bold text-[21px] font-montserrat mb-2">countries</h3>
+                <div className="text-center">
+                  <span className="font-bold text-[21px] font-montserrat">Order</span>
+                </div>
+              </div>
+              <div className="space-y-3">
+                {locationSettings.countries.map((country) => (
+                  <div key={country.id} className="flex items-center justify-between">
+                    <span className="font-medium text-[16px] font-montserrat flex-1 text-left">{country.name}</span>
+                    <input
+                      type="number"
+                      min="1"
+                      value={editingOrders.countries[country.id] || country.order}
+                      onChange={(e) => handleOrderChange('countries', country.id, e.target.value)}
+                      className="w-16 h-12 text-center border-2 border-black rounded-xl focus:outline-none focus:border-blue-500"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Languages Column */}
+            <div>
+              <div className="mb-4">
+                <h3 className="font-bold text-[21px] font-montserrat mb-2">language</h3>
+                <div className="text-center">
+                  <span className="font-bold text-[21px] font-montserrat">Order</span>
+                </div>
+              </div>
+              <div className="space-y-3">
+                {locationSettings.languages.map((language) => (
+                  <div key={language.id} className="flex items-center justify-between">
+                    <span className="font-medium text-[16px] font-montserrat flex-1 text-left">{language.name}</span>
+                    <input
+                      type="number"
+                      min="1"
+                      value={editingOrders.languages[language.id] || language.order}
+                      onChange={(e) => handleOrderChange('languages', language.id, e.target.value)}
+                      className="w-16 h-12 text-center border-2 border-black rounded-xl focus:outline-none focus:border-blue-500"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Currencies Column */}
+            <div>
+              <div className="mb-4">
+                <h3 className="font-bold text-[21px] font-montserrat mb-2">currency</h3>
+                <div className="text-center">
+                  <span className="font-bold text-[21px] font-montserrat">Order</span>
+                </div>
+              </div>
+              <div className="space-y-3">
+                {locationSettings.currencies.map((currency) => (
+                  <div key={currency.id} className="flex items-center justify-between">
+                    <span className="font-medium text-[16px] font-montserrat flex-1 text-left">{currency.name}</span>
+                    <input
+                      type="number"
+                      min="1"
+                      value={editingOrders.currencies[currency.id] || currency.order}
+                      onChange={(e) => handleOrderChange('currencies', currency.id, e.target.value)}
+                      className="w-16 h-12 text-center border-2 border-black rounded-xl focus:outline-none focus:border-blue-500"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Bulk Order Input Section */}
+          <div className="mb-8">
+            <h3 className="text-center font-regular text-[24px] mb-4 font-montserrat tracking-[-0.6px]">
+              type new order
+            </h3>
+            <div className="flex justify-center">
+              <input
+                type="number"
+                min="1"
+                value={newOrderInput}
+                onChange={(e) => setNewOrderInput(e.target.value)}
+                placeholder="Enter new order number"
+                className="w-80 h-12 px-4 text-center border-2 border-black rounded-xl focus:outline-none focus:border-blue-500 font-montserrat"
+              />
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex justify-center gap-6">
+            <button
+              onClick={handleSaveOrders}
+              className="bg-black text-white px-12 py-4 rounded-full font-medium text-[16px] hover:bg-gray-800 transition-colors border border-black font-montserrat"
+            >
+              save
+            </button>
+            <button
+              onClick={handleCloseEditOrderModal}
+              className="border border-[#e4e4e4] text-black px-12 py-4 rounded-full font-medium text-[16px] hover:bg-gray-50 transition-colors font-montserrat"
+            >
+              go back
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
   const handleToggle = (key) => {
     setSettings(prev => ({
       ...prev,
@@ -1181,9 +1966,13 @@ const Settings = () => {
           title="Automatically change prices based on demand, time, user segment"
         />
         
-        <SettingItem 
-          title="add language country and region"
-        />
+        {/* Language, Country & Region Setting */}
+        <div className="py-6">
+          <h3 className="font-bold text-[#000000] text-[20px] font-montserrat mb-4">
+            Add Language, Country and Region
+          </h3>
+          <ViewSettingsButton onClick={handleOpenLanguageCountryModal} />
+        </div>
         
         <SettingItem 
           title="Webhooks for order/payment updates Reply"
@@ -2352,6 +3141,164 @@ const Settings = () => {
                   Cancel
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Language, Country, Region Modal */}
+      {locationModals.languageCountryModal && <LanguageCountryRegionModal />}
+
+      {/* Edit Order Modal */}
+      {locationModals.editOrderModal && <EditOrderModal />}
+
+      {/* Location Success Modals */}
+      {locationModals.countryCreatedSuccess && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-lg p-8 text-center max-w-md mx-4">
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <h3 className="font-bold text-lg mb-2">Country Added Successfully</h3>
+            <p className="text-gray-600 mb-6">The country has been added to your settings.</p>
+            <button
+              onClick={() => handleLocationSuccessDone('country')}
+              className="bg-black text-white px-6 py-2 rounded-full font-medium hover:bg-gray-800 transition-colors"
+            >
+              Done
+            </button>
+          </div>
+        </div>
+      )}
+
+      {locationModals.languageCreatedSuccess && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-lg p-8 text-center max-w-md mx-4">
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <h3 className="font-bold text-lg mb-2">Language Added Successfully</h3>
+            <p className="text-gray-600 mb-6">The language has been added to your settings.</p>
+            <button
+              onClick={() => handleLocationSuccessDone('language')}
+              className="bg-black text-white px-6 py-2 rounded-full font-medium hover:bg-gray-800 transition-colors"
+            >
+              Done
+            </button>
+          </div>
+        </div>
+      )}
+
+      {locationModals.currencyCreatedSuccess && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-lg p-8 text-center max-w-md mx-4">
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <h3 className="font-bold text-lg mb-2">Currency Added Successfully</h3>
+            <p className="text-gray-600 mb-6">The currency has been added to your settings.</p>
+            <button
+              onClick={() => handleLocationSuccessDone('currency')}
+              className="bg-black text-white px-6 py-2 rounded-full font-medium hover:bg-gray-800 transition-colors"
+            >
+              Done
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Orders Saved Success Modal */}
+      {locationModals.ordersSavedSuccess && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-lg p-8 text-center max-w-md mx-4">
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <h3 className="font-bold text-lg mb-2">Orders Updated Successfully</h3>
+            <p className="text-gray-600 mb-6">The order sequence has been updated for all items.</p>
+            <button
+              onClick={() => setLocationModals(prev => ({ ...prev, ordersSavedSuccess: false }))}
+              className="bg-black text-white px-6 py-2 rounded-full font-medium hover:bg-gray-800 transition-colors"
+            >
+              Done
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modals */}
+      {locationModals.deleteCountryConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-lg p-8 text-center max-w-md mx-4">
+            <h3 className="font-bold text-lg mb-4">Delete Country</h3>
+            <p className="text-gray-600 mb-6">Are you sure you want to delete this country? This action cannot be undone.</p>
+            <div className="flex gap-4 justify-center">
+              <button
+                onClick={handleConfirmDeleteCountry}
+                className="bg-red-600 text-white px-6 py-2 rounded-full font-medium hover:bg-red-700 transition-colors"
+              >
+                Delete
+              </button>
+              <button
+                onClick={handleCancelDeleteCountry}
+                className="border border-gray-300 text-black px-6 py-2 rounded-full font-medium hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {locationModals.deleteLanguageConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-lg p-8 text-center max-w-md mx-4">
+            <h3 className="font-bold text-lg mb-4">Delete Language</h3>
+            <p className="text-gray-600 mb-6">Are you sure you want to delete this language? This action cannot be undone.</p>
+            <div className="flex gap-4 justify-center">
+              <button
+                onClick={handleConfirmDeleteLanguage}
+                className="bg-red-600 text-white px-6 py-2 rounded-full font-medium hover:bg-red-700 transition-colors"
+              >
+                Delete
+              </button>
+              <button
+                onClick={handleCancelDeleteLanguage}
+                className="border border-gray-300 text-black px-6 py-2 rounded-full font-medium hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {locationModals.deleteCurrencyConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-lg p-8 text-center max-w-md mx-4">
+            <h3 className="font-bold text-lg mb-4">Delete Currency</h3>
+            <p className="text-gray-600 mb-6">Are you sure you want to delete this currency? This action cannot be undone.</p>
+            <div className="flex gap-4 justify-center">
+              <button
+                onClick={handleConfirmDeleteCurrency}
+                className="bg-red-600 text-white px-6 py-2 rounded-full font-medium hover:bg-red-700 transition-colors"
+              >
+                Delete
+              </button>
+              <button
+                onClick={handleCancelDeleteCurrency}
+                className="border border-gray-300 text-black px-6 py-2 rounded-full font-medium hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
             </div>
           </div>
         </div>
