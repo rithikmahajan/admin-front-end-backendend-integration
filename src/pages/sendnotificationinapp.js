@@ -1,5 +1,8 @@
-import React, { useState, useCallback, useMemo, memo } from 'react';
-import { Upload, Eye, Edit, Trash2, Send, Save, Plus, X } from 'lucide-react';
+import React, { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { Upload, Mail, Edit, Trash2, Info } from "lucide-react";
+import ConfirmationDialogue from "../components/confirmationDialogue";
+import EditNotificationModal from "../components/EditNotificationModal";
 
 /**
  * Send Notification In App Component
@@ -12,459 +15,381 @@ import { Upload, Eye, Edit, Trash2, Send, Save, Plus, X } from 'lucide-react';
  * - Target specific platforms (Android/iOS)
  * - Preview notifications before sending
  * - Stack notifications for later delivery
- * - Manage saved notification templates
- * 
- * Performance Optimizations:
- * - Memoized callbacks to prevent unnecessary re-renders
- * - Optimized state structure
- * - Efficient component updates
+ * - Manage saved notification templates with edit/delete functionality
  */
-const SendNotificationInApp = memo(() => {
-  // Notification form state
-  const [notificationForm, setNotificationForm] = useState({
-    title: '',
-    message: '',
-    image: null,
-    imagePreview: null,
-    deepLink: '',
-    targetPlatform: 'android/ios'
-  });
-
-  // Stacked notifications for later sending
-  const [stackedNotifications, setStackedNotifications] = useState([
-    {
-      id: 1,
-      title: 'Account Services',
-      message: 'Manage account and services linked to your Yoraa account',
-      targetPlatform: 'android/ios',
-      createdAt: new Date().toISOString(),
-      status: 'pending'
-    },
-    {
-      id: 2,
-      title: 'Account Services',
-      message: 'Manage account and services linked to your Yoraa account',
-      targetPlatform: 'android/ios',
-      createdAt: new Date().toISOString(),
-      status: 'pending'
-    },
-    {
-      id: 3,
-      title: 'Account Services',
-      message: 'Manage account and services linked to your Yoraa account',
-      targetPlatform: 'android/ios',
-      createdAt: new Date().toISOString(),
-      status: 'pending'
-    },
-    {
-      id: 4,
-      title: 'Account Services',
-      message: 'Manage account and services linked to your Yoraa account',
-      targetPlatform: 'android/ios',
-      createdAt: new Date().toISOString(),
-      status: 'pending'
-    }
+const SendNotificationInApp = () => {
+  // State for notification text
+  const [notificationText, setNotificationText] = useState("");
+  // State for deeplink
+  const [deeplink, setDeeplink] = useState("eg yoraa/product/123");
+  // State for target platform, allow multi-select
+  const [platformOptions] = useState([
+    { label: "Android", value: "android" },
+    { label: "ios", value: "ios" },
   ]);
-
-  // Modal states
-  const [modalStates, setModalStates] = useState({
-    isPreviewOpen: false,
-    isEditModalOpen: false,
-    selectedNotification: null
+  const [selectedPlatforms, setSelectedPlatforms] = useState(["android"]);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  // State for uploaded image, initialize from localStorage
+  const [image, setImage] = useState(() => {
+    try {
+      return localStorage.getItem("notificationImage") || null;
+    } catch {
+      return null;
+    }
   });
 
-  // Handle form input changes
-  const handleInputChange = useCallback((field, value) => {
-    setNotificationForm(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  }, []);
-
-  // Handle image upload
-  const handleImageUpload = useCallback((event) => {
-    const file = event.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setNotificationForm(prev => ({
-          ...prev,
-          image: file,
-          imagePreview: e.target.result
-        }));
-      };
-      reader.readAsDataURL(file);
+  // Save image to localStorage whenever it changes
+  useEffect(() => {
+    if (image) {
+      try {
+        localStorage.setItem("notificationImage", image);
+      } catch (error) {
+        // Ignore localStorage errors as they are non-critical
+        console.debug("Failed to save image to localStorage:", error);
+      }
+    } else {
+      try {
+        localStorage.removeItem("notificationImage");
+      } catch {
+        // Ignore localStorage errors
+      }
     }
-  }, []);
+  }, [image]);
 
-  // Handle remove image
-  const handleRemoveImage = useCallback(() => {
-    setNotificationForm(prev => ({
-      ...prev,
-      image: null,
-      imagePreview: null
-    }));
-  }, []);
+  // Reference for file input element
+  const fileInputRef = useRef(null);
 
-  // Handle save for later
-  const handleSaveForLater = useCallback(() => {
-    if (!notificationForm.message) {
-      alert('Please fill in the message field');
-      return;
-    }
+  // Navigation hook
+  const navigate = useNavigate();
 
-    const newNotification = {
-      id: Date.now(),
-      title: notificationForm.title,
-      message: notificationForm.message,
-      image: notificationForm.image,
-      imagePreview: notificationForm.imagePreview,
-      deepLink: notificationForm.deepLink,
-      targetPlatform: notificationForm.targetPlatform,
-      createdAt: new Date().toISOString(),
-      status: 'pending'
-    };
+  // Example stacked notifications
+  const [stackedNotifications, setStackedNotifications] = useState([
+    { text: "Manage account and services linked to your Yoraa account" },
+    { text: "Manage account and services linked to your Yoraa account" },
+    { text: "Manage account and services linked to your Yoraa account" },
+    { text: "Manage account and services linked to your Yoraa account" },
+  ]);
+  const [editIndex, setEditIndex] = useState(null);
+  const [editValue, setEditValue] = useState("");
 
-    setStackedNotifications(prev => [...prev, newNotification]);
-    
-    // Reset form
-    setNotificationForm({
-      title: '',
-      message: '',
-      image: null,
-      imagePreview: null,
-      deepLink: '',
-      targetPlatform: 'android/ios'
-    });
-
-    alert('Notification saved for later!');
-  }, [notificationForm]);
-
-  // Handle send now
-  const handleSendNow = useCallback(() => {
-    if (!notificationForm.message) {
-      alert('Please fill in the message field');
-      return;
-    }
-
-    console.log('Sending notification now:', notificationForm);
-    alert('Notification sent successfully!');
-    
-    // Reset form
-    setNotificationForm({
-      title: '',
-      message: '',
-      image: null,
-      imagePreview: null,
-      deepLink: '',
-      targetPlatform: 'android/ios'
-    });
-  }, [notificationForm]);
-
-  // Handle send stacked notification
-  const handleSendStackedNotification = useCallback((notificationId) => {
-    const notification = stackedNotifications.find(n => n.id === notificationId);
-    if (notification) {
-      console.log('Sending stacked notification:', notification);
-      setStackedNotifications(prev => 
-        prev.map(n => 
-          n.id === notificationId 
-            ? { ...n, status: 'sent', sentAt: new Date().toISOString() }
-            : n
-        )
-      );
-      alert('Notification sent successfully!');
-    }
-  }, [stackedNotifications]);
-
-  // Handle edit stacked notification
-  const handleEditStackedNotification = useCallback((notification) => {
-    setNotificationForm({
-      title: notification.title,
-      message: notification.message,
-      image: notification.image,
-      imagePreview: notification.imagePreview,
-      deepLink: notification.deepLink || '',
-      targetPlatform: notification.targetPlatform
-    });
-    
-    // Remove from stacked notifications
-    setStackedNotifications(prev => prev.filter(n => n.id !== notification.id));
-  }, []);
-
-  // Handle delete stacked notification
-  const handleDeleteStackedNotification = useCallback((notificationId) => {
-    setStackedNotifications(prev => prev.filter(n => n.id !== notificationId));
-  }, []);
-
-  // Handle preview
-  const handlePreview = useCallback(() => {
-    setModalStates(prev => ({ ...prev, isPreviewOpen: true }));
-  }, []);
-
-  const closePreview = useCallback(() => {
-    setModalStates(prev => ({ ...prev, isPreviewOpen: false }));
-  }, []);
-
-  // Check if form is valid
-  const isFormValid = useMemo(() => {
-    return notificationForm.message.trim();
-  }, [notificationForm.message]);
+  // State for confirmation dialog
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogAction, setDialogAction] = useState(null);
+  const [selectedNotification, setSelectedNotification] = useState(null);
 
   return (
-    <div className="min-h-screen bg-white p-6">
-      <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Column - Notification Form (2/3 width) */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Notification Form */}
-            <div className="space-y-6">
-              <div>
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">Notification</h2>
-                
-                {/* Message Input */}
-                <div className="mb-4">
-                  <textarea
-                    value={notificationForm.message}
-                    onChange={(e) => handleInputChange('message', e.target.value)}
-                    rows={4}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                    placeholder="Your title"
+    <div className="bg-white min-h-screen font-montserrat">
+      <div className="max-w-6xl ml-6 px-6 py-8 flex gap-12">
+        {/* Left Column - Form */}
+        <div className="flex-1 max-w-2xl">
+          <h2 className="text-2xl font-bold text-black mb-8">
+            Notification
+          </h2>
+
+          {/* Notification Text */}
+          <div className="mb-8">
+            <textarea
+              value={notificationText}
+              onChange={(e) => setNotificationText(e.target.value)}
+              placeholder="Type Here"
+              className="w-full h-36 border-2 border-black rounded-xl p-4 text-sm resize-none focus:outline-none focus:border-black font-montserrat text-[#979797]"
+            />
+          </div>
+
+          {/* Notification Image Upload */}
+          <div className="mb-8">
+            <label className="block text-xl font-bold text-black mb-4">
+              Notification image(optional)
+            </label>
+            {/* Hidden file input for image upload */}
+            <input
+              type="file"
+              accept="image/*"
+              ref={fileInputRef}
+              style={{ display: "none" }}
+              onChange={(e) => {
+                const file = e.target.files[0];
+                if (file) {
+                  const reader = new FileReader();
+                  reader.onload = (ev) => {
+                    setImage(ev.target.result);
+                    // localStorage update handled by useEffect
+                  };
+                  reader.readAsDataURL(file);
+                }
+              }}
+            />
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                className="flex items-center gap-2 bg-[#000AFF] text-white px-4 py-2.5 rounded-lg text-sm hover:bg-blue-700 border border-[#7280FF] shadow-sm font-montserrat"
+                onClick={() =>
+                  fileInputRef.current && fileInputRef.current.click()
+                }
+              >
+                <Upload size={16} />
+                Upload image
+              </button>
+              <div className="w-16 h-16 border-2 border-dashed border-[#CCD2E3] rounded-[15px] flex items-center justify-center">
+                {/* Show uploaded image preview if available */}
+                {image ? (
+                  <img
+                    src={image}
+                    alt="Notification"
+                    className="w-12 h-12 object-cover rounded-lg"
                   />
-                </div>
-              </div>
-
-              {/* Notification Image Upload */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Notification image(optional)
-                </label>
-                
-                {notificationForm.imagePreview ? (
-                  <div className="relative">
-                    <img
-                      src={notificationForm.imagePreview}
-                      alt="Notification preview"
-                      className="w-full h-32 object-cover rounded-lg border"
-                    />
-                    <button
-                      onClick={handleRemoveImage}
-                      className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
-                  </div>
                 ) : (
-                  <div className="space-y-3">
-                    <div className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 w-fit">
-                      <label className="cursor-pointer flex items-center gap-2">
-                        <Upload className="h-4 w-4" />
-                        Upload Image
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={handleImageUpload}
-                          className="hidden"
-                        />
-                      </label>
-                    </div>
-                    <div className="border border-gray-200 rounded p-4 bg-gray-50 w-16 h-12">
-                      <div className="w-8 h-6 border-2 border-gray-300 rounded mx-auto"></div>
-                    </div>
-                  </div>
+                  <div className="w-8 h-8 border-2 border-[#CCD2E3] rounded"></div>
                 )}
-              </div>
-
-              {/* Deep Link */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Deeplink(optional) eg yoraa/product/123
-                </label>
-                <input
-                  type="text"
-                  value={notificationForm.deepLink}
-                  onChange={(e) => handleInputChange('deepLink', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                  placeholder="enter Deeplink eg yoraa/product/123"
-                />
-              </div>
-
-              {/* Target Platform */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Target platform
-                </label>
-                <input
-                  type="text"
-                  value={notificationForm.targetPlatform}
-                  onChange={(e) => handleInputChange('targetPlatform', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                  placeholder="android/ios"
-                />
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex gap-3 pt-4">
-                <button
-                  onClick={handleSaveForLater}
-                  disabled={!isFormValid}
-                  className="bg-gray-200 text-gray-800 px-6 py-2 rounded-lg hover:bg-gray-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-                >
-                  save for later
-                </button>
-                <button
-                  onClick={handleSendNow}
-                  disabled={!isFormValid}
-                  className="bg-black text-white px-8 py-2 rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-                >
-                  send Now
-                </button>
-              </div>
-            </div>
-
-            {/* Stacked Notifications */}
-            <div className="mt-8">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Stack notification for later</h2>
-              
-              <div className="space-y-3">
-                {stackedNotifications.map((notification) => (
-                  <div key={notification.id} className="flex items-center justify-between p-3 border rounded-lg bg-gray-50">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-black text-white rounded-full flex items-center justify-center text-sm font-semibold">
-                        i
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-700">{notification.message}</p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => handleSendStackedNotification(notification.id)}
-                        disabled={notification.status === 'sent'}
-                        className={`px-4 py-1 rounded text-sm transition-colors ${
-                          notification.status === 'sent'
-                            ? 'bg-green-100 text-green-800 cursor-not-allowed'
-                            : 'bg-black text-white hover:bg-gray-800'
-                        }`}
-                      >
-                        {notification.status === 'sent' ? 'Sent' : 'send Now'}
-                      </button>
-                      <button
-                        onClick={() => handleEditStackedNotification(notification)}
-                        className="text-gray-600 hover:text-blue-600 p-1"
-                      >
-                        <Edit className="h-4 w-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteStackedNotification(notification.id)}
-                        className="text-gray-600 hover:text-red-600 p-1"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
               </div>
             </div>
           </div>
 
-          {/* Right Column - Preview (1/3 width) */}
-          <div className="lg:col-span-1">
-            <div className="sticky top-6">
-              <div className="bg-white rounded-lg border p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-semibold text-gray-900">Preview</h2>
-                  <button
-                    onClick={handlePreview}
-                    className="bg-black text-white px-3 py-1 rounded-full text-sm flex items-center gap-1"
-                  >
-                    <Eye className="h-3 w-3" />
-                    1
-                  </button>
-                </div>
-                
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center min-h-[300px] flex items-center justify-center">
-                  {notificationForm.imagePreview ? (
-                    <div className="space-y-4">
-                      <img
-                        src={notificationForm.imagePreview}
-                        alt="Preview"
-                        className="max-w-full h-32 object-contain mx-auto"
-                      />
-                      {notificationForm.message && (
-                        <p className="text-gray-600 text-sm">{notificationForm.message}</p>
+          {/* Deeplink */}
+          <div className="mb-8">
+            <label className="block text-xl font-bold text-black mb-4">
+              Deeplink(optional) eg yoraa/product/123
+            </label>
+            <input
+              type="text"
+              value={deeplink}
+              onChange={(e) => setDeeplink(e.target.value)}
+              placeholder="enter Deeplink  eg yoraa/product/123"
+              className="w-full max-w-lg border-2 border-black rounded-xl px-4 py-3 text-xl focus:outline-none focus:border-black text-[#979797] font-medium font-montserrat"
+            />
+          </div>
+
+          {/* Target Platform Dropdown */}
+          <div className="mb-8 relative">
+            <label className="block text-2xl font-bold text-black mb-4">
+              Target platform
+            </label>
+            <div className="relative max-w-xs">
+              <button
+                type="button"
+                className="w-full border-2 border-black rounded-xl px-4 py-3 text-xl text-left focus:outline-none bg-white text-[#979797] font-medium font-montserrat"
+                onClick={() => setDropdownOpen((open) => !open)}
+              >
+                {selectedPlatforms.length === 2
+                  ? "android/ios"
+                  : selectedPlatforms.length === 1
+                  ? platformOptions.find(
+                      (opt) => opt.value === selectedPlatforms[0]
+                    )?.label
+                  : "android/ios"}
+              </button>
+              {dropdownOpen && (
+                <div className="absolute z-10 mt-1 w-full bg-white border-2 border-black rounded-xl shadow-lg">
+                  <div className="py-1">
+                    <button
+                      type="button"
+                      className={`w-full text-left px-4 py-2 text-sm font-montserrat ${
+                        selectedPlatforms.length === 2
+                          ? "text-blue-600 bg-gray-100"
+                          : "text-gray-900"
+                      }`}
+                      onClick={() => {
+                        setSelectedPlatforms(["android", "ios"]);
+                        setDropdownOpen(false);
+                      }}
+                    >
+                      Both
+                      {selectedPlatforms.length === 2 && (
+                        <span className="ml-2">✓</span>
                       )}
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      <div className="w-16 h-16 border-2 border-blue-600 rounded-lg mx-auto flex items-center justify-center">
-                        <div className="w-8 h-6 border-2 border-blue-600 rounded"></div>
-                      </div>
-                      {notificationForm.message && (
-                        <p className="text-gray-600 text-sm">{notificationForm.message}</p>
-                      )}
-                    </div>
-                  )}
+                    </button>
+                    {platformOptions.map((opt) => (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        className={`w-full text-left px-4 py-2 text-sm font-montserrat ${
+                          selectedPlatforms.includes(opt.value) &&
+                          selectedPlatforms.length === 1
+                            ? "text-blue-600 bg-gray-100"
+                            : "text-gray-900"
+                        }`}
+                        onClick={() => {
+                          setSelectedPlatforms([opt.value]);
+                          setDropdownOpen(false);
+                        }}
+                      >
+                        {opt.label}
+                        {selectedPlatforms.includes(opt.value) &&
+                          selectedPlatforms.length === 1 && (
+                            <span className="ml-2">✓</span>
+                          )}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex gap-4 mb-12">
+            <button 
+              className="text-black px-12 py-4 border border-[#E4E4E4] rounded-full text-base font-medium hover:bg-gray-50 font-montserrat"
+            >
+              save for later
+            </button>
+            <button 
+              className="bg-black text-white px-12 py-4 rounded-full text-base font-medium hover:bg-gray-800 font-montserrat"
+            >
+              send Now
+            </button>
+          </div>
+
+          {/* Stack notification for later */}
+          <div>
+            <h3 className="text-2xl font-bold text-black mb-6">
+              Stack notification for later
+            </h3>
+            <div className="space-y-4">
+              {stackedNotifications.map((notification, index) => (
+                <div key={index} className="bg-white rounded-xl shadow-lg border border-gray-100 p-4 flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="w-6 h-6 bg-black rounded-full flex items-center justify-center">
+                      <Info size={12} className="text-white" />
+                    </div>
+                    <p className="text-black text-base flex-1 font-montserrat leading-tight max-w-sm">
+                      {notification.text}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button 
+                      className="bg-black text-white px-6 py-2 rounded-full text-sm font-medium font-montserrat"
+                      onClick={() => {
+                        setDialogAction("send");
+                        setSelectedNotification(notification);
+                        setDialogOpen(true);
+                      }}
+                    >
+                      send Now
+                    </button>
+                    <button 
+                      className="p-2 rounded-lg hover:bg-gray-100"
+                      onClick={() => {
+                        setEditIndex(index);
+                        setEditValue(notification.text);
+                        setDialogAction("edit");
+                        setSelectedNotification(notification);
+                        setDialogOpen(true);
+                      }}
+                    >
+                      <Edit size={16} className="text-[#667085]" />
+                    </button>
+                    <button 
+                      className="p-2 rounded-lg hover:bg-gray-100"
+                      onClick={() => {
+                        setDialogAction("delete");
+                        setSelectedNotification(notification);
+                        setDialogOpen(true);
+                      }}
+                    >
+                      <Trash2 size={16} className="text-[#667085]" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Right Column - Preview */}
+        <div className="w-80 flex-shrink-0">
+          <div className="flex items-center gap-2 mb-6">
+            <h3 className="text-2xl font-bold text-black">
+              Preview
+            </h3>
+            {/* Info button */}
+            <button
+              className="bg-black rounded-full w-6 h-6 flex items-center justify-center"
+              onClick={() =>
+                navigate("/notification-preview", { state: { image } })
+              }
+              title="See full preview"
+            >
+              <Info size={12} className="text-white" />
+            </button>
+          </div>
+
+          <div className="border-2 border-dashed border-[#CCD2E3] rounded-xl p-8 flex items-center justify-center h-80">
+            <div className="text-center">
+              {/* Show uploaded image if available, else show icon */}
+              {image ? (
+                <div className="w-full mx-auto border-2 border-blue-500 rounded-lg flex items-center justify-center overflow-hidden">
+                  <img
+                    src={image}
+                    alt="Notification Preview"
+                    className="w-full h-full object-cover rounded-lg"
+                  />
+                </div>
+              ) : (
+                <div className="w-16 h-16 mx-auto border-2 border-[#003F62] rounded-lg flex items-center justify-center">
+                  <Mail size={32} className="text-[#003F62]" />
+                </div>
+              )}
             </div>
           </div>
         </div>
       </div>
 
-      {/* Preview Modal */}
-      {modalStates.isPreviewOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
-            <div className="flex items-center justify-between p-4 border-b">
-              <h3 className="text-lg font-semibold text-gray-900">Notification Preview</h3>
-              <button
-                onClick={closePreview}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <X className="h-6 w-6" />
-              </button>
-            </div>
-            
-            <div className="p-6">
-              <div className="bg-gray-100 rounded-lg p-4 space-y-3">
-                {notificationForm.imagePreview && (
-                  <img
-                    src={notificationForm.imagePreview}
-                    alt="Notification"
-                    className="w-full h-32 object-cover rounded"
-                  />
-                )}
-                <div>
-                  <p className="text-gray-600 text-sm mt-1">{notificationForm.message || 'Notification message will appear here'}</p>
-                </div>
-                {notificationForm.deepLink && (
-                  <div className="text-xs text-blue-600 bg-blue-50 p-2 rounded">
-                    Deep Link: {notificationForm.deepLink}
-                  </div>
-                )}
-                <div className="text-xs text-gray-500">
-                  Platform: {notificationForm.targetPlatform}
-                </div>
-              </div>
-            </div>
-            
-            <div className="flex justify-end gap-3 p-4 border-t">
-              <button
-                onClick={closePreview}
-                className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
-              >
-                Close
-              </button>
-            </div>
-          </div>
+      {/* Dialogs */}
+      {dialogOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div
+            className="absolute inset-0 bg-black bg-opacity-20"
+          />
+          {dialogAction === "edit" ? (
+            <EditNotificationModal
+              value={editValue}
+              onChange={(e) => setEditValue(e.target.value)}
+              onSave={() => {
+                const updated = [...stackedNotifications];
+                updated[editIndex].text = editValue;
+                setStackedNotifications(updated);
+                setEditIndex(null);
+                setDialogOpen(false);
+              }}
+              onCancel={() => {
+                setEditIndex(null);
+                setDialogOpen(false);
+              }}
+              original={selectedNotification?.text}
+            />
+          ) : dialogAction === "delete" ? (
+            <ConfirmationDialogue
+              open={dialogOpen}
+              message={`Are you sure you want to delete this notification?`}
+              confirmText="Delete"
+              onConfirm={() => {
+                setStackedNotifications(
+                  stackedNotifications.filter(
+                    (_, i) =>
+                      i !==
+                      stackedNotifications.indexOf(selectedNotification)
+                  )
+                );
+                setDialogOpen(false);
+              }}
+              onCancel={() => setDialogOpen(false)}
+            />
+          ) : (
+            <ConfirmationDialogue
+              open={dialogOpen}
+              message={"Are you sure you want to send the notification?"}
+              onConfirm={() => {
+                setDialogOpen(false);
+                // Add your action logic here (send, edit, delete, info)
+              }}
+              onCancel={() => setDialogOpen(false)}
+            />
+          )}
         </div>
       )}
     </div>
   );
-});
-
-SendNotificationInApp.displayName = 'SendNotificationInApp';
+};
 
 export default SendNotificationInApp;

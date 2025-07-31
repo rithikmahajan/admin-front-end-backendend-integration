@@ -8,7 +8,7 @@ const ManageReviews = () => {
   const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false);
   const [subcategoryDropdownOpen, setSubcategoryDropdownOpen] = useState(false);
   
-  // Modal states for confirmation dialogs
+  // Modal states for confirmation dialogitgs
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showToggleModal, setShowToggleModal] = useState(false);
