@@ -71,8 +71,8 @@ const Sidebar = React.memo(({ sidebarOpen, setSidebarOpen, sidebarHidden, onTogg
       titleSize: 'text-xl',
       items: [
         { name: 'Cart abandonment recovery', path: '/cart-recovery' },
-        { name: 'send promo notification', path: '/promo-notification' },
-        { name: 'send notification in app', path: '/in-app-notification' },
+        { name: 'send promo notification', path: '/send-promo-notification' },
+        { name: 'send notification in app', path: '/send-notification-in-app' },
         { name: 'notifications from app', path: '/notifications-from-app' },
         { name: 'Email and sms template mgt screen', path: '/templates' },
         { name: 'push notification', path: '/pushnotification' },

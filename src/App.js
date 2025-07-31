@@ -27,10 +27,13 @@ const ArrangementControl = React.lazy(() => import('./pages/ArrangementControl')
 const NewPartner = React.lazy(() => import('./pages/NewPartner'));
 const BlockUser = React.lazy(() => import('./pages/BlockUser'));
 const NotificationFromApp = React.lazy(() => import('./pages/NotificationFromApp'));
+const SendNotificationInApp = React.lazy(() => import('./pages/sendnotificationinapp'));
 const Points = React.lazy(() => import('./pages/points'));
 const InviteAFriend = React.lazy(() => import('./pages/inviteafriend'));
 const PushNotification = React.lazy(() => import('./pages/pushnotification'));
 const NotificationPreview = React.lazy(() => import('./pages/notificationPreview'));
+const SendPromoNotification = React.lazy(() => import('./pages/sendpromonotification'));
+const CartAbandonmentRecovery = React.lazy(() => import('./pages/cartabandonmentrecovery'));
 
 // Loading component for Suspense fallback
 const LoadingSpinner = () => (
@@ -175,6 +178,11 @@ function App() {
               <NotificationFromApp />
             </Suspense>
           } />
+          <Route path="send-notification-in-app" element={
+            <Suspense fallback={<LoadingSpinner />}>
+              <SendNotificationInApp />
+            </Suspense>
+          } />
           <Route path="points" element={
             <Suspense fallback={<LoadingSpinner />}>
               <Points />
@@ -193,6 +201,16 @@ function App() {
           <Route path="notification-preview" element={
             <Suspense fallback={<LoadingSpinner />}>
               <NotificationPreview />
+            </Suspense>
+          } />
+          <Route path="send-promo-notification" element={
+            <Suspense fallback={<LoadingSpinner />}>
+              <SendPromoNotification />
+            </Suspense>
+          } />
+          <Route path="cart-recovery" element={
+            <Suspense fallback={<LoadingSpinner />}>
+              <CartAbandonmentRecovery />
             </Suspense>
           } />
         </Route>
