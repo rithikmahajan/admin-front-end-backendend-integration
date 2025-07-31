@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Toggle, Eye, EyeOff, Save } from 'lucide-react';
 
 const Settings = () => {
   // State for various settings
@@ -28,241 +27,255 @@ const Settings = () => {
   };
 
   const ToggleSwitch = ({ enabled, onToggle, label }) => (
-    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-      <span className="font-medium text-gray-900">{label}</span>
-      <div className="flex items-center space-x-3">
-        <button
-          onClick={() => onToggle(false)}
-          className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-            !enabled 
-              ? 'bg-blue-600 text-white' 
-              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-          }`}
-        >
-          Off
-        </button>
+    <div className="flex items-center justify-between py-4">
+      <span className="font-bold text-[#010101] text-[20px] font-montserrat">{label}</span>
+      <div className="flex items-center space-x-2">
         <button
           onClick={() => onToggle(true)}
-          className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+          className={`px-4 py-2 rounded-full text-[16px] font-medium transition-colors min-w-[69px] ${
             enabled 
-              ? 'bg-blue-600 text-white' 
-              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              ? 'bg-[#000aff] text-white border border-black' 
+              : 'bg-transparent text-black border border-[#e4e4e4]'
           }`}
         >
           On
+        </button>
+        <button
+          onClick={() => onToggle(false)}
+          className={`px-4 py-2 rounded-full text-[16px] font-medium transition-colors min-w-[76px] ${
+            !enabled 
+              ? 'bg-[#000aff] text-white border border-black' 
+              : 'bg-transparent text-black border border-[#e4e4e4]'
+          }`}
+        >
+          Off
         </button>
       </div>
     </div>
   );
 
   const ViewSettingsButton = () => (
-    <button className="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-full font-medium transition-colors">
-      View Settings
+    <button className="bg-[#ef3826] hover:bg-[#d63420] text-white px-8 py-3 rounded-full font-medium text-[16px] transition-colors border border-black min-w-[200px]">
+      View settings
     </button>
   );
 
-  return (
-    <div className="space-y-6">
-      {/* Page Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
-        <p className="text-gray-600">Configure system settings and preferences</p>
-      </div>
-
-      {/* Data Collection Settings */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h2 className="text-xl font-bold text-gray-900 mb-6">Data Collection Settings</h2>
-        <div className="space-y-4">
-          <ToggleSwitch 
-            enabled={settings.profileVisibility}
-            onToggle={(value) => handleToggle('profileVisibility')}
-            label="Collect Profile Visibility Data"
-          />
-          <ToggleSwitch 
-            enabled={settings.locationData}
-            onToggle={(value) => handleToggle('locationData')}
-            label="Collect Location Data"
-          />
-          <ToggleSwitch 
-            enabled={settings.communicationPrefs}
-            onToggle={(value) => handleToggle('communicationPrefs')}
-            label="Collect Communication Preferences"
-          />
-          <ToggleSwitch 
-            enabled={settings.autoInvoicing}
-            onToggle={(value) => handleToggle('autoInvoicing')}
-            label="Get Auto Invoice Mailing"
-          />
-          <ToggleSwitch 
-            enabled={settings.huggingFaceAPI}
-            onToggle={(value) => handleToggle('huggingFaceAPI')}
-            label="Hugging Face API Open/Close"
-          />
+  const SettingItem = ({ title, description, hasInput = false, inputValue, onInputChange, inputKey, centered = true }) => (
+    <div className="py-6">
+      <div className={`${centered ? 'text-left' : 'flex items-center justify-between'}`}>
+        <div className={centered ? '' : 'flex-1'}>
+          <h3 className="font-bold text-[#000000] text-[22px] font-montserrat mb-1">{title}</h3>
+          {description && (
+            <p className="font-bold text-[#000000] text-[18px] font-montserrat">{description}</p>
+          )}
         </div>
-      </div>
-
-      {/* Payment & Discount Settings */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h2 className="text-xl font-bold text-gray-900 mb-6">Payment & Discount Settings</h2>
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-lg font-medium text-gray-900">Online Payment Discount</h3>
-              <p className="text-sm text-gray-600">Set percentage discount for online payments</p>
-            </div>
-            <div className="flex items-center space-x-4">
+        {!centered && (
+          <div className="flex items-center space-x-4">
+            {hasInput && (
               <input
                 type="number"
-                value={settings.onlineDiscount}
-                onChange={(e) => handleInputChange('onlineDiscount', parseInt(e.target.value))}
-                className="w-20 px-3 py-2 border border-gray-300 rounded-lg text-center"
+                value={inputValue}
+                onChange={(e) => onInputChange(inputKey, parseInt(e.target.value))}
+                className="w-20 px-3 py-2 border-2 border-black rounded-xl text-center"
                 min="0"
-                max="100"
               />
-              <span className="text-gray-500">%</span>
-              <ViewSettingsButton />
-            </div>
+            )}
+            <ViewSettingsButton />
           </div>
-          
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-lg font-medium text-gray-900">User Limit</h3>
-              <p className="text-sm text-gray-600">Set limit per user</p>
-            </div>
-            <div className="flex items-center space-x-4">
-              <input
-                type="number"
-                value={settings.userLimit}
-                onChange={(e) => handleInputChange('userLimit', parseInt(e.target.value))}
-                className="w-24 px-3 py-2 border border-gray-300 rounded-lg text-center"
-                min="1"
-              />
-              <ViewSettingsButton />
-            </div>
-          </div>
+        )}
+      </div>
+      {centered && (
+        <div className="flex justify-start mt-3">
+          <ViewSettingsButton />
         </div>
+      )}
+    </div>
+  );
+
+  const APITableRow = ({ service, apiKeys, authMethod, oauth, reauthenticate, action }) => (
+    <div className="flex items-center py-1.5 border-b border-dotted border-gray-300">
+      <div className="w-1/6 text-left font-montserrat text-[14px]">{service}</div>
+      <div className="w-1/6 text-center font-montserrat text-[16px] font-bold">{apiKeys}</div>
+      <div className="w-1/6 text-center font-montserrat text-[16px] font-bold">{authMethod}</div>
+      <div className="w-1/6 text-center font-montserrat text-[16px] font-bold">{oauth}</div>
+      <div className="w-1/6 text-center font-montserrat text-[16px] font-bold">{reauthenticate}</div>
+      <div className="w-1/6 text-center font-montserrat text-[16px] font-bold">{action}</div>
+    </div>
+  );
+
+  const APISection = ({ title, items }) => (
+    <div className="py-6">
+      <h3 className="font-bold text-[#000000] text-[22px] font-montserrat mb-4">{title}</h3>
+      <div className="bg-gray-50 rounded-lg p-3">
+        <div className="flex items-center py-2 border-b border-solid border-gray-400 font-bold text-sm">
+          <div className="w-1/6 text-left">Service</div>
+          <div className="w-1/6 text-center">API Keys</div>
+          <div className="w-1/6 text-center">Auth Method</div>
+          <div className="w-1/6 text-center">OAuth</div>
+          <div className="w-1/6 text-center">Reauthenticate</div>
+          <div className="w-1/6 text-center">Action</div>
+        </div>
+        {items.map((item, index) => (
+          <APITableRow key={index} {...item} />
+        ))}
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="bg-white min-h-screen p-6 font-montserrat max-w-4xl">
+      {/* Page Header */}
+      <div className="mb-12">
+        <h1 className="text-[24px] font-bold text-[#010101] font-montserrat">Settings</h1>
       </div>
 
-      {/* System Configuration */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h2 className="text-xl font-bold text-gray-900 mb-6">System Configuration</h2>
-        <div className="space-y-4">
-          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-            <div>
-              <h3 className="font-medium text-gray-900">HSN Code Setting</h3>
-              <p className="text-sm text-gray-500">Configure HSN codes for products</p>
-            </div>
-            <ViewSettingsButton />
-          </div>
-          
-          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-            <div>
-              <h3 className="font-medium text-gray-900">Shipping & Time Estimates</h3>
-              <p className="text-sm text-gray-500">Set shipping charges by region and country</p>
-            </div>
-            <ViewSettingsButton />
-          </div>
-          
-          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-            <div>
-              <h3 className="font-medium text-gray-900">Dynamic Pricing</h3>
-              <p className="text-sm text-gray-500">Automatically change prices based on demand, time, user segment</p>
-            </div>
-            <ViewSettingsButton />
-          </div>
-          
-          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-            <div>
-              <h3 className="font-medium text-gray-900">Language, Country & Region</h3>
-              <p className="text-sm text-gray-500">Add language country and region settings</p>
-            </div>
-            <ViewSettingsButton />
-          </div>
-        </div>
+      {/* Toggle Settings */}
+      <div className="space-y-3 mb-12">
+        <ToggleSwitch 
+          enabled={settings.profileVisibility}
+          onToggle={(value) => setSettings(prev => ({ ...prev, profileVisibility: value }))}
+          label="collect Profile visibility data"
+        />
+        <ToggleSwitch 
+          enabled={settings.locationData}
+          onToggle={(value) => setSettings(prev => ({ ...prev, locationData: value }))}
+          label="collect Location data"
+        />
+        <ToggleSwitch 
+          enabled={settings.communicationPrefs}
+          onToggle={(value) => setSettings(prev => ({ ...prev, communicationPrefs: value }))}
+          label="Collect communication preferences"
+        />
+        <ToggleSwitch 
+          enabled={settings.autoInvoicing}
+          onToggle={(value) => setSettings(prev => ({ ...prev, autoInvoicing: value }))}
+          label="get auto invoice mailing"
+        />
+        <ToggleSwitch 
+          enabled={settings.huggingFaceAPI}
+          onToggle={(value) => setSettings(prev => ({ ...prev, huggingFaceAPI: value }))}
+          label="hugging face api open close"
+        />
       </div>
 
-      {/* API Integration */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h2 className="text-xl font-bold text-gray-900 mb-6">API Integration</h2>
-        <div className="space-y-4">
-          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-            <div>
-              <h3 className="font-medium text-gray-900">Webhooks</h3>
-              <p className="text-sm text-gray-500">Webhooks for order/payment updates</p>
-            </div>
-            <ViewSettingsButton />
-          </div>
-          
-          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-            <div>
-              <h3 className="font-medium text-gray-900">Email & SMS Templates</h3>
-              <p className="text-sm text-gray-500">Email and SMS template management screen</p>
-            </div>
-            <ViewSettingsButton />
-          </div>
-          
-          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-            <div>
-              <h3 className="font-medium text-gray-900">Google Analytics Integration</h3>
-              <p className="text-sm text-gray-500">Configure Google Analytics API keys</p>
-            </div>
-            <ViewSettingsButton />
-          </div>
-          
-          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-            <div>
-              <h3 className="font-medium text-gray-900">SMS Providers</h3>
-              <p className="text-sm text-gray-500">SMS providers (Twilio, MSG91)</p>
-            </div>
-            <ViewSettingsButton />
-          </div>
-          
-          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-            <div>
-              <h3 className="font-medium text-gray-900">WhatsApp Business API</h3>
-              <p className="text-sm text-gray-500">Configure WhatsApp Business integration</p>
-            </div>
-            <ViewSettingsButton />
-          </div>
-        </div>
+      {/* Discount Setting */}
+      <div className="py-6">
+        <h3 className="font-bold text-[#000000] text-[20px] font-montserrat mb-4">
+          Set the percentage of discount to implement if paying online
+        </h3>
+        <ViewSettingsButton />
       </div>
 
-      {/* Marketplace Integration */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h2 className="text-xl font-bold text-gray-900 mb-6">Marketplace Integration</h2>
-        <div className="space-y-4">
-          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-            <div>
-              <h3 className="font-medium text-gray-900">Flipkart Integration</h3>
-              <p className="text-sm text-gray-500">Configure Flipkart marketplace API</p>
-            </div>
-            <ViewSettingsButton />
-          </div>
-          
-          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-            <div>
-              <h3 className="font-medium text-gray-900">Logistics & Shipping</h3>
-              <p className="text-sm text-gray-500">Auto-group items for efficient packing</p>
-            </div>
-            <ViewSettingsButton />
-          </div>
-          
-          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-            <div>
-              <h3 className="font-medium text-gray-900">Error Tracking</h3>
-              <p className="text-sm text-gray-500">Logs and error tracking integration, staging environment toggle</p>
-            </div>
-            <ViewSettingsButton />
-          </div>
-        </div>
+      {/* User Limit Setting */}
+      <div className="py-6">
+        <SettingItem 
+          title="set limit per user"
+          hasInput={true}
+          inputValue={settings.userLimit}
+          onInputChange={handleInputChange}
+          inputKey="userLimit"
+          centered={false}
+        />
       </div>
 
-      {/* Save Changes */}
-      <div className="flex justify-end">
-        <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium flex items-center space-x-2 transition-colors">
-          <Save size={20} />
-          <span>Save All Settings</span>
-        </button>
+      {/* System Configuration Items */}
+      <div className="space-y-3">
+        <SettingItem 
+          title="hsn code setting"
+        />
+        
+        <SettingItem 
+          title="Set shipping and time estimates charges by region and country screen"
+        />
+        
+        <SettingItem 
+          title="Automatically change prices based on demand, time, user segment"
+        />
+        
+        <SettingItem 
+          title="add language country and region"
+        />
+        
+        <SettingItem 
+          title="Webhooks for order/payment updates Reply"
+        />
+        
+        <SettingItem 
+          title="Email and sms template mgt screen"
+        />
+        
+        <SettingItem 
+          title="Logs and error tracking integration ,, staging environment toggle"
+        />
+
+        {/* API Integration Sections */}
+        <APISection 
+          title="google analytics integration"
+          items={[
+            {
+              service: "Google Analytics",
+              apiKeys: "api keys",
+              authMethod: "auth method",
+              oauth: "Oauth", 
+              reauthenticate: "reauthenticate",
+              action: "action"
+            }
+          ]}
+        />
+
+        <APISection 
+          title="SMS providers (Twilio, MSG91)"
+          items={[
+            {
+              service: "Twilio",
+              apiKeys: "api keys",
+              authMethod: "auth method", 
+              oauth: "Oauth",
+              reauthenticate: "reauthenticate",
+              action: "action"
+            },
+            {
+              service: "MSG91",
+              apiKeys: "api keys",
+              authMethod: "auth method",
+              oauth: "Oauth", 
+              reauthenticate: "reauthenticate",
+              action: "action"
+            }
+          ]}
+        />
+
+        <APISection 
+          title="WhatsApp Business API"
+          items={[
+            {
+              service: "WhatsApp",
+              apiKeys: "api keys",
+              authMethod: "auth method",
+              oauth: "Oauth",
+              reauthenticate: "reauthenticate", 
+              action: "action"
+            }
+          ]}
+        />
+
+        <APISection 
+          title="market place"
+          items={[
+            {
+              service: "flipkart",
+              apiKeys: "api keys",
+              authMethod: "auth method",
+              oauth: "Oauth",
+              reauthenticate: "reauthenticate",
+              action: "action"
+            }
+          ]}
+        />
+        
+        <SettingItem 
+          title="Auto-group items for efficient packing	Assign courier based on weight, region, or SLA"
+        />
       </div>
     </div>
   );
