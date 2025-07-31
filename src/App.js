@@ -29,6 +29,8 @@ const BlockUser = React.lazy(() => import('./pages/BlockUser'));
 const NotificationFromApp = React.lazy(() => import('./pages/NotificationFromApp'));
 const Points = React.lazy(() => import('./pages/points'));
 const InviteAFriend = React.lazy(() => import('./pages/inviteafriend'));
+const PushNotification = React.lazy(() => import('./pages/pushnotification'));
+const NotificationPreview = React.lazy(() => import('./pages/notificationPreview'));
 
 // Loading component for Suspense fallback
 const LoadingSpinner = () => (
@@ -181,6 +183,16 @@ function App() {
           <Route path="invite" element={
             <Suspense fallback={<LoadingSpinner />}>
               <InviteAFriend />
+            </Suspense>
+          } />
+          <Route path="pushnotification" element={
+            <Suspense fallback={<LoadingSpinner />}>
+              <PushNotification />
+            </Suspense>
+          } />
+          <Route path="notification-preview" element={
+            <Suspense fallback={<LoadingSpinner />}>
+              <NotificationPreview />
             </Suspense>
           } />
         </Route>
