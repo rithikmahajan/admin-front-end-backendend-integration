@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { ChevronDown, Search, Edit2, Trash2, Filter } from 'lucide-react';
 
 const Points = () => {
@@ -25,6 +25,9 @@ const Points = () => {
   const [editingUser, setEditingUser] = useState(null);
   const [showEdit2FAModal, setShowEdit2FAModal] = useState(false);
   const [showEditSuccessModal, setShowEditSuccessModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showDeleteSuccessModal, setShowDeleteSuccessModal] = useState(false);
+  const [deletingUserId, setDeletingUserId] = useState(null);
   const [editUserName, setEditUserName] = useState('');
   const [editUserId, setEditUserId] = useState('');
   const [editPhoneNo, setEditPhoneNo] = useState('');
@@ -304,6 +307,29 @@ const Points = () => {
     setShowEditSuccessModal(false);
   };
 
+  const handleDeleteUser = (userId) => {
+    setDeletingUserId(userId);
+    setShowDeleteModal(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (deletingUserId) { 
+      setUsers(users.filter(user => user.id !== deletingUserId));
+      setShowDeleteModal(false);
+      setShowDeleteSuccessModal(true);
+      setDeletingUserId(null);
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setShowDeleteModal(false);
+    setDeletingUserId(null);
+  };
+
+  const handleDeleteSuccessDone = () => {
+    setShowDeleteSuccessModal(false);
+  };
+
   const handleCloseEditSuccessModal = () => {
     setShowEditSuccessModal(false);
     setEditingUser(null);
@@ -439,7 +465,7 @@ const Points = () => {
         </div>
 
         {/* User Table Header */}
-        <div className="grid grid-cols-10 gap-4 mb-4">
+        <div className="grid grid-cols-11 gap-4 mb-4">
           <div className="text-[20px] text-black text-center">user name</div>
           <div className="text-[16px] text-black text-center">user id</div>
           <div className="text-[16px] text-black text-center">phone no.</div>
@@ -450,12 +476,13 @@ const Points = () => {
           <div className="text-[16px] text-black text-center">deleted account</div>
           <div className="text-[16px] text-black text-center">allot points</div>
           <div className="text-[16px] text-black text-center">edit</div>
+          <div className="text-[16px] text-black text-center">delete</div>
         </div>
 
         {/* User Table Rows */}
         <div className="space-y-4">
           {filteredUsers.map((user, index) => (
-            <div key={user.id} className="grid grid-cols-10 gap-4 items-center">
+            <div key={user.id} className="grid grid-cols-11 gap-4 items-center">
               <div className="text-[20px] text-black text-center">{user.name}</div>
               <div className="text-[16px] text-black text-center">{user.userId}</div>
               <div className="text-[16px] text-black text-center">{user.phone}</div>
@@ -490,6 +517,14 @@ const Points = () => {
                   className="p-2 hover:bg-gray-100 rounded-lg"
                 >
                   <Edit2 className="w-5 h-5 text-gray-600" />
+                </button>
+              </div>
+              <div className="flex justify-center">
+                <button
+                  onClick={() => handleDeleteUser(user.id)}
+                  className="p-2 hover:bg-gray-100 rounded-lg"
+                >
+                  <Trash2 className="w-5 h-5 text-red-600" />
                 </button>
               </div>
             </div>
@@ -1282,6 +1317,91 @@ const Points = () => {
             </div>
             
             {/* Modal height spacer to ensure proper modal size */}
+            <div className="h-[240px]"></div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-md mx-4 overflow-clip">
+            {/* Close button */}
+            <button 
+              onClick={handleCancelDelete}
+              className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700"
+            >
+              <div className="absolute bottom-[17.18%] left-[17.18%] right-[17.18%] top-[17.17%]">
+                <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </div>
+            </button>
+            
+            {/* Modal content */}
+            <div className="absolute top-[60px] left-1/2 transform -translate-x-1/2 w-[200px] text-center">
+              <p className="font-bold text-black text-[18px] leading-[22px] tracking-[-0.41px] font-['Montserrat']">
+                Are you sure you want to delete this user?
+              </p>
+            </div>
+            
+            {/* Button Container */}
+            <div className="absolute top-[189px] left-1/2 transform -translate-x-1/2 flex gap-4">
+              <button
+                onClick={handleConfirmDelete}
+                className="bg-red-600 text-white rounded-3xl w-[149px] h-12 font-semibold text-[16px] leading-[22px] font-['Montserrat'] hover:bg-red-700 transition-colors"
+              >
+                Delete
+              </button>
+              
+              <button
+                onClick={handleCancelDelete}
+                className="border border-[#e4e4e4] text-black rounded-[100px] w-[149px] h-12 font-medium text-[16px] leading-[19.2px] font-['Montserrat'] hover:bg-gray-50 transition-colors flex items-center justify-center"
+              >
+                Cancel
+              </button>
+            </div>
+            
+            {/* Modal height spacer */}
+            <div className="h-[280px]"></div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Success Modal */}
+      {showDeleteSuccessModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-md mx-4 overflow-clip">
+            {/* Close button */}
+            <button 
+              onClick={handleDeleteSuccessDone}
+              className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700"
+            >
+              <div className="absolute bottom-[17.18%] left-[17.18%] right-[17.18%] top-[17.17%]">
+                <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </div>
+            </button>
+            
+            {/* Modal content */}
+            <div className="absolute top-[61px] left-1/2 transform -translate-x-1/2 w-[242px] text-center">
+              <p className="font-bold text-black text-[18px] leading-[22px] tracking-[-0.41px] font-['Montserrat']">
+                User deleted successfully!
+              </p>
+            </div>
+            
+            {/* Done Button Container */}
+            <div className="absolute top-[155px] left-1/2 transform" style={{ transform: 'translateX(calc(-50% + 7px))' }}>
+              <button
+                onClick={handleDeleteSuccessDone}
+                className="bg-black text-white rounded-3xl w-[270px] h-12 font-semibold text-[16px] leading-[22px] font-['Montserrat'] hover:bg-gray-800 transition-colors"
+              >
+                Done
+              </button>
+            </div>
+            
+            {/* Modal height spacer */}
             <div className="h-[240px]"></div>
           </div>
         </div>

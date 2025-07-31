@@ -34,6 +34,7 @@ const NotificationPreview = React.lazy(() => import('./pages/notificationPreview
 const SendPromoNotification = React.lazy(() => import('./pages/sendpromonotification'));
 const CartAbandonmentRecovery = React.lazy(() => import('./pages/cartabandonmentrecovery'));
 const Database = React.lazy(() => import('./pages/database'));
+const ManageReviews = React.lazy(() => import('./pages/ManageReviews'));
 
 // Loading component for Suspense fallback
 const LoadingSpinner = () => (
@@ -206,6 +207,11 @@ function App() {
           <Route path="cart-recovery" element={
             <Suspense fallback={<LoadingSpinner />}>
               <CartAbandonmentRecovery />
+            </Suspense>
+          } />
+          <Route path="manage-reviews" element={
+            <Suspense fallback={<LoadingSpinner />}>
+              <ManageReviews />
             </Suspense>
           } />
           <Route path="database" element={
