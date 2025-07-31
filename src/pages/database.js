@@ -201,9 +201,11 @@ const Database = () => {
             onChange={(e) => handleFilterChange('category', e.target.value)}
             className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500"
           >
-            <option value="">choose db category</option>
-            <option value="T shirt">T shirt</option>
-            <option value="Jeans">Jeans</option>
+          
+            <option value="Profile">Profile</option>
+            <option value="inventory list">inventory list</option>
+            <option value="Order statistics">Order statistics</option>
+         
           </select>
 
           <select
@@ -212,8 +214,18 @@ const Database = () => {
             className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500"
           >
             <option value="">choose sub category</option>
-            <option value="T shirt">T shirt</option>
-            <option value="Polo">Polo</option>
+            <option value="Name">Name</option>
+            <option value="EMAIL">EMAIL</option>
+            <option value="PHONE">PHONE</option>
+            <option value="Date of Birth">Date of Birth</option>
+            <option value="ADDRESS">ADDRESS</option>
+            <option value="delete account record">delete account record</option>
+            <option value="user details">user details</option>
+            <option value="app reviews">app reviews</option>
+            <option value="GENDER">GENDER</option>
+            <option value="password details">password details</option>
+            <option value="points">points</option>
+            <option value="PG rent receipt – Duly stamped">PG rent receipt – Duly stamped</option>
           </select>
 
           <button

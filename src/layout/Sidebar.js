@@ -87,15 +87,6 @@ const Sidebar = React.memo(({ sidebarOpen, setSidebarOpen, sidebarHidden, onTogg
       ]
     },
     {
-      title: 'Others',
-      titleSize: 'text-xl',
-      items: [
-        { name: 'support chat log', path: '/support-logs' },
-        { name: 'Logs/error tracking integration', path: '/error-logs' },
-        { name: 'staging environment toggle', path: '/staging' }
-      ]
-    },
-    {
       title: 'Settings',
       titleSize: 'text-xl',
       items: [
