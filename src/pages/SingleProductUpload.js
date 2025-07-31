@@ -149,7 +149,7 @@ const SingleProductUpload = React.memo(() => {
   }, [productData.productName, productData.regularPrice, variants.length]);
 
   return (
-    <div className="bg-white min-h-screen">
+    <div className="min-h-screen">
       {/* Header */}
       <div>
         <div className="px-4 py-3">

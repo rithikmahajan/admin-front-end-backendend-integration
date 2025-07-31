@@ -382,19 +382,49 @@ const JoinUsControl = memo(() => {
   }, [formState.selectedImage]);
 
   return (
-    <div className="bg-white min-h-screen">
+    <div className="min-h-screen">
       {/* Main Content Container */}
-      <div className="max-w-7xl mx-auto p-6 bg-white rounded-xl shadow-lg">
+      <div className="p-6">
         
         {/* Header Section */}
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-black mb-2">join us control screen</h1>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           
-          {/* Left Column - Image Upload Section */}
+          {/* Left Column - Content Creation Section */}
           <div className="space-y-6">
+          {/* Left Column - Content Creation Section */}
+          <div className="space-y-6">
+            
+            {/* Create Title Input */}
+            <div>
+              <h3 className="text-lg font-bold text-black mb-3">Create title</h3>
+              <input
+                type="text"
+                value={formState.title}
+                onChange={handleTitleChange}
+                className="w-full px-4 py-3 border-2 border-black rounded-xl focus:outline-none focus:border-blue-500 transition-colors"
+                placeholder="Enter title..."
+                aria-label="Post title"
+              />
+            </div>
+
+            {/* Create Detail Textarea */}
+            <div>
+              <h3 className="text-lg font-bold text-black mb-3">Create detail</h3>
+              <textarea
+                value={formState.detail}
+                onChange={handleDetailChange}
+                rows={8}
+                className="w-full px-4 py-3 border-2 border-black rounded-xl focus:outline-none focus:border-blue-500 resize-none transition-colors"
+                placeholder="Enter detailed description..."
+                aria-label="Post details"
+              />
+            </div>
+
+            {/* Image Upload Section */}
             <div className="text-center">
               <h2 className="text-xl font-bold text-black mb-4">Add image</h2>
               
@@ -439,36 +469,6 @@ const JoinUsControl = memo(() => {
                   </div>
                 )}
               </div>
-            </div>
-          </div>
-
-          {/* Middle Column - Content Creation Section */}
-          <div className="space-y-6">
-            
-            {/* Create Title Input */}
-            <div>
-              <h3 className="text-lg font-bold text-black mb-3">Create title</h3>
-              <input
-                type="text"
-                value={formState.title}
-                onChange={handleTitleChange}
-                className="w-full px-4 py-3 border-2 border-black rounded-xl focus:outline-none focus:border-blue-500 transition-colors"
-                placeholder="Enter title..."
-                aria-label="Post title"
-              />
-            </div>
-
-            {/* Create Detail Textarea */}
-            <div>
-              <h3 className="text-lg font-bold text-black mb-3">Create detail</h3>
-              <textarea
-                value={formState.detail}
-                onChange={handleDetailChange}
-                rows={8}
-                className="w-full px-4 py-3 border-2 border-black rounded-xl focus:outline-none focus:border-blue-500 resize-none transition-colors"
-                placeholder="Enter detailed description..."
-                aria-label="Post details"
-              />
             </div>
 
             {/* Action Buttons Section - Optimized with proper event handling */}
@@ -597,8 +597,9 @@ const JoinUsControl = memo(() => {
           ))}
         </div>
       </div>
+    </div>
 
-      {/* Edit Modal - Optimized for performance */}
+    {/* Edit Modal - Optimized for performance */}
       {modalStates.isEditModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-y-auto mx-4">
