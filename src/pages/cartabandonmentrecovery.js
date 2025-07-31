@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useMemo, memo } from 'react';
 import { Filter, Download, Mail, Eye, Trash2, Users } from 'lucide-react';
+import BulkSMS from './BulkSMS';
 
 /**
  * Empty Cart Management Component
@@ -25,6 +26,9 @@ const CartAbandonmentRecovery = memo(() => {
     countryRegion: 'all',
     sortBy: 'last active'
   });
+
+  // Page state
+  const [showBulkSMS, setShowBulkSMS] = useState(false);
 
   // Sample users data with empty carts
   const [users, setUsers] = useState([
@@ -66,7 +70,7 @@ const CartAbandonmentRecovery = memo(() => {
   }, []);
 
   const handleBulkSMS = useCallback(() => {
-    console.log('Sending bulk SMS to users with empty carts');
+    setShowBulkSMS(true);
   }, []);
 
   const handleExportCSV = useCallback(() => {
@@ -85,6 +89,16 @@ const CartAbandonmentRecovery = memo(() => {
   const handleDeleteUser = useCallback((userId) => {
     setUsers(prev => prev.filter(user => user.id !== userId));
   }, []);
+
+  // Handle close bulk SMS page
+  const handleCloseBulkSMS = useCallback(() => {
+    setShowBulkSMS(false);
+  }, []);
+
+  // If showing bulk SMS page, render it instead
+  if (showBulkSMS) {
+    return <BulkSMS onClose={handleCloseBulkSMS} />;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
