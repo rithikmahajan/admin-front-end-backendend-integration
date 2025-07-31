@@ -518,7 +518,10 @@ const PromoCodeManagement = () => {
       {/* 2FA Modal */}
       {show2FAModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] p-8 max-w-md w-full mx-4 relative">
+          <div
+            className="bg-white rounded-[32px] shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative"
+            style={{ width: '600px', minHeight: '600px', padding: '48px 56px' }}
+          >
             {/* Close button */}
             <button 
               onClick={handleCancel2FA}
@@ -625,6 +628,7 @@ const PromoCodeManagement = () => {
               onClick={handle2FASubmit}
               className="w-full bg-black text-white py-3 rounded-[26.5px] font-bold text-base uppercase hover:bg-gray-800 transition-colors"
             >
+              SUBMIT
             </button>
           </div>
         </div>
@@ -749,7 +753,7 @@ const PromoCodeManagement = () => {
       {/* Success Modal */}
       {showSuccessModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] p-8 max-w-md w-full mx-4 text-center relative">
+          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] p-11 max-w-md w-full mx-4 text-center relative">
             {/* Close button */}
             <button 
               onClick={handleCloseSuccessModal}
@@ -762,7 +766,7 @@ const PromoCodeManagement = () => {
             
             {/* Success message */}
             <div className="mb-8 mt-4">
-              <h2 className="text-lg font-bold text-black tracking-[-0.41px] leading-[22px]">
+              <h2 className="text-lg font-bold text-black tracking-[-0.41px] p-4 leading-[22px]">
                 id verified successfully!
               </h2>
             </div>
@@ -770,7 +774,7 @@ const PromoCodeManagement = () => {
             {/* Done Button */}
             <button
               onClick={handleSuccessModalDone}
-              className="bg-black text-white px-12 py-3 rounded-3xl font-semibold text-base hover:bg-gray-800 transition-colors"
+              className="bg-black text-white px-12 py-3 pb-4 rounded-3xl font-semibold text-base hover:bg-gray-800 transition-colors"
             >
               Done
             </button>
@@ -781,7 +785,7 @@ const PromoCodeManagement = () => {
       {/* Off Success Modal */}
       {showOffSuccessModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] p-8 max-w-md w-full mx-4 text-center relative">
+          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] p-11 max-w-md w-full mx-4 text-center relative">
             {/* Close button */}
             <button 
               onClick={handleCloseOffSuccessModal}
@@ -794,7 +798,7 @@ const PromoCodeManagement = () => {
             
             {/* Success message */}
             <div className="mb-8 mt-4">
-              <h2 className="text-lg font-bold text-black tracking-[-0.41px] leading-[22px]">
+              <h2 className="text-lg font-bold text-black tracking-[-0.41px] p-5 leading-[22px]">
                 id verified successfully!
               </h2>
             </div>
@@ -813,7 +817,7 @@ const PromoCodeManagement = () => {
       {/* Final Success Modal */}
       {showFinalSuccessModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] p-8 max-w-md w-full mx-4 text-center relative">
+          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] p-11 max-w-md w-full mx-4 text-center relative">
             {/* Close button */}
             <button 
               onClick={handleCloseFinalSuccessModal}
@@ -826,7 +830,7 @@ const PromoCodeManagement = () => {
             
             {/* Success message */}
             <div className="mb-8 mt-4">
-              <h2 className="text-lg font-bold text-black tracking-[-0.41px] leading-[22px]">
+              <h2 className="text-lg font-bold text-black tracking-[-0.41px] leading-[22px] p-8">
                 promocode turned on successfully!
               </h2>
             </div>
