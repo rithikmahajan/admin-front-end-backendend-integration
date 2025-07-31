@@ -163,6 +163,21 @@ const Settings = () => {
     currencyDeletedSuccess: false
   });
 
+  // Auto notification state
+  const [autoNotificationSettings, setAutoNotificationSettings] = useState({
+    criteria: '',
+    conditions: []
+  });
+
+  // Modal states for auto notification
+  const [autoNotificationModals, setAutoNotificationModals] = useState({
+    autoNotificationModal: false,
+    conditionCreatedSuccess: false,
+    conditionUpdatedSuccess: false,
+    conditionDeleteConfirm: false,
+    conditionDeletedSuccess: false
+  });
+
   // Edit states for location settings
   const [editingCountry, setEditingCountry] = useState(null);
   const [editingLanguage, setEditingLanguage] = useState(null);
@@ -178,6 +193,77 @@ const Settings = () => {
     currencies: {}
   });
   const [newOrderInput, setNewOrderInput] = useState('');
+
+  // Auto notification editing state
+  const [editingNotificationCondition, setEditingNotificationCondition] = useState(null);
+  const [deletingNotificationConditionId, setDeletingNotificationConditionId] = useState(null);
+
+  // Dynamic pricing state
+  const [dynamicPricingSettings, setDynamicPricingSettings] = useState({
+    criteria: '',
+    conditions: []
+  });
+
+  // Modal states for dynamic pricing
+  const [dynamicPricingModals, setDynamicPricingModals] = useState({
+    dynamicPricingModal: false,
+    conditionCreatedSuccess: false,
+    conditionUpdatedSuccess: false,
+    conditionDeleteConfirm: false,
+    conditionDeletedSuccess: false
+  });
+
+  // Dynamic pricing form state
+  const [dynamicPricingForm, setDynamicPricingForm] = useState({
+    category: '',
+    subCategory: '',
+    items: '',
+    specified: '',
+    discountType: '',
+    startDate: '',
+    endDate: '',
+    minimumOrderValue: '',
+    maxUsers: ''
+  });
+
+  // Edit state for dynamic pricing conditions
+  const [editingDynamicPricingCondition, setEditingDynamicPricingCondition] = useState(null);
+  const [deletingDynamicPricingConditionId, setDeletingDynamicPricingConditionId] = useState(null);
+
+  // Webhook management state
+  const [webhookSettings, setWebhookSettings] = useState({
+    webhooks: [],
+    apiKeys: [],
+    apiPermissions: {
+      orders: true,
+      products: true,
+      customers: true,
+      payments: true
+    },
+    webhookLogs: []
+  });
+
+  // Webhook form state
+  const [webhookForm, setWebhookForm] = useState({
+    event: '',
+    webhookUrl: '',
+    secretKey: ''
+  });
+
+  // Modal states for webhook management
+  const [webhookModals, setWebhookModals] = useState({
+    webhookModal: false,
+    webhookCreatedSuccess: false,
+    webhookUpdatedSuccess: false,
+    webhookDeleteConfirm: false,
+    webhookDeletedSuccess: false,
+    apiKeyModal: false,
+    apiKeyCreatedSuccess: false
+  });
+
+  // Edit state for webhooks
+  const [editingWebhook, setEditingWebhook] = useState(null);
+  const [deletingWebhookId, setDeletingWebhookId] = useState(null);
 
   // Predefined options
   const countryOptions = [
@@ -940,6 +1026,390 @@ const Settings = () => {
     
     // You can implement bulk order logic here
     setNewOrderInput('');
+  };
+
+  // Auto notification handlers
+  const handleOpenAutoNotificationModal = () => {
+    setAutoNotificationModals(prev => ({ ...prev, autoNotificationModal: true }));
+  };
+
+  const handleCloseAutoNotificationModal = () => {
+    setAutoNotificationModals(prev => ({ ...prev, autoNotificationModal: false }));
+    setEditingNotificationCondition(null);
+    setDeletingNotificationConditionId(null);
+    setAutoNotificationSettings(prev => ({ ...prev, criteria: '' }));
+  };
+
+  const handleAutoNotificationChange = (field, value) => {
+    setAutoNotificationSettings(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleCreateNotificationCondition = () => {
+    if (autoNotificationSettings.criteria.trim()) {
+      const newCondition = {
+        id: Date.now(),
+        criteria: autoNotificationSettings.criteria,
+        type: 'Price Drop & Restock',
+        createdAt: new Date().toLocaleDateString()
+      };
+      setAutoNotificationSettings(prev => ({
+        ...prev,
+        conditions: [...prev.conditions, newCondition],
+        criteria: ''
+      }));
+      setAutoNotificationModals(prev => ({ ...prev, conditionCreatedSuccess: true }));
+    }
+  };
+
+  const handleEditNotificationCondition = (id) => {
+    const condition = autoNotificationSettings.conditions.find(c => c.id === id);
+    if (condition) {
+      setEditingNotificationCondition(condition);
+      setAutoNotificationSettings(prev => ({ ...prev, criteria: condition.criteria }));
+    }
+  };
+
+  const handleSaveEditedNotificationCondition = () => {
+    if (editingNotificationCondition && autoNotificationSettings.criteria.trim()) {
+      setAutoNotificationSettings(prev => ({
+        ...prev,
+        conditions: prev.conditions.map(c => 
+          c.id === editingNotificationCondition.id 
+            ? { ...c, criteria: autoNotificationSettings.criteria }
+            : c
+        ),
+        criteria: ''
+      }));
+      setEditingNotificationCondition(null);
+      setAutoNotificationModals(prev => ({ ...prev, conditionUpdatedSuccess: true }));
+    }
+  };
+
+  const handleCancelEditNotificationCondition = () => {
+    setEditingNotificationCondition(null);
+    setAutoNotificationSettings(prev => ({ ...prev, criteria: '' }));
+  };
+
+  const handleDeleteNotificationCondition = (id) => {
+    setDeletingNotificationConditionId(id);
+    setAutoNotificationModals(prev => ({ ...prev, conditionDeleteConfirm: true }));
+  };
+
+  const handleConfirmDeleteNotificationCondition = () => {
+    if (deletingNotificationConditionId) {
+      setAutoNotificationSettings(prev => ({
+        ...prev,
+        conditions: prev.conditions.filter(c => c.id !== deletingNotificationConditionId)
+      }));
+      setAutoNotificationModals(prev => ({
+        ...prev,
+        conditionDeleteConfirm: false,
+        conditionDeletedSuccess: true
+      }));
+      setDeletingNotificationConditionId(null);
+    }
+  };
+
+  const handleCancelDeleteNotificationCondition = () => {
+    setAutoNotificationModals(prev => ({ ...prev, conditionDeleteConfirm: false }));
+    setDeletingNotificationConditionId(null);
+  };
+
+  // Auto notification success modal handlers
+  const handleNotificationConditionCreatedSuccessDone = () => {
+    setAutoNotificationModals(prev => ({ ...prev, conditionCreatedSuccess: false }));
+  };
+
+  const handleNotificationConditionUpdatedSuccessDone = () => {
+    setAutoNotificationModals(prev => ({ ...prev, conditionUpdatedSuccess: false }));
+  };
+
+  const handleNotificationConditionDeletedSuccessDone = () => {
+    setAutoNotificationModals(prev => ({ ...prev, conditionDeletedSuccess: false }));
+  };
+
+  // Dynamic pricing handlers
+  const handleOpenDynamicPricingModal = () => {
+    setDynamicPricingModals(prev => ({ ...prev, dynamicPricingModal: true }));
+  };
+
+  const handleCloseDynamicPricingModal = () => {
+    setDynamicPricingModals(prev => ({ ...prev, dynamicPricingModal: false }));
+    setEditingDynamicPricingCondition(null);
+    setDeletingDynamicPricingConditionId(null);
+    // Reset form
+    setDynamicPricingForm({
+      category: '',
+      subCategory: '',
+      items: '',
+      specified: '',
+      discountType: '',
+      startDate: '',
+      endDate: '',
+      minimumOrderValue: '',
+      maxUsers: ''
+    });
+    setDynamicPricingSettings(prev => ({ ...prev, criteria: '' }));
+  };
+
+  const handleDynamicPricingFormChange = (field, value) => {
+    setDynamicPricingForm(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleDynamicPricingCriteriaChange = (value) => {
+    setDynamicPricingSettings(prev => ({ ...prev, criteria: value }));
+  };
+
+  const handleCreateDynamicPricingCondition = () => {
+    const newCondition = { 
+      ...dynamicPricingForm, 
+      id: Date.now(),
+      criteria: dynamicPricingSettings.criteria,
+      type: 'Dynamic Pricing',
+      createdAt: new Date().toLocaleDateString()
+    };
+    setDynamicPricingSettings(prev => ({
+      ...prev,
+      conditions: [...prev.conditions, newCondition],
+      criteria: ''
+    }));
+    // Reset form for next condition
+    setDynamicPricingForm({
+      category: '',
+      subCategory: '',
+      items: '',
+      specified: '',
+      discountType: '',
+      startDate: '',
+      endDate: '',
+      minimumOrderValue: '',
+      maxUsers: ''
+    });
+    // Show success modal
+    setDynamicPricingModals(prev => ({ ...prev, conditionCreatedSuccess: true }));
+  };
+
+  const handleEditDynamicPricingCondition = (id) => {
+    const condition = dynamicPricingSettings.conditions.find(c => c.id === id);
+    if (condition) {
+      setEditingDynamicPricingCondition(condition);
+      setDynamicPricingForm(condition);
+      setDynamicPricingSettings(prev => ({ ...prev, criteria: condition.criteria || '' }));
+    }
+  };
+
+  const handleSaveEditedDynamicPricingCondition = () => {
+    if (editingDynamicPricingCondition) {
+      setDynamicPricingSettings(prev => ({
+        ...prev,
+        conditions: prev.conditions.map(c => 
+          c.id === editingDynamicPricingCondition.id 
+            ? { ...dynamicPricingForm, id: editingDynamicPricingCondition.id, criteria: prev.criteria }
+            : c
+        ),
+        criteria: ''
+      }));
+      setEditingDynamicPricingCondition(null);
+      setDynamicPricingForm({
+        category: '',
+        subCategory: '',
+        items: '',
+        specified: '',
+        discountType: '',
+        startDate: '',
+        endDate: '',
+        minimumOrderValue: '',
+        maxUsers: ''
+      });
+      setDynamicPricingModals(prev => ({ ...prev, conditionUpdatedSuccess: true }));
+    }
+  };
+
+  const handleCancelEditDynamicPricingCondition = () => {
+    setEditingDynamicPricingCondition(null);
+    setDynamicPricingForm({
+      category: '',
+      subCategory: '',
+      items: '',
+      specified: '',
+      discountType: '',
+      startDate: '',
+      endDate: '',
+      minimumOrderValue: '',
+      maxUsers: ''
+    });
+    setDynamicPricingSettings(prev => ({ ...prev, criteria: '' }));
+  };
+
+  const handleDeleteDynamicPricingCondition = (id) => {
+    setDeletingDynamicPricingConditionId(id);
+    setDynamicPricingModals(prev => ({ ...prev, conditionDeleteConfirm: true }));
+  };
+
+  const handleConfirmDeleteDynamicPricingCondition = () => {
+    if (deletingDynamicPricingConditionId) {
+      setDynamicPricingSettings(prev => ({
+        ...prev,
+        conditions: prev.conditions.filter(c => c.id !== deletingDynamicPricingConditionId)
+      }));
+      setDynamicPricingModals(prev => ({
+        ...prev,
+        conditionDeleteConfirm: false,
+        conditionDeletedSuccess: true
+      }));
+      setDeletingDynamicPricingConditionId(null);
+    }
+  };
+
+  const handleCancelDeleteDynamicPricingCondition = () => {
+    setDynamicPricingModals(prev => ({ ...prev, conditionDeleteConfirm: false }));
+    setDeletingDynamicPricingConditionId(null);
+  };
+
+  // Dynamic pricing success modal handlers
+  const handleDynamicPricingConditionCreatedSuccessDone = () => {
+    setDynamicPricingModals(prev => ({ ...prev, conditionCreatedSuccess: false }));
+  };
+
+  const handleDynamicPricingConditionUpdatedSuccessDone = () => {
+    setDynamicPricingModals(prev => ({ ...prev, conditionUpdatedSuccess: false }));
+  };
+
+  const handleDynamicPricingConditionDeletedSuccessDone = () => {
+    setDynamicPricingModals(prev => ({ ...prev, conditionDeletedSuccess: false }));
+  };
+
+  // Webhook management handlers
+  const handleOpenWebhookModal = () => {
+    setWebhookModals(prev => ({ ...prev, webhookModal: true }));
+  };
+
+  const handleCloseWebhookModal = () => {
+    setWebhookModals(prev => ({ ...prev, webhookModal: false }));
+    setEditingWebhook(null);
+    setDeletingWebhookId(null);
+    // Reset form
+    setWebhookForm({
+      event: '',
+      webhookUrl: '',
+      secretKey: ''
+    });
+  };
+
+  const handleWebhookFormChange = (field, value) => {
+    setWebhookForm(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleCreateWebhook = () => {
+    const newWebhook = {
+      ...webhookForm,
+      id: Date.now(),
+      status: 'active',
+      lastTriggered: null,
+      createdAt: new Date().toLocaleDateString(),
+      responseSize: '0kb'
+    };
+    setWebhookSettings(prev => ({
+      ...prev,
+      webhooks: [...prev.webhooks, newWebhook]
+    }));
+    // Reset form for next webhook
+    setWebhookForm({
+      event: '',
+      webhookUrl: '',
+      secretKey: ''
+    });
+    // Show success modal
+    setWebhookModals(prev => ({ ...prev, webhookCreatedSuccess: true }));
+  };
+
+  const handleEditWebhook = (id) => {
+    const webhook = webhookSettings.webhooks.find(w => w.id === id);
+    if (webhook) {
+      setEditingWebhook(webhook);
+      setWebhookForm({
+        event: webhook.event,
+        webhookUrl: webhook.webhookUrl,
+        secretKey: webhook.secretKey
+      });
+    }
+  };
+
+  const handleSaveEditedWebhook = () => {
+    if (editingWebhook) {
+      setWebhookSettings(prev => ({
+        ...prev,
+        webhooks: prev.webhooks.map(w =>
+          w.id === editingWebhook.id
+            ? { ...w, ...webhookForm }
+            : w
+        )
+      }));
+      setEditingWebhook(null);
+      setWebhookForm({
+        event: '',
+        webhookUrl: '',
+        secretKey: ''
+      });
+      setWebhookModals(prev => ({ ...prev, webhookUpdatedSuccess: true }));
+    }
+  };
+
+  const handleCancelEditWebhook = () => {
+    setEditingWebhook(null);
+    setWebhookForm({
+      event: '',
+      webhookUrl: '',
+      secretKey: ''
+    });
+  };
+
+  const handleDeleteWebhook = (id) => {
+    setDeletingWebhookId(id);
+    setWebhookModals(prev => ({ ...prev, webhookDeleteConfirm: true }));
+  };
+
+  const handleConfirmDeleteWebhook = () => {
+    if (deletingWebhookId) {
+      setWebhookSettings(prev => ({
+        ...prev,
+        webhooks: prev.webhooks.filter(w => w.id !== deletingWebhookId)
+      }));
+      setWebhookModals(prev => ({
+        ...prev,
+        webhookDeleteConfirm: false,
+        webhookDeletedSuccess: true
+      }));
+      setDeletingWebhookId(null);
+    }
+  };
+
+  const handleCancelDeleteWebhook = () => {
+    setWebhookModals(prev => ({ ...prev, webhookDeleteConfirm: false }));
+    setDeletingWebhookId(null);
+  };
+
+  const handleToggleApiPermission = (permission) => {
+    setWebhookSettings(prev => ({
+      ...prev,
+      apiPermissions: {
+        ...prev.apiPermissions,
+        [permission]: !prev.apiPermissions[permission]
+      }
+    }));
+  };
+
+  // Webhook success modal handlers
+  const handleWebhookCreatedSuccessDone = () => {
+    setWebhookModals(prev => ({ ...prev, webhookCreatedSuccess: false }));
+  };
+
+  const handleWebhookUpdatedSuccessDone = () => {
+    setWebhookModals(prev => ({ ...prev, webhookUpdatedSuccess: false }));
+  };
+
+  const handleWebhookDeletedSuccessDone = () => {
+    setWebhookModals(prev => ({ ...prev, webhookDeletedSuccess: false }));
   };
 
   // OTP input handler
@@ -1973,10 +2443,87 @@ const Settings = () => {
           </h3>
           <ViewSettingsButton onClick={handleOpenLanguageCountryModal} />
         </div>
+
+        {/* Auto Notify Customers Setting */}
+        <div className="py-6">
+          <h3 className="font-bold text-[#000000] text-[20px] font-montserrat mb-4">
+            Auto notify customers about price drops or restock
+          </h3>
+          <ViewSettingsButton onClick={handleOpenAutoNotificationModal} />
+        </div>
+
+        {/* Dynamic Pricing Setting */}
+        <div className="py-6">
+          <h3 className="font-bold text-[#000000] text-[20px] font-montserrat mb-4">
+            Automatically change prices based on demand, time, user segment
+          </h3>
+          <ViewSettingsButton onClick={handleOpenDynamicPricingModal} />
+        </div>
         
-        <SettingItem 
-          title="Webhooks for order/payment updates Reply"
-        />
+        {/* Webhooks for order/payment updates */}
+        <div className="py-6">
+          <h3 className="font-bold text-[#000000] text-[24px] font-montserrat mb-6">
+            Webhooks for order/payment updates
+          </h3>
+          <ViewSettingsButton onClick={handleOpenWebhookModal} />
+          
+          {/* Webhook Management Content */}
+          {webhookSettings.webhooks.length > 0 && (
+            <div className="mt-6 space-y-4">
+              <div className="bg-gray-50 rounded-lg p-4">
+                <h4 className="font-bold text-[#111111] text-[18px] mb-4">Active Webhooks</h4>
+                <div className="space-y-3">
+                  {webhookSettings.webhooks.map((webhook) => (
+                    <div key={webhook.id} className="bg-white rounded-lg p-4 border border-gray-200">
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <div className="grid grid-cols-4 gap-4 text-sm">
+                            <div>
+                              <span className="font-semibold text-gray-600">Event:</span>
+                              <p className="text-gray-800">{webhook.event}</p>
+                            </div>
+                            <div>
+                              <span className="font-semibold text-gray-600">URL:</span>
+                              <p className="text-gray-800 truncate">{webhook.webhookUrl}</p>
+                            </div>
+                            <div>
+                              <span className="font-semibold text-gray-600">Last Triggered:</span>
+                              <p className="text-gray-800">{webhook.lastTriggered || 'Never'}</p>
+                            </div>
+                            <div>
+                              <span className="font-semibold text-gray-600">Status:</span>
+                              <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                                webhook.status === 'active' 
+                                  ? 'bg-green-100 text-green-800' 
+                                  : 'bg-red-100 text-red-800'
+                              }`}>
+                                {webhook.status}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex gap-2 ml-4">
+                          <button
+                            onClick={() => handleEditWebhook(webhook.id)}
+                            className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => handleDeleteWebhook(webhook.id)}
+                            className="text-red-600 hover:text-red-800 text-sm font-medium"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
         
         <SettingItem 
           title="Email and sms template mgt screen"
@@ -3152,6 +3699,572 @@ const Settings = () => {
       {/* Edit Order Modal */}
       {locationModals.editOrderModal && <EditOrderModal />}
 
+      {/* Auto Notification Modal */}
+      {autoNotificationModals.autoNotificationModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-4xl mx-4 max-h-[90vh] overflow-auto">
+            <button 
+              onClick={handleCloseAutoNotificationModal}
+              className="absolute right-8 top-8 w-6 h-6 text-gray-500 hover:text-gray-700 z-10"
+            >
+              <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+
+            <div className="p-8">
+              <h2 className="text-center font-bold text-black text-[24px] mb-8 font-montserrat">
+                Auto notify customers about price drops or restock
+              </h2>
+
+              {/* Edit Condition View */}
+              {editingNotificationCondition && (
+                <div className="mb-8 p-6 border border-gray-200 rounded-xl bg-gray-50">
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-center font-normal text-black text-[24px] font-montserrat tracking-[-0.6px]">
+                      Edit condition
+                    </h3>
+                    <button 
+                      onClick={handleCancelEditNotificationCondition}
+                      className="w-6 h-6 text-gray-500 hover:text-gray-700"
+                    >
+                      <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+
+                  <div className="mb-6">
+                    <label className="block font-medium text-[#111111] text-[21px] font-montserrat mb-2">
+                      Discount is increased by
+                    </label>
+                    <input
+                      type="text"
+                      value={autoNotificationSettings.criteria}
+                      onChange={(e) => handleAutoNotificationChange('criteria', e.target.value)}
+                      className="w-full px-4 py-3 border-2 border-black rounded-xl text-[16px] font-montserrat focus:outline-none focus:border-blue-500"
+                      placeholder="Enter notification criteria..."
+                    />
+                  </div>
+
+                  <div className="flex gap-4 justify-center">
+                    <button
+                      onClick={handleSaveEditedNotificationCondition}
+                      className="bg-black text-white px-16 py-4 rounded-full font-medium text-[16px] font-montserrat border border-black hover:bg-gray-800 transition-colors"
+                    >
+                      save
+                    </button>
+                    <button
+                      onClick={handleCancelEditNotificationCondition}
+                      className="border border-[#e4e4e4] text-black px-16 py-4 rounded-full font-medium text-[16px] font-montserrat hover:bg-gray-50 transition-colors"
+                    >
+                      go back
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Create New Condition Form - only show when not editing */}
+              {!editingNotificationCondition && (
+                <>
+                  {/* Criteria Section */}
+                  <div className="mb-8">
+                    <h3 className="font-bold text-[#111111] text-[24px] font-montserrat mb-6 text-center">criteria</h3>
+                    
+                    <div className="mb-6">
+                      <label className="block font-medium text-[#111111] text-[21px] font-montserrat mb-4">
+                        Discount is increased by
+                      </label>
+                      <input
+                        type="text"
+                        value={autoNotificationSettings.criteria}
+                        onChange={(e) => handleAutoNotificationChange('criteria', e.target.value)}
+                        className="w-full px-4 py-3 border-2 border-black rounded-xl text-[16px] font-montserrat focus:outline-none focus:border-blue-500 max-w-md"
+                        placeholder="Enter criteria..."
+                      />
+                    </div>
+
+                    <div className="flex justify-center">
+                      <button
+                        onClick={handleCreateNotificationCondition}
+                        className="bg-[#202224] text-white px-12 py-4 rounded-full font-medium text-[16px] font-montserrat hover:bg-gray-800 transition-colors border border-black"
+                      >
+                        Create condition
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Active Conditions Section */}
+                  <div className="mb-8">
+                    <h3 className="font-bold text-[#111111] text-[24px] font-montserrat mb-6 text-center">active condition</h3>
+                    
+                    {autoNotificationSettings.conditions.length === 0 ? (
+                      <div className="text-center text-gray-500 py-8">
+                        <p className="font-montserrat text-[16px]">No active conditions yet</p>
+                        <p className="font-montserrat text-[14px] text-gray-400 mt-2">Create your first notification condition above</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {autoNotificationSettings.conditions.map((condition) => (
+                          <div key={condition.id} className="bg-gray-50 p-4 rounded-xl border border-gray-200">
+                            <div className="flex items-center justify-between">
+                              <div className="flex-1">
+                                <h4 className="font-semibold text-[18px] font-montserrat text-black">{condition.type}</h4>
+                                <p className="font-medium text-[16px] font-montserrat text-gray-700 mt-1">{condition.criteria}</p>
+                                <p className="font-normal text-[14px] font-montserrat text-gray-500 mt-2">Created: {condition.createdAt}</p>
+                              </div>
+                              <div className="flex items-center gap-2 ml-4">
+                                <button
+                                  onClick={() => handleEditNotificationCondition(condition.id)}
+                                  className="p-2 hover:bg-gray-200 rounded-lg transition-colors"
+                                  title="Edit condition"
+                                >
+                                  <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                  </svg>
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteNotificationCondition(condition.id)}
+                                  className="p-2 hover:bg-gray-200 rounded-lg transition-colors"
+                                  title="Delete condition"
+                                >
+                                  <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                  </svg>
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
+
+              {/* Close Button */}
+              <div className="flex justify-center">
+                <button
+                  onClick={handleCloseAutoNotificationModal}
+                  className="border border-[#e4e4e4] text-black px-12 py-3 rounded-full font-medium text-[16px] font-montserrat hover:bg-gray-50 transition-colors"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Dynamic Pricing Modal */}
+      {dynamicPricingModals.dynamicPricingModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-6xl mx-4 max-h-[90vh] overflow-auto">
+            <button 
+              onClick={handleCloseDynamicPricingModal}
+              className="absolute right-8 top-8 w-6 h-6 text-gray-500 hover:text-gray-700 z-10"
+            >
+              <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+
+            <div className="p-8">
+              <h2 className="text-center font-bold text-black text-[24px] mb-8 font-montserrat">
+                Automatically change prices based on demand, time, user segment
+              </h2>
+
+              {/* Edit Condition View */}
+              {editingDynamicPricingCondition && (
+                <div className="mb-8 p-6 border border-gray-200 rounded-xl bg-gray-50">
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-center font-normal text-black text-[24px] font-montserrat tracking-[-0.6px]">
+                      Edit pricing condition
+                    </h3>
+                    <button 
+                      onClick={handleCancelEditDynamicPricingCondition}
+                      className="w-6 h-6 text-gray-500 hover:text-gray-700"
+                    >
+                      <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+
+                  {/* Edit Form Fields */}
+                  <div className="grid grid-cols-4 gap-4 mb-6">
+                    <div>
+                      <label className="block font-medium text-[#111111] text-[15px] font-montserrat mb-2">Category</label>
+                      <select
+                        value={dynamicPricingForm.category}
+                        onChange={(e) => handleDynamicPricingFormChange('category', e.target.value)}
+                        className="w-full px-4 py-3 border border-[#979797] rounded-xl text-[15px] font-montserrat focus:outline-none focus:border-blue-500"
+                      >
+                        <option value="">Category</option>
+                        <option value="electronics">Electronics</option>
+                        <option value="clothing">Clothing</option>
+                        <option value="books">Books</option>
+                        <option value="home">Home & Garden</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block font-medium text-[#111111] text-[15px] font-montserrat mb-2">Sub Category</label>
+                      <select
+                        value={dynamicPricingForm.subCategory}
+                        onChange={(e) => handleDynamicPricingFormChange('subCategory', e.target.value)}
+                        className="w-full px-4 py-3 border border-[#979797] rounded-xl text-[15px] font-montserrat focus:outline-none focus:border-blue-500"
+                      >
+                        <option value="">sub category</option>
+                        <option value="smartphones">Smartphones</option>
+                        <option value="laptops">Laptops</option>
+                        <option value="tablets">Tablets</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block font-medium text-[#111111] text-[15px] font-montserrat mb-2">Items</label>
+                      <select
+                        value={dynamicPricingForm.items}
+                        onChange={(e) => handleDynamicPricingFormChange('items', e.target.value)}
+                        className="w-full px-4 py-3 border border-[#979797] rounded-xl text-[15px] font-montserrat focus:outline-none focus:border-blue-500"
+                      >
+                        <option value="">Items</option>
+                        <option value="all">All Items</option>
+                        <option value="popular">Popular Items</option>
+                        <option value="new">New Items</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block font-medium text-[#111111] text-[15px] font-montserrat mb-2">Specified</label>
+                      <select
+                        value={dynamicPricingForm.specified}
+                        onChange={(e) => handleDynamicPricingFormChange('specified', e.target.value)}
+                        className="w-full px-4 py-3 border border-[#979797] rounded-xl text-[15px] font-montserrat focus:outline-none focus:border-blue-500"
+                      >
+                        <option value="">specified</option>
+                        <option value="high-demand">High Demand</option>
+                        <option value="low-demand">Low Demand</option>
+                        <option value="peak-hours">Peak Hours</option>
+                        <option value="off-hours">Off Hours</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="mb-6">
+                    <label className="block font-medium text-[#111111] text-[21px] font-montserrat mb-2">
+                      give criteria
+                    </label>
+                    <input
+                      type="text"
+                      value={dynamicPricingSettings.criteria}
+                      onChange={(e) => handleDynamicPricingCriteriaChange(e.target.value)}
+                      className="w-full px-4 py-3 border-2 border-black rounded-xl text-[16px] font-montserrat focus:outline-none focus:border-blue-500"
+                      placeholder="Enter pricing criteria..."
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-4 mb-6">
+                    <div>
+                      <label className="block font-medium text-[#111111] text-[21px] font-montserrat mb-2">Discount Type</label>
+                      <input
+                        type="text"
+                        value={dynamicPricingForm.discountType}
+                        onChange={(e) => handleDynamicPricingFormChange('discountType', e.target.value)}
+                        className="w-full px-4 py-3 border-2 border-black rounded-xl text-[16px] font-montserrat focus:outline-none focus:border-blue-500"
+                        placeholder="Enter discount type"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-medium text-[#111111] text-[21px] font-montserrat mb-2">minimum order value</label>
+                      <input
+                        type="text"
+                        value={dynamicPricingForm.minimumOrderValue}
+                        onChange={(e) => handleDynamicPricingFormChange('minimumOrderValue', e.target.value)}
+                        className="w-full px-4 py-3 border-2 border-black rounded-xl text-[16px] font-montserrat focus:outline-none focus:border-blue-500"
+                        placeholder="Minimum order value"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-medium text-[#111111] text-[21px] font-montserrat mb-2">max users</label>
+                      <input
+                        type="text"
+                        value={dynamicPricingForm.maxUsers}
+                        onChange={(e) => handleDynamicPricingFormChange('maxUsers', e.target.value)}
+                        className="w-full px-4 py-3 border-2 border-black rounded-xl text-[16px] font-montserrat focus:outline-none focus:border-blue-500"
+                        placeholder="Max users"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4 mb-6">
+                    <div>
+                      <label className="block font-medium text-[#111111] text-[21px] font-montserrat mb-2">Start date</label>
+                      <div className="relative">
+                        <input
+                          type="date"
+                          value={dynamicPricingForm.startDate}
+                          onChange={(e) => handleDynamicPricingFormChange('startDate', e.target.value)}
+                          className="w-full px-4 py-3 border-2 border-black rounded-xl text-[16px] font-montserrat focus:outline-none focus:border-blue-500 pr-12"
+                        />
+                        <svg className="absolute right-4 top-1/2 transform -translate-y-1/2 w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block font-medium text-[#111111] text-[21px] font-montserrat mb-2">End date</label>
+                      <div className="relative">
+                        <input
+                          type="date"
+                          value={dynamicPricingForm.endDate}
+                          onChange={(e) => handleDynamicPricingFormChange('endDate', e.target.value)}
+                          className="w-full px-4 py-3 border-2 border-black rounded-xl text-[16px] font-montserrat focus:outline-none focus:border-blue-500 pr-12"
+                        />
+                        <svg className="absolute right-4 top-1/2 transform -translate-y-1/2 w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-4 justify-center">
+                    <button
+                      onClick={handleSaveEditedDynamicPricingCondition}
+                      className="bg-black text-white px-16 py-4 rounded-full font-medium text-[16px] font-montserrat border border-black hover:bg-gray-800 transition-colors"
+                    >
+                      save
+                    </button>
+                    <button
+                      onClick={handleCancelEditDynamicPricingCondition}
+                      className="border border-[#e4e4e4] text-black px-16 py-4 rounded-full font-medium text-[16px] font-montserrat hover:bg-gray-50 transition-colors"
+                    >
+                      go back
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Create New Condition Form - only show when not editing */}
+              {!editingDynamicPricingCondition && (
+                <>
+                  {/* Applicable On Section */}
+                  <div className="mb-8">
+                    <h3 className="font-bold text-[#111111] text-[21px] font-montserrat mb-6">applicable on</h3>
+                    
+                    <div className="grid grid-cols-4 gap-4 mb-6">
+                      <div>
+                        <select
+                          value={dynamicPricingForm.category}
+                          onChange={(e) => handleDynamicPricingFormChange('category', e.target.value)}
+                          className="w-full px-4 py-3 border border-[#979797] rounded-xl text-[15px] font-montserrat focus:outline-none focus:border-blue-500"
+                        >
+                          <option value="">Category</option>
+                          <option value="electronics">Electronics</option>
+                          <option value="clothing">Clothing</option>
+                          <option value="books">Books</option>
+                          <option value="home">Home & Garden</option>
+                        </select>
+                      </div>
+                      <div>
+                        <select
+                          value={dynamicPricingForm.subCategory}
+                          onChange={(e) => handleDynamicPricingFormChange('subCategory', e.target.value)}
+                          className="w-full px-4 py-3 border border-[#979797] rounded-xl text-[15px] font-montserrat focus:outline-none focus:border-blue-500"
+                        >
+                          <option value="">sub category</option>
+                          <option value="smartphones">Smartphones</option>
+                          <option value="laptops">Laptops</option>
+                          <option value="tablets">Tablets</option>
+                        </select>
+                      </div>
+                      <div>
+                        <select
+                          value={dynamicPricingForm.items}
+                          onChange={(e) => handleDynamicPricingFormChange('items', e.target.value)}
+                          className="w-full px-4 py-3 border border-[#979797] rounded-xl text-[15px] font-montserrat focus:outline-none focus:border-blue-500"
+                        >
+                          <option value="">Items</option>
+                          <option value="all">All Items</option>
+                          <option value="popular">Popular Items</option>
+                          <option value="new">New Items</option>
+                        </select>
+                      </div>
+                      <div>
+                        <select
+                          value={dynamicPricingForm.specified}
+                          onChange={(e) => handleDynamicPricingFormChange('specified', e.target.value)}
+                          className="w-full px-4 py-3 border border-[#979797] rounded-xl text-[15px] font-montserrat focus:outline-none focus:border-blue-500"
+                        >
+                          <option value="">specified</option>
+                          <option value="high-demand">High Demand</option>
+                          <option value="low-demand">Low Demand</option>
+                          <option value="peak-hours">Peak Hours</option>
+                          <option value="off-hours">Off Hours</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="mb-6">
+                      <input
+                        type="text"
+                        value={dynamicPricingSettings.criteria}
+                        onChange={(e) => handleDynamicPricingCriteriaChange(e.target.value)}
+                        className="w-full px-4 py-3 border-2 border-black rounded-xl text-[16px] font-montserrat focus:outline-none focus:border-blue-500 max-w-md"
+                        placeholder="give criteria"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-4 mb-6">
+                      <div>
+                        <label className="block font-medium text-[#111111] text-[21px] font-montserrat mb-2 text-left">Discount Type</label>
+                        <input
+                          type="text"
+                          value={dynamicPricingForm.discountType}
+                          onChange={(e) => handleDynamicPricingFormChange('discountType', e.target.value)}
+                          className="w-full px-4 py-3 border-2 border-black rounded-xl text-[16px] font-montserrat focus:outline-none focus:border-blue-500"
+                          placeholder="Enter discount type"
+                        />
+                      </div>
+                      <div>
+                        <label className="block font-medium text-[#111111] text-[21px] font-montserrat mb-2 text-left">minimum order value</label>
+                        <input
+                          type="text"
+                          value={dynamicPricingForm.minimumOrderValue}
+                          onChange={(e) => handleDynamicPricingFormChange('minimumOrderValue', e.target.value)}
+                          className="w-full px-4 py-3 border-2 border-black rounded-xl text-[16px] font-montserrat focus:outline-none focus:border-blue-500"
+                          placeholder="Minimum order value"
+                        />
+                      </div>
+                      <div>
+                        <label className="block font-medium text-[#111111] text-[21px] font-montserrat mb-2 text-left">max users</label>
+                        <input
+                          type="text"
+                          value={dynamicPricingForm.maxUsers}
+                          onChange={(e) => handleDynamicPricingFormChange('maxUsers', e.target.value)}
+                          className="w-full px-4 py-3 border-2 border-black rounded-xl text-[16px] font-montserrat focus:outline-none focus:border-blue-500"
+                          placeholder="Max users"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4 mb-6">
+                      <div>
+                        <label className="block font-medium text-[#111111] text-[21px] font-montserrat mb-2 text-left">Start date</label>
+                        <div className="relative">
+                          <input
+                            type="date"
+                            value={dynamicPricingForm.startDate}
+                            onChange={(e) => handleDynamicPricingFormChange('startDate', e.target.value)}
+                            className="w-full px-4 py-3 border-2 border-black rounded-xl text-[16px] font-montserrat focus:outline-none focus:border-blue-500 pr-12"
+                          />
+                          <svg className="absolute right-4 top-1/2 transform -translate-y-1/2 w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          </svg>
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block font-medium text-[#111111] text-[21px] font-montserrat mb-2 text-left">End date</label>
+                        <div className="relative">
+                          <input
+                            type="date"
+                            value={dynamicPricingForm.endDate}
+                            onChange={(e) => handleDynamicPricingFormChange('endDate', e.target.value)}
+                            className="w-full px-4 py-3 border-2 border-black rounded-xl text-[16px] font-montserrat focus:outline-none focus:border-blue-500 pr-12"
+                          />
+                          <svg className="absolute right-4 top-1/2 transform -translate-y-1/2 w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          </svg>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-center">
+                      <button
+                        onClick={handleCreateDynamicPricingCondition}
+                        className="bg-[#202224] text-white px-12 py-4 rounded-full font-medium text-[16px] font-montserrat hover:bg-gray-800 transition-colors border border-black"
+                      >
+                        Create condition
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Active Conditions Section */}
+                  <div className="mb-8">
+                    <h3 className="font-bold text-[#111111] text-[21px] font-montserrat mb-6">conditions</h3>
+                    
+                    {dynamicPricingSettings.conditions.length === 0 ? (
+                      <div className="text-center text-gray-500 py-8">
+                        <p className="font-montserrat text-[16px]">No pricing conditions yet</p>
+                        <p className="font-montserrat text-[14px] text-gray-400 mt-2">Create your first dynamic pricing condition above</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {dynamicPricingSettings.conditions.map((condition) => (
+                          <div key={condition.id} className="bg-gray-50 p-4 rounded-xl border border-gray-200">
+                            <div className="grid grid-cols-6 gap-4 items-center">
+                              <div className="text-center">
+                                <p className="font-medium text-[21px] font-montserrat text-black">{condition.discountType || 'Discount Type'}</p>
+                              </div>
+                              <div className="text-center">
+                                <p className="font-medium text-[21px] font-montserrat text-black">{condition.startDate || 'Start date'}</p>
+                                <svg className="w-6 h-6 text-gray-400 mx-auto mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                              </div>
+                              <div className="text-center">
+                                <p className="font-medium text-[21px] font-montserrat text-black">{condition.endDate || 'End date'}</p>
+                                <svg className="w-6 h-6 text-gray-400 mx-auto mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                              </div>
+                              <div className="text-center">
+                                <p className="font-medium text-[21px] font-montserrat text-black">{condition.minimumOrderValue || 'minimum order value'}</p>
+                              </div>
+                              <div className="text-center">
+                                <p className="font-medium text-[21px] font-montserrat text-black">{condition.maxUsers || 'max users'}</p>
+                              </div>
+                              <div className="flex items-center justify-center gap-2">
+                                <button
+                                  onClick={() => handleEditDynamicPricingCondition(condition.id)}
+                                  className="p-2 hover:bg-gray-200 rounded-lg transition-colors"
+                                  title="Edit condition"
+                                >
+                                  <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                  </svg>
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteDynamicPricingCondition(condition.id)}
+                                  className="p-2 hover:bg-gray-200 rounded-lg transition-colors"
+                                  title="Delete condition"
+                                >
+                                  <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                  </svg>
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
+
+              {/* Close Button */}
+              <div className="flex justify-center">
+                <button
+                  onClick={handleCloseDynamicPricingModal}
+                  className="border border-[#e4e4e4] text-black px-12 py-3 rounded-full font-medium text-[16px] font-montserrat hover:bg-gray-50 transition-colors"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Location Success Modals */}
       {locationModals.countryCreatedSuccess && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -3234,6 +4347,270 @@ const Settings = () => {
         </div>
       )}
 
+      {/* Auto Notification Success Modals */}
+      {autoNotificationModals.conditionCreatedSuccess && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-md mx-4 overflow-clip">
+            <button 
+              onClick={handleNotificationConditionCreatedSuccessDone}
+              className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700"
+            >
+              <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            <div className="p-8 text-center">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <h3 className="font-bold text-black text-[18px] mb-2 font-montserrat">
+                Notification condition created successfully!
+              </h3>
+              <p className="text-gray-600 mb-6">The auto notification condition has been added.</p>
+              <button
+                onClick={handleNotificationConditionCreatedSuccessDone}
+                className="bg-black text-white px-16 py-3 rounded-full font-medium text-[16px] font-montserrat hover:bg-gray-800 transition-colors"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {autoNotificationModals.conditionUpdatedSuccess && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-md mx-4 overflow-clip">
+            <button 
+              onClick={handleNotificationConditionUpdatedSuccessDone}
+              className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700"
+            >
+              <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            <div className="p-8 text-center">
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+              </div>
+              <h3 className="font-bold text-black text-[18px] mb-2 font-montserrat">
+                Notification condition updated successfully!
+              </h3>
+              <p className="text-gray-600 mb-6">The auto notification condition has been updated.</p>
+              <button
+                onClick={handleNotificationConditionUpdatedSuccessDone}
+                className="bg-black text-white px-16 py-3 rounded-full font-medium text-[16px] font-montserrat hover:bg-gray-800 transition-colors"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {autoNotificationModals.conditionDeletedSuccess && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-md mx-4 overflow-clip">
+            <button 
+              onClick={handleNotificationConditionDeletedSuccessDone}
+              className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700"
+            >
+              <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            <div className="p-8 text-center">
+              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </div>
+              <h3 className="font-bold text-black text-[18px] mb-2 font-montserrat">
+                Notification condition deleted successfully!
+              </h3>
+              <p className="text-gray-600 mb-6">The auto notification condition has been removed.</p>
+              <button
+                onClick={handleNotificationConditionDeletedSuccessDone}
+                className="bg-black text-white px-16 py-3 rounded-full font-medium text-[16px] font-montserrat hover:bg-gray-800 transition-colors"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Auto Notification Delete Confirmation Modal */}
+      {autoNotificationModals.conditionDeleteConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-md mx-4 overflow-clip">
+            <button 
+              onClick={handleCancelDeleteNotificationCondition}
+              className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700"
+            >
+              <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            <div className="p-8 text-center">
+              <h3 className="font-bold text-black text-[18px] mb-6 font-montserrat">
+                Are you sure you want to delete this notification condition?
+              </h3>
+              <div className="flex gap-4 justify-center">
+                <button
+                  onClick={handleConfirmDeleteNotificationCondition}
+                  className="bg-black text-white px-8 py-3 rounded-full font-medium text-[16px] font-montserrat hover:bg-gray-800 transition-colors"
+                >
+                  yes
+                </button>
+                <button
+                  onClick={handleCancelDeleteNotificationCondition}
+                  className="border border-[#e4e4e4] text-black px-8 py-3 rounded-full font-medium text-[16px] font-montserrat hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Dynamic Pricing Success Modals */}
+      {dynamicPricingModals.conditionCreatedSuccess && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-md mx-4 overflow-clip">
+            <button 
+              onClick={handleDynamicPricingConditionCreatedSuccessDone}
+              className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700"
+            >
+              <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            <div className="p-8 text-center">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <h3 className="font-bold text-black text-[18px] mb-2 font-montserrat">
+                Dynamic pricing condition created successfully!
+              </h3>
+              <p className="text-gray-600 mb-6">The pricing condition has been added to your settings.</p>
+              <button
+                onClick={handleDynamicPricingConditionCreatedSuccessDone}
+                className="bg-black text-white px-16 py-3 rounded-full font-medium text-[16px] font-montserrat hover:bg-gray-800 transition-colors"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {dynamicPricingModals.conditionUpdatedSuccess && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-md mx-4 overflow-clip">
+            <button 
+              onClick={handleDynamicPricingConditionUpdatedSuccessDone}
+              className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700"
+            >
+              <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            <div className="p-8 text-center">
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+              </div>
+              <h3 className="font-bold text-black text-[18px] mb-2 font-montserrat">
+                Dynamic pricing condition updated successfully!
+              </h3>
+              <p className="text-gray-600 mb-6">The pricing condition has been updated.</p>
+              <button
+                onClick={handleDynamicPricingConditionUpdatedSuccessDone}
+                className="bg-black text-white px-16 py-3 rounded-full font-medium text-[16px] font-montserrat hover:bg-gray-800 transition-colors"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {dynamicPricingModals.conditionDeletedSuccess && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-md mx-4 overflow-clip">
+            <button 
+              onClick={handleDynamicPricingConditionDeletedSuccessDone}
+              className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700"
+            >
+              <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            <div className="p-8 text-center">
+              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </div>
+              <h3 className="font-bold text-black text-[18px] mb-2 font-montserrat">
+                Dynamic pricing condition deleted successfully!
+              </h3>
+              <p className="text-gray-600 mb-6">The pricing condition has been removed from your settings.</p>
+              <button
+                onClick={handleDynamicPricingConditionDeletedSuccessDone}
+                className="bg-black text-white px-16 py-3 rounded-full font-medium text-[16px] font-montserrat hover:bg-gray-800 transition-colors"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Dynamic Pricing Delete Confirmation Modal */}
+      {dynamicPricingModals.conditionDeleteConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-md mx-4 overflow-clip">
+            <button 
+              onClick={handleCancelDeleteDynamicPricingCondition}
+              className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700"
+            >
+              <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            <div className="p-8 text-center">
+              <h3 className="font-bold text-black text-[18px] mb-6 font-montserrat">
+                Are you sure you want to delete this pricing condition?
+              </h3>
+              <div className="flex gap-4 justify-center">
+                <button
+                  onClick={handleConfirmDeleteDynamicPricingCondition}
+                  className="bg-black text-white px-8 py-3 rounded-full font-medium text-[16px] font-montserrat hover:bg-gray-800 transition-colors"
+                >
+                  yes
+                </button>
+                <button
+                  onClick={handleCancelDeleteDynamicPricingCondition}
+                  className="border border-[#e4e4e4] text-black px-8 py-3 rounded-full font-medium text-[16px] font-montserrat hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Delete Confirmation Modals */}
       {locationModals.deleteCountryConfirm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -3299,6 +4676,489 @@ const Settings = () => {
               >
                 Cancel
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Webhook Management Modal */}
+      {webhookModals.webhookModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-7xl mx-4 overflow-clip max-h-[95vh] overflow-y-auto">
+            <button 
+              onClick={handleCloseWebhookModal}
+              className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700 z-10"
+            >
+              <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+
+            <div className="p-8">
+              <div className="grid grid-cols-3 gap-12">
+                {/* API Access and Integration */}
+                <div className="space-y-6">
+                  <h3 className="font-bold text-[#111111] text-[24px] mb-6 font-montserrat">API Access and Integration</h3>
+                  
+                  <div className="space-y-6">
+                    <div>
+                      <h4 className="font-bold text-[#202224] text-[24px] mb-4 font-montserrat">API Keys</h4>
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[#202224] text-[20px] font-bold font-montserrat">API Key</span>
+                          <span className="text-[#202224] text-[20px] font-montserrat">•••••••••••••</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-[#202224] text-[20px] font-bold font-montserrat">Auth Method</span>
+                          <span className="text-[#202224] text-[20px] font-montserrat">OAuth</span>
+                        </div>
+                        <button className="text-[#202224] text-[20px] font-bold font-montserrat hover:underline">
+                          Reauthenticate
+                        </button>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h4 className="font-bold text-[#202224] text-[24px] mb-4 font-montserrat">API Permission</h4>
+                      <div className="space-y-3">
+                        {Object.entries(webhookSettings.apiPermissions).map(([permission, enabled]) => (
+                          <label key={permission} className="flex items-center gap-3">
+                            <input
+                              type="checkbox"
+                              checked={enabled}
+                              onChange={() => handleToggleApiPermission(permission)}
+                              className="w-5 h-5 border border-[#bcbcbc] rounded"
+                            />
+                            <span className="text-[#111111] text-[15px] capitalize font-montserrat">{permission}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <h4 className="font-bold text-[#202224] text-[24px] mb-4 font-montserrat">API Call Logs</h4>
+                      <div className="grid grid-cols-3 gap-4 text-[#202224] text-[20px] font-bold mb-3 font-montserrat">
+                        <span>Date</span>
+                        <span>Export</span>
+                        <span>IP Address</span>
+                      </div>
+                      <div className="text-[#202224] text-[14px] tracking-wide font-montserrat">
+                        Nov 11, 2025
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Webhook Management */}
+                <div className="space-y-6">
+                  <h3 className="font-bold text-[#111111] text-[24px] mb-6 font-montserrat">Webhook Management</h3>
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-[#202224] text-[24px] font-bold mb-2 font-montserrat">Event</label>
+                      <select
+                        value={webhookForm.event}
+                        onChange={(e) => handleWebhookFormChange('event', e.target.value)}
+                        className="w-full px-4 py-3 border border-[#979797] rounded-xl text-[#202224] text-[20px] focus:outline-none focus:border-blue-500 font-montserrat"
+                      >
+                        <option value="">Order placed</option>
+                        <option value="order placed">Order Placed</option>
+                        <option value="payment successful">Payment Successful</option>
+                        <option value="payment failed">Payment Failed</option>
+                        <option value="order shipped">Order Shipped</option>
+                        <option value="order delivered">Order Delivered</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-[#202224] text-[20px] font-bold mb-2 font-montserrat">URL</label>
+                      <input
+                        type="url"
+                        value={webhookForm.webhookUrl}
+                        onChange={(e) => handleWebhookFormChange('webhookUrl', e.target.value)}
+                        placeholder="webhook URL"
+                        className="w-full px-4 py-3 border border-[#979797] rounded-xl text-[#202224] text-[20px] focus:outline-none focus:border-blue-500 font-montserrat"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[#202224] text-[20px] font-bold mb-2 font-montserrat">Last Triggered</label>
+                      <input
+                        type="password"
+                        value={webhookForm.secretKey}
+                        onChange={(e) => handleWebhookFormChange('secretKey', e.target.value)}
+                        placeholder="secret key(mandatory)"
+                        className="w-full px-4 py-3 border border-[#979797] rounded-xl text-[#202224] text-[20px] focus:outline-none focus:border-blue-500 font-montserrat"
+                      />
+                    </div>
+
+                    <button
+                      onClick={editingWebhook ? handleSaveEditedWebhook : handleCreateWebhook}
+                      disabled={!webhookForm.event || !webhookForm.webhookUrl || !webhookForm.secretKey}
+                      className="w-full bg-[#202224] text-white py-4 px-12 rounded-full font-medium text-[16px] hover:bg-gray-800 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed font-montserrat"
+                    >
+                      {editingWebhook ? 'Update webhook' : 'Add webhook'}
+                    </button>
+
+                    {editingWebhook && (
+                      <button
+                        onClick={handleCancelEditWebhook}
+                        className="w-full border border-gray-300 text-black py-4 px-12 rounded-full font-medium text-[16px] hover:bg-gray-50 transition-colors font-montserrat"
+                      >
+                        Cancel
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Webhook Management Table Headers */}
+                  <div className="mt-8">
+                    <div className="grid grid-cols-6 gap-3 text-[#202224] text-[20px] font-bold mb-4 font-montserrat">
+                      <span>Event</span>
+                      <span>URL</span>
+                      <span>Last Triggered</span>
+                      <span>Status</span>
+                      <span>Response</span>
+                      <span>Actions</span>
+                    </div>
+                    
+                    {/* Sample webhook entries matching Figma design */}
+                    <div className="space-y-3">
+                      <div className="grid grid-cols-6 gap-3 items-center text-[#202224] text-[20px] font-montserrat">
+                        <span>order placed</span>
+                        <span className="truncate">http//hdddhdhd</span>
+                        <span>2 am</span>
+                        <span className="flex items-center">
+                          <svg className="w-4 h-4 text-green-500 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                        </span>
+                        <span>300kb</span>
+                        <div className="flex gap-2">
+                          <button 
+                            onClick={() => handleEditWebhook(1)}
+                            className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                          >
+                            <svg className="w-5 h-5 text-[#667085]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                          </button>
+                          <button 
+                            onClick={() => handleDeleteWebhook(1)}
+                            className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                          >
+                            <svg className="w-5 h-5 text-[#667085]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-6 gap-3 items-center text-[#202224] text-[20px] font-montserrat">
+                        <span>payment successful</span>
+                        <span className="truncate">http//hdddhdhd</span>
+                        <span>Nov 11,2025</span>
+                        <span className="flex items-center">
+                          <svg className="w-4 h-4 text-red-500 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                          </svg>
+                        </span>
+                        <span>300kb</span>
+                        <div className="flex gap-2">
+                          <button 
+                            onClick={() => handleEditWebhook(2)}
+                            className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                          >
+                            <svg className="w-5 h-5 text-[#667085]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                          </button>
+                          <button 
+                            onClick={() => handleDeleteWebhook(2)}
+                            className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                          >
+                            <svg className="w-5 h-5 text-[#667085]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-6 gap-3 items-center text-[#202224] text-[20px] font-montserrat">
+                        <span>payment failed</span>
+                        <span className="truncate">http//hdddhdhd</span>
+                        <span>Nov 11,2025</span>
+                        <span className="flex items-center">
+                          <svg className="w-4 h-4 text-red-500 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                          </svg>
+                        </span>
+                        <span>300kb</span>
+                        <div className="flex gap-2">
+                          <button 
+                            onClick={() => handleEditWebhook(3)}
+                            className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                          >
+                            <svg className="w-5 h-5 text-[#667085]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                          </button>
+                          <button 
+                            onClick={() => handleDeleteWebhook(3)}
+                            className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                          >
+                            <svg className="w-5 h-5 text-[#667085]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Dynamic webhook entries from state */}
+                      {webhookSettings.webhooks.map((webhook) => (
+                        <div key={webhook.id} className="grid grid-cols-6 gap-3 items-center text-[#202224] text-[20px] font-montserrat">
+                          <span>{webhook.event}</span>
+                          <span className="truncate">{webhook.webhookUrl}</span>
+                          <span>{webhook.lastTriggered || 'Never'}</span>
+                          <span className="flex items-center">
+                            <div className={`w-3 h-3 rounded-full mr-2 ${
+                              webhook.status === 'active' ? 'bg-green-500' : 'bg-red-500'
+                            }`}></div>
+                          </span>
+                          <span>{webhook.responseSize}</span>
+                          <div className="flex gap-2">
+                            <button 
+                              onClick={() => handleEditWebhook(webhook.id)}
+                              className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                            >
+                              <svg className="w-5 h-5 text-[#667085]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                              </svg>
+                            </button>
+                            <button 
+                              onClick={() => handleDeleteWebhook(webhook.id)}
+                              className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                            >
+                              <svg className="w-5 h-5 text-[#667085]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Webhook Logs */}
+                <div className="space-y-6">
+                  <h3 className="font-bold text-[#111111] text-[24px] mb-6 font-montserrat">Webhook Logs</h3>
+                  
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-4">
+                      <select className="flex-1 px-4 py-3 border border-[#979797] rounded-xl text-[#202224] text-[20px] focus:outline-none focus:border-blue-500 font-montserrat">
+                        <option>All Events</option>
+                        <option>Order Placed</option>
+                        <option>Payment Successful</option>
+                        <option>Payment Failed</option>
+                      </select>
+                      <div className="flex items-center gap-2 text-[#202224] text-[14px] tracking-wide font-montserrat">
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        Nov 11, 2025 - Nov 27, 2025
+                      </div>
+                    </div>
+
+                    <div className="mt-6 space-y-2">
+                      <div className="text-[#202224] text-[20px] font-montserrat">Frequency</div>
+                      <div className="text-[#202224] text-[20px] font-montserrat">Response</div>
+                    </div>
+
+                    {/* Log Entries */}
+                    <div className="space-y-4 mt-6">
+                      <div className="grid grid-cols-4 gap-4 text-[#202224] text-[20px] font-bold font-montserrat">
+                        <span>Date</span>
+                        <span>Event</span>
+                        <span>Status</span>
+                        <span>Response</span>
+                      </div>
+                      
+                      {/* Sample log entries */}
+                      <div className="space-y-3 text-[#202224] text-[14px] tracking-wide font-montserrat">
+                        <div className="grid grid-cols-4 gap-4 py-2">
+                          <span>Nov 11, 2025</span>
+                          <span>order placed</span>
+                          <span className="flex items-center">
+                            <svg className="w-4 h-4 text-green-500 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            </svg>
+                            300kb
+                          </span>
+                          <span>300kb</span>
+                        </div>
+                        <div className="grid grid-cols-4 gap-4 py-2">
+                          <span>Nov 11, 2025</span>
+                          <span>payment success</span>
+                          <span className="flex items-center">
+                            <svg className="w-4 h-4 text-green-500 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            </svg>
+                            300kb
+                          </span>
+                          <span>300kb</span>
+                        </div>
+                        <div className="grid grid-cols-4 gap-4 py-2">
+                          <span>Nov 11, 2025</span>
+                          <span>payment failed</span>
+                          <span className="flex items-center">
+                            <svg className="w-4 h-4 text-red-500 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                            </svg>
+                            Failed
+                          </span>
+                          <span>300kb</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Webhook Success Modals */}
+      {webhookModals.webhookCreatedSuccess && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-md mx-4 overflow-clip">
+            <button 
+              onClick={handleWebhookCreatedSuccessDone}
+              className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700"
+            >
+              <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            <div className="p-8 text-center">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <h3 className="font-bold text-black text-[18px] mb-2 font-montserrat">
+                Webhook created successfully!
+              </h3>
+              <p className="text-gray-600 mb-6">Your webhook has been configured and is now active.</p>
+              <button
+                onClick={handleWebhookCreatedSuccessDone}
+                className="bg-black text-white px-16 py-3 rounded-full font-medium text-[16px] font-montserrat hover:bg-gray-800 transition-colors"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {webhookModals.webhookUpdatedSuccess && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-md mx-4 overflow-clip">
+            <button 
+              onClick={handleWebhookUpdatedSuccessDone}
+              className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700"
+            >
+              <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            <div className="p-8 text-center">
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+              </div>
+              <h3 className="font-bold text-black text-[18px] mb-2 font-montserrat">
+                Webhook updated successfully!
+              </h3>
+              <p className="text-gray-600 mb-6">Your webhook configuration has been updated.</p>
+              <button
+                onClick={handleWebhookUpdatedSuccessDone}
+                className="bg-black text-white px-16 py-3 rounded-full font-medium text-[16px] font-montserrat hover:bg-gray-800 transition-colors"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {webhookModals.webhookDeletedSuccess && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-md mx-4 overflow-clip">
+            <button 
+              onClick={handleWebhookDeletedSuccessDone}
+              className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700"
+            >
+              <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            <div className="p-8 text-center">
+              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </div>
+              <h3 className="font-bold text-black text-[18px] mb-2 font-montserrat">
+                Webhook deleted successfully!
+              </h3>
+              <p className="text-gray-600 mb-6">The webhook has been removed from your configuration.</p>
+              <button
+                onClick={handleWebhookDeletedSuccessDone}
+                className="bg-black text-white px-16 py-3 rounded-full font-medium text-[16px] font-montserrat hover:bg-gray-800 transition-colors"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Webhook Delete Confirmation Modal */}
+      {webhookModals.webhookDeleteConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-md mx-4 overflow-clip">
+            <button 
+              onClick={handleCancelDeleteWebhook}
+              className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700"
+            >
+              <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            <div className="p-8 text-center">
+              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+              </div>
+              <h3 className="font-bold text-black text-[18px] mb-2 font-montserrat">Delete Webhook</h3>
+              <p className="text-gray-600 mb-6">Are you sure you want to delete this webhook? This action cannot be undone.</p>
+              <div className="flex gap-4 justify-center">
+                <button
+                  onClick={handleConfirmDeleteWebhook}
+                  className="bg-red-600 text-white px-6 py-2 rounded-full font-medium hover:bg-red-700 transition-colors"
+                >
+                  Delete
+                </button>
+                <button
+                  onClick={handleCancelDeleteWebhook}
+                  className="border border-gray-300 text-black px-6 py-2 rounded-full font-medium hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
             </div>
           </div>
         </div>
