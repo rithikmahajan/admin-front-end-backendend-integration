@@ -74,7 +74,6 @@ const Sidebar = React.memo(({ sidebarOpen, setSidebarOpen, sidebarHidden, onTogg
         { name: 'send promo notification', path: '/send-promo-notification' },
         { name: 'send notification in app', path: '/send-notification-in-app' },
         { name: 'notifications from app', path: '/notifications-from-app' },
-        { name: 'Email and sms template mgt screen', path: '/templates' },
         { name: 'push notification', path: '/pushnotification' },
         { name: 'Invite a friend with promo code', path: '/invite' }
       ]

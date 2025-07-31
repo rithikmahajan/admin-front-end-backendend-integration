@@ -26,7 +26,6 @@ const ProductBundling = React.lazy(() => import('./pages/ProductBundling'));
 const ArrangementControl = React.lazy(() => import('./pages/ArrangementControl'));
 const NewPartner = React.lazy(() => import('./pages/NewPartner'));
 const BlockUser = React.lazy(() => import('./pages/BlockUser'));
-const NotificationFromApp = React.lazy(() => import('./pages/NotificationFromApp'));
 const SendNotificationInApp = React.lazy(() => import('./pages/sendnotificationinapp'));
 const Points = React.lazy(() => import('./pages/points'));
 const InviteAFriend = React.lazy(() => import('./pages/inviteafriend'));
@@ -34,6 +33,7 @@ const PushNotification = React.lazy(() => import('./pages/pushnotification'));
 const NotificationPreview = React.lazy(() => import('./pages/notificationPreview'));
 const SendPromoNotification = React.lazy(() => import('./pages/sendpromonotification'));
 const CartAbandonmentRecovery = React.lazy(() => import('./pages/cartabandonmentrecovery'));
+const Database = React.lazy(() => import('./pages/database'));
 
 // Loading component for Suspense fallback
 const LoadingSpinner = () => (
@@ -173,11 +173,6 @@ function App() {
               <BlockUser />
             </Suspense>
           } />
-          <Route path="notifications-from-app" element={
-            <Suspense fallback={<LoadingSpinner />}>
-              <NotificationFromApp />
-            </Suspense>
-          } />
           <Route path="send-notification-in-app" element={
             <Suspense fallback={<LoadingSpinner />}>
               <SendNotificationInApp />
@@ -211,6 +206,11 @@ function App() {
           <Route path="cart-recovery" element={
             <Suspense fallback={<LoadingSpinner />}>
               <CartAbandonmentRecovery />
+            </Suspense>
+          } />
+          <Route path="database" element={
+            <Suspense fallback={<LoadingSpinner />}>
+              <Database />
             </Suspense>
           } />
         </Route>
