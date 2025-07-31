@@ -244,30 +244,25 @@ const ArrangementControl = () => {
       `}</style>
       {/* Header - No Background */}
       <div className="px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div className="text-2xl font-bold text-black text-center w-full font-montserrat">
+        <div className="flex items-center justify-start">
+          <div className="text-2xl font-bold text-black font-montserrat">
             Arrangement control screen for items(category sub category items and variants)
-          </div>
-          <div className="flex items-center space-x-4">
-            <button className="p-2 text-gray-600 hover:text-gray-900">
-              <Eye className="h-5 w-5" />
-            </button>
           </div>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="p-6">
+      <div className="p-6 pl-6">
         {/* Main Panel */}
-        <div className="bg-white rounded-xl shadow-sm p-8 max-w-7xl mx-auto mb-8">
+        <div className="p-8 max-w-7xl mx-0 mb-8">
           
           {/* Selection Area */}
           <div className="mb-8">
-            <h2 className="text-2xl font-bold text-black mb-6 text-center font-montserrat leading-[22px]">
+            <h2 className="text-2xl font-bold text-black mb-6 text-left font-montserrat leading-[22px]">
               choose a thing to rearrange
             </h2>
             
-            <div className="flex justify-center space-x-6 mb-8">
+            <div className="flex justify-start space-x-6 mb-8">
               {/* Category Dropdown */}
               <div className="relative">
                 <select
@@ -387,7 +382,7 @@ const ArrangementControl = () => {
           </div>
 
           {/* Action Buttons */}
-          <div className="flex justify-center space-x-4">
+          <div className="flex justify-start space-x-4">
             <button
               onClick={saveArrangement}
               className="px-6 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors duration-200"
@@ -398,7 +393,7 @@ const ArrangementControl = () => {
         </div>
 
         {/* Preview Panel - Now Below Main Content */}
-        <div className="bg-white rounded-xl shadow-sm p-8 max-w-7xl mx-auto">
+        <div className="p-8 max-w-7xl mx-0">
           <div className="space-y-6">
             {/* Preview Header */}
             <div className="flex justify-between items-center mb-6">
