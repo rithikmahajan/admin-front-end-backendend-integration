@@ -7,6 +7,20 @@ const Points = () => {
   const [pointGenerationBasis, setPointGenerationBasis] = useState('');
   const [pointsToGive, setPointsToGive] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [showConfirmationModal, setShowConfirmationModal] = useState(false);
+  const [showOffConfirmationModal, setShowOffConfirmationModal] = useState(false);
+  const [show2FAModal, setShow2FAModal] = useState(false);
+  const [showOff2FAModal, setShowOff2FAModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showOffSuccessModal, setShowOffSuccessModal] = useState(false);
+  const [showFinalSuccessModal, setShowFinalSuccessModal] = useState(false);
+  const [showOffFinalSuccessModal, setShowOffFinalSuccessModal] = useState(false);
+  const [toggleAction, setToggleAction] = useState('');
+  const [otpCode, setOtpCode] = useState(['', '', '', '']);
+  const [verificationPassword, setVerificationPassword] = useState('');
+  const [defaultPassword, setDefaultPassword] = useState('');
+  const [showVerificationPassword, setShowVerificationPassword] = useState(false);
+  const [showDefaultPassword, setShowDefaultPassword] = useState(false);
   const [users, setUsers] = useState([
     {
       id: 1,
@@ -43,6 +57,142 @@ const Points = () => {
     console.log('Alloting points to user:', userId);
   };
 
+  const handleTogglePointsSystem = (status) => {
+    setToggleAction(status);
+    if (status === 'on') {
+      setShowConfirmationModal(true);
+    } else if (status === 'off') {
+      setShowOffConfirmationModal(true);
+    }
+  };
+
+  const handleConfirmToggleOn = () => {
+    setShowConfirmationModal(false);
+    setShow2FAModal(true);
+  };
+
+  const handleConfirmToggleOff = () => {
+    setShowOffConfirmationModal(false);
+    setShowOff2FAModal(true);
+  };
+
+  const handleCancelToggle = () => {
+    setShowConfirmationModal(false);
+  };
+
+  const handleCancelOffToggle = () => {
+    setShowOffConfirmationModal(false);
+  };
+
+  const handle2FASubmit = () => {
+    // Validate OTP and passwords here
+    const otpString = otpCode.join('');
+    if (otpString.length === 4 && verificationPassword && defaultPassword) {
+      setShow2FAModal(false);
+      setShowSuccessModal(true);
+      // Reset 2FA form
+      setOtpCode(['', '', '', '']);
+      setVerificationPassword('');
+      setDefaultPassword('');
+    } else {
+      alert('Please fill in all fields');
+    }
+  };
+
+  const handleOff2FASubmit = () => {
+    // Validate OTP and passwords here
+    const otpString = otpCode.join('');
+    if (otpString.length === 4 && verificationPassword && defaultPassword) {
+      setShowOff2FAModal(false);
+      setShowOffSuccessModal(true);
+      // Reset 2FA form
+      setOtpCode(['', '', '', '']);
+      setVerificationPassword('');
+      setDefaultPassword('');
+    } else {
+      alert('Please fill in all fields');
+    }
+  };
+
+  const handleSuccessModalDone = () => {
+    setShowSuccessModal(false);
+    setShowFinalSuccessModal(true);
+  };
+
+  const handleOffSuccessModalDone = () => {
+    setShowOffSuccessModal(false);
+    setShowOffFinalSuccessModal(true);
+  };
+
+  const handleFinalSuccessModalDone = () => {
+    setShowFinalSuccessModal(false);
+    setPointsSystemEnabled(true);
+  };
+
+  const handleOffFinalSuccessModalDone = () => {
+    setShowOffFinalSuccessModal(false);
+    setPointsSystemEnabled(false);
+  };
+
+  const handleCancel2FA = () => {
+    setShow2FAModal(false);
+    // Reset 2FA form
+    setOtpCode(['', '', '', '']);
+    setVerificationPassword('');
+    setDefaultPassword('');
+  };
+
+  const handleCancelOff2FA = () => {
+    setShowOff2FAModal(false);
+    // Reset 2FA form
+    setOtpCode(['', '', '', '']);
+    setVerificationPassword('');
+    setDefaultPassword('');
+  };
+
+  const handleCloseSuccessModal = () => {
+    setShowSuccessModal(false);
+    setPointsSystemEnabled(true);
+  };
+
+  const handleCloseOffSuccessModal = () => {
+    setShowOffSuccessModal(false);
+    setPointsSystemEnabled(false);
+  };
+
+  const handleCloseFinalSuccessModal = () => {
+    setShowFinalSuccessModal(false);
+    setPointsSystemEnabled(true);
+  };
+
+  const handleCloseOffFinalSuccessModal = () => {
+    setShowOffFinalSuccessModal(false);
+    setPointsSystemEnabled(false);
+  };
+
+  const handleOtpChange = (index, value) => {
+    if (value.length <= 1 && /^\d*$/.test(value)) {
+      const newOtp = [...otpCode];
+      newOtp[index] = value;
+      setOtpCode(newOtp);
+      
+      // Auto-focus next input
+      if (value && index < 3) {
+        const nextInputId = showOff2FAModal ? `otp-off-${index + 1}` : `otp-${index + 1}`;
+        const nextInput = document.getElementById(nextInputId);
+        if (nextInput) nextInput.focus();
+      }
+    }
+  };
+
+  const handleOtpKeyDown = (index, e) => {
+    if (e.key === 'Backspace' && !otpCode[index] && index > 0) {
+      const prevInputId = showOff2FAModal ? `otp-off-${index - 1}` : `otp-${index - 1}`;
+      const prevInput = document.getElementById(prevInputId);
+      if (prevInput) prevInput.focus();
+    }
+  };
+
   const filteredUsers = users.filter(user =>
     user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.userId.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -63,7 +213,7 @@ const Points = () => {
       {/* Toggle Switch */}
       <div className="absolute left-[346px] top-[124px] flex items-center gap-2">
         <button
-          onClick={() => setPointsSystemEnabled(true)}
+          onClick={() => handleTogglePointsSystem('on')}
           className={`h-[34px] w-[69px] rounded-[100px] border border-black flex items-center justify-center ${
             pointsSystemEnabled 
               ? 'bg-[#000aff] text-white' 
@@ -73,7 +223,7 @@ const Points = () => {
           <span className="text-[16px] font-medium">On</span>
         </button>
         <button
-          onClick={() => setPointsSystemEnabled(false)}
+          onClick={() => handleTogglePointsSystem('off')}
           className={`h-[34px] w-[76px] rounded-[100px] border flex items-center justify-center ${
             !pointsSystemEnabled 
               ? 'bg-[#000aff] text-white border-black' 
@@ -242,6 +392,465 @@ const Points = () => {
           </div>
         </div>
       </div>
+
+      {/* Confirmation Modal */}
+      {showConfirmationModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-md mx-4 overflow-clip">
+            {/* Close button - positioned exactly as in Figma */}
+            <button 
+              onClick={handleCancelToggle}
+              className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700"
+            >
+              <div className="absolute bottom-[17.18%] left-[17.18%] right-[17.18%] top-[17.17%]">
+                <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </div>
+            </button>
+            
+            {/* Modal content - positioned exactly as in Figma */}
+            <div className="absolute top-[60px] left-1/2 transform -translate-x-1/2 w-[165px] text-center">
+              <p className="font-bold text-black text-[18px] leading-[22px] tracking-[-0.41px] font-['Montserrat']">
+                Are you sure you want to turn points system on
+              </p>
+            </div>
+            
+            {/* Button Container - positioned exactly as in Figma */}
+            <div className="absolute top-[189px] left-1/2 transform -translate-x-1/2 flex gap-4">
+              {/* Yes Button */}
+              <button
+                onClick={handleConfirmToggleOn}
+                className="bg-black text-white rounded-3xl w-[149px] h-12 font-semibold text-[16px] leading-[22px] font-['Montserrat'] hover:bg-gray-800 transition-colors"
+              >
+                yes
+              </button>
+              
+              {/* Cancel Button */}
+              <button
+                onClick={handleCancelToggle}
+                className="border border-[#e4e4e4] text-black rounded-[100px] w-[209px] h-16 font-medium text-[16px] leading-[19.2px] font-['Montserrat'] hover:bg-gray-50 transition-colors flex items-center justify-center"
+              >
+                Cancel
+              </button>
+            </div>
+            
+            {/* Modal height spacer to ensure proper modal size */}
+            <div className="h-[280px]"></div>
+          </div>
+        </div>
+      )}
+
+      {/* Off Confirmation Modal */}
+      {showOffConfirmationModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-md mx-4 overflow-clip">
+            {/* Close button - positioned exactly as in Figma */}
+            <button 
+              onClick={handleCancelOffToggle}
+              className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700"
+            >
+              <div className="absolute bottom-[17.18%] left-[17.18%] right-[17.18%] top-[17.17%]">
+                <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </div>
+            </button>
+            
+            {/* Modal content - positioned exactly as in Figma */}
+            <div className="absolute top-[60px] left-1/2 transform -translate-x-1/2 w-[165px] text-center">
+              <p className="font-bold text-black text-[18px] leading-[22px] tracking-[-0.41px] font-['Montserrat']">
+                Are you sure you want to turn points system off
+              </p>
+            </div>
+            
+            {/* Button Container - positioned exactly as in Figma */}
+            <div className="absolute top-[189px] left-1/2 transform -translate-x-1/2 flex gap-4">
+              {/* Yes Button */}
+              <button
+                onClick={handleConfirmToggleOff}
+                className="bg-black text-white rounded-3xl w-[149px] h-12 font-semibold text-[16px] leading-[22px] font-['Montserrat'] hover:bg-gray-800 transition-colors"
+              >
+                yes
+              </button>
+              
+              {/* Cancel Button */}
+              <button
+                onClick={handleCancelOffToggle}
+                className="border border-[#e4e4e4] text-black rounded-[100px] w-[209px] h-16 font-medium text-[16px] leading-[19.2px] font-['Montserrat'] hover:bg-gray-50 transition-colors flex items-center justify-center"
+              >
+                Cancel
+              </button>
+            </div>
+            
+            {/* Modal height spacer to ensure proper modal size */}
+            <div className="h-[280px]"></div>
+          </div>
+        </div>
+      )}
+
+      {/* 2FA Modal */}
+      {show2FAModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div
+            className="bg-white rounded-[32px] shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative"
+            style={{ width: '600px', minHeight: '600px', padding: '48px 56px' }}
+          >
+            {/* Close button */}
+            <button 
+              onClick={handleCancel2FA}
+              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            
+            {/* Header text */}
+            <div className="text-center mb-6">
+              <p className="text-lg font-bold text-black mb-4 tracking-[-0.41px] leading-[22px]">
+                If you want to change or access these settings please enter the OTP send to your registered mobile no. and the password
+              </p>
+            </div>
+
+            {/* Verification Code Section */}
+            <div className="mb-6">
+              <h3 className="text-2xl font-bold text-black mb-2 tracking-[0.72px]">
+                Verification code
+              </h3>
+              <p className="text-sm text-black mb-4">
+                Please enter the verification code we sent to your phone number
+              </p>
+              
+              {/* OTP Input Circles */}
+              <div className="flex justify-center gap-4 mb-4">
+                {otpCode.map((digit, index) => (
+                  <input
+                    key={index}
+                    id={`otp-${index}`}
+                    type="text"
+                    value={digit}
+                    onChange={(e) => handleOtpChange(index, e.target.value)}
+                    onKeyDown={(e) => handleOtpKeyDown(index, e)}
+                    className="w-12 h-12 border-2 border-gray-300 rounded-full text-center text-lg font-semibold focus:border-blue-500 focus:outline-none"
+                    maxLength={1}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* Email verification text */}
+            <p className="text-sm text-black mb-4 text-center">
+              Please enter the verification code we sent to your email address
+            </p>
+
+            {/* Verification Password Input */}
+            <div className="mb-4 relative">
+              <input
+                type={showVerificationPassword ? "text" : "password"}
+                value={verificationPassword}
+                onChange={(e) => setVerificationPassword(e.target.value)}
+                placeholder="Password"
+                className="w-full border-b border-gray-300 pb-2 text-base focus:border-blue-500 focus:outline-none bg-transparent"
+              />
+              <button
+                type="button"
+                onClick={() => setShowVerificationPassword(!showVerificationPassword)}
+                className="absolute right-0 top-0 text-gray-400 hover:text-gray-600"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  {showVerificationPassword ? (
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  ) : (
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
+                  )}
+                </svg>
+              </button>
+            </div>
+
+            {/* Default code text */}
+            <p className="text-sm text-black mb-4">
+              Please enter the default code.
+            </p>
+
+            {/* Default Password Input */}
+            <div className="mb-6 relative">
+              <input
+                type={showDefaultPassword ? "text" : "password"}
+                value={defaultPassword}
+                onChange={(e) => setDefaultPassword(e.target.value)}
+                placeholder="Password"
+                className="w-full border-b border-gray-300 pb-2 text-base focus:border-blue-500 focus:outline-none bg-transparent"
+              />
+              <button
+                type="button"
+                onClick={() => setShowDefaultPassword(!showDefaultPassword)}
+                className="absolute right-0 top-0 text-gray-400 hover:text-gray-600"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  {showDefaultPassword ? (
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  ) : (
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
+                  )}
+                </svg>
+              </button>
+            </div>
+
+            {/* Submit Button */}
+            <button
+              onClick={handle2FASubmit}
+              className="w-full bg-black text-white py-3 rounded-[26.5px] font-bold text-base uppercase hover:bg-gray-800 transition-colors"
+            >
+              SUBMIT
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Off 2FA Modal */}
+      {showOff2FAModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] p-8 max-w-md w-full mx-4 relative">
+            {/* Close button */}
+            <button 
+              onClick={handleCancelOff2FA}
+              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            
+            {/* Header text */}
+            <div className="text-center mb-6">
+              <p className="text-lg font-bold text-black mb-4 tracking-[-0.41px] leading-[22px]">
+                If you want to change or access these settings please enter the OTP send to your registered mobile no. and the password
+              </p>
+            </div>
+
+            {/* Verification Code Section */}
+            <div className="mb-6">
+              <h3 className="text-2xl font-bold text-black mb-2 tracking-[0.72px]">
+                Verification code
+              </h3>
+              <p className="text-sm text-black mb-4">
+                Please enter the verification code we sent to your phone number
+              </p>
+              
+              {/* OTP Input Circles */}
+              <div className="flex justify-center gap-4 mb-4">
+                {otpCode.map((digit, index) => (
+                  <input
+                    key={index}
+                    id={`otp-off-${index}`}
+                    type="text"
+                    value={digit}
+                    onChange={(e) => handleOtpChange(index, e.target.value)}
+                    onKeyDown={(e) => handleOtpKeyDown(index, e)}
+                    className="w-12 h-12 border-2 border-gray-300 rounded-full text-center text-lg font-semibold focus:border-blue-500 focus:outline-none"
+                    maxLength={1}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* Email verification text */}
+            <p className="text-sm text-black mb-4 text-center">
+              Please enter the verification code we sent to your email address
+            </p>
+
+            {/* Verification Password Input */}
+            <div className="mb-4 relative">
+              <input
+                type={showVerificationPassword ? "text" : "password"}
+                value={verificationPassword}
+                onChange={(e) => setVerificationPassword(e.target.value)}
+                placeholder="Password"
+                className="w-full border-b border-gray-300 pb-2 text-base focus:border-blue-500 focus:outline-none bg-transparent"
+              />
+              <button
+                type="button"
+                onClick={() => setShowVerificationPassword(!showVerificationPassword)}
+                className="absolute right-0 top-0 text-gray-400 hover:text-gray-600"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  {showVerificationPassword ? (
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  ) : (
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
+                  )}
+                </svg>
+              </button>
+            </div>
+
+            {/* Default code text */}
+            <p className="text-sm text-black mb-4">
+              Please enter the default code.
+            </p>
+
+            {/* Default Password Input */}
+            <div className="mb-6 relative">
+              <input
+                type={showDefaultPassword ? "text" : "password"}
+                value={defaultPassword}
+                onChange={(e) => setDefaultPassword(e.target.value)}
+                placeholder="Password"
+                className="w-full border-b border-gray-300 pb-2 text-base focus:border-blue-500 focus:outline-none bg-transparent"
+              />
+              <button
+                type="button"
+                onClick={() => setShowDefaultPassword(!showDefaultPassword)}
+                className="absolute right-0 top-0 text-gray-400 hover:text-gray-600"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  {showDefaultPassword ? (
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  ) : (
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
+                  )}
+                </svg>
+              </button>
+            </div>
+
+            {/* Submit Button */}
+            <button
+              onClick={handleOff2FASubmit}
+              className="w-full bg-black text-white py-3 rounded-[26.5px] font-bold text-base uppercase hover:bg-gray-800 transition-colors"
+            >
+              SUBMIT
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Success Modal */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] p-11 max-w-md w-full mx-4 text-center relative">
+            {/* Close button */}
+            <button 
+              onClick={handleCloseSuccessModal}
+              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            
+            {/* Success message */}
+            <div className="mb-8 mt-4">
+              <h2 className="text-lg font-bold text-black tracking-[-0.41px] p-4 leading-[22px]">
+                id verified successfully!
+              </h2>
+            </div>
+
+            {/* Done Button */}
+            <button
+              onClick={handleSuccessModalDone}
+              className="bg-black text-white px-12 py-3 pb-4 rounded-3xl font-semibold text-base hover:bg-gray-800 transition-colors"
+            >
+              Done
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Off Success Modal */}
+      {showOffSuccessModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] p-11 max-w-md w-full mx-4 text-center relative">
+            {/* Close button */}
+            <button 
+              onClick={handleCloseOffSuccessModal}
+              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            
+            {/* Success message */}
+            <div className="mb-8 mt-4">
+              <h2 className="text-lg font-bold text-black tracking-[-0.41px] p-5 leading-[22px]">
+                id verified successfully!
+              </h2>
+            </div>
+
+            {/* Done Button */}
+            <button
+              onClick={handleOffSuccessModalDone}
+              className="bg-black text-white px-12 py-3 rounded-3xl font-semibold text-base hover:bg-gray-800 transition-colors"
+            >
+              Done
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Final Success Modal */}
+      {showFinalSuccessModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] p-11 max-w-md w-full mx-4 text-center relative">
+            {/* Close button */}
+            <button 
+              onClick={handleCloseFinalSuccessModal}
+              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            
+            {/* Success message */}
+            <div className="mb-8 mt-4">
+              <h2 className="text-lg font-bold text-black tracking-[-0.41px] leading-[22px] p-8">
+                points system turned on successfully!
+              </h2>
+            </div>
+
+            {/* Done Button */}
+            <button
+              onClick={handleFinalSuccessModalDone}
+              className="bg-black text-white px-12 py-3 rounded-3xl font-semibold text-base hover:bg-gray-800 transition-colors"
+            >
+              Done
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Off Final Success Modal */}
+      {showOffFinalSuccessModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] p-8 max-w-md w-full mx-4 text-center relative">
+            {/* Close button */}
+            <button 
+              onClick={handleCloseOffFinalSuccessModal}
+              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            
+            {/* Success message */}
+            <div className="mb-8 mt-4">
+              <h2 className="text-lg font-bold text-black tracking-[-0.41px] leading-[22px]">
+                points system turned off successfully!
+              </h2>
+            </div>
+
+            {/* Done Button */}
+            <button
+              onClick={handleOffFinalSuccessModalDone}
+              className="bg-black text-white px-12 py-3 rounded-3xl font-semibold text-base hover:bg-gray-800 transition-colors"
+            >
+              Done
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
