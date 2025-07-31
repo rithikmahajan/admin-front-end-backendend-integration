@@ -28,6 +28,13 @@ const Settings = () => {
     shippingChargeDeleteConfirm: false,
     shippingChargeDeletedSuccess: false,
     
+    // HSN Code Modal
+    hsnCodeModal: false,
+    hsnCodeCreatedModal: false,
+    hsnCodeUpdatedModal: false,
+    hsnCodeDeletedModal: false,
+    deleteHsnCodeModal: false,
+    
     // Profile Visibility
     profileVisibilityConfirmOn: false,
     profileVisibilityConfirmOff: false,
@@ -118,6 +125,16 @@ const Settings = () => {
   // Edit state for shipping charges
   const [editingShippingCharge, setEditingShippingCharge] = useState(null);
   const [deletingShippingChargeId, setDeletingShippingChargeId] = useState(null);
+
+  // HSN codes form state
+  const [hsnCodeForm, setHsnCodeForm] = useState({
+    code: ''
+  });
+  const [hsnCodes, setHsnCodes] = useState([]);
+
+  // Edit state for HSN codes
+  const [editingHsnCode, setEditingHsnCode] = useState(null);
+  const [deletingHsnCodeId, setDeletingHsnCodeId] = useState(null);
 
   // Discount modal handlers
   const handleOpenDiscountModal = () => {
@@ -450,6 +467,115 @@ const Settings = () => {
 
   const handleShippingChargeDeletedSuccessDone = () => {
     setModals(prev => ({ ...prev, shippingChargeDeletedSuccess: false }));
+  };
+
+  // HSN code modal handlers
+  const handleOpenHsnCodeModal = () => {
+    setModals(prev => ({ ...prev, hsnCodeModal: true }));
+  };
+
+  const handleCloseHsnCodeModal = () => {
+    setModals(prev => ({ ...prev, hsnCodeModal: false }));
+    setEditingHsnCode(null);
+    setDeletingHsnCodeId(null);
+    // Reset form
+    setHsnCodeForm({
+      code: ''
+    });
+  };
+
+  const handleHsnCodeFormChange = (field, value) => {
+    setHsnCodeForm(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleCreateHsnCode = () => {
+    const newCode = { ...hsnCodeForm, id: Date.now(), isDefault: false, isAlternate: false };
+    setHsnCodes(prev => [...prev, newCode]);
+    // Reset form for next code
+    setHsnCodeForm({
+      code: ''
+    });
+    // Show success modal
+    setModals(prev => ({ ...prev, hsnCodeCreatedModal: true }));
+  };
+
+  const handleEditHsnCode = (id) => {
+    const code = hsnCodes.find(c => c.id === id);
+    if (code) {
+      setEditingHsnCode(code);
+      setHsnCodeForm(code);
+    }
+  };
+
+  const handleSaveEditedHsnCode = () => {
+    if (editingHsnCode) {
+      setHsnCodes(prev => 
+        prev.map(c => c.id === editingHsnCode.id ? { ...hsnCodeForm, id: editingHsnCode.id } : c)
+      );
+      setEditingHsnCode(null);
+      setHsnCodeForm({
+        code: ''
+      });
+      setModals(prev => ({ ...prev, hsnCodeUpdatedModal: true }));
+    }
+  };
+
+  const handleCancelEditHsnCode = () => {
+    setEditingHsnCode(null);
+    setHsnCodeForm({
+      code: ''
+    });
+  };
+
+  const handleDeleteHsnCode = (id) => {
+    setDeletingHsnCodeId(id);
+    setModals(prev => ({ ...prev, deleteHsnCodeModal: true }));
+  };
+
+  const handleConfirmDeleteHsnCode = () => {
+    if (deletingHsnCodeId) {
+      setHsnCodes(prev => prev.filter(c => c.id !== deletingHsnCodeId));
+      setModals(prev => ({ 
+        ...prev, 
+        deleteHsnCodeModal: false,
+        hsnCodeDeletedModal: true 
+      }));
+      setDeletingHsnCodeId(null);
+    }
+  };
+
+  const handleCancelDeleteHsnCode = () => {
+    setModals(prev => ({ ...prev, deleteHsnCodeModal: false }));
+    setDeletingHsnCodeId(null);
+  };
+
+  const handleSaveAsDefault = (id) => {
+    setHsnCodes(prev => prev.map(c => ({ 
+      ...c, 
+      isDefault: c.id === id,
+      isAlternate: c.id === id ? false : c.isAlternate
+    })));
+  };
+
+  const handleAssignAsAlternate = (id) => {
+    setHsnCodes(prev => prev.map(c => ({ 
+      ...c, 
+      isAlternate: c.id === id,
+      isDefault: c.id === id ? false : c.isDefault
+    })));
+  };
+
+  // HSN code success modal handlers
+  const handleHsnCodeCreatedSuccessDone = () => {
+    setModals(prev => ({ ...prev, hsnCodeCreatedModal: false, hsnCodeModal: false }));
+  };
+
+  const handleHsnCodeUpdatedSuccessDone = () => {
+    setModals(prev => ({ ...prev, hsnCodeUpdatedModal: false, hsnCodeModal: false }));
+  };
+
+  const handleHsnCodeDeletedSuccessDone = () => {
+    setModals(prev => ({ ...prev, hsnCodeDeletedModal: false, hsnCodeModal: false }));
   };
 
   // OTP input handler
@@ -1019,6 +1145,14 @@ const Settings = () => {
           Set shipping and time estimates charges by region and country
         </h3>
         <ViewSettingsButton onClick={handleOpenShippingModal} />
+      </div>
+
+      {/* HSN Code Setting */}
+      <div className="py-6">
+        <h3 className="font-bold text-[#000000] text-[20px] font-montserrat mb-4">
+          hsn code setting
+        </h3>
+        <ViewSettingsButton onClick={handleOpenHsnCodeModal} />
       </div>
 
       {/* User Limit Setting */}
@@ -1706,6 +1840,169 @@ const Settings = () => {
         </div>
       )}
 
+      {/* HSN Code Modal */}
+      {modals.hsnCodeModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-4xl mx-4 overflow-clip max-h-[90vh] overflow-y-auto">
+            <button 
+              onClick={handleCloseHsnCodeModal}
+              className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700 z-10"
+            >
+              <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            
+            <div className="p-8">
+              <h2 className="font-bold text-black text-[24px] mb-8 font-montserrat">
+                hsn code setting
+              </h2>
+
+              {/* Edit HSN Code Modal View */}
+              {editingHsnCode && (
+                <div className="mb-8 p-6 border border-gray-200 rounded-xl bg-gray-50">
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="font-normal text-black text-[24px] font-montserrat tracking-[-0.6px]">
+                      Edit HSN code
+                    </h3>
+                    <button 
+                      onClick={handleCancelEditHsnCode}
+                      className="w-6 h-6 text-gray-500 hover:text-gray-700"
+                    >
+                      <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                  
+                  {/* Edit HSN code input */}
+                  <div className="mb-6">
+                    <input
+                      type="text"
+                      value={hsnCodeForm.code}
+                      onChange={(e) => handleHsnCodeFormChange('code', e.target.value)}
+                      className="w-full px-4 py-3 border-2 border-black rounded-xl text-[15px] font-montserrat focus:outline-none focus:border-blue-500"
+                      placeholder="Enter HSN code"
+                    />
+                  </div>
+
+                  {/* Edit action buttons */}
+                  <div className="flex gap-4 justify-center">
+                    <button
+                      onClick={handleSaveEditedHsnCode}
+                      className="bg-black text-white px-16 py-4 rounded-full font-medium text-[16px] font-montserrat border border-black hover:bg-gray-800 transition-colors"
+                    >
+                      save
+                    </button>
+                    <button
+                      onClick={handleCancelEditHsnCode}
+                      className="border border-[#e4e4e4] text-black px-16 py-4 rounded-full font-medium text-[16px] font-montserrat hover:bg-gray-50 transition-colors"
+                    >
+                      go back
+                    </button>
+                  </div>
+                </div>
+              )}
+              
+              {/* Create New HSN Code Form - only show when not editing */}
+              {!editingHsnCode && (
+                <>
+                  {/* Create New Code Section */}
+                  <div className="mb-8">
+                    <h3 className="font-medium text-[#111111] text-[18px] font-montserrat mb-4">create new code</h3>
+                    <div className="mb-6">
+                      <input
+                        type="text"
+                        value={hsnCodeForm.code}
+                        onChange={(e) => handleHsnCodeFormChange('code', e.target.value)}
+                        className="w-full max-w-md px-4 py-3 border-2 border-gray-300 rounded-xl text-[15px] font-montserrat focus:outline-none focus:border-blue-500"
+                        placeholder="Enter HSN code"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex gap-4 mb-8">
+                    <button
+                      onClick={handleCreateHsnCode}
+                      className="bg-[#202224] text-white px-16 py-4 rounded-full font-medium text-[16px] font-montserrat border border-black hover:bg-gray-800 transition-colors"
+                    >
+                      Create code
+                    </button>
+                    <button
+                      onClick={handleCloseHsnCodeModal}
+                      className="border border-[#e4e4e4] text-black px-16 py-4 rounded-full font-medium text-[16px] font-montserrat hover:bg-gray-50 transition-colors"
+                    >
+                      go back
+                    </button>
+                  </div>
+                </>
+              )}
+
+              {/* HSN Codes List Section */}
+              {hsnCodes.length > 0 && !editingHsnCode && (
+                <div>
+                  <div className="grid grid-cols-3 gap-4 mb-4 font-bold text-[16px] font-montserrat text-[#111111] border-b border-gray-300 pb-2">
+                    <div>codes available</div>
+                    <div>action</div>
+                    <div>edit</div>
+                  </div>
+                  <div className="space-y-4">
+                    {hsnCodes.map((code) => (
+                      <div key={code.id} className="grid grid-cols-3 gap-4 items-center text-[16px] font-montserrat py-2 border-b border-gray-100">
+                        <div>{code.code || 'N/A'}</div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleSaveAsDefault(code.id)}
+                            className={`px-4 py-2 rounded-full text-[14px] font-medium transition-colors ${
+                              code.isDefault 
+                                ? 'bg-blue-600 text-white' 
+                                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                            }`}
+                          >
+                            save as default
+                          </button>
+                          <button
+                            onClick={() => handleAssignAsAlternate(code.id)}
+                            className={`px-4 py-2 rounded-full text-[14px] font-medium transition-colors ${
+                              code.isAlternate 
+                                ? 'bg-red-600 text-white' 
+                                : 'bg-red-100 text-red-700 hover:bg-red-200'
+                            }`}
+                          >
+                            Assign as alternate
+                          </button>
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleEditHsnCode(code.id)}
+                            className="p-2 text-gray-600 hover:text-blue-600 transition-colors"
+                            title="Edit"
+                          >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                          </button>
+                          <button
+                            onClick={() => handleDeleteHsnCode(code.id)}
+                            className="p-2 text-gray-600 hover:text-red-600 transition-colors"
+                            title="Delete"
+                          >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {renderModalsForSetting('profileVisibility', 'Profile Visibility Data Collection')}
       {renderModalsForSetting('locationData', 'Location Data Collection')}
       {renderModalsForSetting('communicationPrefs', 'Communication Preferences Collection')}
@@ -1939,6 +2236,122 @@ const Settings = () => {
               >
                 Done
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* HSN Code Success Modal - Created */}
+      {modals.hsnCodeCreatedModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-md mx-4 overflow-clip">
+            <button 
+              onClick={handleHsnCodeCreatedSuccessDone}
+              className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700"
+            >
+              <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            <div className="p-8 text-center">
+              <h3 className="font-bold text-black text-[18px] mb-6 font-montserrat">
+                hsn code added successfully!
+              </h3>
+              <button
+                onClick={handleHsnCodeCreatedSuccessDone}
+                className="bg-black text-white px-16 py-3 rounded-full font-medium text-[16px] font-montserrat hover:bg-gray-800 transition-colors"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* HSN Code Success Modal - Updated */}
+      {modals.hsnCodeUpdatedModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-md mx-4 overflow-clip">
+            <button 
+              onClick={handleHsnCodeUpdatedSuccessDone}
+              className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700"
+            >
+              <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            <div className="p-8 text-center">
+              <h3 className="font-bold text-black text-[18px] mb-6 font-montserrat">
+                hsn code updated successfully!
+              </h3>
+              <button
+                onClick={handleHsnCodeUpdatedSuccessDone}
+                className="bg-black text-white px-16 py-3 rounded-full font-medium text-[16px] font-montserrat hover:bg-gray-800 transition-colors"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* HSN Code Success Modal - Deleted */}
+      {modals.hsnCodeDeletedModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-md mx-4 overflow-clip">
+            <button 
+              onClick={handleHsnCodeDeletedSuccessDone}
+              className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700"
+            >
+              <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            <div className="p-8 text-center">
+              <h3 className="font-bold text-black text-[18px] mb-6 font-montserrat">
+                hsn code deleted successfully!
+              </h3>
+              <button
+                onClick={handleHsnCodeDeletedSuccessDone}
+                className="bg-black text-white px-16 py-3 rounded-full font-medium text-[16px] font-montserrat hover:bg-gray-800 transition-colors"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* HSN Code Delete Confirmation Modal */}
+      {modals.deleteHsnCodeModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-md mx-4 overflow-clip">
+            <button 
+              onClick={() => setModals(prev => ({ ...prev, deleteHsnCodeModal: false }))}
+              className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700"
+            >
+              <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            <div className="p-8 text-center">
+              <h3 className="font-bold text-black text-[18px] mb-6 font-montserrat">
+                Are you sure you want to delete this hsn code?
+              </h3>
+              <div className="flex gap-4 justify-center">
+                <button
+                  onClick={handleConfirmDeleteHsnCode}
+                  className="bg-black text-white px-8 py-3 rounded-full font-medium text-[16px] font-montserrat hover:bg-gray-800 transition-colors"
+                >
+                  yes
+                </button>
+                <button
+                  onClick={() => setModals(prev => ({ ...prev, deleteHsnCodeModal: false }))}
+                  className="border border-[#e4e4e4] text-black px-8 py-3 rounded-full font-medium text-[16px] font-montserrat hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
             </div>
           </div>
         </div>
