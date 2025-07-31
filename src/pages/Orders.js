@@ -172,147 +172,134 @@ const Orders = React.memo(() => {
   }, [orders, orderStatus]);
 
   return (
-    <div className="space-y-6 bg-gray-50 min-h-screen p-6">
-      {/* Header Section - Page title and date selector */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">orders list</h1>
-        </div>
-        <div className="flex items-center space-x-4">
-          {/* Date Range Display */}
-          <div className="flex items-center space-x-2">
-            <span className="text-gray-600">{selectedDate}</span>
-            <span className="text-gray-600">{selectedDate}</span>
-            <Calendar className="h-4 w-4 text-gray-400" />
-          </div>
+    <div className="bg-white min-h-screen p-6">
+      {/* Header Section - Title and date in one line */}
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold text-black">orders list</h1>
+        <div className="flex items-center space-x-2">
+          <span className="text-sm text-gray-600">06/05/1999 - 06/05/1999</span>
+          <Calendar className="h-4 w-4 text-gray-400" />
         </div>
       </div>
 
-      {/* Main Content Container */}
-      <div className="bg-white rounded-xl shadow-sm p-6">
-        {/* Filter Controls Section */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center space-x-4">
-            {/* Filter Label */}
-            <div className="flex items-center space-x-2">
-              <Filter className="h-4 w-4 text-gray-400" />
-              <span className="text-gray-700">Filter By</span>
-            </div>
-
-            {/* Date Filter Dropdown */}
-            <div className="relative">
-              <select 
-                value={filterBy}
-                onChange={handleFilterByChange}
-                className="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-8 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                aria-label="Filter by date"
-              >
-                <option>Date</option>
-                <option>This Week</option>
-                <option>This Month</option>
-                <option>Custom Range</option>
-              </select>
-              <ChevronDown className="h-4 w-4 absolute right-2 top-3 text-gray-400 pointer-events-none" />
-            </div>
-
-            {/* Order Type Filter Dropdown */}
-            <div className="relative">
-              <select 
-                value={orderType}
-                onChange={handleOrderTypeChange}
-                className="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-8 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                aria-label="Filter by order type"
-              >
-                <option>Order Type</option>
-                <option>Online</option>
-                <option>Offline</option>
-                <option>Bulk</option>
-              </select>
-              <ChevronDown className="h-4 w-4 absolute right-2 top-3 text-gray-400 pointer-events-none" />
-            </div>
-
-            {/* Order Status Filter Dropdown */}
-            <div className="relative">
-              <select 
-                value={orderStatus}
-                onChange={handleOrderStatusChange}
-                className="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-8 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                aria-label="Filter by order status"
-              >
-                <option>Order Status</option>
-                <option>Pending</option>
-                <option>Processing</option>
-                <option>Accepted</option>
-                <option>Rejected</option>
-                <option>Delivered</option>
-              </select>
-              <ChevronDown className="h-4 w-4 absolute right-2 top-3 text-gray-400 pointer-events-none" />
-            </div>
+      {/* Filter Controls Section */}
+      <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
+        <div className="flex items-center space-x-4">
+          {/* Filter Icon and Label */}
+          <div className="flex items-center space-x-2">
+            <Filter className="h-4 w-4 text-gray-400" />
+            <span className="text-sm text-gray-700">Filter By</span>
           </div>
 
-          {/* Reset Filter Button */}
-          <button 
-            onClick={handleResetFilter}
-            className="flex items-center space-x-2 text-red-500 hover:text-red-700 transition-colors"
-            aria-label="Reset all filters"
-          >
-            <X className="h-4 w-4" />
-            <span>Reset Filter</span>
-          </button>
+          {/* Date Filter */}
+          <div className="relative">
+            <select 
+              value={filterBy}
+              onChange={handleFilterByChange}
+              className="appearance-none bg-white border border-gray-300 rounded px-3 py-1.5 pr-8 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              aria-label="Filter by date"
+            >
+              <option>Date</option>
+              <option>This Week</option>
+              <option>This Month</option>
+            </select>
+            <ChevronDown className="h-3 w-3 absolute right-2 top-2.5 text-gray-400 pointer-events-none" />
+          </div>
+
+          {/* Order Type Filter */}
+          <div className="relative">
+            <select 
+              value={orderType}
+              onChange={handleOrderTypeChange}
+              className="appearance-none bg-white border border-gray-300 rounded px-3 py-1.5 pr-8 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              aria-label="Filter by order type"
+            >
+              <option>Order Type</option>
+              <option>Online</option>
+              <option>Offline</option>
+            </select>
+            <ChevronDown className="h-3 w-3 absolute right-2 top-2.5 text-gray-400 pointer-events-none" />
+          </div>
+
+          {/* Order Status Filter */}
+          <div className="relative">
+            <select 
+              value={orderStatus}
+              onChange={handleOrderStatusChange}
+              className="appearance-none bg-white border border-gray-300 rounded px-3 py-1.5 pr-8 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              aria-label="Filter by order status"
+            >
+              <option>Order Status</option>
+              <option>Pending</option>
+              <option>Processing</option>
+              <option>Accepted</option>
+            </select>
+            <ChevronDown className="h-3 w-3 absolute right-2 top-2.5 text-gray-400 pointer-events-none" />
+          </div>
         </div>
 
-        {/* Orders Table Container */}
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            {/* Table Header */}
-            <thead>
-              <tr className="border-b border-gray-200 text-left">
-                <th className="pb-3 text-sm font-semibold text-gray-700">order id</th>
-                <th className="pb-3 text-sm font-semibold text-gray-700">Image</th>
-                <th className="pb-3 text-sm font-semibold text-gray-700">Product Name</th>
-                <th className="pb-3 text-sm font-semibold text-gray-700">name</th>
-                <th className="pb-3 text-sm font-semibold text-gray-700">date</th>
-                <th className="pb-3 text-sm font-semibold text-gray-700">HSN</th>
-                <th className="pb-3 text-sm font-semibold text-gray-700">size</th>
-                <th className="pb-3 text-sm font-semibold text-gray-700">quantity</th>
-                <th className="pb-3 text-sm font-semibold text-gray-700">Price</th>
-                <th className="pb-3 text-sm font-semibold text-gray-700">Sale Price</th>
-                <th className="pb-3 text-sm font-semibold text-gray-700">SKU</th>
-                <th className="pb-3 text-sm font-semibold text-gray-700">barcode no.</th>
-                <th className="pb-3 text-sm font-semibold text-gray-700">status</th>
-                <th className="pb-3 text-sm font-semibold text-gray-700">slot vendor</th>
-                <th className="pb-3 text-sm font-semibold text-gray-700">courier alloted</th>
-                <th className="pb-3 text-sm font-semibold text-gray-700">delivered</th>
-                <th className="pb-3 text-sm font-semibold text-gray-700">actions</th>
-              </tr>
-            </thead>
-            
-            {/* Table Body - Render filtered orders */}
-            <tbody>
-              {filteredOrders.map((order, index) => (
-                <OrderRow 
-                  key={`${order.orderId}-${index}`}
-                  order={order}
-                  getStatusColor={getStatusColor}
-                  getPaymentStatusColor={getPaymentStatusColor}
-                  getCourierStatusColor={getCourierStatusColor}
-                />
-              ))}
-            </tbody>
-          </table>
-        </div>
+        {/* Reset Filter Button */}
+        <button 
+          onClick={handleResetFilter}
+          className="flex items-center space-x-1 text-red-500 hover:text-red-700 text-sm"
+          aria-label="Reset all filters"
+        >
+          <X className="h-4 w-4" />
+          <span>Reset Filter</span>
+        </button>
+      </div>
 
-        {/* Footer Status Indicator */}
-        <div className="mt-6 flex justify-center">
-          <span className="inline-block px-4 py-2 bg-red-100 text-red-800 text-sm font-semibold rounded-lg">
-            Rejected
-          </span>
-        </div>
+      {/* Orders Table */}
+      <div className="overflow-x-auto">
+        <table className="w-full">
+          {/* Table Header */}
+          <thead>
+            <tr className="border-b border-gray-200">
+              <th className="pb-3 text-left text-xs font-medium text-gray-700 uppercase">order id</th>
+              <th className="pb-3 text-left text-xs font-medium text-gray-700 uppercase">Image</th>
+              <th className="pb-3 text-left text-xs font-medium text-gray-700 uppercase">Product Name</th>
+              <th className="pb-3 text-left text-xs font-medium text-gray-700 uppercase">name</th>
+              <th className="pb-3 text-left text-xs font-medium text-gray-700 uppercase">date</th>
+              <th className="pb-3 text-left text-xs font-medium text-gray-700 uppercase">HSN</th>
+              <th className="pb-3 text-left text-xs font-medium text-gray-700 uppercase">size</th>
+              <th className="pb-3 text-left text-xs font-medium text-gray-700 uppercase">quantity</th>
+              <th className="pb-3 text-left text-xs font-medium text-gray-700 uppercase">Price</th>
+              <th className="pb-3 text-left text-xs font-medium text-gray-700 uppercase">Sale Price</th>
+              <th className="pb-3 text-left text-xs font-medium text-gray-700 uppercase">SKU</th>
+              <th className="pb-3 text-left text-xs font-medium text-gray-700 uppercase">barcode no.</th>
+              <th className="pb-3 text-left text-xs font-medium text-gray-700 uppercase">status</th>
+              <th className="pb-3 text-left text-xs font-medium text-gray-700 uppercase">slot vendor</th>
+              <th className="pb-3 text-left text-xs font-medium text-gray-700 uppercase">courier alloted</th>
+              <th className="pb-3 text-left text-xs font-medium text-gray-700 uppercase">delivered</th>
+              <th className="pb-3 text-left text-xs font-medium text-gray-700 uppercase">actions</th>
+            </tr>
+          </thead>
+          
+          {/* Table Body */}
+          <tbody>
+            {filteredOrders.map((order, index) => (
+              <OrderRow 
+                key={`${order.orderId}-${index}`}
+                order={order}
+                getStatusColor={getStatusColor}
+                getPaymentStatusColor={getPaymentStatusColor}
+                getCourierStatusColor={getCourierStatusColor}
+              />
+            ))}
+          </tbody>
+        </table>
+      </div>
 
-        {/* Footer Information */}
-        <div className="mt-6 text-center text-sm text-gray-500">
-          Deal on 10/JUN/2020
-        </div>
+      {/* Footer Status */}
+      <div className="mt-6 flex justify-center">
+        <span className="inline-block px-4 py-2 bg-red-100 text-red-800 text-sm font-medium rounded">
+          Rejected
+        </span>
+      </div>
+
+      {/* Footer Date */}
+      <div className="mt-4 text-center text-sm text-gray-500">
+        Deal on 10/JUN/2020
       </div>
     </div>
   );
@@ -357,128 +344,134 @@ const OrderRow = React.memo(({
   }, [order.orderId]);
 
   return (
-    <tr className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+    <tr className="border-b border-gray-100">
       {/* Order ID with Payment Status Badge */}
-      <td className="py-4">
+      <td className="py-3">
         <div className="space-y-1">
           <div className="text-sm font-medium text-gray-900">{order.orderId}</div>
-          <span className={`inline-block px-2 py-1 text-xs font-semibold rounded-full ${getPaymentStatusColor(order.paymentStatus)}`}>
+          <span className={`inline-block px-2 py-0.5 text-xs font-medium rounded ${getPaymentStatusColor(order.paymentStatus)}`}>
             {order.paymentStatus}
           </span>
         </div>
       </td>
 
-      {/* Product Image Placeholder */}
-      <td className="py-4">
-        <div className="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center">
-          <div className="w-8 h-8 bg-blue-300 rounded" aria-label="Product image placeholder"></div>
+      {/* Product Image */}
+      <td className="py-3">
+        <div className="w-10 h-10 bg-gray-200 rounded flex items-center justify-center">
+          <div className="w-6 h-6 bg-blue-300 rounded" aria-label="Product image"></div>
         </div>
       </td>
 
       {/* Product Information */}
-      <td className="py-4">
-        <span className="text-sm font-medium text-gray-900">{order.productName}</span>
+      <td className="py-3">
+        <span className="text-sm text-gray-900">{order.productName}</span>
       </td>
 
-      <td className="py-4">
+      <td className="py-3">
         <span className="text-sm text-gray-700">{order.name}</span>
       </td>
 
-      <td className="py-4">
+      <td className="py-3">
         <span className="text-sm text-gray-700">{order.date}</span>
       </td>
 
-      <td className="py-4">
+      <td className="py-3">
         <span className="text-sm text-gray-700">{order.hsn}</span>
       </td>
 
-      {/* Size Information - Structured display */}
-      <td className="py-4">
-        <div className="space-y-1">
-          <div className="text-xs text-gray-600">small: {order.size.small}</div>
-          <div className="text-xs text-gray-600">medium: {order.size.medium}</div>
-          <div className="text-xs text-gray-600">large: {order.size.large}</div>
+      {/* Size Information */}
+      <td className="py-3">
+        <div className="space-y-0.5">
+          <div className="text-xs text-gray-600">small</div>
+          <div className="text-xs text-gray-600">medium</div>
+          <div className="text-xs text-gray-600">large</div>
         </div>
       </td>
 
-      {/* Quantity with emphasis */}
-      <td className="py-4">
-        <span className="text-sm font-semibold text-gray-900">{order.quantity}</span>
+      {/* Quantity */}
+      <td className="py-3">
+        <div className="space-y-0.5">
+          <div className="text-xs text-gray-900">{order.size.small}</div>
+          <div className="text-xs text-gray-900">{order.size.medium}</div>
+          <div className="text-xs text-gray-900">{order.size.large}</div>
+        </div>
       </td>
 
-      {/* Pricing Information */}
-      <td className="py-4">
-        <span className="text-sm text-gray-700">₹{order.price.toLocaleString()}</span>
+      {/* Price */}
+      <td className="py-3">
+        <span className="text-sm text-gray-700">{order.price}</span>
       </td>
 
-      <td className="py-4">
-        <span className="text-sm text-gray-700">₹{order.salePrice.toLocaleString()}</span>
+      <td className="py-3">
+        <span className="text-sm text-gray-700">{order.salePrice}</span>
       </td>
 
-      {/* Product Identifiers */}
-      <td className="py-4">
+      {/* SKU */}
+      <td className="py-3">
         <span className="text-sm text-gray-700">{order.sku}</span>
       </td>
 
-      <td className="py-4">
-        <span className="text-sm text-gray-700 font-mono">{order.barcodeNo}</span>
+      {/* Barcode */}
+      <td className="py-3">
+        <span className="text-xs text-gray-700 font-mono">{order.barcodeNo}</span>
       </td>
 
-      {/* Status Badges */}
-      <td className="py-4">
-        <span className={`inline-block px-3 py-1 text-xs font-semibold rounded-full ${getStatusColor(order.status)}`}>
+      {/* Status */}
+      <td className="py-3">
+        <span className={`inline-block px-2 py-1 text-xs font-medium rounded ${getStatusColor(order.status)}`}>
           {order.status}
         </span>
       </td>
 
-      <td className="py-4">
+      <td className="py-3">
         <span className="text-sm text-gray-700">{order.slotVendor}</span>
       </td>
 
-      <td className="py-4">
-        <span className={`inline-block px-2 py-1 text-xs font-semibold rounded-full ${getCourierStatusColor(order.courierAlloted)}`}>
+      {/* Courier Status */}
+      <td className="py-3">
+        <span className={`inline-block px-2 py-0.5 text-xs font-medium rounded ${getCourierStatusColor(order.courierAlloted)}`}>
           {order.courierAlloted}
         </span>
       </td>
 
-      <td className="py-4">
-        <span className={`inline-block px-2 py-1 text-xs font-semibold rounded-full ${getCourierStatusColor(order.delivered)}`}>
+      <td className="py-3">
+        <span className={`inline-block px-2 py-0.5 text-xs font-medium rounded ${getCourierStatusColor(order.delivered)}`}>
           {order.delivered}
         </span>
       </td>
 
-      {/* Action Buttons */}
-      <td className="py-4">
+      {/* Actions */}
+      <td className="py-3">
         <div className="flex items-center space-x-2">
-          <span className="text-sm text-blue-600 font-medium">{order.actions}</span>
+          <span className="text-sm text-blue-600">{order.actions}</span>
           <div className="flex items-center space-x-1">
             <button 
               onClick={handleView}
-              className="p-1 hover:bg-gray-100 rounded transition-colors"
-              aria-label="View order details"
+              className="p-1 text-gray-400 hover:text-gray-600"
+              aria-label="View order"
             >
-              <Eye className="h-4 w-4 text-gray-400" />
+              <Eye className="h-4 w-4" />
             </button>
             <button 
               onClick={handleEdit}
-              className="p-1 hover:bg-gray-100 rounded transition-colors"
+              className="p-1 text-gray-400 hover:text-gray-600"
               aria-label="Edit order"
             >
-              <Edit className="h-4 w-4 text-gray-400" />
+              <Edit className="h-4 w-4" />
             </button>
             <button 
               onClick={handleDownload}
-              className="p-1 hover:bg-gray-100 rounded transition-colors"
+              className="p-1 text-gray-400 hover:text-gray-600"
               aria-label="Download order"
             >
-              <Download className="h-4 w-4 text-gray-400" />
+              <Download className="h-4 w-4" />
             </button>
             <button 
               onClick={handleMore}
-              className="p-1 hover:bg-gray-100 rounded transition-colors"
+              className="p-1 text-gray-400 hover:text-gray-600"
               aria-label="More actions"
             >
-              <MoreHorizontal className="h-4 w-4 text-gray-400" />
+              <MoreHorizontal className="h-4 w-4" />
             </button>
           </div>
         </div>

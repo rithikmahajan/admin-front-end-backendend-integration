@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Search, Filter, RotateCcw, ChevronDown, Calendar, Edit2, Trash2, Download, Eye, Printer } from 'lucide-react';
+import { Search, Filter, RotateCcw, Calendar, Edit2, Trash2, Download, Info, Check, X } from 'lucide-react';
 
 /**
  * Database Component
@@ -147,352 +147,298 @@ const Database = () => {
   return (
     <div className="bg-white min-h-screen">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 p-4">
-        <h1 className="text-2xl font-bold text-center text-black">database</h1>
-      </div>
-
-      {/* Search Bar */}
-      <div className="px-6 py-4">
-        <div className="relative max-w-md">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Search className="h-5 w-5 text-gray-400" />
+      <div className="bg-white border-b border-gray-200 px-6 py-6">
+        <div className="flex justify-between items-center">
+          <h1 className="text-3xl font-bold text-black">database</h1>
+          <div className="flex items-center gap-4 text-sm text-gray-600">
+            <span>06/05/1999 - 06/05/1999</span>
+            <Calendar className="h-5 w-5" />
           </div>
-          <input
-            type="text"
-            placeholder="Search"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="block w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 shadow-sm"
-          />
         </div>
       </div>
 
-      {/* Filter Section */}
-      <div className="px-6 py-4">
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-          <div className="flex flex-wrap items-center gap-4">
-            {/* Filter Icon */}
-            <Filter className="h-5 w-5 text-gray-600" />
-            
-            {/* Filter By */}
-            <div className="flex flex-col">
-              <label className="text-sm font-bold text-gray-800 mb-1">Filter By</label>
-              <div className="flex items-center gap-2">
-                <input
-                  type="text"
-                  value={filters.filterBy}
-                  onChange={(e) => handleFilterChange('filterBy', e.target.value)}
-                  className="border-b border-gray-300 bg-transparent text-sm focus:outline-none focus:border-blue-500"
-                />
-                <ChevronDown className="h-4 w-4 text-gray-400" />
-              </div>
-            </div>
-
-            {/* Date Filter */}
-            <div className="flex flex-col">
-              <label className="text-sm font-bold text-gray-800 mb-1">Date</label>
-              <div className="flex items-center gap-2">
-                <input
-                  type="text"
-                  value={filters.date}
-                  onChange={(e) => handleFilterChange('date', e.target.value)}
-                  className="border-b border-gray-300 bg-transparent text-sm focus:outline-none focus:border-blue-500"
-                />
-                <ChevronDown className="h-4 w-4 text-gray-400" />
-              </div>
-            </div>
-
-            {/* Category Filter */}
-            <div className="flex flex-col">
-              <label className="text-sm font-bold text-gray-800 mb-1">choose db category</label>
-              <div className="flex items-center gap-2">
-                <select
-                  value={filters.category}
-                  onChange={(e) => handleFilterChange('category', e.target.value)}
-                  className="border-b border-gray-300 bg-transparent text-sm focus:outline-none focus:border-blue-500"
-                >
-                  <option value="">All Categories</option>
-                  <option value="T shirt">T shirt</option>
-                  <option value="Jeans">Jeans</option>
-                  <option value="Shoes">Shoes</option>
-                </select>
-                <ChevronDown className="h-4 w-4 text-gray-400" />
-              </div>
-            </div>
-
-            {/* Subcategory Filter */}
-            <div className="flex flex-col">
-              <label className="text-sm font-bold text-gray-800 mb-1">choose sub category</label>
-              <div className="flex items-center gap-2">
-                <select
-                  value={filters.subcategory}
-                  onChange={(e) => handleFilterChange('subcategory', e.target.value)}
-                  className="border-b border-gray-300 bg-transparent text-sm focus:outline-none focus:border-blue-500"
-                >
-                  <option value="">All Subcategories</option>
-                  <option value="T shirt">T shirt</option>
-                  <option value="Polo">Polo</option>
-                  <option value="Tank Top">Tank Top</option>
-                </select>
-                <ChevronDown className="h-4 w-4 text-gray-400" />
-              </div>
-            </div>
-
-            {/* Reset Filter */}
-            <button
-              onClick={resetFilters}
-              className="flex items-center gap-2 text-red-500 hover:text-red-600 transition-colors"
-            >
-              <RotateCcw className="h-4 w-4" />
-              <span className="text-sm font-semibold">Reset Filter</span>
-            </button>
+      {/* Search and Filter Bar */}
+      <div className="px-6 py-4 bg-gray-50 border-b">
+        <div className="flex items-center gap-4">
+          {/* Search */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 pr-4 py-2 border border-gray-300 rounded-md text-sm focus:ring-blue-500 focus:border-blue-500"
+            />
           </div>
 
-          {/* Date Range */}
-          <div className="flex items-center gap-2 mt-4 justify-end">
-            <span className="text-sm text-gray-600">06/05/1999 - 06/05/1999</span>
-            <Calendar className="h-5 w-5 text-gray-400" />
-          </div>
+          {/* Filter Icon */}
+          <Filter className="h-5 w-5 text-gray-600" />
 
-          {/* Apply Button */}
-          <div className="flex justify-center mt-4">
-            <button className="bg-black text-white px-6 py-2 rounded-full font-semibold hover:bg-gray-800 transition-colors">
-              Apply
-            </button>
-          </div>
+          {/* Filter Controls */}
+          <select
+            value={filters.filterBy}
+            onChange={(e) => handleFilterChange('filterBy', e.target.value)}
+            className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500"
+          >
+            <option value="">Filter By</option>
+            <option value="category">Category</option>
+            <option value="status">Status</option>
+          </select>
+
+          <select
+            value={filters.date}
+            onChange={(e) => handleFilterChange('date', e.target.value)}
+            className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500"
+          >
+            <option value="">Date</option>
+            <option value="today">Today</option>
+            <option value="week">This Week</option>
+          </select>
+
+          <select
+            value={filters.category}
+            onChange={(e) => handleFilterChange('category', e.target.value)}
+            className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500"
+          >
+            <option value="">choose db category</option>
+            <option value="T shirt">T shirt</option>
+            <option value="Jeans">Jeans</option>
+          </select>
+
+          <select
+            value={filters.subcategory}
+            onChange={(e) => handleFilterChange('subcategory', e.target.value)}
+            className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500"
+          >
+            <option value="">choose sub category</option>
+            <option value="T shirt">T shirt</option>
+            <option value="Polo">Polo</option>
+          </select>
+
+          <button
+            onClick={resetFilters}
+            className="text-red-500 hover:text-red-600 text-sm font-medium flex items-center gap-1"
+          >
+            <RotateCcw className="h-4 w-4" />
+            Reset Filter
+          </button>
+
+          <button className="bg-black text-white px-6 py-2 rounded-md text-sm font-medium hover:bg-gray-800">
+            Apply
+          </button>
         </div>
       </div>
 
       {/* Content Area */}
       <div className="px-6 py-4">
-        <h2 className="text-xl font-bold text-center text-black mb-6 tracking-tight">
+        <h2 className="text-lg font-semibold text-black mb-4">
           showing inventory data
         </h2>
 
-        {/* Table Header */}
+        {/* Table */}
         <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
           <div className="overflow-x-auto">
             <table className="min-w-full">
-              <thead className="bg-gray-50">
+              <thead className="bg-gray-50 border-b">
                 <tr>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Image</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Product Name</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Category</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">sub categories</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Price</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">size</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">quantity</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">sale price</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">actual price</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">SKU</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">barcode no.</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Description</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Manufacturing details</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Shipping returns and exchange</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">meta title</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">meta description</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">slug URL</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">photos</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">size chart</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Action</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Image</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Product Name</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Category</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">sub categories</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Price</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">size</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">quantity</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">sale price</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">actual price</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">SKU</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">barcode no.</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Description</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Manufacturing details</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Shipping returns and exchange</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">meta title</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">meta description</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">slug URL</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">photos</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">size chart</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Action</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredProducts.map((product) => (
-                  <React.Fragment key={product.id}>
-                    {product.sizes.map((sizeInfo, sizeIndex) => (
-                      <tr key={`${product.id}-${sizeIndex}`} className="hover:bg-gray-50">
-                        {/* Product Image - only show on first size row */}
-                        {sizeIndex === 0 && (
-                          <td rowSpan={product.sizes.length} className="px-4 py-4 align-top">
-                            <div className="w-20 h-24 bg-gray-200 rounded-lg overflow-hidden">
-                              <img
-                                src={product.image}
-                                alt={product.productName}
-                                className="w-full h-full object-cover"
-                              />
-                            </div>
-                            {/* Additional small images */}
-                            <div className="flex gap-1 mt-2">
-                              {[1, 2, 3, 4].map((i) => (
-                                <div key={i} className="w-6 h-6 bg-gray-200 rounded"></div>
-                              ))}
-                            </div>
-                          </td>
-                        )}
-                        
-                        {/* Product Name - only show on first size row */}
-                        {sizeIndex === 0 && (
-                          <td rowSpan={product.sizes.length} className="px-4 py-4 align-top">
-                            <div className="font-medium text-gray-900">{product.productName}</div>
-                            <div className="flex items-center gap-1 mt-1">
-                              <span className="w-2 h-2 bg-gray-400 rounded-full"></span>
-                              <span className="w-2 h-2 bg-gray-400 rounded-full"></span>
-                            </div>
-                          </td>
-                        )}
-                        
-                        {/* Category - only show on first size row */}
-                        {sizeIndex === 0 && (
-                          <td rowSpan={product.sizes.length} className="px-4 py-4 align-top">
-                            <span className="text-gray-900 font-medium">{product.category}</span>
-                          </td>
-                        )}
-                        
-                        {/* Subcategory - only show on first size row */}
-                        {sizeIndex === 0 && (
-                          <td rowSpan={product.sizes.length} className="px-4 py-4 align-top">
-                            <span className="text-gray-900 font-medium">{product.subcategory}</span>
-                            <div className="text-sm text-gray-500 mt-1">{product.returnable}</div>
-                          </td>
-                        )}
-                        
-                        {/* Prices */}
-                        <td className="px-4 py-2">
-                          <div className="space-y-1">
-                            <div className="text-xs text-gray-600">myntra</div>
-                            <div className="text-xs text-gray-600">amazon</div>
-                            <div className="text-xs text-gray-600">flipkart</div>
-                            <div className="text-xs text-gray-600">nykaa</div>
-                          </div>
-                        </td>
-                        
-                        {/* Size */}
-                        <td className="px-4 py-2">
-                          <span className="text-sm font-medium text-black">{sizeInfo.size}</span>
-                        </td>
-                        
-                        {/* Quantity */}
-                        <td className="px-4 py-2">
-                          <span className="text-sm font-medium text-black">{sizeInfo.quantity}</span>
-                        </td>
-                        
-                        {/* Sale Price */}
-                        <td className="px-4 py-2">
-                          <div className="space-y-1">
-                            <div className="text-xs text-gray-600">{sizeInfo.myntraPrice}</div>
-                            <div className="text-xs text-gray-600">{sizeInfo.amazonPrice}</div>
-                            <div className="text-xs text-gray-600">{sizeInfo.flipkartPrice}</div>
-                            <div className="text-xs text-gray-600">{sizeInfo.nykaPrice}</div>
-                          </div>
-                        </td>
-                        
-                        {/* Actual Price */}
-                        <td className="px-4 py-2">
-                          <div className="space-y-1">
-                            <div className="text-xs text-gray-600">{sizeInfo.actualPrice}</div>
-                            <div className="text-xs text-gray-600">{sizeInfo.actualPrice}</div>
-                            <div className="text-xs text-gray-600">{sizeInfo.actualPrice}</div>
-                            <div className="text-xs text-gray-600">{sizeInfo.actualPrice}</div>
-                          </div>
-                        </td>
-                        
-                        {/* SKU - only show on first size row */}
-                        {sizeIndex === 0 && (
-                          <td rowSpan={product.sizes.length} className="px-4 py-4 align-top">
-                            <span className="text-xs text-gray-600">{product.sku}</span>
-                          </td>
-                        )}
-                        
-                        {/* Barcode - only show on first size row */}
-                        {sizeIndex === 0 && (
-                          <td rowSpan={product.sizes.length} className="px-4 py-4 align-top">
-                            <span className="text-xs text-gray-600">{product.barcode}</span>
-                          </td>
-                        )}
-                        
-                        {/* Description - only show on first size row */}
-                        {sizeIndex === 0 && (
-                          <td rowSpan={product.sizes.length} className="px-4 py-4 align-top">
-                            <span className="text-sm text-gray-900">{product.description}</span>
-                          </td>
-                        )}
-                        
-                        {/* Manufacturing Details - only show on first size row */}
-                        {sizeIndex === 0 && (
-                          <td rowSpan={product.sizes.length} className="px-4 py-4 align-top">
-                            <span className="text-sm text-gray-900">{product.manufacturingDetails}</span>
-                          </td>
-                        )}
-                        
-                        {/* Shipping Returns - only show on first size row */}
-                        {sizeIndex === 0 && (
-                          <td rowSpan={product.sizes.length} className="px-4 py-4 align-top">
-                            <span className="text-sm text-gray-900">{product.shippingReturns}</span>
-                          </td>
-                        )}
-                        
-                        {/* Meta Title - only show on first size row */}
-                        {sizeIndex === 0 && (
-                          <td rowSpan={product.sizes.length} className="px-4 py-4 align-top">
-                            <span className="text-sm text-gray-900">{product.metaTitle}</span>
-                          </td>
-                        )}
-                        
-                        {/* Meta Description - only show on first size row */}
-                        {sizeIndex === 0 && (
-                          <td rowSpan={product.sizes.length} className="px-4 py-4 align-top">
-                            <span className="text-sm text-gray-900">{product.metaDescription}</span>
-                          </td>
-                        )}
-                        
-                        {/* Slug URL - only show on first size row */}
-                        {sizeIndex === 0 && (
-                          <td rowSpan={product.sizes.length} className="px-4 py-4 align-top">
-                            <span className="text-sm text-gray-900">{product.slugUrl}</span>
-                          </td>
-                        )}
-                        
-                        {/* Photos - only show on first size row */}
-                        {sizeIndex === 0 && (
-                          <td rowSpan={product.sizes.length} className="px-4 py-4 align-top">
-                            <div className="flex items-center gap-2">
-                              <span className={`w-3 h-3 rounded-full ${product.photos ? 'bg-green-500' : 'bg-red-500'}`}></span>
-                            </div>
-                          </td>
-                        )}
-                        
-                        {/* Size Chart - only show on first size row */}
-                        {sizeIndex === 0 && (
-                          <td rowSpan={product.sizes.length} className="px-4 py-4 align-top">
-                            <div className="flex items-center gap-2">
-                              <span className={`w-3 h-3 rounded-full ${product.sizeChart ? 'bg-green-500' : 'bg-red-500'}`}></span>
-                            </div>
-                          </td>
-                        )}
-                        
-                        {/* Actions - only show on first size row */}
-                        {sizeIndex === 0 && (
-                          <td rowSpan={product.sizes.length} className="px-4 py-4 align-top">
-                            <div className="flex flex-col gap-2">
-                              <div className={`px-3 py-1 rounded text-xs font-bold ${getStatusColor(product.status)}`}>
-                                {product.status}
-                              </div>
-                              <div className="flex gap-2">
-                                <button className="p-2 bg-gray-100 rounded hover:bg-gray-200 transition-colors">
-                                  <Edit2 className="h-4 w-4 text-gray-600" />
-                                </button>
-                                <button className="p-2 bg-gray-100 rounded hover:bg-gray-200 transition-colors">
-                                  <Trash2 className="h-4 w-4 text-gray-600" />
-                                </button>
-                              </div>
-                              <div className="flex flex-col gap-2">
-                                <button className="p-2 bg-gray-100 rounded hover:bg-gray-200 transition-colors">
-                                  <Printer className="h-4 w-4 text-gray-600" />
-                                </button>
-                                <button className="p-2 bg-gray-100 rounded hover:bg-gray-200 transition-colors">
-                                  <Eye className="h-4 w-4 text-gray-600" />
-                                </button>
-                                <button className="p-2 bg-gray-100 rounded hover:bg-gray-200 transition-colors">
-                                  <Download className="h-4 w-4 text-gray-600" />
-                                </button>
-                              </div>
-                            </div>
-                          </td>
-                        )}
-                      </tr>
-                    ))}
-                  </React.Fragment>
+                  <tr key={product.id} className="hover:bg-gray-50">
+                    {/* Product Images */}
+                    <td className="px-4 py-4">
+                      <div className="flex items-center gap-2">
+                        <div className="w-12 h-14 bg-gray-200 rounded overflow-hidden">
+                          <img
+                            src={product.image}
+                            alt={product.productName}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <div className="flex gap-1">
+                          {[1, 2, 3, 4].map((i) => (
+                            <div key={i} className="w-3 h-3 bg-gray-300 rounded"></div>
+                          ))}
+                        </div>
+                      </div>
+                    </td>
+                    
+                    {/* Product Name */}
+                    <td className="px-4 py-4">
+                      <div className="font-medium text-gray-900 text-sm">{product.productName}</div>
+                      <div className="flex items-center gap-1 mt-1">
+                        <span className="w-2 h-2 bg-black rounded-full"></span>
+                        <span className="w-2 h-2 bg-gray-400 rounded-full"></span>
+                      </div>
+                    </td>
+                    
+                    {/* Category */}
+                    <td className="px-4 py-4">
+                      <span className="text-sm text-gray-900">{product.category}</span>
+                    </td>
+                    
+                    {/* Subcategory */}
+                    <td className="px-4 py-4">
+                      <span className="text-sm text-gray-900">{product.subcategory}</span>
+                      <div className="text-xs text-gray-500 mt-1">{product.returnable}</div>
+                    </td>
+                    
+                    {/* Price */}
+                    <td className="px-4 py-4">
+                      <div className="space-y-1">
+                        <div className="text-xs text-gray-600">myntra</div>
+                        <div className="text-xs text-gray-600">amazon</div>
+                        <div className="text-xs text-gray-600">flipkart</div>
+                        <div className="text-xs text-gray-600">nykaa</div>
+                      </div>
+                    </td>
+                    
+                    {/* Size */}
+                    <td className="px-4 py-4">
+                      <div className="space-y-1">
+                        {product.sizes.map((size) => (
+                          <div key={size.size} className="text-xs text-gray-900">{size.size}</div>
+                        ))}
+                      </div>
+                    </td>
+                    
+                    {/* Quantity */}
+                    <td className="px-4 py-4">
+                      <div className="space-y-1">
+                        {product.sizes.map((size) => (
+                          <div key={size.size} className="text-xs text-gray-900">{size.quantity}</div>
+                        ))}
+                      </div>
+                    </td>
+                    
+                    {/* Sale Price */}
+                    <td className="px-4 py-4">
+                      <div className="space-y-1">
+                        {product.sizes.map((size) => (
+                          <div key={size.size} className="text-xs text-gray-600">{size.salePrice}</div>
+                        ))}
+                      </div>
+                    </td>
+                    
+                    {/* Actual Price */}
+                    <td className="px-4 py-4">
+                      <div className="space-y-1">
+                        {product.sizes.map((size) => (
+                          <div key={size.size} className="text-xs text-gray-600">{size.actualPrice}</div>
+                        ))}
+                      </div>
+                    </td>
+                    
+                    {/* SKU */}
+                    <td className="px-4 py-4">
+                      <span className="text-xs text-gray-600">{product.sku}</span>
+                    </td>
+                    
+                    {/* Barcode */}
+                    <td className="px-4 py-4">
+                      <span className="text-xs text-gray-600">{product.barcode}</span>
+                    </td>
+                    
+                    {/* Description */}
+                    <td className="px-4 py-4">
+                      <span className="text-xs text-gray-900 truncate max-w-xs">{product.description}</span>
+                    </td>
+                    
+                    {/* Manufacturing Details */}
+                    <td className="px-4 py-4">
+                      <span className="text-xs text-gray-900 truncate max-w-xs">{product.manufacturingDetails}</span>
+                    </td>
+                    
+                    {/* Shipping Returns */}
+                    <td className="px-4 py-4">
+                      <span className="text-xs text-gray-900">{product.shippingReturns}</span>
+                    </td>
+                    
+                    {/* Meta Title */}
+                    <td className="px-4 py-4">
+                      <span className="text-xs text-gray-900 truncate max-w-xs">{product.metaTitle}</span>
+                    </td>
+                    
+                    {/* Meta Description */}
+                    <td className="px-4 py-4">
+                      <span className="text-xs text-gray-900 truncate max-w-xs">{product.metaDescription}</span>
+                    </td>
+                    
+                    {/* Slug URL */}
+                    <td className="px-4 py-4">
+                      <span className="text-xs text-gray-900 truncate max-w-xs">{product.slugUrl}</span>
+                    </td>
+                    
+                    {/* Photos */}
+                    <td className="px-4 py-4">
+                      <div className="flex items-center justify-center">
+                        <button 
+                          className={`w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold ${
+                            product.photos ? 'bg-green-500 hover:bg-green-600' : 'bg-red-500 hover:bg-red-600'
+                          } transition-colors cursor-pointer`}
+                          title={product.photos ? 'Photos available' : 'No photos'}
+                        >
+                          {product.photos ? <Check className="h-3 w-3" /> : <X className="h-3 w-3" />}
+                        </button>
+                      </div>
+                    </td>
+                    
+                    {/* Size Chart */}
+                    <td className="px-4 py-4">
+                      <div className="flex items-center justify-center">
+                        <button 
+                          className={`w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold ${
+                            product.sizeChart ? 'bg-green-500 hover:bg-green-600' : 'bg-red-500 hover:bg-red-600'
+                          } transition-colors cursor-pointer`}
+                          title={product.sizeChart ? 'Size chart available' : 'No size chart'}
+                        >
+                          {product.sizeChart ? <Check className="h-3 w-3" /> : <X className="h-3 w-3" />}
+                        </button>
+                      </div>
+                    </td>
+                    
+                    {/* Actions */}
+                    <td className="px-4 py-4">
+                      <div className="flex flex-col items-center gap-2">
+                        <div className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(product.status)}`}>
+                          {product.status}
+                        </div>
+                        <div className="flex gap-1">
+                          <button className="p-1.5 bg-gray-100 rounded hover:bg-gray-200">
+                            <Edit2 className="h-3 w-3 text-gray-600" />
+                          </button>
+                          <button className="p-1.5 bg-gray-100 rounded hover:bg-gray-200">
+                            <Trash2 className="h-3 w-3 text-gray-600" />
+                          </button>
+                          <button className="p-1.5 bg-gray-100 rounded hover:bg-gray-200">
+                            <Download className="h-3 w-3 text-gray-600" />
+                          </button>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
                 ))}
               </tbody>
             </table>
