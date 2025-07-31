@@ -27,6 +27,7 @@ const BulkSMS = memo(({ onClose }) => {
   // Modal states
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
+  const [successMessage, setSuccessMessage] = useState({ title: '', description: '' });
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showEditReportModal, setShowEditReportModal] = useState(false);
@@ -60,6 +61,64 @@ const BulkSMS = memo(({ onClose }) => {
       interface: ['http', 'sms', 'email'],
       channel: 'promotional',
       creditUsed: 10
+    }
+  ]);
+
+  // Campaign reports data
+  const [campaignReportsData, setCampaignReportsData] = useState([
+    {
+      id: 1,
+      date: 'nov 7 2025',
+      name: 'by admin',
+      senderId: 'transactional',
+      number: '7006114695',
+      sms: 'private',
+      status: 'delivered',
+      channel: 'transactional',
+      deliveryDate: 'nov 7 2025',
+      smsType: 'normal',
+      interface: 'http',
+      cost: 10,
+      message: 'hey cutie',
+      dataCoding: 'Trans',
+      scheduleDate: 'nov 7 2025',
+      error: 'none'
+    },
+    {
+      id: 2,
+      date: 'nov 8 2025',
+      name: 'by admin',
+      senderId: 'promotional',
+      number: '7006114696',
+      sms: 'public',
+      status: 'delivered',
+      channel: 'marketing',
+      deliveryDate: 'nov 8 2025',
+      smsType: 'priority',
+      interface: 'http',
+      cost: 15,
+      message: 'special offer',
+      dataCoding: 'Promo',
+      scheduleDate: 'nov 8 2025',
+      error: 'none'
+    },
+    {
+      id: 3,
+      date: 'nov 9 2025',
+      name: 'by admin',
+      senderId: 'transactional',
+      number: '7006114697',
+      sms: 'private',
+      status: 'pending',
+      channel: 'transactional',
+      deliveryDate: 'pending',
+      smsType: 'normal',
+      interface: 'http',
+      cost: 8,
+      message: 'order update',
+      dataCoding: 'Trans',
+      scheduleDate: 'nov 9 2025',
+      error: 'none'
     }
   ]);
 
@@ -128,6 +187,53 @@ const BulkSMS = memo(({ onClose }) => {
     characterCount: 0
   });
 
+  // Drafts state
+  const [drafts, setDrafts] = useState([
+    {
+      id: 1,
+      name: 'draft 1',
+      type: 'sms',
+      data: {
+        messageChannel: 'Transactional',
+        messageRoute: 'Select Gateway',
+        senderId: 'transactional',
+        campaignName: 'campaign_001',
+        numbers: '7006114695,7006114696',
+        messageTitle: 'Welcome Message',
+        messageText: 'Welcome to our service!',
+        characterCount: 25
+      },
+      createdAt: 'nov 7 2025',
+      updatedAt: 'nov 7 2025'
+    },
+    {
+      id: 2,
+      name: 'draft 2',
+      type: 'email',
+      data: {
+        messageChannel: 'Promotional',
+        messageRoute: 'SMTP',
+        senderId: 'promotional',
+        campaignName: 'email_campaign_001',
+        emails: 'user1@example.com,user2@example.com',
+        messageTitle: 'Special Offer',
+        messageText: 'Limited time offer just for you!',
+        characterCount: 35
+      },
+      createdAt: 'nov 8 2025',
+      updatedAt: 'nov 8 2025'
+    }
+  ]);
+  
+  // Draft modal states
+  const [showDraftsModal, setShowDraftsModal] = useState(false);
+  const [showDraftDeleteConfirm, setShowDraftDeleteConfirm] = useState(false);
+  const [deleteDraftId, setDeleteDraftId] = useState(null);
+  const [editingDraft, setEditingDraft] = useState(null);
+  
+  // Send confirmation modal state
+  const [showSendConfirm, setShowSendConfirm] = useState(false);
+
   // Handle form changes
   const handleFormChange = useCallback((field, value) => {
     setSmsForm(prev => {
@@ -187,7 +293,98 @@ const BulkSMS = memo(({ onClose }) => {
   }, []);
 
   const handleSaveDraft = useCallback(() => {
-    console.log('Saving as draft');
+    const currentForm = activeTab === 'sms' ? smsForm : emailForm;
+    const draftName = `draft ${drafts.length + 1}`;
+    
+    const newDraft = {
+      id: Date.now(),
+      name: draftName,
+      type: activeTab,
+      data: { ...currentForm },
+      createdAt: new Date().toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric' 
+      }).toLowerCase(),
+      updatedAt: new Date().toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric' 
+      }).toLowerCase()
+    };
+    
+    setDrafts(prev => [...prev, newDraft]);
+    console.log('Draft saved:', newDraft);
+    
+    // Show success message
+    setSuccessMessage({
+      title: 'Draft Saved Successfully!',
+      description: `Your ${activeTab === 'sms' ? 'SMS' : 'email'} draft "${draftName}" has been saved.`
+    });
+    setShowSuccessPopup(true);
+    setTimeout(() => setShowSuccessPopup(false), 3000);
+  }, [activeTab, smsForm, emailForm, drafts.length]);
+
+  // Draft management functions
+  const handleViewDrafts = useCallback(() => {
+    setShowDraftsModal(true);
+  }, []);
+
+  const handleLoadDraft = useCallback((draft) => {
+    if (draft.type === 'sms') {
+      setSmsForm(draft.data);
+      setActiveTab('sms');
+    } else if (draft.type === 'email') {
+      setEmailForm(draft.data);
+      setActiveTab('email');
+    }
+    setShowDraftsModal(false);
+    console.log('Draft loaded:', draft);
+  }, []);
+
+  const handleEditDraft = useCallback((draft) => {
+    setEditingDraft({ ...draft });
+  }, []);
+
+  const handleSaveDraftEdit = useCallback(() => {
+    if (editingDraft) {
+      setDrafts(prev => 
+        prev.map(draft => 
+          draft.id === editingDraft.id 
+            ? { ...editingDraft, updatedAt: new Date().toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric' 
+              }).toLowerCase() }
+            : draft
+        )
+      );
+      setEditingDraft(null);
+      console.log('Draft updated:', editingDraft);
+    }
+  }, [editingDraft]);
+
+  const handleCancelDraftEdit = useCallback(() => {
+    setEditingDraft(null);
+  }, []);
+
+  const handleDeleteDraft = useCallback((id) => {
+    setDeleteDraftId(id);
+    setShowDraftDeleteConfirm(true);
+  }, []);
+
+  const handleConfirmDeleteDraft = useCallback(() => {
+    if (deleteDraftId) {
+      setDrafts(prev => prev.filter(draft => draft.id !== deleteDraftId));
+      console.log('Draft deleted:', deleteDraftId);
+    }
+    setShowDraftDeleteConfirm(false);
+    setDeleteDraftId(null);
+  }, [deleteDraftId]);
+
+  const handleCancelDeleteDraft = useCallback(() => {
+    setShowDraftDeleteConfirm(false);
+    setDeleteDraftId(null);
   }, []);
 
   const handleScheduleLater = useCallback(() => {
@@ -196,6 +393,12 @@ const BulkSMS = memo(({ onClose }) => {
 
   const handleScheduleNow = useCallback(() => {
     setShowScheduleModal(false);
+    
+    // Set success message for scheduling
+    setSuccessMessage({
+      title: `${activeTab === 'sms' ? 'SMS' : 'Email'} Scheduled Successfully!`,
+      description: `Your ${activeTab === 'sms' ? 'SMS' : 'email'} has been scheduled for ${scheduleData.date} at ${scheduleData.time}`
+    });
     setShowSuccessPopup(true);
     console.log('Scheduling message for:', scheduleData);
     
@@ -203,7 +406,7 @@ const BulkSMS = memo(({ onClose }) => {
     setTimeout(() => {
       setShowSuccessPopup(false);
     }, 3000);
-  }, [scheduleData]);
+  }, [activeTab, scheduleData]);
 
   const handleCloseScheduleModal = useCallback(() => {
     setShowScheduleModal(false);
@@ -217,7 +420,28 @@ const BulkSMS = memo(({ onClose }) => {
   }, []);
 
   const handleSendNow = useCallback(() => {
-    console.log('Sending SMS now');
+    setShowSendConfirm(true);
+  }, []);
+
+  const handleConfirmSend = useCallback(() => {
+    setShowSendConfirm(false);
+    
+    // Set success message for sending
+    setSuccessMessage({
+      title: `${activeTab === 'sms' ? 'SMS' : 'Email'} Sent Successfully!`,
+      description: `Your ${activeTab === 'sms' ? 'SMS' : 'email'} has been sent successfully.`
+    });
+    setShowSuccessPopup(true);
+    console.log(`Sending ${activeTab} now`);
+    
+    // Auto-hide success popup after 3 seconds
+    setTimeout(() => {
+      setShowSuccessPopup(false);
+    }, 3000);
+  }, [activeTab]);
+
+  const handleCancelSend = useCallback(() => {
+    setShowSendConfirm(false);
   }, []);
 
   const handlePreview = useCallback(() => {
@@ -280,12 +504,21 @@ const BulkSMS = memo(({ onClose }) => {
   }, []);
 
   const handleEditReport = useCallback((id) => {
-    const report = (activeReportTab === 'schedule' ? scheduledReportsData : reportsData).find(item => item.id === id);
+    let data;
+    if (activeReportTab === 'campaign') {
+      data = campaignReportsData;
+    } else if (activeReportTab === 'schedule') {
+      data = scheduledReportsData;
+    } else {
+      data = reportsData;
+    }
+    
+    const report = data.find(item => item.id === id);
     if (report) {
       setEditingReport({ ...report });
       setShowEditReportModal(true);
     }
-  }, [activeReportTab, scheduledReportsData, reportsData]);
+  }, [activeReportTab, campaignReportsData, scheduledReportsData, reportsData]);
 
   const handleDeleteReport = useCallback((id) => {
     setDeleteReportId(id);
@@ -294,7 +527,9 @@ const BulkSMS = memo(({ onClose }) => {
 
   const handleConfirmDeleteReport = useCallback(() => {
     if (deleteReportId) {
-      if (activeReportTab === 'schedule') {
+      if (activeReportTab === 'campaign') {
+        setCampaignReportsData(prev => prev.filter(item => item.id !== deleteReportId));
+      } else if (activeReportTab === 'schedule') {
         setScheduledReportsData(prev => prev.filter(item => item.id !== deleteReportId));
       } else {
         setReportsData(prev => prev.filter(item => item.id !== deleteReportId));
@@ -312,7 +547,13 @@ const BulkSMS = memo(({ onClose }) => {
 
   const handleSaveReportEdit = useCallback(() => {
     if (editingReport) {
-      if (activeReportTab === 'schedule') {
+      if (activeReportTab === 'campaign') {
+        setCampaignReportsData(prev => 
+          prev.map(item => 
+            item.id === editingReport.id ? editingReport : item
+          )
+        );
+      } else if (activeReportTab === 'schedule') {
         setScheduledReportsData(prev => 
           prev.map(item => 
             item.id === editingReport.id ? editingReport : item
@@ -701,6 +942,8 @@ const BulkSMS = memo(({ onClose }) => {
                         ? 'text-[#101316] font-semibold underline decoration-solid decoration-from-font'
                         : tab.id === 'schedule'
                         ? 'text-[#101316] underline decoration-solid decoration-from-font'
+                        : tab.id === 'campaign'
+                        ? 'text-[#101316] underline decoration-solid decoration-from-font'
                         : 'text-[#101316] border-b-2 border-[#101316]'
                       : 'text-[#101316] hover:text-gray-700'
                   }`}
@@ -807,104 +1050,213 @@ const BulkSMS = memo(({ onClose }) => {
             {activeReportTab !== 'archived' && (
               <>
                 {/* Table Header */}
-                <div className="grid grid-cols-8 gap-4 bg-white border-b border-[#e5e9eb] px-6 py-4">
+                <div className={`grid ${activeReportTab === 'campaign' ? 'grid-cols-10' : 'grid-cols-8'} gap-4 bg-white border-b border-[#e5e9eb] px-6 py-4`}>
                   <div className="text-[14px] font-medium text-[#101316] font-montserrat tracking-[-0.084px] leading-[24px]">
                     Date
                   </div>
-                  <div className="text-[14px] font-medium text-[#101316] font-montserrat tracking-[-0.084px] leading-[24px]">
-                    Name
-                  </div>
-                  <div className="text-[14px] font-medium text-[#101316] font-montserrat tracking-[-0.084px] leading-[24px]">
-                    sender ID
-                  </div>
-                  <div className="text-[14px] font-medium text-[#101316] font-montserrat tracking-[-0.084px] leading-[24px]">
-                    Message
-                  </div>
-                  <div className="text-[14px] font-medium text-[#101316] font-montserrat tracking-[-0.084px] leading-[24px]">
-                    Interface
-                  </div>
-                  <div className="text-[14px] font-medium text-[#101316] font-montserrat tracking-[-0.084px] leading-[24px]">
-                    channel
-                  </div>
-                  <div className="text-[14px] font-medium text-[#101316] font-montserrat tracking-[-0.084px] leading-[24px]">
-                    credit used
-                  </div>
+                  
+                  {/* Campaign Report Headers */}
+                  {activeReportTab === 'campaign' ? (
+                    <>
+                      <div className="text-[14px] font-medium text-[#101316] font-montserrat tracking-[-0.084px] leading-[24px]">
+                        sender ID
+                      </div>
+                      <div className="text-[14px] font-medium text-[#101316] font-montserrat tracking-[-0.084px] leading-[24px]">
+                        Number
+                      </div>
+                      <div className="text-[14px] font-medium text-[#101316] font-montserrat tracking-[-0.084px] leading-[24px]">
+                        sms
+                      </div>
+                      <div className="text-[14px] font-medium text-[#101316] font-montserrat tracking-[-0.084px] leading-[24px]">
+                        status
+                      </div>
+                      <div className="text-[14px] font-medium text-[#101316] font-montserrat tracking-[-0.084px] leading-[24px]">
+                        channel
+                      </div>
+                      <div className="text-[14px] font-medium text-[#101316] font-montserrat tracking-[-0.084px] leading-[24px]">
+                        delivery Date
+                      </div>
+                      <div className="text-[14px] font-medium text-[#101316] font-montserrat tracking-[-0.084px] leading-[24px]">
+                        sms type
+                      </div>
+                      <div className="text-[14px] font-medium text-[#101316] font-montserrat tracking-[-0.084px] leading-[24px]">
+                        Interface
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="text-[14px] font-medium text-[#101316] font-montserrat tracking-[-0.084px] leading-[24px]">
+                        Name
+                      </div>
+                      <div className="text-[14px] font-medium text-[#101316] font-montserrat tracking-[-0.084px] leading-[24px]">
+                        sender ID
+                      </div>
+                      <div className="text-[14px] font-medium text-[#101316] font-montserrat tracking-[-0.084px] leading-[24px]">
+                        Message
+                      </div>
+                      <div className="text-[14px] font-medium text-[#101316] font-montserrat tracking-[-0.084px] leading-[24px]">
+                        Interface
+                      </div>
+                      <div className="text-[14px] font-medium text-[#101316] font-montserrat tracking-[-0.084px] leading-[24px]">
+                        channel
+                      </div>
+                      <div className="text-[14px] font-medium text-[#101316] font-montserrat tracking-[-0.084px] leading-[24px]">
+                        credit used
+                      </div>
+                    </>
+                  )}
+                  
                   <div className="text-[14px] font-medium text-[#101316] font-montserrat tracking-[-0.084px] leading-[24px] text-center">
                     action
                   </div>
                 </div>
 
                 {/* Table Rows */}
-                {(activeReportTab === 'schedule' ? scheduledReportsData : reportsData).map((item) => (
-                  <div key={item.id} className="grid grid-cols-8 gap-4 border-b border-[#f0f0f0] hover:bg-gray-50 transition-colors px-6 py-4">
-                    {/* Date */}
-                    <div className="text-[14px] font-medium text-[#757575] font-montserrat tracking-[-0.084px] leading-[24px]">
-                      {item.date}
-                    </div>
-                    
-                    {/* Name */}
-                    <div className="text-[14px] font-medium text-[#757575] font-montserrat tracking-[-0.084px] leading-[24px]">
-                      {item.name}
-                    </div>
-                    
-                    {/* Sender ID */}
-                    <div className="text-[14px] font-medium text-[#757575] font-montserrat tracking-[-0.084px] leading-[24px]">
-                      {item.senderId}
-                    </div>
-                    
-                    {/* Message */}
-                    <div className="text-[14px] font-medium text-[#757575] font-montserrat tracking-[-0.084px] leading-[24px]">
-                      {item.message}
-                    </div>
-                    
-                    {/* Interface */}
-                    <div className="text-[14px] font-medium text-[#757575] font-montserrat tracking-[-0.084px] leading-[24px]">
-                      <div className="space-y-1">
-                        {item.interface.map((type, index) => (
-                          <div key={index}>{type}</div>
-                        ))}
+                {(() => {
+                  let data;
+                  if (activeReportTab === 'campaign') {
+                    data = campaignReportsData;
+                  } else if (activeReportTab === 'schedule') {
+                    data = scheduledReportsData;
+                  } else {
+                    data = reportsData;
+                  }
+                  
+                  return data.map((item) => (
+                    <div key={item.id} className={`grid ${activeReportTab === 'campaign' ? 'grid-cols-10' : 'grid-cols-8'} gap-4 border-b border-[#f0f0f0] hover:bg-gray-50 transition-colors px-6 py-4`}>
+                      {/* Date */}
+                      <div className="text-[14px] font-medium text-[#757575] font-montserrat tracking-[-0.084px] leading-[24px]">
+                        {item.date}
+                      </div>
+                      
+                      {/* Campaign Reports Extended Structure */}
+                      {activeReportTab === 'campaign' ? (
+                        <>
+                          {/* Sender ID */}
+                          <div className="text-[14px] font-medium text-[#757575] font-montserrat tracking-[-0.084px] leading-[24px]">
+                            {item.senderId}
+                          </div>
+                          
+                          {/* Number */}
+                          <div className="text-[14px] font-medium text-[#757575] font-montserrat tracking-[-0.084px] leading-[24px]">
+                            {item.number}
+                          </div>
+                          
+                          {/* SMS */}
+                          <div className="text-[14px] font-medium text-[#757575] font-montserrat tracking-[-0.084px] leading-[24px]">
+                            {item.sms}
+                          </div>
+                          
+                          {/* Status */}
+                          <div className="text-[14px] font-medium text-[#757575] font-montserrat tracking-[-0.084px] leading-[24px]">
+                            <span className={`px-2 py-1 rounded-full text-xs ${
+                              item.status === 'Delivered' ? 'bg-green-100 text-green-800' :
+                              item.status === 'Failed' ? 'bg-red-100 text-red-800' :
+                              'bg-yellow-100 text-yellow-800'
+                            }`}>
+                              {item.status}
+                            </span>
+                          </div>
+                          
+                          {/* Channel */}
+                          <div className="text-[14px] font-medium text-[#757575] font-montserrat tracking-[-0.084px] leading-[24px]">
+                            {item.channel}
+                          </div>
+                          
+                          {/* Delivery Date */}
+                          <div className="text-[14px] font-medium text-[#757575] font-montserrat tracking-[-0.084px] leading-[24px]">
+                            {item.deliveryDate}
+                          </div>
+                          
+                          {/* SMS Type */}
+                          <div className="text-[14px] font-medium text-[#757575] font-montserrat tracking-[-0.084px] leading-[24px]">
+                            {item.smsType}
+                          </div>
+                          
+                          {/* Interface */}
+                          <div className="text-[14px] font-medium text-[#757575] font-montserrat tracking-[-0.084px] leading-[24px]">
+                            {item.interface}
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          {/* Name */}
+                          <div className="text-[14px] font-medium text-[#757575] font-montserrat tracking-[-0.084px] leading-[24px]">
+                            {item.name}
+                          </div>
+                          
+                          {/* Sender ID */}
+                          <div className="text-[14px] font-medium text-[#757575] font-montserrat tracking-[-0.084px] leading-[24px]">
+                            {item.senderId}
+                          </div>
+                          
+                          {/* Message */}
+                          <div className="text-[14px] font-medium text-[#757575] font-montserrat tracking-[-0.084px] leading-[24px]">
+                            {item.message}
+                          </div>
+                          
+                          {/* Interface */}
+                          <div className="text-[14px] font-medium text-[#757575] font-montserrat tracking-[-0.084px] leading-[24px]">
+                            <div className="space-y-1">
+                              {Array.isArray(item.interface) ? item.interface.map((type, index) => (
+                                <div key={index}>{type}</div>
+                              )) : item.interface}
+                            </div>
+                          </div>
+                          
+                          {/* Channel */}
+                          <div className="text-[14px] font-medium text-[#757575] font-montserrat tracking-[-0.084px] leading-[24px]">
+                            {item.channel}
+                          </div>
+                          
+                          {/* Credit Used */}
+                          <div className="text-[14px] font-medium text-[#757575] font-montserrat tracking-[-0.084px] leading-[24px]">
+                            {item.creditUsed}
+                          </div>
+                        </>
+                      )}
+                      
+                      {/* Actions */}
+                      <div className="flex items-center justify-center gap-1">
+                        {/* Edit Button */}
+                        <button
+                          onClick={() => handleEditReport(item.id)}
+                          className="w-[26px] h-[27px] flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors p-[5px]"
+                          title="Edit report"
+                        >
+                          <Edit2 className="w-4 h-4 text-[#667085]" />
+                        </button>
+                        
+                        {/* Delete Button */}
+                        <button
+                          onClick={() => handleDeleteReport(item.id)}
+                          className="w-[26px] h-[27px] flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors p-[5px]"
+                          title="Delete report"
+                        >
+                          <Trash2 className="w-4 h-4 text-[#667085]" />
+                        </button>
                       </div>
                     </div>
-                    
-                    {/* Channel */}
-                    <div className="text-[14px] font-medium text-[#757575] font-montserrat tracking-[-0.084px] leading-[24px]">
-                      {item.channel}
-                    </div>
-                    
-                    {/* Credit Used */}
-                    <div className="text-[14px] font-medium text-[#757575] font-montserrat tracking-[-0.084px] leading-[24px]">
-                      {item.creditUsed}
-                    </div>
-                    
-                    {/* Actions */}
-                    <div className="flex items-center justify-center gap-1">
-                      {/* Edit Button */}
-                      <button
-                        onClick={() => handleEditReport(item.id)}
-                        className="w-[26px] h-[27px] flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors p-[5px]"
-                        title="Edit report"
-                      >
-                        <Edit2 className="w-4 h-4 text-[#667085]" />
-                      </button>
-                      
-                      {/* Delete Button */}
-                      <button
-                        onClick={() => handleDeleteReport(item.id)}
-                        className="w-[26px] h-[27px] flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors p-[5px]"
-                        title="Delete report"
-                      >
-                        <Trash2 className="w-4 h-4 text-[#667085]" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                  ));
+                })()}
 
                 {/* Empty State */}
-                {(activeReportTab === 'schedule' ? scheduledReportsData : reportsData).length === 0 && (
-                  <div className="text-center py-12">
-                    <p className="text-gray-500">No reports found</p>
-                  </div>
-                )}
+                {(() => {
+                  let data;
+                  if (activeReportTab === 'campaign') {
+                    data = campaignReportsData;
+                  } else if (activeReportTab === 'schedule') {
+                    data = scheduledReportsData;
+                  } else {
+                    data = reportsData;
+                  }
+                  
+                  return data.length === 0 && (
+                    <div className="text-center py-12">
+                      <p className="text-gray-500">No reports found</p>
+                    </div>
+                  );
+                })()}
               </>
             )}
           </div>
@@ -998,6 +1350,15 @@ const BulkSMS = memo(({ onClose }) => {
             className="bg-white border border-[#d0d5dd] text-black px-4 py-2.5 rounded-lg text-[14px] font-normal font-montserrat leading-[20px] shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)]"
           >
             save as draft
+          </button>
+
+          {/* View Drafts */}
+          <button
+            onClick={handleViewDrafts}
+            className="bg-white border border-[#d0d5dd] text-black px-4 py-2.5 rounded-lg text-[14px] font-normal font-montserrat leading-[20px] shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] flex items-center gap-2"
+          >
+            <Edit2 className="w-4 h-4" />
+            view drafts ({drafts.length})
           </button>
 
           {/* Schedule for Later */}
@@ -1105,11 +1466,11 @@ const BulkSMS = memo(({ onClose }) => {
               
               {/* Success Message */}
               <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                {activeTab === 'sms' ? 'SMS' : 'Email'} Scheduled Successfully!
+                {successMessage.title}
               </h3>
               
               <p className="text-gray-600 mb-4">
-                Your {activeTab === 'sms' ? 'SMS' : 'email'} has been scheduled for {scheduleData.date} at {scheduleData.time}
+                {successMessage.description}
               </p>
 
               {/* Close Button */}
@@ -1387,6 +1748,314 @@ const BulkSMS = memo(({ onClose }) => {
                   className="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition-colors"
                 >
                   Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Drafts Modal */}
+      {showDraftsModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-xl w-[90%] max-w-4xl max-h-[80vh] overflow-y-auto">
+            {/* Header */}
+            <div className="flex items-center justify-between p-6 border-b">
+              <h2 className="text-[20px] font-bold font-montserrat text-[#252C32]">
+                SMS/email Drafts
+              </h2>
+              <button
+                onClick={() => setShowDraftsModal(false)}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Drafts List */}
+            <div className="p-6">
+              {drafts.length === 0 ? (
+                <div className="text-center py-12">
+                  <p className="text-gray-500 text-[16px] font-montserrat">No drafts found</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {drafts.map((draft) => (
+                    <div
+                      key={draft.id}
+                      className="border border-[#e5e9eb] rounded-lg p-4 hover:bg-gray-50 transition-colors"
+                    >
+                      {/* Draft Header */}
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-3">
+                          <h3 className="text-[20px] font-bold font-montserrat text-[#252C32]">
+                            {draft.name}
+                          </h3>
+                          <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full font-medium">
+                            {draft.type.toUpperCase()}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {/* Edit Draft Button */}
+                          <button
+                            onClick={() => handleEditDraft(draft)}
+                            className="w-[26px] h-[27px] flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors p-[5px]"
+                            title="Edit draft"
+                          >
+                            <Edit2 className="w-4 h-4 text-[#667085]" />
+                          </button>
+                          
+                          {/* Delete Draft Button */}
+                          <button
+                            onClick={() => handleDeleteDraft(draft.id)}
+                            className="w-[26px] h-[27px] flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors p-[5px]"
+                            title="Delete draft"
+                          >
+                            <Trash2 className="w-4 h-4 text-[#667085]" />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Draft Details */}
+                      <div className="grid grid-cols-2 gap-4 mb-3">
+                        <div>
+                          <p className="text-[14px] font-semibold font-inter text-[#344054] mb-1">
+                            Campaign Name
+                          </p>
+                          <p className="text-[14px] font-inter text-[#667085]">
+                            {draft.data.campaignName}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-[14px] font-semibold font-inter text-[#344054] mb-1">
+                            Channel
+                          </p>
+                          <p className="text-[14px] font-inter text-[#667085]">
+                            {draft.data.messageChannel}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-[14px] font-semibold font-inter text-[#344054] mb-1">
+                            {draft.type === 'sms' ? 'Numbers' : 'Emails'}
+                          </p>
+                          <p className="text-[14px] font-inter text-[#667085] truncate">
+                            {draft.type === 'sms' ? draft.data.numbers : draft.data.emails}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-[14px] font-semibold font-inter text-[#344054] mb-1">
+                            Last Updated
+                          </p>
+                          <p className="text-[14px] font-inter text-[#667085]">
+                            {draft.updatedAt}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Message Preview */}
+                      {draft.data.messageText && (
+                        <div className="mb-3">
+                          <p className="text-[14px] font-semibold font-inter text-[#344054] mb-1">
+                            Message Preview
+                          </p>
+                          <p className="text-[14px] font-inter text-[#667085] bg-gray-50 p-2 rounded border">
+                            {draft.data.messageText.length > 100 
+                              ? draft.data.messageText.substring(0, 100) + '...' 
+                              : draft.data.messageText}
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Character Count */}
+                      <div className="flex items-center justify-between">
+                        <p className="text-[14px] font-medium font-montserrat text-[#344054]">
+                          {draft.data.characterCount} Characters Used
+                        </p>
+                        
+                        {/* Load Draft Button */}
+                        <button
+                          onClick={() => handleLoadDraft(draft)}
+                          className="bg-[#ef3826] text-black px-4 py-2 rounded-lg text-[14px] font-montserrat hover:bg-[#d32f20] transition-colors"
+                        >
+                          Load Draft
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Draft Delete Confirmation Modal */}
+      {showDraftDeleteConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-xl p-6 w-[400px]">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">Confirm Delete</h3>
+              <button
+                onClick={handleCancelDeleteDraft}
+                className="p-1 hover:bg-gray-100 rounded"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="space-y-4">
+              <p className="text-gray-600">
+                Are you sure you want to delete this draft? This action cannot be undone.
+              </p>
+
+              {/* Action Buttons */}
+              <div className="flex items-center justify-center gap-4">
+                <button
+                  onClick={handleCancelDeleteDraft}
+                  className="bg-white border border-gray-300 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleConfirmDeleteDraft}
+                  className="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition-colors"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Draft Edit Modal */}
+      {editingDraft && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-xl w-[90%] max-w-2xl max-h-[80vh] overflow-y-auto">
+            {/* Header */}
+            <div className="flex items-center justify-between p-6 border-b">
+              <h2 className="text-[18px] font-semibold font-montserrat text-[#252C32]">
+                Edit Draft: {editingDraft.name}
+              </h2>
+              <button
+                onClick={handleCancelDraftEdit}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Edit Form */}
+            <div className="p-6 space-y-4">
+              {/* Draft Name */}
+              <div>
+                <label className="block text-[14px] font-semibold font-inter text-[#344054] mb-1">
+                  Draft Name
+                </label>
+                <input
+                  type="text"
+                  value={editingDraft.name}
+                  onChange={(e) => setEditingDraft(prev => ({ ...prev, name: e.target.value }))}
+                  className="w-full px-3 py-2 border border-[#d0d5dd] rounded-[5px] text-[14px] font-inter focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              {/* Campaign Name */}
+              <div>
+                <label className="block text-[14px] font-semibold font-inter text-[#344054] mb-1">
+                  Campaign Name
+                </label>
+                <input
+                  type="text"
+                  value={editingDraft.data.campaignName}
+                  onChange={(e) => setEditingDraft(prev => ({ 
+                    ...prev, 
+                    data: { ...prev.data, campaignName: e.target.value }
+                  }))}
+                  className="w-full px-3 py-2 border border-[#d0d5dd] rounded-[5px] text-[14px] font-inter focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              {/* Message Text */}
+              <div>
+                <label className="block text-[14px] font-semibold font-inter text-[#344054] mb-1">
+                  Message Text
+                </label>
+                <textarea
+                  value={editingDraft.data.messageText}
+                  onChange={(e) => setEditingDraft(prev => ({ 
+                    ...prev, 
+                    data: { 
+                      ...prev.data, 
+                      messageText: e.target.value,
+                      characterCount: e.target.value.length
+                    }
+                  }))}
+                  rows={4}
+                  className="w-full px-3 py-2 border border-[#d0d5dd] rounded-[5px] text-[14px] font-inter focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                />
+                <p className="text-[12px] text-gray-500 mt-1">
+                  {editingDraft.data.characterCount} characters
+                </p>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex items-center justify-end gap-4 pt-4">
+                <button
+                  onClick={handleCancelDraftEdit}
+                  className="bg-white border border-gray-300 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSaveDraftEdit}
+                  className="bg-[#ef3826] text-black px-6 py-2 rounded-lg hover:bg-[#d32f20] transition-colors"
+                >
+                  Save Changes
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Send Confirmation Modal */}
+      {showSendConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] w-[420px] relative">
+            {/* Close Button */}
+            <button
+              onClick={handleCancelSend}
+              className="absolute top-[33px] right-[33px] w-6 h-6 flex items-center justify-center hover:bg-gray-100 rounded transition-colors z-10"
+            >
+              <X className="w-4 h-4 text-gray-600" />
+            </button>
+
+            {/* Content */}
+            <div className="p-8 text-center">
+              {/* Confirmation Message */}
+              <h3 className="text-[18px] font-bold font-montserrat text-black leading-[22px] tracking-[-0.41px] mb-8">
+                are you sure you want to send this {activeTab === 'sms' ? 'SMS' : 'email'}
+              </h3>
+
+              {/* Action Buttons */}
+              <div className="flex items-center justify-center gap-4">
+                {/* Yes Button */}
+                <button
+                  onClick={handleConfirmSend}
+                  className="bg-black text-white px-[51px] py-4 rounded-3xl h-12 text-[16px] font-semibold font-montserrat min-w-[149px] hover:bg-gray-800 transition-colors"
+                >
+                  yes
+                </button>
+
+                {/* Cancel Button */}
+                <button
+                  onClick={handleCancelSend}
+                  className="bg-white border border-[#e4e4e4] text-black px-[51px] py-4 rounded-[100px] text-[16px] font-medium font-montserrat min-w-[149px] hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
                 </button>
               </div>
             </div>
