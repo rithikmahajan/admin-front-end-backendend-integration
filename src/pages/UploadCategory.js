@@ -257,8 +257,8 @@ const UploadCategory = () => {
 
       {/* Edit Category Modal */}
       {isEditModalOpen && editingCategory && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-xl border border-gray-200 max-w-lg w-full mx-4 overflow-hidden">
+        <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50">
+          <div className="bg-white rounded-2xl shadow-xl border border-gray-200 max-w-lg w-full overflow-hidden">
             
             {/* Modal Header */}
             <div className="relative p-6 bg-gray-50 border-b border-gray-200">
@@ -338,8 +338,8 @@ const UploadCategory = () => {
 
       {/* Success Modal */}
       {isSuccessModalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-xl border border-gray-200 max-w-md w-full mx-4 overflow-hidden">
+        <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50">
+          <div className="bg-white rounded-2xl shadow-xl border border-gray-200 max-w-md w-full overflow-hidden">
             
             {/* Modal Content */}
             <div className="p-8 text-center">
@@ -375,8 +375,8 @@ const UploadCategory = () => {
 
       {/* Delete Confirmation Modal */}
       {isDeleteModalOpen && deletingCategory && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-xl border border-gray-200 max-w-md w-full mx-4 overflow-hidden">
+        <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50">
+          <div className="bg-white rounded-2xl shadow-xl border border-gray-200 max-w-md w-full overflow-hidden">
             
             {/* Modal Content */}
             <div className="p-8 text-center">
@@ -418,8 +418,8 @@ const UploadCategory = () => {
 
       {/* Delete Success Modal */}
       {isDeleteSuccessModalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-xl border border-gray-200 max-w-md w-full mx-4 overflow-hidden">
+        <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50">
+          <div className="bg-white rounded-2xl shadow-xl border border-gray-200 max-w-md w-full overflow-hidden">
             
             {/* Modal Content */}
             <div className="p-8 text-center">

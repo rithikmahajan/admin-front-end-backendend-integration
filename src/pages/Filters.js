@@ -1,10 +1,9 @@
 import React, { useState, useCallback, useMemo } from 'react';
-import { Search, Plus, Edit, Trash2, X } from 'lucide-react';
+import { Search, Plus, Edit2, Trash2, X } from 'lucide-react';
 
-// Performance-optimized Filters component with memoization and efficient state management
+// Performance-optimized Filters component matching Figma design
 const Filters = () => {
-  // Optimized state management with initial data structure
-  // Using useMemo to prevent recreation of initial data on each render
+  // Initial filters data matching Figma design
   const initialFilters = useMemo(() => [
     {
       id: 1,
@@ -38,7 +37,8 @@ const Filters = () => {
       name: 'category size value waist',
       type: 'size_waist',
       options: [
-        { name: 'size', priority: 1, value: '32' }
+        { name: '28', priority: 1, value: '28' },
+        { name: '30', priority: 1, value: '30' }
       ]
     },
     {
@@ -50,11 +50,11 @@ const Filters = () => {
         { name: 'lower limit', value: '100' }
       ]
     }
-  ], []); // Empty dependency array - data only created once
+  ], []);
 
   const [filters, setFilters] = useState(initialFilters);
-
-  // Optimized initial form state with useMemo to prevent object recreation
+  
+  // Form state
   const initialFormState = useMemo(() => ({
     filterKey: '',
     filterValue: '',
@@ -66,7 +66,7 @@ const Filters = () => {
 
   const [newFilter, setNewFilter] = useState(initialFormState);
   const [arrangementPriority, setArrangementPriority] = useState('');
-  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [showCreateForm, setShowCreateForm] = useState(true); // Show by default to match Figma
 
   // Memoized event handlers to prevent function recreation on every render
   // This improves performance by avoiding unnecessary child component re-renders
@@ -158,243 +158,216 @@ const Filters = () => {
   }), [filters]);
 
   return (
-    <div className="space-y-8 bg-gray-50 min-h-screen p-6">
-      {/* Header Section - Optimized with memoized event handler */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Filters</h1>
-          <p className="text-gray-600">Manage product filters and categories</p>
-        </div>
-        {/* Create button with memoized click handler */}
-        <button 
-          onClick={handleShowCreateForm}
-          className="bg-black text-white px-4 py-2 rounded-md flex items-center space-x-2 hover:bg-gray-800"
-        >
-          <Plus className="h-4 w-4" />
-          <span>Create Filter</span>
-        </button>
-      </div>
-
-      {/* Create Filters Form - Conditionally rendered for performance */}
-      {/* Only renders when showCreateForm is true, reducing DOM nodes */}
-      {showCreateForm && (
-        <div className="bg-white rounded-xl shadow-sm p-6">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">Create filters</h2>
-            {/* Close button with memoized handler */}
-            <button 
-              onClick={handleHideCreateForm}
-              className="text-gray-500 hover:text-gray-700"
-            >
-              <X className="h-5 w-5" />
-            </button>
-          </div>
-          
-          {/* Form inputs with optimized event handlers */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            {/* Filter Key Input - Memoized change handler */}
+    <div className="bg-white min-h-screen p-6">
+      {/* Create Filters Form - Always visible to match Figma */}
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold text-black mb-8">Create filters</h1>
+        
+        {/* Form Grid Layout matching Figma */}
+        <div className="space-y-6">
+          {/* First Row */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Filter Key Input */}
             <div>
               <input
                 type="text"
-                placeholder="filter key / eg:cotton, size)"
+                placeholder="filter key ( eg:colour, size)"
                 value={newFilter.filterKey}
                 onChange={handleFilterKeyChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-3 border-2 border-black rounded-xl focus:outline-none focus:border-blue-600"
               />
             </div>
 
-            {/* Arrangement Priority Section - Optimized with memoized handlers */}
-            <div className="flex items-center space-x-4">
-              <span className="text-gray-700 font-medium">Arrangement priority</span>
+            {/* Arrangement Priority Section */}
+            <div className="flex items-center gap-4">
+              <span className="text-xl font-medium text-black">Arrangement priority</span>
               <input
                 type="number"
-                placeholder="1"
+                placeholder=""
                 value={arrangementPriority}
                 onChange={handlePriorityChange}
-                className="px-3 py-2 border border-gray-300 rounded-lg w-20 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="px-3 py-3 border-2 border-black rounded-xl w-20 focus:outline-none focus:border-blue-600"
               />
-              <button className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">
-                Add
+              <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm">
+                + Add
               </button>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            {/* Value Name Input - Performance optimized */}
+          {/* Second Row */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Value Name Input */}
             <div>
               <input
                 type="text"
                 placeholder="value name(red , xl)"
                 value={newFilter.filterValue}
                 onChange={handleFilterValueChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-3 border-2 border-black rounded-xl focus:outline-none focus:border-blue-600"
               />
             </div>
 
-            {/* Colour Code Input - Memoized handler */}
+            {/* Colour Code Input */}
             <div>
               <input
                 type="text"
                 placeholder="colour code (optional)"
                 value={newFilter.colourCode}
                 onChange={handleColourCodeChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-3 border-2 border-black rounded-xl focus:outline-none focus:border-blue-600"
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-            {/* Price Range Input - Optimized event handling */}
+          {/* Third Row - Price Range */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Price Range Input */}
             <div>
               <input
                 type="text"
                 placeholder="Add price range"
                 value={newFilter.priceRange}
                 onChange={handlePriceRangeChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-3 border-2 border-black rounded-xl focus:outline-none focus:border-blue-600"
               />
             </div>
 
-            {/* Minimum Input - Memoized change handler */}
+            {/* Minimum Input */}
             <div>
               <input
                 type="number"
                 placeholder="minimum"
                 value={newFilter.minimum}
                 onChange={handleMinimumChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-3 border-2 border-black rounded-xl focus:outline-none focus:border-blue-600"
               />
             </div>
 
-            {/* Maximum Input - Performance optimized */}
+            {/* Maximum Input */}
             <div>
               <input
                 type="number"
                 placeholder="minimum"
                 value={newFilter.maximum}
                 onChange={handleMaximumChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-3 border-2 border-black rounded-xl focus:outline-none focus:border-blue-600"
               />
             </div>
           </div>
 
-          {/* Create Filter Button - Memoized click handler */}
-          <div className="flex justify-center">
+          {/* Create Filter Button */}
+          <div className="flex justify-start">
             <button 
               onClick={handleCreateFilter}
-              className="bg-black text-white px-8 py-3 rounded-lg hover:bg-gray-800 font-medium"
+              className="bg-black text-white px-16 py-3 rounded-full font-medium hover:bg-gray-800"
             >
               Create filter
             </button>
           </div>
         </div>
-      )}
-
-      {/* All Filters Section - Performance optimized with memoized components */}
-      <div className="bg-white rounded-xl shadow-sm p-6">
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">All filters</h2>
-        
-        {/* Optimized filter rendering with stable keys and memoized handlers */}
-        <div className="space-y-6">
-          {filters.map((filter) => (
-            <div key={filter.id} className="border-b border-gray-200 pb-6 last:border-b-0">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">{filter.name}</h3>
-                {/* Delete button with memoized handler and stable filter ID */}
-                <button 
-                  onClick={() => deleteFilter(filter.id)}
-                  className="text-red-500 hover:text-red-700"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
-              </div>
-              
-              {/* Optimized options grid rendering */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                {filter.options.map((option, index) => (
-                  <div key={index} className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
-                    <div>
-                      <p className="font-medium text-gray-700">{option.name}</p>
-                      {/* Conditional rendering optimized with short-circuit evaluation */}
-                      {option.priority && (
-                        <p className="text-sm text-gray-500">Priority: {option.priority}</p>
-                      )}
-                      {option.value && (
-                        <p className="text-sm text-gray-600">Value: {option.value}</p>
-                      )}
-                    </div>
-                    {/* Action buttons with memoized handlers */}
-                    <div className="flex items-center space-x-2">
-                      <button className="text-blue-500 hover:text-blue-700">
-                        <Edit className="h-4 w-4" />
-                      </button>
-                      <button 
-                        onClick={() => deleteFilterOption(filter.id, index)}
-                        className="text-red-500 hover:text-red-700"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              
-              {/* Empty state with performance-optimized conditional rendering */}
-              {filter.options.length === 0 && (
-                <p className="text-gray-500 italic">No options configured for this filter</p>
-              )}
-            </div>
-          ))}
-        </div>
-
-        {/* Global empty state - only renders when necessary */}
-        {filters.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-gray-500 text-lg">No filters created yet</p>
-            <p className="text-gray-400">Click "Create Filter" to add your first filter</p>
-          </div>
-        )}
       </div>
 
-      {/* Filter Categories Overview - Performance optimized with memoized categorization */}
-      {/* Using pre-calculated categorizedFilters to avoid repeated filter operations */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {/* Category Filters - Memoized filter list */}
-        <div className="bg-white rounded-xl shadow-sm p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Category Filters</h3>
-          <div className="space-y-2">
-            {categorizedFilters.category.map(filter => (
-              <div key={filter.id} className="flex justify-between items-center">
-                <span className="text-gray-700">{filter.name}</span>
-                <span className="text-sm text-gray-500">{filter.options.length} options</span>
-              </div>
-            ))}
+      {/* All Filters Section matching Figma table layout */}
+      <div>
+        <h2 className="text-xl font-bold text-black mb-6">All filters</h2>
+        
+        {/* Table Header */}
+        <div className="grid grid-cols-12 gap-4 mb-4">
+          <div className="col-span-2">
+            <h3 className="text-xl font-bold text-black">category</h3>
+          </div>
+          <div className="col-span-2">
+            <h3 className="text-xl font-bold text-black">category colour value</h3>
+          </div>
+          <div className="col-span-2 text-center">
+            <h3 className="text-xl font-bold text-black">category value</h3>
+          </div>
+          <div className="col-span-2">
+            <h3 className="text-xl font-bold text-black">category size value</h3>
+          </div>
+          <div className="col-span-2">
+            <h3 className="text-xl font-bold text-black">category size value waist</h3>
+          </div>
+          <div className="col-span-2">
+            <h3 className="text-xl font-bold text-black">category price value</h3>
           </div>
         </div>
 
-        {/* Price Filters - Optimized with pre-filtered data */}
-        <div className="bg-white rounded-xl shadow-sm p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Price Filters</h3>
-          <div className="space-y-2">
-            {categorizedFilters.price.map(filter => (
-              <div key={filter.id} className="flex justify-between items-center">
-                <span className="text-gray-700">{filter.name}</span>
-                <span className="text-sm text-gray-500">{filter.options.length} ranges</span>
+        {/* Filter Values */}
+        <div className="space-y-4">
+          {/* Category Column Values */}
+          <div className="grid grid-cols-12 gap-4 items-start">
+            <div className="col-span-2 space-y-2">
+              <div className="bg-white rounded-xl shadow-md p-3 border">
+                <p className="text-lg text-black font-medium">colour (priority 1)</p>
               </div>
-            ))}
-          </div>
-        </div>
+              <div className="bg-white rounded-xl shadow-md p-3 border">
+                <p className="text-lg text-black font-medium">size(priority 2)</p>
+              </div>
+            </div>
 
-        {/* Size Filters - Performance optimized categorization */}
-        <div className="bg-white rounded-xl shadow-sm p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Size Filters</h3>
-          <div className="space-y-2">
-            {categorizedFilters.size.map(filter => (
-              <div key={filter.id} className="flex justify-between items-center">
-                <span className="text-gray-700">{filter.name}</span>
-                <span className="text-sm text-gray-500">{filter.options.length} sizes</span>
+            {/* Category Colour Value Column */}
+            <div className="col-span-2 space-y-2">
+              <div className="bg-white rounded-xl shadow-md p-3 border">
+                <p className="text-sm text-gray-600">red (priority 1)</p>
               </div>
-            ))}
+              <div className="bg-white rounded-xl shadow-md p-3 border">
+                <p className="text-sm text-gray-600">green (priority 2)</p>
+              </div>
+            </div>
+
+            {/* Category Size Value Column */}
+            <div className="col-span-2 space-y-2">
+              <div className="bg-white rounded-xl shadow-md p-3 border">
+                <p className="text-sm text-gray-600">small (priority 1)</p>
+              </div>
+              <div className="bg-white rounded-xl shadow-md p-3 border">
+                <p className="text-sm text-gray-600">medium (priority 2)</p>
+              </div>
+            </div>
+
+            {/* Category Size Value Waist Column */}
+            <div className="col-span-2 space-y-2">
+              <div className="bg-white rounded-xl shadow-md p-3 border flex justify-between items-center">
+                <p className="text-sm text-black font-medium">28</p>
+                <div className="flex gap-1">
+                  <button className="p-1 text-gray-500 hover:text-gray-700">
+                    <Edit2 className="h-4 w-4" />
+                  </button>
+                  <button className="p-1 text-gray-500 hover:text-red-600">
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+              <div className="bg-white rounded-xl shadow-md p-3 border">
+                <p className="text-sm text-black font-medium">30</p>
+              </div>
+            </div>
+
+            {/* Category Price Value Column */}
+            <div className="col-span-2 space-y-2">
+              <div className="bg-white rounded-xl shadow-md p-3 border flex justify-between items-center">
+                <p className="text-sm text-black font-medium">upper limit</p>
+                <div className="flex gap-1">
+                  <button className="p-1 text-gray-500 hover:text-gray-700">
+                    <Edit2 className="h-4 w-4" />
+                  </button>
+                  <button className="p-1 text-gray-500 hover:text-red-600">
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+              <div className="bg-white rounded-xl shadow-md p-3 border">
+                <p className="text-sm text-black font-medium">lower limit</p>
+              </div>
+            </div>
+
+            {/* Price Category (Full Width) */}
+            <div className="col-span-12 mt-6">
+              <div className="bg-white rounded-xl shadow-md p-4 border">
+                <p className="text-lg text-black font-medium">price</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
