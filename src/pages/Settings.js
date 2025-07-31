@@ -21,6 +21,13 @@ const Settings = () => {
     discountConditionDeleteConfirm: false,
     discountConditionDeletedSuccess: false,
     
+    // Shipping Charges Modal
+    shippingChargesModal: false,
+    shippingChargeCreatedSuccess: false,
+    shippingChargeUpdatedSuccess: false,
+    shippingChargeDeleteConfirm: false,
+    shippingChargeDeletedSuccess: false,
+    
     // Profile Visibility
     profileVisibilityConfirmOn: false,
     profileVisibilityConfirmOff: false,
@@ -97,6 +104,20 @@ const Settings = () => {
   const [editingCondition, setEditingCondition] = useState(null);
   const [editParameter, setEditParameter] = useState('');
   const [deletingConditionId, setDeletingConditionId] = useState(null);
+
+  // Shipping charges form state
+  const [shippingForm, setShippingForm] = useState({
+    country: '',
+    region: '',
+    deliveryCharge: '',
+    returnCharge: '',
+    estimatedDays: ''
+  });
+  const [shippingCharges, setShippingCharges] = useState([]);
+
+  // Edit state for shipping charges
+  const [editingShippingCharge, setEditingShippingCharge] = useState(null);
+  const [deletingShippingChargeId, setDeletingShippingChargeId] = useState(null);
 
   // Discount modal handlers
   const handleOpenDiscountModal = () => {
@@ -320,6 +341,115 @@ const Settings = () => {
 
   const handleDiscountDeletedSuccessDone = () => {
     setModals(prev => ({ ...prev, discountConditionDeletedSuccess: false }));
+  };
+
+  // Shipping charges modal handlers
+  const handleOpenShippingModal = () => {
+    setModals(prev => ({ ...prev, shippingChargesModal: true }));
+  };
+
+  const handleCloseShippingModal = () => {
+    setModals(prev => ({ ...prev, shippingChargesModal: false }));
+    setEditingShippingCharge(null);
+    setDeletingShippingChargeId(null);
+    // Reset form
+    setShippingForm({
+      country: '',
+      region: '',
+      deliveryCharge: '',
+      returnCharge: '',
+      estimatedDays: ''
+    });
+  };
+
+  const handleShippingFormChange = (field, value) => {
+    setShippingForm(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleCreateShippingCharge = () => {
+    const newCharge = { ...shippingForm, id: Date.now() };
+    setShippingCharges(prev => [...prev, newCharge]);
+    // Reset form for next charge
+    setShippingForm({
+      country: '',
+      region: '',
+      deliveryCharge: '',
+      returnCharge: '',
+      estimatedDays: ''
+    });
+    // Show success modal
+    setModals(prev => ({ ...prev, shippingChargeCreatedSuccess: true }));
+  };
+
+  const handleEditShippingCharge = (id) => {
+    const charge = shippingCharges.find(c => c.id === id);
+    if (charge) {
+      setEditingShippingCharge(charge);
+      setShippingForm(charge);
+    }
+  };
+
+  const handleSaveEditedShippingCharge = () => {
+    if (editingShippingCharge) {
+      setShippingCharges(prev => 
+        prev.map(c => c.id === editingShippingCharge.id ? { ...shippingForm, id: editingShippingCharge.id } : c)
+      );
+      setEditingShippingCharge(null);
+      setShippingForm({
+        country: '',
+        region: '',
+        deliveryCharge: '',
+        returnCharge: '',
+        estimatedDays: ''
+      });
+      setModals(prev => ({ ...prev, shippingChargeUpdatedSuccess: true }));
+    }
+  };
+
+  const handleCancelEditShippingCharge = () => {
+    setEditingShippingCharge(null);
+    setShippingForm({
+      country: '',
+      region: '',
+      deliveryCharge: '',
+      returnCharge: '',
+      estimatedDays: ''
+    });
+  };
+
+  const handleDeleteShippingCharge = (id) => {
+    setDeletingShippingChargeId(id);
+    setModals(prev => ({ ...prev, shippingChargeDeleteConfirm: true }));
+  };
+
+  const handleConfirmDeleteShippingCharge = () => {
+    if (deletingShippingChargeId) {
+      setShippingCharges(prev => prev.filter(c => c.id !== deletingShippingChargeId));
+      setModals(prev => ({ 
+        ...prev, 
+        shippingChargeDeleteConfirm: false,
+        shippingChargeDeletedSuccess: true 
+      }));
+      setDeletingShippingChargeId(null);
+    }
+  };
+
+  const handleCancelDeleteShippingCharge = () => {
+    setModals(prev => ({ ...prev, shippingChargeDeleteConfirm: false }));
+    setDeletingShippingChargeId(null);
+  };
+
+  // Shipping charges success modal handlers
+  const handleShippingChargeCreatedSuccessDone = () => {
+    setModals(prev => ({ ...prev, shippingChargeCreatedSuccess: false }));
+  };
+
+  const handleShippingChargeUpdatedSuccessDone = () => {
+    setModals(prev => ({ ...prev, shippingChargeUpdatedSuccess: false }));
+  };
+
+  const handleShippingChargeDeletedSuccessDone = () => {
+    setModals(prev => ({ ...prev, shippingChargeDeletedSuccess: false }));
   };
 
   // OTP input handler
@@ -883,6 +1013,14 @@ const Settings = () => {
         <ViewSettingsButton onClick={handleOpenDiscountModal} />
       </div>
 
+      {/* Shipping Charges Setting */}
+      <div className="py-6">
+        <h3 className="font-bold text-[#000000] text-[20px] font-montserrat mb-4">
+          Set shipping and time estimates charges by region and country
+        </h3>
+        <ViewSettingsButton onClick={handleOpenShippingModal} />
+      </div>
+
       {/* User Limit Setting */}
       <div className="py-6">
         <SettingItem 
@@ -1312,6 +1450,262 @@ const Settings = () => {
         </div>
       )}
 
+      {/* Shipping Charges Modal */}
+      {modals.shippingChargesModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-7xl mx-4 overflow-clip max-h-[90vh] overflow-y-auto">
+            <button 
+              onClick={handleCloseShippingModal}
+              className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700 z-10"
+            >
+              <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            
+            <div className="p-8">
+              <h2 className="text-center font-bold text-black text-[24px] mb-8 font-montserrat">
+                Set shipping charges by region and country screen
+              </h2>
+
+              {/* Edit Shipping Charge Modal View */}
+              {editingShippingCharge && (
+                <div className="mb-8 p-6 border border-gray-200 rounded-xl bg-gray-50">
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-center font-normal text-black text-[24px] font-montserrat tracking-[-0.6px]">
+                      Edit shipping charge
+                    </h3>
+                    <button 
+                      onClick={handleCancelEditShippingCharge}
+                      className="w-6 h-6 text-gray-500 hover:text-gray-700"
+                    >
+                      <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                  
+                  {/* Edit shipping charge details */}
+                  <div className="grid grid-cols-5 gap-4 mb-6">
+                    <div>
+                      <label className="block font-medium text-[#111111] text-[21px] font-montserrat mb-2">Country</label>
+                      <select
+                        value={shippingForm.country}
+                        onChange={(e) => handleShippingFormChange('country', e.target.value)}
+                        className="w-full px-4 py-3 border-2 border-black rounded-xl text-[15px] font-montserrat focus:outline-none focus:border-blue-500"
+                      >
+                        <option value="">country</option>
+                        <option value="USA">USA</option>
+                        <option value="Canada">Canada</option>
+                        <option value="UK">UK</option>
+                        <option value="India">India</option>
+                        <option value="Australia">Australia</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block font-medium text-[#111111] text-[21px] font-montserrat mb-2">Region</label>
+                      <select
+                        value={shippingForm.region}
+                        onChange={(e) => handleShippingFormChange('region', e.target.value)}
+                        className="w-full px-4 py-3 border-2 border-black rounded-xl text-[15px] font-montserrat focus:outline-none focus:border-blue-500"
+                      >
+                        <option value="">region</option>
+                        <option value="North">North</option>
+                        <option value="South">South</option>
+                        <option value="East">East</option>
+                        <option value="West">West</option>
+                        <option value="Central">Central</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block font-medium text-[#111111] text-[21px] font-montserrat mb-2">Delivery Charge</label>
+                      <input
+                        type="text"
+                        value={shippingForm.deliveryCharge}
+                        onChange={(e) => handleShippingFormChange('deliveryCharge', e.target.value)}
+                        className="w-full px-4 py-3 border-2 border-black rounded-xl text-[15px] font-montserrat focus:outline-none focus:border-blue-500"
+                        placeholder="charge value"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-medium text-[#111111] text-[21px] font-montserrat mb-2">Return Charge</label>
+                      <input
+                        type="text"
+                        value={shippingForm.returnCharge}
+                        onChange={(e) => handleShippingFormChange('returnCharge', e.target.value)}
+                        className="w-full px-4 py-3 border-2 border-black rounded-xl text-[15px] font-montserrat focus:outline-none focus:border-blue-500"
+                        placeholder="charge value"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-medium text-[#111111] text-[21px] font-montserrat mb-2">Estimated Time in Days</label>
+                      <input
+                        type="text"
+                        value={shippingForm.estimatedDays}
+                        onChange={(e) => handleShippingFormChange('estimatedDays', e.target.value)}
+                        className="w-full px-4 py-3 border-2 border-black rounded-xl text-[15px] font-montserrat focus:outline-none focus:border-blue-500"
+                        placeholder="days"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Edit action buttons */}
+                  <div className="flex gap-4 justify-center">
+                    <button
+                      onClick={handleSaveEditedShippingCharge}
+                      className="bg-black text-white px-16 py-4 rounded-full font-medium text-[16px] font-montserrat border border-black hover:bg-gray-800 transition-colors"
+                    >
+                      save
+                    </button>
+                    <button
+                      onClick={handleCancelEditShippingCharge}
+                      className="border border-[#e4e4e4] text-black px-16 py-4 rounded-full font-medium text-[16px] font-montserrat hover:bg-gray-50 transition-colors"
+                    >
+                      go back
+                    </button>
+                  </div>
+                </div>
+              )}
+              
+              {/* Create New Shipping Charge Form - only show when not editing */}
+              {!editingShippingCharge && (
+                <>
+                  {/* Applicable On Section */}
+                  <div className="mb-8">
+                    <h3 className="font-bold text-[#111111] text-[21px] font-montserrat mb-4">applicable on</h3>
+                    <div className="grid grid-cols-2 gap-4 mb-6">
+                      <div>
+                        <select
+                          value={shippingForm.country}
+                          onChange={(e) => handleShippingFormChange('country', e.target.value)}
+                          className="w-full px-4 py-3 border-2 border-black rounded-xl text-[15px] font-montserrat focus:outline-none focus:border-blue-500"
+                        >
+                          <option value="">country</option>
+                          <option value="USA">USA</option>
+                          <option value="Canada">Canada</option>
+                          <option value="UK">UK</option>
+                          <option value="India">India</option>
+                          <option value="Australia">Australia</option>
+                        </select>
+                      </div>
+                      <div>
+                        <select
+                          value={shippingForm.region}
+                          onChange={(e) => handleShippingFormChange('region', e.target.value)}
+                          className="w-full px-4 py-3 border-2 border-black rounded-xl text-[15px] font-montserrat focus:outline-none focus:border-blue-500"
+                        >
+                          <option value="">region</option>
+                          <option value="North">North</option>
+                          <option value="South">South</option>
+                          <option value="East">East</option>
+                          <option value="West">West</option>
+                          <option value="Central">Central</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Charges Section */}
+                  <div className="mb-8">
+                    <div className="grid grid-cols-3 gap-4">
+                      <div>
+                        <label className="block font-medium text-[#111111] text-[21px] font-montserrat mb-2">delivery charge</label>
+                        <input
+                          type="text"
+                          value={shippingForm.deliveryCharge}
+                          onChange={(e) => handleShippingFormChange('deliveryCharge', e.target.value)}
+                          className="w-full px-4 py-3 border-2 border-black rounded-xl text-[15px] font-montserrat focus:outline-none focus:border-blue-500"
+                          placeholder="charge value"
+                        />
+                      </div>
+                      <div>
+                        <label className="block font-medium text-[#111111] text-[21px] font-montserrat mb-2">return charge</label>
+                        <input
+                          type="text"
+                          value={shippingForm.returnCharge}
+                          onChange={(e) => handleShippingFormChange('returnCharge', e.target.value)}
+                          className="w-full px-4 py-3 border-2 border-black rounded-xl text-[15px] font-montserrat focus:outline-none focus:border-blue-500"
+                          placeholder="charge value"
+                        />
+                      </div>
+                      <div>
+                        <label className="block font-medium text-[#111111] text-[21px] font-montserrat mb-2">estimated time in days</label>
+                        <input
+                          type="text"
+                          value={shippingForm.estimatedDays}
+                          onChange={(e) => handleShippingFormChange('estimatedDays', e.target.value)}
+                          className="w-full px-4 py-3 border-2 border-black rounded-xl text-[15px] font-montserrat focus:outline-none focus:border-blue-500"
+                          placeholder="days"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex gap-4 mb-8">
+                    <button
+                      onClick={handleCreateShippingCharge}
+                      className="bg-[#202224] text-white px-16 py-4 rounded-full font-medium text-[16px] font-montserrat border border-black hover:bg-gray-800 transition-colors"
+                    >
+                      Create charge
+                    </button>
+                    <button
+                      onClick={handleCloseShippingModal}
+                      className="border border-[#e4e4e4] text-black px-16 py-4 rounded-full font-medium text-[16px] font-montserrat hover:bg-gray-50 transition-colors"
+                    >
+                      go back
+                    </button>
+                  </div>
+                </>
+              )}
+
+              {/* Shipping Charges List Section */}
+              {shippingCharges.length > 0 && !editingShippingCharge && (
+                <div>
+                  <div className="grid grid-cols-5 gap-4 mb-4 font-bold text-[16px] font-montserrat text-[#111111] border-b border-gray-300 pb-2">
+                    <div>countries</div>
+                    <div>delivery charge</div>
+                    <div>return charge</div>
+                    <div>estimated time in days</div>
+                    <div>edit</div>
+                  </div>
+                  <div className="space-y-4">
+                    {shippingCharges.map((charge) => (
+                      <div key={charge.id} className="grid grid-cols-5 gap-4 items-center text-[16px] font-montserrat py-2 border-b border-gray-100">
+                        <div>{charge.country || 'N/A'} - {charge.region || 'N/A'}</div>
+                        <div>{charge.deliveryCharge || 'N/A'}</div>
+                        <div>{charge.returnCharge || 'N/A'}</div>
+                        <div>{charge.estimatedDays || 'N/A'}</div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleEditShippingCharge(charge.id)}
+                            className="p-2 text-gray-600 hover:text-blue-600 transition-colors"
+                            title="Edit"
+                          >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                          </button>
+                          <button
+                            onClick={() => handleDeleteShippingCharge(charge.id)}
+                            className="p-2 text-gray-600 hover:text-red-600 transition-colors"
+                            title="Delete"
+                          >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {renderModalsForSetting('profileVisibility', 'Profile Visibility Data Collection')}
       {renderModalsForSetting('locationData', 'Location Data Collection')}
       {renderModalsForSetting('communicationPrefs', 'Communication Preferences Collection')}
@@ -1425,6 +1819,122 @@ const Settings = () => {
               </h3>
               <button
                 onClick={handleDiscountDeletedSuccessDone}
+                className="bg-black text-white px-16 py-3 rounded-full font-medium text-[16px] font-montserrat hover:bg-gray-800 transition-colors"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Shipping Charge Created Success Modal */}
+      {modals.shippingChargeCreatedSuccess && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-md mx-4 overflow-clip">
+            <button 
+              onClick={handleShippingChargeCreatedSuccessDone}
+              className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700"
+            >
+              <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            <div className="p-8 text-center">
+              <h3 className="font-bold text-black text-[18px] mb-6 font-montserrat">
+                shipping charge created successfully!
+              </h3>
+              <button
+                onClick={handleShippingChargeCreatedSuccessDone}
+                className="bg-black text-white px-16 py-3 rounded-full font-medium text-[16px] font-montserrat hover:bg-gray-800 transition-colors"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Shipping Charge Updated Success Modal */}
+      {modals.shippingChargeUpdatedSuccess && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-md mx-4 overflow-clip">
+            <button 
+              onClick={handleShippingChargeUpdatedSuccessDone}
+              className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700"
+            >
+              <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            <div className="p-8 text-center">
+              <h3 className="font-bold text-black text-[18px] mb-6 font-montserrat">
+                shipping charge updated successfully!
+              </h3>
+              <button
+                onClick={handleShippingChargeUpdatedSuccessDone}
+                className="bg-black text-white px-16 py-3 rounded-full font-medium text-[16px] font-montserrat hover:bg-gray-800 transition-colors"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Shipping Charge Delete Confirmation Modal */}
+      {modals.shippingChargeDeleteConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-md mx-4 overflow-clip">
+            <button 
+              onClick={handleCancelDeleteShippingCharge}
+              className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700"
+            >
+              <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            <div className="p-8 text-center">
+              <h3 className="font-bold text-black text-[18px] mb-6 font-montserrat">
+                Are you sure you want to turn delete this shipping charge
+              </h3>
+              <div className="flex gap-4 justify-center">
+                <button
+                  onClick={handleConfirmDeleteShippingCharge}
+                  className="bg-black text-white px-8 py-3 rounded-full font-medium text-[16px] font-montserrat hover:bg-gray-800 transition-colors"
+                >
+                  yes
+                </button>
+                <button
+                  onClick={handleCancelDeleteShippingCharge}
+                  className="border border-[#e4e4e4] text-black px-8 py-3 rounded-full font-medium text-[16px] font-montserrat hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Shipping Charge Deleted Success Modal */}
+      {modals.shippingChargeDeletedSuccess && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-md mx-4 overflow-clip">
+            <button 
+              onClick={handleShippingChargeDeletedSuccessDone}
+              className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700"
+            >
+              <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            <div className="p-8 text-center">
+              <h3 className="font-bold text-black text-[18px] mb-6 font-montserrat">
+                shipping charge deleted successfully!
+              </h3>
+              <button
+                onClick={handleShippingChargeDeletedSuccessDone}
                 className="bg-black text-white px-16 py-3 rounded-full font-medium text-[16px] font-montserrat hover:bg-gray-800 transition-colors"
               >
                 Done
