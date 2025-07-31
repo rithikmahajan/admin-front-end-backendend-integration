@@ -21,6 +21,17 @@ const Points = () => {
   const [defaultPassword, setDefaultPassword] = useState('');
   const [showVerificationPassword, setShowVerificationPassword] = useState(false);
   const [showDefaultPassword, setShowDefaultPassword] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingUser, setEditingUser] = useState(null);
+  const [showEdit2FAModal, setShowEdit2FAModal] = useState(false);
+  const [showEditSuccessModal, setShowEditSuccessModal] = useState(false);
+  const [editUserName, setEditUserName] = useState('');
+  const [editUserId, setEditUserId] = useState('');
+  const [editPhoneNo, setEditPhoneNo] = useState('');
+  const [editEmailId, setEditEmailId] = useState('');
+  const [editTotalPointsAlloted, setEditTotalPointsAlloted] = useState('');
+  const [editTotalPointsRedeemed, setEditTotalPointsRedeemed] = useState('');
+  const [editBalance, setEditBalance] = useState('');
   const [users, setUsers] = useState([
     {
       id: 1,
@@ -53,8 +64,11 @@ const Points = () => {
   };
 
   const handleAllotNow = (userId) => {
-    // Handle point allocation logic
-    console.log('Alloting points to user:', userId);
+    // Find the user and open edit modal
+    const user = users.find(u => u.id === userId);
+    if (user) {
+      handleEditUser(user);
+    }
   };
 
   const handleTogglePointsSystem = (status) => {
@@ -178,7 +192,9 @@ const Points = () => {
       
       // Auto-focus next input
       if (value && index < 3) {
-        const nextInputId = showOff2FAModal ? `otp-off-${index + 1}` : `otp-${index + 1}`;
+        const nextInputId = showOff2FAModal ? `otp-off-${index + 1}` : 
+                            showEdit2FAModal ? `edit-otp-${index + 1}` : 
+                            `otp-${index + 1}`;
         const nextInput = document.getElementById(nextInputId);
         if (nextInput) nextInput.focus();
       }
@@ -187,10 +203,117 @@ const Points = () => {
 
   const handleOtpKeyDown = (index, e) => {
     if (e.key === 'Backspace' && !otpCode[index] && index > 0) {
-      const prevInputId = showOff2FAModal ? `otp-off-${index - 1}` : `otp-${index - 1}`;
+      const prevInputId = showOff2FAModal ? `otp-off-${index - 1}` : 
+                          showEdit2FAModal ? `edit-otp-${index - 1}` : 
+                          `otp-${index - 1}`;
       const prevInput = document.getElementById(prevInputId);
       if (prevInput) prevInput.focus();
     }
+  };
+
+  const handleEditUser = (user) => {
+    setEditingUser(user);
+    setEditUserName(user.name);
+    setEditUserId(user.userId);
+    setEditPhoneNo(user.phone);
+    setEditEmailId(user.email);
+    setEditTotalPointsAlloted(user.totalPointsAlloted.toString());
+    setEditTotalPointsRedeemed(user.totalPointsRedeemed.toString());
+    setEditBalance(user.balance.toString());
+    setShowEditModal(true);
+  };
+
+  const handleSaveEditedUser = () => {
+    if (editUserName.trim() && editUserId.trim() && editPhoneNo.trim() && editEmailId.trim()) {
+      setShowEditModal(false);
+      setShowEdit2FAModal(true);
+    } else {
+      alert('Please fill in all fields');
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setShowEditModal(false);
+    setEditingUser(null);
+    setEditUserName('');
+    setEditUserId('');
+    setEditPhoneNo('');
+    setEditEmailId('');
+    setEditTotalPointsAlloted('');
+    setEditTotalPointsRedeemed('');
+    setEditBalance('');
+  };
+
+  const handleEdit2FASubmit = () => {
+    // Validate OTP and passwords here
+    const otpString = otpCode.join('');
+    if (otpString.length === 4 && verificationPassword && defaultPassword) {
+      setShowEdit2FAModal(false);
+      setShowEditSuccessModal(true);
+      // Reset 2FA form
+      setOtpCode(['', '', '', '']);
+      setVerificationPassword('');
+      setDefaultPassword('');
+    } else {
+      alert('Please fill in all fields');
+    }
+  };
+
+  const handleCancelEdit2FA = () => {
+    setShowEdit2FAModal(false);
+    // Reset 2FA form
+    setOtpCode(['', '', '', '']);
+    setVerificationPassword('');
+    setDefaultPassword('');
+    // Reset edit form
+    setEditingUser(null);
+    setEditUserName('');
+    setEditUserId('');
+    setEditPhoneNo('');
+    setEditEmailId('');
+    setEditTotalPointsAlloted('');
+    setEditTotalPointsRedeemed('');
+    setEditBalance('');
+  };
+
+  const handleEditSuccessDone = () => {
+    if (editingUser && editUserName.trim()) {
+      setUsers(users.map(user => 
+        user.id === editingUser.id 
+          ? { 
+              ...user, 
+              name: editUserName.trim(),
+              userId: editUserId.trim(),
+              phone: editPhoneNo.trim(),
+              email: editEmailId.trim(),
+              totalPointsAlloted: parseInt(editTotalPointsAlloted) || 0,
+              totalPointsRedeemed: parseInt(editTotalPointsRedeemed) || 0,
+              balance: parseInt(editBalance) || 0
+            }
+          : user
+      ));
+      setEditingUser(null);
+      setEditUserName('');
+      setEditUserId('');
+      setEditPhoneNo('');
+      setEditEmailId('');
+      setEditTotalPointsAlloted('');
+      setEditTotalPointsRedeemed('');
+      setEditBalance('');
+    }
+    setShowEditSuccessModal(false);
+  };
+
+  const handleCloseEditSuccessModal = () => {
+    setShowEditSuccessModal(false);
+    setEditingUser(null);
+    setEditUserName('');
+    setEditUserId('');
+    setEditPhoneNo('');
+    setEditEmailId('');
+    setEditTotalPointsAlloted('');
+    setEditTotalPointsRedeemed('');
+    setEditBalance('');
   };
 
   const filteredUsers = users.filter(user =>
@@ -316,7 +439,7 @@ const Points = () => {
         </div>
 
         {/* User Table Header */}
-        <div className="grid grid-cols-9 gap-4 mb-4">
+        <div className="grid grid-cols-10 gap-4 mb-4">
           <div className="text-[20px] text-black text-center">user name</div>
           <div className="text-[16px] text-black text-center">user id</div>
           <div className="text-[16px] text-black text-center">phone no.</div>
@@ -326,12 +449,13 @@ const Points = () => {
           <div className="text-[16px] text-black text-center">balance</div>
           <div className="text-[16px] text-black text-center">deleted account</div>
           <div className="text-[16px] text-black text-center">allot points</div>
+          <div className="text-[16px] text-black text-center">edit</div>
         </div>
 
         {/* User Table Rows */}
         <div className="space-y-4">
           {filteredUsers.map((user, index) => (
-            <div key={user.id} className="grid grid-cols-9 gap-4 items-center">
+            <div key={user.id} className="grid grid-cols-10 gap-4 items-center">
               <div className="text-[20px] text-black text-center">{user.name}</div>
               <div className="text-[16px] text-black text-center">{user.userId}</div>
               <div className="text-[16px] text-black text-center">{user.phone}</div>
@@ -358,6 +482,14 @@ const Points = () => {
                   className="bg-[#000aff] text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-[14px] border border-[#7280ff] shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)]"
                 >
                   Allot NOW
+                </button>
+              </div>
+              <div className="flex justify-center">
+                <button
+                  onClick={() => handleEditUser(user)}
+                  className="p-2 hover:bg-gray-100 rounded-lg"
+                >
+                  <Edit2 className="w-5 h-5 text-gray-600" />
                 </button>
               </div>
             </div>
@@ -848,6 +980,309 @@ const Points = () => {
             >
               Done
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Edit User Modal */}
+      {showEditModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative overflow-hidden" style={{ width: '1540px', height: '400px' }}>
+            
+            {/* Close button - positioned as in Figma */}
+            <button 
+              onClick={handleCancelEdit}
+              className="absolute right-6 top-3 w-6 h-6 text-gray-500 hover:text-gray-700 z-10"
+            >
+              <div className="absolute bottom-[17.18%] left-[17.18%] right-[17.18%] top-[17.17%]">
+                <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </div>
+            </button>
+            
+            {/* Title - positioned as in Figma */}
+            <div className="absolute left-1/2 top-[27px] transform -translate-x-1/2 -translate-y-1/2">
+              <h2 className="font-['Montserrat'] text-2xl font-bold text-black text-center">
+                point management
+              </h2>
+            </div>
+
+            {/* Form fields layout based on Figma - horizontal arrangement */}
+            <div className="absolute top-[83px] left-1/2 transform -translate-x-1/2 flex items-start gap-4">
+              
+              {/* User Name */}
+              <div className="flex flex-col items-center">
+                <div className="text-[16px] text-black text-center mb-2">user name</div>
+                <div className="h-[47px] w-[148px] border-2 border-black rounded-xl flex items-center justify-center">
+                  <input
+                    type="text"
+                    value={editUserName}
+                    onChange={(e) => setEditUserName(e.target.value)}
+                    className="w-full h-full px-3 text-center text-[16px] text-black border-none outline-none bg-transparent"
+                  />
+                </div>
+              </div>
+
+              {/* User ID */}
+              <div className="flex flex-col items-center">
+                <div className="text-[16px] text-black text-center mb-2">user id</div>
+                <div className="h-[47px] w-[133px] border-2 border-black rounded-xl flex items-center justify-center">
+                  <input
+                    type="text"
+                    value={editUserId}
+                    onChange={(e) => setEditUserId(e.target.value)}
+                    className="w-full h-full px-3 text-center text-[16px] text-black border-none outline-none bg-transparent"
+                  />
+                </div>
+              </div>
+
+              {/* Phone No */}
+              <div className="flex flex-col items-center">
+                <div className="text-[16px] text-black text-center mb-2">phone no.</div>
+                <div className="h-[47px] w-[133px] border-2 border-black rounded-xl flex items-center justify-center">
+                  <input
+                    type="text"
+                    value={editPhoneNo}
+                    onChange={(e) => setEditPhoneNo(e.target.value)}
+                    className="w-full h-full px-3 text-center text-[16px] text-black border-none outline-none bg-transparent"
+                  />
+                </div>
+              </div>
+
+              {/* Email ID */}
+              <div className="flex flex-col items-center">
+                <div className="text-[16px] text-black text-center mb-2">email id</div>
+                <div className="h-[47px] w-[189px] border-2 border-black rounded-xl flex items-center justify-center">
+                  <input
+                    type="text"
+                    value={editEmailId}
+                    onChange={(e) => setEditEmailId(e.target.value)}
+                    className="w-full h-full px-3 text-center text-[16px] text-black border-none outline-none bg-transparent"
+                  />
+                </div>
+              </div>
+
+              {/* Total Points Alloted */}
+              <div className="flex flex-col items-center">
+                <div className="text-[16px] text-black text-center mb-2">total points alloted</div>
+                <div className="h-[47px] w-[169px] border-2 border-black rounded-xl flex items-center justify-center">
+                  <input
+                    type="number"
+                    value={editTotalPointsAlloted}
+                    onChange={(e) => setEditTotalPointsAlloted(e.target.value)}
+                    className="w-full h-full px-3 text-center text-[21px] text-[#4379ee] font-medium border-none outline-none bg-transparent"
+                  />
+                </div>
+              </div>
+
+              {/* Total Points Redeemed */}
+              <div className="flex flex-col items-center">
+                <div className="text-[16px] text-black text-center mb-2">total points redeemed</div>
+                <div className="h-[47px] w-[149px] border-2 border-black rounded-xl flex items-center justify-center">
+                  <input
+                    type="number"
+                    value={editTotalPointsRedeemed}
+                    onChange={(e) => setEditTotalPointsRedeemed(e.target.value)}
+                    className="w-full h-full px-3 text-center text-[21px] text-[#f1963a] font-medium border-none outline-none bg-transparent"
+                  />
+                </div>
+              </div>
+
+              {/* Balance */}
+              <div className="flex flex-col items-center">
+                <div className="text-[16px] text-black text-center mb-2">balance</div>
+                <div className="h-[47px] w-[133px] border-2 border-black rounded-xl flex items-center justify-center">
+                  <input
+                    type="number"
+                    value={editBalance}
+                    onChange={(e) => setEditBalance(e.target.value)}
+                    className="w-full h-full px-3 text-center text-[21px] text-[#ef3826] font-medium border-none outline-none bg-transparent"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Buttons - positioned as in Figma */}
+            <div className="absolute bottom-[60px] left-1/2 transform -translate-x-1/2 flex gap-[50px]">
+              {/* Allot points button */}
+              <button
+                onClick={handleSaveEditedUser}
+                className="bg-[#000000] rounded-[100px] w-[284px] h-[47px] flex items-center justify-center hover:bg-gray-800 transition-colors"
+              >
+                <span className="font-['Montserrat'] font-medium text-white text-[16px]">
+                  Allot points
+                </span>
+              </button>
+
+              {/* Go back button */}
+              <button
+                onClick={handleCancelEdit}
+                className="rounded-[100px] w-[284px] h-[47px] border border-[#e4e4e4] flex items-center justify-center hover:bg-gray-50 transition-colors"
+              >
+                <span className="font-['Montserrat'] font-medium text-black text-[16px]">
+                  go back
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit 2FA Modal */}
+      {showEdit2FAModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div
+            className="bg-white rounded-[32px] shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative"
+            style={{ width: '600px', minHeight: '600px', padding: '48px 56px' }}
+          >
+            {/* Close button */}
+            <button 
+              onClick={handleCancelEdit2FA}
+              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            
+            {/* Header text */}
+            <div className="text-center mb-6">
+              <p className="text-lg font-bold text-black mb-4 tracking-[-0.41px] leading-[22px]">
+                If you want to change or access these settings please enter the OTP send to your registered mobile no. and the password
+              </p>
+            </div>
+
+            {/* Verification Code Section */}
+            <div className="mb-6">
+              <h3 className="text-2xl font-bold text-black mb-2 tracking-[0.72px]">
+                Verification code
+              </h3>
+              <p className="text-sm text-black mb-4">
+                Please enter the verification code we sent to your phone number
+              </p>
+              
+              {/* OTP Input Circles */}
+              <div className="flex justify-center gap-4 mb-4">
+                {otpCode.map((digit, index) => (
+                  <input
+                    key={index}
+                    id={`edit-otp-${index}`}
+                    type="text"
+                    value={digit}
+                    onChange={(e) => handleOtpChange(index, e.target.value)}
+                    onKeyDown={(e) => handleOtpKeyDown(index, e)}
+                    className="w-12 h-12 border-2 border-gray-300 rounded-full text-center text-lg font-semibold focus:border-blue-500 focus:outline-none"
+                    maxLength={1}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* Email verification text */}
+            <p className="text-sm text-black mb-4 text-center">
+              Please enter the verification code we sent to your email address
+            </p>
+
+            {/* Verification Password Input */}
+            <div className="mb-4 relative">
+              <input
+                type={showVerificationPassword ? "text" : "password"}
+                value={verificationPassword}
+                onChange={(e) => setVerificationPassword(e.target.value)}
+                placeholder="Password"
+                className="w-full border-b border-gray-300 pb-2 text-base focus:border-blue-500 focus:outline-none bg-transparent"
+              />
+              <button
+                type="button"
+                onClick={() => setShowVerificationPassword(!showVerificationPassword)}
+                className="absolute right-0 top-0 text-gray-400 hover:text-gray-600"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  {showVerificationPassword ? (
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  ) : (
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
+                  )}
+                </svg>
+              </button>
+            </div>
+
+            {/* Default code text */}
+            <p className="text-sm text-black mb-4">
+              Please enter the default code.
+            </p>
+
+            {/* Default Password Input */}
+            <div className="mb-6 relative">
+              <input
+                type={showDefaultPassword ? "text" : "password"}
+                value={defaultPassword}
+                onChange={(e) => setDefaultPassword(e.target.value)}
+                placeholder="Password"
+                className="w-full border-b border-gray-300 pb-2 text-base focus:border-blue-500 focus:outline-none bg-transparent"
+              />
+              <button
+                type="button"
+                onClick={() => setShowDefaultPassword(!showDefaultPassword)}
+                className="absolute right-0 top-0 text-gray-400 hover:text-gray-600"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  {showDefaultPassword ? (
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  ) : (
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
+                  )}
+                </svg>
+              </button>
+            </div>
+
+            {/* Submit Button */}
+            <button
+              onClick={handleEdit2FASubmit}
+              className="w-full bg-black text-white py-3 rounded-[26.5px] font-bold text-base uppercase hover:bg-gray-800 transition-colors"
+            >
+              SUBMIT
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Success Modal */}
+      {showEditSuccessModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-md mx-4 overflow-clip">
+            {/* Close button - positioned exactly as in Figma */}
+            <button 
+              onClick={handleCloseEditSuccessModal}
+              className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700"
+            >
+              <div className="absolute bottom-[17.18%] left-[17.18%] right-[17.18%] top-[17.17%]">
+                <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </div>
+            </button>
+            
+            {/* Modal content - positioned exactly as in Figma */}
+            <div className="absolute top-[61px] left-1/2 transform -translate-x-1/2 w-[242px] text-center">
+              <p className="font-bold text-black text-[18px] leading-[22px] tracking-[-0.41px] font-['Montserrat']">
+                points updated successfully !
+              </p>
+            </div>
+            
+            {/* Done Button Container - positioned exactly as in Figma */}
+            <div className="absolute top-[155px] left-1/2 transform" style={{ transform: 'translateX(calc(-50% + 7px))' }}>
+              <button
+                onClick={handleEditSuccessDone}
+                className="bg-black text-white rounded-3xl w-[270px] h-12 font-semibold text-[16px] leading-[22px] font-['Montserrat'] hover:bg-gray-800 transition-colors"
+              >
+                Done
+              </button>
+            </div>
+            
+            {/* Modal height spacer to ensure proper modal size */}
+            <div className="h-[240px]"></div>
           </div>
         </div>
       )}
