@@ -20,39 +20,36 @@ const PostItem = memo(({ post, index, onEdit, onDelete, onPriorityUpdate }) => {
   }, [post.id, onDelete]);
 
   return (
-    <div className="border-b border-gray-200 pb-6">
-      <div className="flex items-start justify-between mb-4">
+    <div className="border-b border-gray-200 pb-4 mb-6">
+      <div className="flex items-start justify-between">
         <div className="flex-1">
-          <h4 className="text-lg font-bold text-black mb-2">posting {index + 1}</h4>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <h4 className="text-base font-bold text-black mb-3">posting {index + 1}</h4>
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
             
             {/* Post Content Section */}
-            <div className="lg:col-span-2">
-              <div className="space-y-4">
-                <div>
-                  <h5 className="font-medium text-base mb-1">{post.title}</h5>
-                  <p className="text-gray-600 text-sm">{post.detail}</p>
-                </div>
-                {/* Static reward information */}
-                <div>
-                  <h5 className="font-medium text-base mb-1">Birthday reward</h5>
-                  <p className="text-gray-600 text-sm">Celebrate your birthday month with a special discount</p>
-                </div>
-                <div>
-                  <h5 className="font-medium text-base mb-1">Private members' sale</h5>
-                  <p className="text-gray-600 text-sm">Unlocked after your first order</p>
-                </div>
+            <div className="lg:col-span-3 space-y-2">
+              <div>
+                <h5 className="font-semibold text-xs mb-1">Welcome reward</h5>
+                <p className="text-gray-500 text-xs leading-tight">Enjoy a welcome reward to spend in your first month.</p>
+              </div>
+              <div>
+                <h5 className="font-semibold text-xs mb-1">Birthday reward</h5>
+                <p className="text-gray-500 text-xs leading-tight">Celebrate your birthday month with a special discount</p>
+              </div>
+              <div>
+                <h5 className="font-semibold text-xs mb-1">Private members' sale</h5>
+                <p className="text-gray-500 text-xs leading-tight">Unlocked after your first order</p>
               </div>
             </div>
 
             {/* Priority Control Section */}
-            <div>
-              <h5 className="text-lg font-bold text-black mb-3">priority {post.priority}</h5>
+            <div className="flex flex-col items-center">
+              <h5 className="text-xs font-bold text-black mb-2">priority {post.priority}</h5>
               <input
                 type="number"
                 value={post.priority}
                 onChange={handlePriorityChange}
-                className="w-full px-3 py-2 border-2 border-black rounded-xl focus:outline-none focus:border-blue-500 transition-colors"
+                className="w-14 px-2 py-1 border-2 border-black rounded-lg text-center focus:outline-none focus:border-blue-500 transition-colors text-xs font-medium"
                 min="1"
                 aria-label={`Priority for ${post.title}`}
               />
@@ -61,22 +58,22 @@ const PostItem = memo(({ post, index, onEdit, onDelete, onPriorityUpdate }) => {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-2 ml-4">
+        <div className="flex gap-1 ml-4">
           <button 
             onClick={handleEditClick}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-1.5 hover:bg-gray-100 rounded transition-colors"
             type="button"
             aria-label={`Edit ${post.title}`}
           >
-            <Edit2 className="w-5 h-5 text-gray-500" />
+            <Edit2 className="w-3.5 h-3.5 text-gray-500" />
           </button>
           <button 
             onClick={handleDeleteClick}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-1.5 hover:bg-gray-100 rounded transition-colors"
             type="button"
             aria-label={`Delete ${post.title}`}
           >
-            <Trash2 className="w-5 h-5 text-gray-500" />
+            <Trash2 className="w-3.5 h-3.5 text-gray-500" />
           </button>
         </div>
       </div>
@@ -147,6 +144,13 @@ const JoinUsControl = memo(() => {
       id: 2,
       title: 'Birthday reward', 
       detail: 'Celebrate your birthday month with a special discount',
+      priority: 1,
+      section: 'posting'
+    },
+    {
+      id: 3,
+      title: 'Private members sale', 
+      detail: 'Unlocked after your first order',
       priority: 2,
       section: 'posting'
     }
@@ -391,13 +395,59 @@ const JoinUsControl = memo(() => {
           <h1 className="text-2xl font-bold text-black mb-2">join us control screen</h1>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
-          {/* Left Column - Content Creation Section */}
+          {/* Left Column - Add Image Section */}
           <div className="space-y-6">
-          {/* Left Column - Content Creation Section */}
+            <div className="text-center">
+              <h3 className="text-lg font-bold text-black mb-4">Add image</h3>
+              
+              {/* Image Upload Area matching Figma design */}
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center h-40 flex flex-col items-center justify-center">
+                {formState.selectedImage ? (
+                  <div className="space-y-3">
+                    <img 
+                      src={formState.selectedImage} 
+                      alt="Uploaded preview" 
+                      className="max-w-full max-h-24 object-contain mx-auto rounded-lg"
+                      loading="lazy"
+                    />
+                    <button
+                      onClick={handleRemoveImage}
+                      className="text-red-500 hover:text-red-700 transition-colors text-xs"
+                      type="button"
+                    >
+                      Remove Image
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="w-10 h-10 mx-auto border border-gray-400 rounded flex items-center justify-center">
+                      <ImageIcon className="w-5 h-5 text-gray-400" />
+                    </div>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="hidden"
+                      id="image-upload"
+                      aria-label="Upload image file"
+                    />
+                    <label
+                      htmlFor="image-upload"
+                      className="bg-blue-600 text-white px-4 py-2 rounded cursor-pointer hover:bg-blue-700 inline-flex items-center gap-2 transition-colors text-xs font-medium"
+                    >
+                      <Plus className="w-3 h-3" />
+                      upload image
+                    </label>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Middle Column - Create Title and Detail Section */}
           <div className="space-y-6">
-            
             {/* Create Title Input */}
             <div>
               <h3 className="text-lg font-bold text-black mb-3">Create title</h3>
@@ -406,7 +456,7 @@ const JoinUsControl = memo(() => {
                 value={formState.title}
                 onChange={handleTitleChange}
                 className="w-full px-4 py-3 border-2 border-black rounded-xl focus:outline-none focus:border-blue-500 transition-colors"
-                placeholder="Enter title..."
+                placeholder=""
                 aria-label="Post title"
               />
             </div>
@@ -419,104 +469,24 @@ const JoinUsControl = memo(() => {
                 onChange={handleDetailChange}
                 rows={8}
                 className="w-full px-4 py-3 border-2 border-black rounded-xl focus:outline-none focus:border-blue-500 resize-none transition-colors"
-                placeholder="Enter detailed description..."
+                placeholder=""
                 aria-label="Post details"
               />
             </div>
-
-            {/* Image Upload Section */}
-            <div className="text-center">
-              <h2 className="text-xl font-bold text-black mb-4">Add image</h2>
-              
-              {/* Optimized Image Upload Area with proper error handling */}
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-                {formState.selectedImage ? (
-                  <div className="space-y-4">
-                    <img 
-                      src={formState.selectedImage} 
-                      alt="Uploaded preview" 
-                      className="max-w-full h-auto mx-auto rounded-lg"
-                      loading="lazy"
-                    />
-                    <button
-                      onClick={handleRemoveImage}
-                      className="text-red-500 hover:text-red-700 transition-colors"
-                      type="button"
-                    >
-                      Remove Image
-                    </button>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    <div className="w-16 h-16 mx-auto border-2 border-gray-300 rounded-lg flex items-center justify-center">
-                      <ImageIcon className="w-8 h-8 text-gray-400" />
-                    </div>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageUpload}
-                      className="hidden"
-                      id="image-upload"
-                      aria-label="Upload image file"
-                    />
-                    <label
-                      htmlFor="image-upload"
-                      className="bg-blue-600 text-white px-4 py-2 rounded-lg cursor-pointer hover:bg-blue-700 inline-flex items-center gap-2 transition-colors"
-                    >
-                      <Plus className="w-5 h-5" />
-                      upload image
-                    </label>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Action Buttons Section - Optimized with proper event handling */}
-            <div className="flex flex-wrap gap-3">
-              <button
-                onClick={handleCreatePost}
-                className="bg-gray-800 text-white px-12 py-3 rounded-full hover:bg-gray-700 transition-colors"
-                disabled={!formState.title || !formState.detail}
-                type="button"
-              >
-                Post to join us
-              </button>
-              <button 
-                className="bg-gray-800 text-white px-6 py-3 rounded-full hover:bg-gray-700 transition-colors"
-                type="button"
-              >
-                Post to head
-              </button>
-              <button 
-                className="bg-gray-800 text-white px-6 py-3 rounded-full hover:bg-gray-700 transition-colors"
-                type="button"
-              >
-                Post to bottom
-              </button>
-              <button 
-                onClick={handleScreenViewOpen}
-                className="bg-red-500 text-white px-8 py-3 rounded-full hover:bg-red-600 transition-colors"
-                type="button"
-              >
-                screen view
-              </button>
-            </div>
-
-            <button 
-              className="border border-gray-300 text-black px-6 py-2 rounded-full hover:bg-gray-50 transition-colors"
-              type="button"
-            >
-              View
-            </button>
           </div>
 
           {/* Right Column - Preview Section */}
           <div className="space-y-6">
-            <div className="text-center">
-              <h3 className="text-lg font-bold text-black mb-3">Preview and arrange</h3>
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                <h3 className="text-lg font-bold text-black">Preview and arrange</h3>
+                <div className="w-5 h-5 bg-gray-800 rounded-full flex items-center justify-center">
+                  <span className="text-white text-xs">i</span>
+                </div>
+              </div>
               
-              {/* Optimized Preview Card */}
-              <div className="bg-white border border-gray-200 rounded-lg p-4 h-64 flex items-center justify-center">
+              {/* Preview Image Area */}
+              <div className="bg-gray-100 rounded-lg h-40 mb-4 flex items-center justify-center overflow-hidden">
                 {formState.selectedImage ? (
                   <img 
                     src={formState.selectedImage} 
@@ -525,64 +495,116 @@ const JoinUsControl = memo(() => {
                     loading="lazy"
                   />
                 ) : (
-                  <div className="text-center">
-                    <div className="w-20 h-20 mx-auto bg-gray-100 rounded-lg flex items-center justify-center mb-4">
-                      <ImageIcon className="w-10 h-10 text-gray-400" />
-                    </div>
-                    <p className="text-gray-500">Image preview will appear here</p>
-                  </div>
+                  <img 
+                    src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80" 
+                    alt="Default preview" 
+                    className="w-full h-full object-cover rounded-lg"
+                    loading="lazy"
+                  />
                 )}
               </div>
 
-              {/* Static Reward Information Display */}
-              <div className="text-left mt-6 space-y-4">
+              {/* Reward Information Display */}
+              <div className="text-left space-y-2">
                 <div>
-                  <h4 className="font-medium text-base mb-1">Welcome reward</h4>
-                  <p className="text-gray-600 text-sm">Enjoy a welcome reward to spend in your first month.</p>
+                  <h4 className="font-semibold text-xs mb-1">Welcome reward</h4>
+                  <p className="text-gray-500 text-xs leading-tight">Enjoy a welcome reward to spend in your first month.</p>
                 </div>
                 <div>
-                  <h4 className="font-medium text-base mb-1">Birthday reward</h4>
-                  <p className="text-gray-600 text-sm">Celebrate your birthday month with a special discount</p>
+                  <h4 className="font-semibold text-xs mb-1">Birthday reward</h4>
+                  <p className="text-gray-500 text-xs leading-tight">Celebrate your birthday month with a special discount</p>
                 </div>
                 <div>
-                  <h4 className="font-medium text-base mb-1">Private members' sale</h4>
-                  <p className="text-gray-600 text-sm">Unlocked after your first order</p>
+                  <h4 className="font-semibold text-xs mb-1">Private members' sale</h4>
+                  <p className="text-gray-500 text-xs leading-tight">Unlocked after your first order</p>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Posts Management Section - Optimized for performance */}
-        <div className="mt-12 space-y-8">
+        {/* Action Buttons Section */}
+        <div className="mt-8 flex flex-col items-center gap-4">
+          <div className="flex flex-wrap gap-3 justify-center">
+            <button
+              onClick={handleCreatePost}
+              className="bg-gray-800 text-white px-8 py-2 rounded-full hover:bg-gray-700 transition-colors text-sm"
+              disabled={!formState.title || !formState.detail}
+              type="button"
+            >
+              Post to join us
+            </button>
+            <button 
+              className="bg-gray-800 text-white px-6 py-2 rounded-full hover:bg-gray-700 transition-colors text-sm"
+              type="button"
+            >
+              Post to head
+            </button>
+            <button 
+              className="bg-gray-800 text-white px-6 py-2 rounded-full hover:bg-gray-700 transition-colors text-sm"
+              type="button"
+            >
+              Post to bottom
+            </button>
+            <button 
+              onClick={handleScreenViewOpen}
+              className="bg-red-500 text-white px-6 py-2 rounded-full hover:bg-red-600 transition-colors text-sm"
+              type="button"
+            >
+              screen view
+            </button>
+          </div>
           
-          {/* Head Section - Conditional rendering for performance */}
-          {headPost && (
-            <div>
-              <h3 className="text-lg font-bold text-black mb-4">Head</h3>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">All posting</span>
-                <div className="flex gap-2">
-                  <button 
-                    onClick={() => handleEditClick(headPost)}
-                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                    type="button"
-                    aria-label="Edit head post"
-                  >
-                    <Edit2 className="w-5 h-5 text-gray-500" />
-                  </button>
-                  <button 
-                    onClick={() => handleDeletePost(headPost.id)}
-                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                    type="button"
-                    aria-label="Delete head post"
-                  >
-                    <Trash2 className="w-5 h-5 text-gray-500" />
-                  </button>
-                </div>
+          <button 
+            className="border border-gray-300 text-black px-6 py-2 rounded-full hover:bg-gray-50 transition-colors text-sm"
+            type="button"
+          >
+            View
+          </button>
+        </div>        {/* Posts Management Section - Optimized for performance */}
+        <div className="mt-12 space-y-6">
+          
+          {/* Head Section */}
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-black">Head</h3>
+              <div className="flex gap-2">
+                <button 
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  type="button"
+                  aria-label="Edit head section"
+                >
+                  <Edit2 className="w-4 h-4 text-gray-500" />
+                </button>
+                <button 
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  type="button"
+                  aria-label="Delete head section"
+                >
+                  <Trash2 className="w-4 h-4 text-gray-500" />
+                </button>
               </div>
             </div>
-          )}
+            <div className="flex items-center justify-between border-b border-gray-200 pb-4">
+              <span className="text-sm font-semibold text-black">All posting</span>
+              <div className="flex gap-2">
+                <button 
+                  className="p-1 hover:bg-gray-100 rounded transition-colors"
+                  type="button"
+                  aria-label="Edit all postings"
+                >
+                  <Edit2 className="w-4 h-4 text-gray-500" />
+                </button>
+                <button 
+                  className="p-1 hover:bg-gray-100 rounded transition-colors"
+                  type="button"
+                  aria-label="Delete all postings"
+                >
+                  <Trash2 className="w-4 h-4 text-gray-500" />
+                </button>
+              </div>
+            </div>
+          </div>
 
           {/* Optimized Posts List - Only render posting posts */}
           {postingPosts.map((post, index) => (
@@ -597,9 +619,8 @@ const JoinUsControl = memo(() => {
           ))}
         </div>
       </div>
-    </div>
 
-    {/* Edit Modal - Optimized for performance */}
+      {/* Edit Modal - Optimized for performance */}
       {modalStates.isEditModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-y-auto mx-4">
