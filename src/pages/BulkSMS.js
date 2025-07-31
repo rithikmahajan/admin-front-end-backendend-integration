@@ -1,5 +1,5 @@
 import React, { useState, useCallback, memo } from 'react';
-import { Download, Share2, Plus, Upload, ArrowLeft, X } from 'lucide-react';
+import { Download, Share2, Plus, Upload, ArrowLeft, X, Edit2, Trash2, Calendar } from 'lucide-react';
 
 /**
  * Bulk SMS Component
@@ -22,13 +22,86 @@ import { Download, Share2, Plus, Upload, ArrowLeft, X } from 'lucide-react';
 const BulkSMS = memo(({ onClose }) => {
   // Tab state
   const [activeTab, setActiveTab] = useState('sms');
+  const [activeReportTab, setActiveReportTab] = useState('delivery');
   
   // Modal states
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showEditReportModal, setShowEditReportModal] = useState(false);
+  const [showDeleteReportConfirm, setShowDeleteReportConfirm] = useState(false);
+  const [editingItem, setEditingItem] = useState(null);
+  const [editingReport, setEditingReport] = useState(null);
+  const [deleteItemId, setDeleteItemId] = useState(null);
+  const [deleteReportId, setDeleteReportId] = useState(null);
   const [scheduleData, setScheduleData] = useState({
     date: 'nov 11,2025',
     time: '8:45 pm'
+  });
+
+  // Blacklist data
+  const [blacklistData, setBlacklistData] = useState([
+    {
+      id: 1,
+      number: '7828501124',
+      email: 'rithikmahajan27@gmail.com'
+    }
+  ]);
+
+  // Reports data
+  const [reportsData, setReportsData] = useState([
+    {
+      id: 1,
+      date: 'nov 7 2025',
+      name: 'by admin',
+      senderId: 'transactional',
+      message: 'hey cutie',
+      interface: ['http', 'sms', 'email'],
+      channel: 'promotional',
+      creditUsed: 10
+    }
+  ]);
+
+  // Scheduled reports data
+  const [scheduledReportsData, setScheduledReportsData] = useState([
+    {
+      id: 1,
+      date: 'nov 7 2025',
+      name: 'by admin',
+      senderId: 'transactional',
+      message: 'hey cutie',
+      interface: ['http', 'sms', 'email'],
+      channel: 'promotional',
+      creditUsed: 10
+    },
+    {
+      id: 2,
+      date: 'nov 8 2025',
+      name: 'by admin',
+      senderId: 'promotional',
+      message: 'special offer',
+      interface: ['sms', 'email'],
+      channel: 'marketing',
+      creditUsed: 15
+    },
+    {
+      id: 3,
+      date: 'nov 9 2025',
+      name: 'by admin',
+      senderId: 'transactional',
+      message: 'order update',
+      interface: ['http', 'sms'],
+      channel: 'transactional',
+      creditUsed: 8
+    }
+  ]);
+
+  // Archived reports filter state
+  const [archivedFilters, setArchivedFilters] = useState({
+    fromDate: '',
+    toDate: '',
+    monthYear: ''
   });
   
   // Form state
@@ -151,11 +224,139 @@ const BulkSMS = memo(({ onClose }) => {
     console.log('Previewing message');
   }, []);
 
+  // Blacklist handlers
+  const handleEditBlacklistItem = useCallback((id) => {
+    const item = blacklistData.find(item => item.id === id);
+    if (item) {
+      setEditingItem({ ...item });
+      setShowEditModal(true);
+    }
+  }, [blacklistData]);
+
+  const handleDeleteBlacklistItem = useCallback((id) => {
+    setDeleteItemId(id);
+    setShowDeleteConfirm(true);
+  }, []);
+
+  const handleConfirmDelete = useCallback(() => {
+    if (deleteItemId) {
+      setBlacklistData(prev => prev.filter(item => item.id !== deleteItemId));
+      console.log('Deleted blacklist item:', deleteItemId);
+    }
+    setShowDeleteConfirm(false);
+    setDeleteItemId(null);
+  }, [deleteItemId]);
+
+  const handleCancelDelete = useCallback(() => {
+    setShowDeleteConfirm(false);
+    setDeleteItemId(null);
+  }, []);
+
+  const handleSaveEdit = useCallback(() => {
+    if (editingItem) {
+      setBlacklistData(prev => 
+        prev.map(item => 
+          item.id === editingItem.id ? editingItem : item
+        )
+      );
+      console.log('Updated blacklist item:', editingItem);
+    }
+    setShowEditModal(false);
+    setEditingItem(null);
+  }, [editingItem]);
+
+  const handleCancelEdit = useCallback(() => {
+    setShowEditModal(false);
+    setEditingItem(null);
+  }, []);
+
+  const handleEditItemChange = useCallback((field, value) => {
+    setEditingItem(prev => prev ? { ...prev, [field]: value } : null);
+  }, []);
+
+  // Reports handlers
+  const handleReportTabChange = useCallback((tab) => {
+    setActiveReportTab(tab);
+  }, []);
+
+  const handleEditReport = useCallback((id) => {
+    const report = (activeReportTab === 'schedule' ? scheduledReportsData : reportsData).find(item => item.id === id);
+    if (report) {
+      setEditingReport({ ...report });
+      setShowEditReportModal(true);
+    }
+  }, [activeReportTab, scheduledReportsData, reportsData]);
+
+  const handleDeleteReport = useCallback((id) => {
+    setDeleteReportId(id);
+    setShowDeleteReportConfirm(true);
+  }, []);
+
+  const handleConfirmDeleteReport = useCallback(() => {
+    if (deleteReportId) {
+      if (activeReportTab === 'schedule') {
+        setScheduledReportsData(prev => prev.filter(item => item.id !== deleteReportId));
+      } else {
+        setReportsData(prev => prev.filter(item => item.id !== deleteReportId));
+      }
+      console.log('Deleted report:', deleteReportId);
+    }
+    setShowDeleteReportConfirm(false);
+    setDeleteReportId(null);
+  }, [deleteReportId, activeReportTab]);
+
+  const handleCancelDeleteReport = useCallback(() => {
+    setShowDeleteReportConfirm(false);
+    setDeleteReportId(null);
+  }, []);
+
+  const handleSaveReportEdit = useCallback(() => {
+    if (editingReport) {
+      if (activeReportTab === 'schedule') {
+        setScheduledReportsData(prev => 
+          prev.map(item => 
+            item.id === editingReport.id ? editingReport : item
+          )
+        );
+      } else {
+        setReportsData(prev => 
+          prev.map(item => 
+            item.id === editingReport.id ? editingReport : item
+          )
+        );
+      }
+      console.log('Updated report:', editingReport);
+    }
+    setShowEditReportModal(false);
+    setEditingReport(null);
+  }, [editingReport, activeReportTab]);
+
+  const handleCancelReportEdit = useCallback(() => {
+    setShowEditReportModal(false);
+    setEditingReport(null);
+  }, []);
+
+  const handleEditReportChange = useCallback((field, value) => {
+    setEditingReport(prev => prev ? { ...prev, [field]: value } : null);
+  }, []);
+
+  // Archived reports handlers
+  const handleArchivedFilterChange = useCallback((field, value) => {
+    setArchivedFilters(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  }, []);
+
+  const handleExportCSV = useCallback(() => {
+    console.log('Exporting archived reports as CSV');
+  }, []);
+
   const tabs = [
     { id: 'sms', label: 'Send SMS' },
     { id: 'email', label: 'Send email' },
     { id: 'reports', label: 'reports' },
-    { id: 'blacklist', label: 'black list numbers' }
+    { id: 'blacklist', label: 'Blacklist Numbers/Email' }
   ];
 
   return (
@@ -473,14 +674,318 @@ const BulkSMS = memo(({ onClose }) => {
       )}
 
       {activeTab === 'reports' && (
-        <div className="text-center py-12">
-          <p className="text-gray-500">Reports and analytics will be displayed here</p>
+        <div className="space-y-6">
+          {/* Reports Title */}
+          <h2 className="text-[28px] font-bold text-[#252c32] font-montserrat tracking-[-0.616px] leading-[48px]">
+            Reports
+          </h2>
+
+          {/* Report Tabs */}
+          <div className="border-b border-[#e5e9eb]">
+            <div className="flex items-center gap-8">
+              {[
+                { id: 'campaign', label: 'Campaign Report' },
+                { id: 'delivery', label: 'Delivery Report' },
+                { id: 'schedule', label: 'Schedule Report' },
+                { id: 'archived', label: 'Archived Report' },
+                { id: 'credit', label: 'Credit History' }
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => handleReportTabChange(tab.id)}
+                  className={`pb-2 text-[14px] font-medium font-montserrat tracking-[-0.084px] leading-[24px] ${
+                    activeReportTab === tab.id
+                      ? tab.id === 'delivery'
+                        ? 'text-[#101316] underline decoration-solid decoration-from-font'
+                        : tab.id === 'archived'
+                        ? 'text-[#101316] font-semibold underline decoration-solid decoration-from-font'
+                        : tab.id === 'schedule'
+                        ? 'text-[#101316] underline decoration-solid decoration-from-font'
+                        : 'text-[#101316] border-b-2 border-[#101316]'
+                      : 'text-[#101316] hover:text-gray-700'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Reports Table */}
+          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] overflow-hidden">
+            {/* Archived Report Filters */}
+            {activeReportTab === 'archived' && (
+              <div className="bg-white border-b border-[#e5e9eb] px-6 py-6">
+                <div className="grid grid-cols-2 gap-8">
+                  {/* Left Column */}
+                  <div className="space-y-6">
+                    {/* From Date */}
+                    <div>
+                      <label className="block text-[14px] font-semibold text-[#344054] mb-1.5 font-montserrat leading-[20px]">
+                        From Date
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="date"
+                          value={archivedFilters.fromDate}
+                          onChange={(e) => handleArchivedFilterChange('fromDate', e.target.value)}
+                          className="w-full bg-white border border-[#d0d5dd] rounded-[5px] px-4 py-3 pr-12 text-[14px] text-[#667085] font-inter leading-[24px] shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                        <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#667085] pointer-events-none" />
+                      </div>
+                    </div>
+
+                    {/* Month & Year */}
+                    <div>
+                      <label className="block text-[14px] font-semibold text-[#344054] mb-1.5 font-montserrat leading-[20px]">
+                        Month & Year
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="month"
+                          value={archivedFilters.monthYear}
+                          onChange={(e) => handleArchivedFilterChange('monthYear', e.target.value)}
+                          className="w-full bg-white border border-[#d0d5dd] rounded-[5px] px-4 py-3 pr-12 text-[14px] text-[#667085] font-inter leading-[24px] shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                        <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#667085] pointer-events-none" />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right Column */}
+                  <div className="space-y-6">
+                    {/* To Date */}
+                    <div>
+                      <label className="block text-[14px] font-semibold text-[#344054] mb-1.5 font-inter leading-[20px]">
+                        To Date
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="date"
+                          value={archivedFilters.toDate}
+                          onChange={(e) => handleArchivedFilterChange('toDate', e.target.value)}
+                          className="w-full bg-white border border-[#d0d5dd] rounded-[5px] px-4 py-3 pr-12 text-[14px] text-[#667085] font-inter leading-[24px] shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                        <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#667085] pointer-events-none" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex items-center justify-center gap-4 mt-8">
+                  {/* Export CSV Button */}
+                  <button
+                    onClick={handleExportCSV}
+                    className="bg-black text-white px-4 py-3 rounded-3xl w-[270px] h-12 text-[14px] font-semibold font-montserrat text-center"
+                  >
+                    export as csv
+                  </button>
+
+                  {/* Download Button */}
+                  <button
+                    onClick={handleDownload}
+                    className="bg-white border border-[#dde2e4] text-[#252c32] px-3 py-1 rounded-md flex items-center gap-[5px] text-[14px] font-normal font-inter tracking-[-0.084px] leading-[24px]"
+                  >
+                    <Download className="w-6 h-6" />
+                    Download
+                  </button>
+
+                  {/* Share Button */}
+                  <button
+                    onClick={handleShare}
+                    className="bg-white border border-[#dde2e4] text-[#252c32] px-3 py-1 rounded-md flex items-center gap-[5px] text-[14px] font-normal font-inter tracking-[-0.084px] leading-[24px]"
+                  >
+                    <Share2 className="w-6 h-6" />
+                    Share
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Show Table for other report types */}
+            {activeReportTab !== 'archived' && (
+              <>
+                {/* Table Header */}
+                <div className="grid grid-cols-8 gap-4 bg-white border-b border-[#e5e9eb] px-6 py-4">
+                  <div className="text-[14px] font-medium text-[#101316] font-montserrat tracking-[-0.084px] leading-[24px]">
+                    Date
+                  </div>
+                  <div className="text-[14px] font-medium text-[#101316] font-montserrat tracking-[-0.084px] leading-[24px]">
+                    Name
+                  </div>
+                  <div className="text-[14px] font-medium text-[#101316] font-montserrat tracking-[-0.084px] leading-[24px]">
+                    sender ID
+                  </div>
+                  <div className="text-[14px] font-medium text-[#101316] font-montserrat tracking-[-0.084px] leading-[24px]">
+                    Message
+                  </div>
+                  <div className="text-[14px] font-medium text-[#101316] font-montserrat tracking-[-0.084px] leading-[24px]">
+                    Interface
+                  </div>
+                  <div className="text-[14px] font-medium text-[#101316] font-montserrat tracking-[-0.084px] leading-[24px]">
+                    channel
+                  </div>
+                  <div className="text-[14px] font-medium text-[#101316] font-montserrat tracking-[-0.084px] leading-[24px]">
+                    credit used
+                  </div>
+                  <div className="text-[14px] font-medium text-[#101316] font-montserrat tracking-[-0.084px] leading-[24px] text-center">
+                    action
+                  </div>
+                </div>
+
+                {/* Table Rows */}
+                {(activeReportTab === 'schedule' ? scheduledReportsData : reportsData).map((item) => (
+                  <div key={item.id} className="grid grid-cols-8 gap-4 border-b border-[#f0f0f0] hover:bg-gray-50 transition-colors px-6 py-4">
+                    {/* Date */}
+                    <div className="text-[14px] font-medium text-[#757575] font-montserrat tracking-[-0.084px] leading-[24px]">
+                      {item.date}
+                    </div>
+                    
+                    {/* Name */}
+                    <div className="text-[14px] font-medium text-[#757575] font-montserrat tracking-[-0.084px] leading-[24px]">
+                      {item.name}
+                    </div>
+                    
+                    {/* Sender ID */}
+                    <div className="text-[14px] font-medium text-[#757575] font-montserrat tracking-[-0.084px] leading-[24px]">
+                      {item.senderId}
+                    </div>
+                    
+                    {/* Message */}
+                    <div className="text-[14px] font-medium text-[#757575] font-montserrat tracking-[-0.084px] leading-[24px]">
+                      {item.message}
+                    </div>
+                    
+                    {/* Interface */}
+                    <div className="text-[14px] font-medium text-[#757575] font-montserrat tracking-[-0.084px] leading-[24px]">
+                      <div className="space-y-1">
+                        {item.interface.map((type, index) => (
+                          <div key={index}>{type}</div>
+                        ))}
+                      </div>
+                    </div>
+                    
+                    {/* Channel */}
+                    <div className="text-[14px] font-medium text-[#757575] font-montserrat tracking-[-0.084px] leading-[24px]">
+                      {item.channel}
+                    </div>
+                    
+                    {/* Credit Used */}
+                    <div className="text-[14px] font-medium text-[#757575] font-montserrat tracking-[-0.084px] leading-[24px]">
+                      {item.creditUsed}
+                    </div>
+                    
+                    {/* Actions */}
+                    <div className="flex items-center justify-center gap-1">
+                      {/* Edit Button */}
+                      <button
+                        onClick={() => handleEditReport(item.id)}
+                        className="w-[26px] h-[27px] flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors p-[5px]"
+                        title="Edit report"
+                      >
+                        <Edit2 className="w-4 h-4 text-[#667085]" />
+                      </button>
+                      
+                      {/* Delete Button */}
+                      <button
+                        onClick={() => handleDeleteReport(item.id)}
+                        className="w-[26px] h-[27px] flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors p-[5px]"
+                        title="Delete report"
+                      >
+                        <Trash2 className="w-4 h-4 text-[#667085]" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+
+                {/* Empty State */}
+                {(activeReportTab === 'schedule' ? scheduledReportsData : reportsData).length === 0 && (
+                  <div className="text-center py-12">
+                    <p className="text-gray-500">No reports found</p>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
         </div>
       )}
 
       {activeTab === 'blacklist' && (
-        <div className="text-center py-12">
-          <p className="text-gray-500">Black list numbers management will be implemented here</p>
+        <div className="space-y-6">
+          {/* Blacklist Table */}
+          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] overflow-hidden">
+            {/* Table Header */}
+            <div className="grid grid-cols-3 gap-4 bg-white border-b border-[#e5e9eb]">
+              {/* Numbers Header */}
+              <div className="h-10 flex items-center px-6">
+                <span className="text-[14px] font-semibold text-[#101316] font-montserrat tracking-[-0.084px] leading-[24px]">
+                  Numbers
+                </span>
+              </div>
+              
+              {/* Emails Header */}
+              <div className="h-10 flex items-center px-6">
+                <span className="text-[14px] font-semibold text-[#101316] font-montserrat tracking-[-0.084px] leading-[24px]">
+                  Emails
+                </span>
+              </div>
+              
+              {/* Actions Header */}
+              <div className="h-10 flex items-center justify-center px-6">
+                <span className="text-[12px] font-semibold text-[#84919a] font-inter tracking-[0.216px] leading-[16px] uppercase">
+                  Actions
+                </span>
+              </div>
+            </div>
+
+            {/* Table Rows */}
+            {blacklistData.map((item) => (
+              <div key={item.id} className="grid grid-cols-3 gap-4 border-b border-[#f0f0f0] hover:bg-gray-50 transition-colors">
+                {/* Number Cell */}
+                <div className="flex items-center px-6 py-4">
+                  <span className="text-[14px] font-normal text-[#252c32] font-inter tracking-[-0.084px] leading-[24px]">
+                    {item.number}
+                  </span>
+                </div>
+                
+                {/* Email Cell */}
+                <div className="flex items-center px-6 py-4">
+                  <span className="text-[14px] font-normal text-[#252c32] font-inter tracking-[-0.084px] leading-[24px]">
+                    {item.email}
+                  </span>
+                </div>
+                
+                {/* Actions Cell */}
+                <div className="flex items-center justify-center gap-1 px-6 py-4">
+                  {/* Edit Button */}
+                  <button
+                    onClick={() => handleEditBlacklistItem(item.id)}
+                    className="w-[26px] h-[27px] flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors p-[5px]"
+                    title="Edit item"
+                  >
+                    <Edit2 className="w-4 h-4 text-[#667085]" />
+                  </button>
+                  
+                  {/* Delete Button */}
+                  <button
+                    onClick={() => handleDeleteBlacklistItem(item.id)}
+                    className="w-[26px] h-[27px] flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors p-[5px]"
+                    title="Delete item"
+                  >
+                    <Trash2 className="w-4 h-4 text-[#667085]" />
+                  </button>
+                </div>
+              </div>
+            ))}
+
+            {/* Empty State */}
+            {blacklistData.length === 0 && (
+              <div className="text-center py-12">
+                <p className="text-gray-500">No blacklisted numbers or emails found</p>
+              </div>
+            )}
+          </div>
         </div>
       )}
 
@@ -614,6 +1119,276 @@ const BulkSMS = memo(({ onClose }) => {
               >
                 OK
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Blacklist Modal */}
+      {showEditModal && editingItem && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-lg p-8 max-w-md mx-4 w-full">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-semibold text-gray-900">Edit Blacklist Item</h3>
+              <button
+                onClick={handleCancelEdit}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              {/* Number Input */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Phone Number
+                </label>
+                <input
+                  type="text"
+                  value={editingItem.number}
+                  onChange={(e) => handleEditItemChange('number', e.target.value)}
+                  className="w-full bg-white border border-[#d0d5dd] rounded-lg px-4 py-3 text-[14px] text-[#667085] font-inter focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter phone number"
+                />
+              </div>
+
+              {/* Email Input */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Email Address
+                </label>
+                <input
+                  type="email"
+                  value={editingItem.email}
+                  onChange={(e) => handleEditItemChange('email', e.target.value)}
+                  className="w-full bg-white border border-[#d0d5dd] rounded-lg px-4 py-3 text-[14px] text-[#667085] font-inter focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter email address"
+                />
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex items-center justify-end gap-4 mt-6">
+              <button
+                onClick={handleCancelEdit}
+                className="bg-white border border-gray-300 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveEdit}
+                className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Save Changes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-lg p-8 max-w-md mx-4">
+            <div className="text-center">
+              {/* Warning Icon */}
+              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+              </div>
+              
+              {/* Confirmation Message */}
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                Delete Blacklist Item
+              </h3>
+              
+              <p className="text-gray-600 mb-6">
+                Are you sure you want to delete this item from the blacklist? This action cannot be undone.
+              </p>
+
+              {/* Action Buttons */}
+              <div className="flex items-center justify-center gap-4">
+                <button
+                  onClick={handleCancelDelete}
+                  className="bg-white border border-gray-300 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleConfirmDelete}
+                  className="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition-colors"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Report Modal */}
+      {showEditReportModal && editingReport && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-lg p-8 max-w-2xl mx-4 w-full">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-semibold text-gray-900">Edit Report</h3>
+              <button
+                onClick={handleCancelReportEdit}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-6">
+              {/* Left Column */}
+              <div className="space-y-4">
+                {/* Date Input */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Date
+                  </label>
+                  <input
+                    type="text"
+                    value={editingReport.date}
+                    onChange={(e) => handleEditReportChange('date', e.target.value)}
+                    className="w-full bg-white border border-[#d0d5dd] rounded-lg px-4 py-3 text-[14px] text-[#667085] font-inter focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Enter date"
+                  />
+                </div>
+
+                {/* Name Input */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Name
+                  </label>
+                  <input
+                    type="text"
+                    value={editingReport.name}
+                    onChange={(e) => handleEditReportChange('name', e.target.value)}
+                    className="w-full bg-white border border-[#d0d5dd] rounded-lg px-4 py-3 text-[14px] text-[#667085] font-inter focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Enter name"
+                  />
+                </div>
+
+                {/* Sender ID Input */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Sender ID
+                  </label>
+                  <input
+                    type="text"
+                    value={editingReport.senderId}
+                    onChange={(e) => handleEditReportChange('senderId', e.target.value)}
+                    className="w-full bg-white border border-[#d0d5dd] rounded-lg px-4 py-3 text-[14px] text-[#667085] font-inter focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Enter sender ID"
+                  />
+                </div>
+              </div>
+
+              {/* Right Column */}
+              <div className="space-y-4">
+                {/* Message Input */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Message
+                  </label>
+                  <input
+                    type="text"
+                    value={editingReport.message}
+                    onChange={(e) => handleEditReportChange('message', e.target.value)}
+                    className="w-full bg-white border border-[#d0d5dd] rounded-lg px-4 py-3 text-[14px] text-[#667085] font-inter focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Enter message"
+                  />
+                </div>
+
+                {/* Channel Input */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Channel
+                  </label>
+                  <input
+                    type="text"
+                    value={editingReport.channel}
+                    onChange={(e) => handleEditReportChange('channel', e.target.value)}
+                    className="w-full bg-white border border-[#d0d5dd] rounded-lg px-4 py-3 text-[14px] text-[#667085] font-inter focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Enter channel"
+                  />
+                </div>
+
+                {/* Credit Used Input */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Credit Used
+                  </label>
+                  <input
+                    type="number"
+                    value={editingReport.creditUsed}
+                    onChange={(e) => handleEditReportChange('creditUsed', parseInt(e.target.value) || 0)}
+                    className="w-full bg-white border border-[#d0d5dd] rounded-lg px-4 py-3 text-[14px] text-[#667085] font-inter focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Enter credit used"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex items-center justify-end gap-4 mt-6">
+              <button
+                onClick={handleCancelReportEdit}
+                className="bg-white border border-gray-300 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveReportEdit}
+                className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Save Changes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Report Confirmation Modal */}
+      {showDeleteReportConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-lg p-8 max-w-md mx-4">
+            <div className="text-center">
+              {/* Warning Icon */}
+              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+              </div>
+              
+              {/* Confirmation Message */}
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                Delete Report
+              </h3>
+              
+              <p className="text-gray-600 mb-6">
+                Are you sure you want to delete this report? This action cannot be undone.
+              </p>
+
+              {/* Action Buttons */}
+              <div className="flex items-center justify-center gap-4">
+                <button
+                  onClick={handleCancelDeleteReport}
+                  className="bg-white border border-gray-300 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleConfirmDeleteReport}
+                  className="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition-colors"
+                >
+                  Delete
+                </button>
+              </div>
             </div>
           </div>
         </div>
