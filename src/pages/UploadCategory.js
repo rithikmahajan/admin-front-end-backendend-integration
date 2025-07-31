@@ -107,16 +107,16 @@ const UploadCategory = () => {
   );
 
   return (
-    <div className="bg-gray-50 min-h-screen">
+    <div className="bg-white min-h-screen">
       {/* Main Content Container */}
-      <div className="ml-4 mr-8 bg-white rounded-xl shadow-lg overflow-hidden">
+      <div className="mx-6 bg-white">
         
         {/* Header */}
-        <div className="p-6 border-b border-gray-200">
-          <h1 className="text-2xl font-bold text-gray-900 mb-6">Create Category</h1>
+        <div className="py-8 px-6">
+          <h1 className="text-2xl font-bold text-gray-900 mb-8">create Category</h1>
           
           {/* Controls Section */}
-          <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-start">
+          <div className="flex flex-col lg:flex-row gap-6 items-start lg:items-center justify-start">
             
             {/* Search Bar */}
             <div className="relative flex-shrink-0 w-80">
@@ -125,10 +125,10 @@ const UploadCategory = () => {
               </div>
               <input
                 type="text"
-                placeholder="Search categories..."
+                placeholder="Search"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="block w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                className="block w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
               />
             </div>
 
@@ -167,30 +167,30 @@ const UploadCategory = () => {
         </div>
 
         {/* Table Section */}
-        <div className="p-6">
+        <div className="px-6 pb-6">
           
           {/* Table Header */}
-          <div className="bg-white border border-gray-300 rounded-t-lg shadow-sm">
-            <div className="grid grid-cols-12 gap-6 p-4 bg-gray-50 border-b border-gray-200 rounded-t-lg">
+          <div className="bg-white border border-gray-200 rounded-t-lg">
+            <div className="grid grid-cols-12 gap-6 p-4 bg-gray-50 border-b border-gray-100 rounded-t-lg">
               <div className="col-span-3">
-                <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Image</h3>
+                <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wide">Image</h3>
               </div>
               <div className="col-span-6">
-                <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Category Details</h3>
+                <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wide">Category</h3>
               </div>
               <div className="col-span-3">
-                <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Actions</h3>
+                <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wide">Action</h3>
               </div>
             </div>
 
             {/* Table Rows */}
             <div className="divide-y divide-gray-100">
               {filteredCategories.map((category) => (
-                <div key={category.id} className="grid grid-cols-12 gap-6 p-4 items-center hover:bg-gray-50 transition-colors duration-150">
+                <div key={category.id} className="grid grid-cols-12 gap-6 p-4 items-center hover:bg-gray-25 transition-colors duration-150">
                   
                   {/* Image Column */}
                   <div className="col-span-3">
-                    <div className="w-20 h-20 bg-gray-200 rounded-lg overflow-hidden shadow-sm">
+                    <div className="w-20 h-20 bg-gray-100 rounded-lg overflow-hidden">
                       <img
                         src={category.image}
                         alt={category.name}
@@ -205,7 +205,7 @@ const UploadCategory = () => {
                       <p className="text-lg font-medium text-gray-900">
                         {category.name}
                       </p>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-gray-600">
                         {category.description}
                       </p>
                     </div>
@@ -213,7 +213,7 @@ const UploadCategory = () => {
 
                   {/* Action Column */}
                   <div className="col-span-3">
-                    <div className="flex space-x-2">
+                    <div className="flex space-x-3">
                       <button
                         onClick={() => handleEdit(category.id)}
                         className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-150"
@@ -244,10 +244,10 @@ const UploadCategory = () => {
           </div>
 
           {/* Add Category Button */}
-          <div className="mt-6 flex justify-start">
+          <div className="mt-8 flex justify-start">
             <button 
               onClick={handleAddNewCategory}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-8 rounded-lg transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 shadow-sm"
+              className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-8 rounded-lg transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
             >
               + Add New Category
             </button>
@@ -257,17 +257,17 @@ const UploadCategory = () => {
 
       {/* Edit Category Modal */}
       {isEditModalOpen && editingCategory && (
-        <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50">
-          <div className="bg-white rounded-2xl shadow-xl border border-gray-200 max-w-lg w-full overflow-hidden">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl shadow-xl border border-gray-200 max-w-lg w-full mx-4 overflow-hidden">
             
             {/* Modal Header */}
-            <div className="relative p-6 bg-gray-50 border-b border-gray-200">
+            <div className="relative p-6 border-b border-gray-200">
               <h2 className="text-2xl font-bold text-gray-900 text-center">
                 {editingCategory.id ? 'Edit Category' : 'Add New Category'}
               </h2>
               <button
                 onClick={handleCloseEdit}
-                className="absolute top-4 right-4 p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded-full transition-colors"
+                className="absolute top-4 right-4 p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors"
               >
                 <X className="h-6 w-6" />
               </button>
@@ -279,7 +279,7 @@ const UploadCategory = () => {
               {/* Image Section */}
               <div className="mb-8 text-center">
                 <p className="text-sm font-semibold text-gray-700 mb-4 uppercase tracking-wide">Image Preview</p>
-                <div className="w-32 h-32 bg-gray-100 rounded-xl overflow-hidden mx-auto border-2 border-dashed border-gray-300">
+                <div className="w-32 h-32 bg-gray-100 rounded-xl overflow-hidden mx-auto border border-gray-200">
                   {editingCategory.id ? (
                     <img
                       src={editingCategory.image}
@@ -297,7 +297,7 @@ const UploadCategory = () => {
               {/* Category Info */}
               <div className="mb-8">
                 {editingCategory.id && (
-                  <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+                  <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-100">
                     <p className="text-sm font-semibold text-gray-700 mb-2 uppercase tracking-wide">Current Category</p>
                     <p className="text-lg font-medium text-gray-900">{editingCategory.name}</p>
                     <p className="text-sm text-gray-600 mt-1">{editingCategory.description}</p>
@@ -326,7 +326,7 @@ const UploadCategory = () => {
                 </button>
                 <button
                   onClick={handleCloseEdit}
-                  className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-4 px-6 rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2"
+                  className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-4 px-6 rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2"
                 >
                   Cancel
                 </button>
@@ -338,8 +338,8 @@ const UploadCategory = () => {
 
       {/* Success Modal */}
       {isSuccessModalOpen && (
-        <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50">
-          <div className="bg-white rounded-2xl shadow-xl border border-gray-200 max-w-md w-full overflow-hidden">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl shadow-xl border border-gray-200 max-w-md w-full mx-4 overflow-hidden">
             
             {/* Modal Content */}
             <div className="p-8 text-center">
@@ -375,8 +375,8 @@ const UploadCategory = () => {
 
       {/* Delete Confirmation Modal */}
       {isDeleteModalOpen && deletingCategory && (
-        <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50">
-          <div className="bg-white rounded-2xl shadow-xl border border-gray-200 max-w-md w-full overflow-hidden">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl shadow-xl border border-gray-200 max-w-md w-full mx-4 overflow-hidden">
             
             {/* Modal Content */}
             <div className="p-8 text-center">
@@ -406,7 +406,7 @@ const UploadCategory = () => {
                 </button>
                 <button
                   onClick={handleCancelDelete}
-                  className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-3 px-6 rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2"
+                  className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 px-6 rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2"
                 >
                   Cancel
                 </button>
@@ -418,8 +418,8 @@ const UploadCategory = () => {
 
       {/* Delete Success Modal */}
       {isDeleteSuccessModalOpen && (
-        <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50">
-          <div className="bg-white rounded-2xl shadow-xl border border-gray-200 max-w-md w-full overflow-hidden">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl shadow-xl border border-gray-200 max-w-md w-full mx-4 overflow-hidden">
             
             {/* Modal Content */}
             <div className="p-8 text-center">

@@ -110,13 +110,11 @@ const SubCategory = () => {
   );
 
   return (
-    <div className="bg-gray-50 min-h-screen">
-      {/* Main Content Container */}
-      <div className="ml-4 mr-8 bg-white rounded-xl shadow-lg overflow-hidden">
+    <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] overflow-hidden">
         
         {/* Header */}
         <div className="p-6 border-b border-gray-200">
-          <h1 className="text-2xl font-bold text-gray-900 mb-6">Create SubCategory</h1>
+          <h1 className="text-2xl font-bold text-[#111111] mb-6">create subCategory</h1>
           
           {/* Controls Section */}
           <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-start">
@@ -128,10 +126,10 @@ const SubCategory = () => {
               </div>
               <input
                 type="text"
-                placeholder="Search subcategories..."
+                placeholder="Search"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="block w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                className="block w-full pl-10 pr-3 py-2.5 border border-[#d0d5dd] rounded-lg leading-5 bg-white placeholder-[#667085] focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)]"
               />
             </div>
 
@@ -140,9 +138,9 @@ const SubCategory = () => {
               <select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
-                className="appearance-none bg-white border border-gray-400 rounded-xl px-4 py-3 pr-8 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-48"
+                className="appearance-none bg-white border border-[#979797] rounded-xl px-4 py-3 pr-8 text-[#000000] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-80 h-[47px]"
               >
-                <option value="">Select Category</option>
+                <option value="">Category</option>
                 {categoryOptions.map((option, index) => (
                   <option key={index} value={option}>{option}</option>
                 ))}
@@ -157,9 +155,9 @@ const SubCategory = () => {
               <select
                 value={selectedSubCategory}
                 onChange={(e) => setSelectedSubCategory(e.target.value)}
-                className="appearance-none bg-white border border-gray-400 rounded-xl px-4 py-3 pr-8 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-48"
+                className="appearance-none bg-white border border-[#979797] rounded-xl px-4 py-3 pr-8 text-[#000000] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-80 h-[47px]"
               >
-                <option value="">Select Sub Category</option>
+                <option value="">sub category</option>
                 {subCategoryOptions.map((option, index) => (
                   <option key={index} value={option}>{option}</option>
                 ))}
@@ -175,16 +173,16 @@ const SubCategory = () => {
         <div className="p-6">
           
           {/* Table Header */}
-          <div className="bg-white border border-gray-300 rounded-t-lg shadow-sm">
-            <div className="grid grid-cols-12 gap-6 p-4 bg-gray-50 border-b border-gray-200 rounded-t-lg">
+          <div className="bg-white border border-[#d5d5d5] rounded-t-lg">
+            <div className="grid grid-cols-12 gap-6 p-4 bg-white border-b border-gray-200 rounded-t-lg">
               <div className="col-span-3">
-                <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Image</h3>
+                <h3 className="text-sm font-bold text-[#202224] uppercase tracking-wide">Image</h3>
               </div>
               <div className="col-span-6">
-                <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">SubCategory Details</h3>
+                <h3 className="text-sm font-bold text-[#202224] uppercase tracking-wide">Category</h3>
               </div>
               <div className="col-span-3">
-                <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Actions</h3>
+                <h3 className="text-sm font-bold text-[#202224] uppercase tracking-wide">Action</h3>
               </div>
             </div>
 
@@ -207,11 +205,8 @@ const SubCategory = () => {
                   {/* SubCategory Column */}
                   <div className="col-span-6">
                     <div className="space-y-1">
-                      <p className="text-lg font-medium text-gray-900">
-                        {subCategory.name}
-                      </p>
-                      <p className="text-sm text-gray-500">
-                        {subCategory.description}
+                      <p className="text-[21px] font-medium text-[#111111]">
+                        What's your contact informati
                       </p>
                     </div>
                   </div>
@@ -258,7 +253,6 @@ const SubCategory = () => {
             </button>
           </div>
         </div>
-      </div>
 
       {/* Edit SubCategory Modal */}
       {isEditModalOpen && editingSubCategory && (

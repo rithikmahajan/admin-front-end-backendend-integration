@@ -4,6 +4,7 @@ import Layout from "./layout/Layout";
 import PushNotification from "./pages/pushnotification";
 import NotificationPreview from "./pages/notificationPreview";
 import InviteAFriend from "./pages/inviteafriend";
+import ManageReviews from "./pages/ManageReviews";
 
 const App = () => {
   return (
@@ -17,6 +18,7 @@ const App = () => {
             element={<NotificationPreview />}
           />
           <Route path="/invite" element={<InviteAFriend />} />
+          <Route path="/manage-reviews" element={<ManageReviews />} />
         </Route>
       </Routes>
     </>
