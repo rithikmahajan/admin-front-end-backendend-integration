@@ -159,7 +159,7 @@ const SingleProductUpload = React.memo(() => {
           >
             <ChevronDown className="h-6 w-6 rotate-90" />
           </button>
-          <h1 className="text-[36px] font-bold text-black font-['Montserrat'] leading-6">Upload items</h1>
+          <h1 className="text-[36px] font-bold text-[#111111] font-['Montserrat'] leading-[24px]">Upload items</h1>
         </div>
       </div>
 
@@ -168,54 +168,71 @@ const SingleProductUpload = React.memo(() => {
         
         {/* Returnable Section */}
         <div className="py-6 border-b border-gray-200">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-[21px] font-medium text-black font-['Montserrat']">returnable</h3>
+          <div className="flex items-center gap-6 mb-6">
+            <h3 className="text-[21px] font-medium text-[#111111] font-['Montserrat'] min-w-[159px]">returnable</h3>
             <div className="flex items-center gap-3">
               <button 
-                className={`px-6 py-2 rounded-full font-medium text-[16px] border transition-colors ${
+                className={`h-[34px] w-[69px] rounded-[100px] font-medium text-[16px] leading-[1.2] border flex items-center justify-center transition-colors ${
                   productData.returnable === 'yes' 
-                    ? 'bg-[#000aff] text-white border-black' 
-                    : 'bg-white text-black border-gray-300'
+                    ? 'bg-[#000aff] text-[#ffffff] border-[#000000]' 
+                    : 'bg-white text-[#000000] border-[#e4e4e4]'
                 }`}
                 onClick={() => handleProductDataChange('returnable', 'yes')}
               >
                 yes
               </button>
               <button 
-                className={`px-6 py-2 rounded-full font-medium text-[16px] border transition-colors ${
+                className={`h-[34px] w-[69px] rounded-[100px] font-medium text-[16px] leading-[1.2] border flex items-center justify-center transition-colors ${
                   productData.returnable === 'no' 
-                    ? 'bg-[#000aff] text-white border-black' 
-                    : 'bg-white text-black border-gray-300'
+                    ? 'bg-[#000aff] text-[#ffffff] border-[#000000]' 
+                    : 'bg-white text-[#000000] border-[#e4e4e4]'
                 }`}
                 onClick={() => handleProductDataChange('returnable', 'no')}
               >
                 No
               </button>
-              <button className="bg-[#000aff] text-white px-4 py-2.5 rounded-lg flex items-center gap-2 text-[14px] font-medium border border-[#7280ff] shadow-sm">
-                <Plus className="h-5 w-5" />
-                IMPORT
-              </button>
+            </div>
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                className="w-5 h-5 border border-[#bcbcbc] rounded-[3px]"
+              />
+              <span className="text-[#000000] font-['Montserrat'] text-[14px] leading-[20px]">(default)</span>
             </div>
           </div>
-          <div className="text-[14px] text-black">(default)</div>
-          <div className="flex items-center gap-2 mt-2">
-            <input type="checkbox" className="w-5 h-5 border border-gray-400 rounded" />
-            <span className="text-[14px]">List to:</span>
-            <span className="text-[15px]">amazon</span>
-            <input type="checkbox" className="w-5 h-5 border border-gray-400 rounded ml-2" />
-            <span className="text-[15px]">flipkart</span>
-            <input type="checkbox" className="w-5 h-5 border border-gray-400 rounded ml-2" />
-            <span className="text-[15px]">yoraa</span>
-            <input type="checkbox" className="w-5 h-5 border border-gray-400 rounded ml-2" />
-            <span className="text-[15px]">myntra</span>
-            <input type="checkbox" className="w-5 h-5 border border-gray-400 rounded ml-2" />
-            <span className="text-[15px]">nykaa</span>
+        </div>
+
+        {/* List To Section */}
+        <div className="py-6 border-b border-gray-200">
+          <div className="flex items-center gap-4">
+            <input type="checkbox" className="w-5 h-5 border border-[#bcbcbc] border-solid rounded-[3px]" />
+            <span className="text-[14px] text-black">List to:</span>
+            <div className="flex items-center gap-1">
+              <input type="checkbox" className="w-5 h-5 border border-[#bcbcbc] border-solid rounded-[3px]" />
+              <span className="text-[15px] text-black">amazon</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <input type="checkbox" className="w-5 h-5 border border-[#bcbcbc] border-solid rounded-[3px]" />
+              <span className="text-[15px] text-black">flipkart</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <input type="checkbox" className="w-5 h-5 border border-[#bcbcbc] border-solid rounded-[3px]" />
+              <span className="text-[15px] text-black">yoraa</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <input type="checkbox" className="w-5 h-5 border border-[#bcbcbc] border-solid rounded-[3px]" />
+              <span className="text-[15px] text-black">myntra</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <input type="checkbox" className="w-5 h-5 border border-[#bcbcbc] border-solid rounded-[3px]" />
+              <span className="text-[15px] text-black">nykaa</span>
+            </div>
           </div>
         </div>
 
         {/* Variant Section */}
         <div className="py-6">
-          <h2 className="text-[48px] font-bold text-black font-['Montserrat'] leading-6 mb-8">varient 1</h2>
+          <h2 className="text-[48px] font-bold text-[#111111] font-['Montserrat'] leading-[24px] mb-8">varient 1</h2>
           
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
             
@@ -224,7 +241,7 @@ const SingleProductUpload = React.memo(() => {
               
               {/* Product Name */}
               <div>
-                <label className="block text-[21px] font-medium text-black font-['Montserrat'] mb-3">product name</label>
+                <label className="block text-[21px] font-medium text-[#111111] font-['Montserrat'] mb-3">product name</label>
                 <div className="h-[47px] border-2 border-black rounded-xl">
                   <input
                     type="text"
@@ -238,7 +255,7 @@ const SingleProductUpload = React.memo(() => {
 
               {/* Title */}
               <div>
-                <label className="block text-[21px] font-medium text-black font-['Montserrat'] mb-3">Title</label>
+                <label className="block text-[21px] font-medium text-[#111111] font-['Montserrat'] mb-3">Title</label>
                 <div className="h-[47px] border-2 border-black rounded-xl">
                   <input
                     type="text"
@@ -251,71 +268,71 @@ const SingleProductUpload = React.memo(() => {
               </div>
 
               {/* Description */}
-              <div>
-                <label className="block text-[21px] font-medium text-black font-['Montserrat'] mb-1">Discription</label>
-                <div className="text-[21px] font-medium text-black font-['Montserrat'] mb-2">
-                  <p>watch the no, of letters that fit in the screen make this box structure</p>
-                  <p>as such so that we know that exactly how it will look at front side or</p>
-                  <p>make this box in shape of the screen</p>
+              <div className="mb-6">
+                <label className="block text-[21px] font-medium text-[#111111] font-['Montserrat'] mb-3">Discription</label>
+                <div className="text-[21px] font-medium text-[#111111] font-['Montserrat'] mb-4">
+                  <p className="leading-[24px] mb-1">watch the no, of letters that fit in the screen make this box structure</p>
+                  <p className="leading-[24px] mb-1">as such so that we know that exactly how it will look at front side or</p>
+                  <p className="leading-[24px]">make this box in shape of the screen</p>
                 </div>
-                <div className="h-[154px] border-2 border-black rounded-xl">
+                <div className="h-[154px] border-2 border-[#000000] rounded-xl">
                   <textarea
-                    value={variants[0]?.description || ''}
+                    value={variants[0]?.description || 'Premium quality fabric with comfortable fit. Perfect for casual and formal occasions. Available in multiple sizes with excellent durability and style.'}
                     onChange={(e) => handleVariantChange(1, 'description', e.target.value)}
-                    className="w-full h-full px-4 py-3 border-none rounded-xl resize-none focus:outline-none focus:ring-0 text-[16px]"
+                    className="w-full h-full px-4 py-3 border-none rounded-xl resize-none focus:outline-none focus:ring-0 text-[16px] bg-white"
                     placeholder="Enter product description here..."
                   />
                 </div>
               </div>
 
               {/* Manufacturing Details */}
-              <div>
-                <label className="block text-[21px] font-medium text-black font-['Montserrat'] mb-3">Manufacturing details</label>
-                <div className="h-[154px] border-2 border-black rounded-xl">
+              <div className="mb-6">
+                <label className="block text-[21px] font-medium text-[#111111] font-['Montserrat'] mb-3">Manufacturing details</label>
+                <div className="h-[154px] border-2 border-[#000000] rounded-xl">
                   <textarea
                     value={variants[0]?.manufacturingDetails || ''}
                     onChange={(e) => handleVariantChange(1, 'manufacturingDetails', e.target.value)}
-                    className="w-full h-full px-4 py-3 border-none rounded-xl resize-none focus:outline-none focus:ring-0 text-[16px]"
+                    className="w-full h-full px-4 py-3 border-none rounded-xl resize-none focus:outline-none focus:ring-0 text-[16px] bg-white"
                     placeholder="Enter manufacturing details"
                   />
                 </div>
               </div>
 
               {/* Shipping Returns and Exchange */}
-              <div>
-                <label className="block text-[21px] font-medium text-black font-['Montserrat'] mb-3">Shipping returns and exchange</label>
-                <div className="h-[154px] border-2 border-black rounded-xl">
+              <div className="mb-6">
+                <label className="block text-[21px] font-medium text-[#111111] font-['Montserrat'] mb-3">Shipping returns and exchange</label>
+                <div className="h-[154px] border-2 border-[#000000] rounded-xl">
                   <textarea
                     value={variants[0]?.shippingReturns || ''}
                     onChange={(e) => handleVariantChange(1, 'shippingReturns', e.target.value)}
-                    className="w-full h-full px-4 py-3 border-none rounded-xl resize-none focus:outline-none focus:ring-0 text-[16px]"
+                    className="w-full h-full px-4 py-3 border-none rounded-xl resize-none focus:outline-none focus:ring-0 text-[16px] bg-white"
                     placeholder="Enter shipping and returns policy"
                   />
                 </div>
               </div>
 
               {/* Pricing */}
-              <div className="grid grid-cols-2 gap-6">
+              <div className="grid grid-cols-2 gap-6 mb-6">
                 <div>
-                  <label className="block text-[21px] font-medium text-black font-['Montserrat'] mb-3">Regular price</label>
-                  <div className="h-[47px] border-2 border-black rounded-xl">
+                  <label className="block text-[21px] font-medium text-[#111111] font-['Montserrat'] mb-3 leading-[24px]">Regular price</label>
+                  <div className="h-[47px] border-2 border-[#000000] rounded-xl">
                     <input
                       type="number"
                       value={variants[0]?.regularPrice || ''}
                       onChange={(e) => handleVariantChange(1, 'regularPrice', e.target.value)}
-                      className="w-full h-full px-4 border-none rounded-xl focus:outline-none focus:ring-0 text-[16px]"
+                      className="w-full h-full px-4 border-none rounded-xl focus:outline-none focus:ring-0 text-[16px] bg-white"
                       placeholder="0.00"
                     />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-[21px] font-medium text-black font-['Montserrat'] mb-3">Sale price</label>
-                  <div className="h-[47px] border-2 border-black rounded-xl">
+                  <label className="block text-[21px] font-medium text-[#111111] font-['Montserrat'] mb-3 leading-[24px]">Sale price</label>
+                  <div className="h-[47px] border-2 border-[#000000] rounded-xl">
                     <input
                       type="number"
                       value={variants[0]?.salePrice || ''}
                       onChange={(e) => handleVariantChange(1, 'salePrice', e.target.value)}
-                      className="w-full h-full px-4 border-none rounded-xl focus:outline-none focus:ring-0 text-[16px]"
+                      className="w-full h-full px-4 border-none rounded-xl focus:outline-none focus:ring-0 text-[16px] bg-white"
                       placeholder="0.00"
                     />
                   </div>
@@ -323,81 +340,36 @@ const SingleProductUpload = React.memo(() => {
               </div>
 
               {/* Stock Size */}
-              <div>
-                <label className="block text-[21px] font-medium text-black font-['Montserrat'] mb-3">Stock size</label>
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="bg-[#000aff] text-white px-4 py-2.5 rounded-lg text-[14px] font-medium border border-[#7280ff] shadow-sm">
-                    No size
-                  </div>
-                  <div className="bg-white border border-gray-300 text-black px-4 py-2.5 rounded-lg text-[14px] hover:bg-gray-50">
-                    Add size
-                  </div>
-                  <div className="bg-[#000aff] text-white px-4 py-2.5 rounded-lg flex items-center gap-2 text-[14px] font-medium border border-[#7280ff] shadow-sm">
-                    <Plus className="h-5 w-5" />
-                    IMPORT
-                  </div>
-                </div>
-                
-                {/* Size Input Grid */}
-                <div className="grid grid-cols-10 gap-2 mb-4">
-                  {[
-                    'Size', 'Quantity', 'Hsn', 'amazon', 'flipkart', 
-                    'yoraa', 'myntra', 'nykaa', 'SKU', 'barcode no.'
-                  ].map((placeholder, i) => (
-                    <div key={i} className="h-[47px] border-2 border-black rounded-xl">
-                      <input
-                        type="text"
-                        className="w-full h-full px-2 text-center border-none rounded-xl focus:outline-none focus:ring-0 text-[14px]"
-                        placeholder={placeholder}
-                      />
-                    </div>
+              <div className="mb-6">
+                <label className="block text-[21px] font-medium text-[#111111] font-['Montserrat'] mb-3 leading-[24px]">Stock size</label>
+                <div className="grid grid-cols-5 gap-[10px]">
+                  {['XS', 'S', 'M', 'L', 'XL'].map((size) => (
+                    <button
+                      key={size}
+                      type="button"
+                      onClick={() => {
+                        const currentSizes = variants[0]?.stockSizes || [];
+                        const newSizes = currentSizes.includes(size)
+                          ? currentSizes.filter(s => s !== size)
+                          : [...currentSizes, size];
+                        handleVariantChange(1, 'stockSizes', newSizes);
+                      }}
+                      className={`h-[40px] rounded-[8px] border-2 text-[16px] font-medium font-['Montserrat'] transition-colors ${
+                        (variants[0]?.stockSizes || []).includes(size)
+                          ? 'bg-[#000AFF] text-white border-[#000AFF]'
+                          : 'bg-white text-[#111111] border-[#BCBCBC]'
+                      }`}
+                    >
+                      {size}
+                    </button>
                   ))}
                 </div>
-                
-                {/* Size Row 2 */}
-                <div className="grid grid-cols-10 gap-2 mb-4">
-                  {Array(10).fill('').map((_, i) => (
-                    <div key={i} className="h-[47px] border-2 border-black rounded-xl">
-                      <input
-                        type="text"
-                        className="w-full h-full px-2 text-center border-none rounded-xl focus:outline-none focus:ring-0 text-[14px]"
-                      />
-                    </div>
-                  ))}
-                </div>
-                
-                {/* Additional Size Options */}
-                <div className="flex flex-wrap gap-2">
-                  <button className="bg-white border border-gray-300 text-black px-4 py-2.5 rounded-lg text-[14px] hover:bg-gray-50 flex items-center gap-1">
-                    <Plus className="h-3 w-3" />
-                    Size
-                  </button>
-                  <button className="bg-white border border-gray-300 text-black px-4 py-2.5 rounded-lg text-[14px] hover:bg-gray-50 flex items-center gap-1">
-                    <Plus className="h-3 w-3" />
-                    Quantity
-                  </button>
-                  <button className="bg-white border border-gray-300 text-black px-4 py-2.5 rounded-lg text-[14px] hover:bg-gray-50 flex items-center gap-1">
-                    <Plus className="h-3 w-3" />
-                    Hsn
-                  </button>
-                  <button className="bg-white border border-gray-300 text-black px-4 py-2.5 rounded-lg text-[14px] hover:bg-gray-50">
-                    Add alternate price
-                  </button>
-                  <button className="bg-white border border-gray-300 text-black px-4 py-2.5 rounded-lg text-[14px] hover:bg-gray-50">
-                    SKU
-                  </button>
-                  <button className="bg-white border border-gray-300 text-black px-4 py-2.5 rounded-lg text-[14px] hover:bg-gray-50">
-                    barcode no.
-                  </button>
-                </div>
-                
-                <div className="text-right text-[15px] text-black mt-2">10000000000000</div>
               </div>
 
               {/* Filter Section */}
               <div>
-                <label className="block text-[21px] font-medium text-black font-['Montserrat'] mb-1">Filter</label>
-                <div className="text-[21px] font-medium text-black font-['Montserrat'] mb-3">assign Filter(drop down)</div>
+                <label className="block text-[21px] font-medium text-[#111111] font-['Montserrat'] mb-1">Filter</label>
+                <div className="text-[21px] font-medium text-[#111111] font-['Montserrat'] mb-3">assign Filter(drop down)</div>
                 <button className="bg-[#000aff] text-white px-4 py-2.5 rounded-lg flex items-center gap-2 text-[14px] font-medium border border-[#7280ff] shadow-sm">
                   <Plus className="h-5 w-5" />
                   colour
@@ -405,7 +377,7 @@ const SingleProductUpload = React.memo(() => {
                 
                 {/* Color Data Display */}
                 <div className="mt-4 bg-white border border-gray-200 rounded-xl shadow-lg p-4 w-[166px]">
-                  <div className="text-[14px] text-gray-500 mb-3">showing colour data</div>
+                  <div className="text-[14px] text-[#bfbfbf] font-medium mb-3">showing colour data</div>
                   <div className="space-y-1">
                     <div className="py-2 border-b border-gray-200 text-[14px] text-black">red</div>
                     <div className="py-2 border-b border-gray-200 text-[14px] text-black">pink</div>
@@ -416,11 +388,11 @@ const SingleProductUpload = React.memo(() => {
 
               {/* Also Show In */}
               <div>
-                <label className="block text-[21px] font-medium text-black font-['Montserrat'] mb-3">Also Show in</label>
+                <label className="block text-[21px] font-medium text-[#111111] font-['Montserrat'] mb-3">Also Show in</label>
                 <div className="space-y-3">
                   <div className="flex items-center gap-3">
-                    <input type="checkbox" className="w-5 h-5 border border-gray-400 rounded" />
-                    <span className="text-[20px] font-medium text-black font-['Montserrat']">You Might Also Like</span>
+                    <input type="checkbox" className="w-5 h-5 border border-[#bcbcbc] border-solid rounded-[3px]" />
+                    <span className="text-[20px] font-medium text-[#000000] font-['Montserrat']">You Might Also Like</span>
                     <button className="bg-[#000aff] text-white px-4 py-2.5 rounded-lg flex items-center gap-2 text-[14px] font-medium border border-[#7280ff] shadow-sm">
                       <Plus className="h-5 w-5" />
                       no
@@ -428,8 +400,8 @@ const SingleProductUpload = React.memo(() => {
                   </div>
                   
                   <div className="flex items-center gap-3">
-                    <input type="checkbox" className="w-5 h-5 border border-gray-400 rounded" />
-                    <span className="text-[20px] font-medium text-black font-['Montserrat']">SImailar Items</span>
+                    <input type="checkbox" className="w-5 h-5 border border-[#bcbcbc] border-solid rounded-[3px]" />
+                    <span className="text-[20px] font-medium text-[#000000] font-['Montserrat']">SImailar Items</span>
                     <button className="bg-[#000aff] text-white px-4 py-2.5 rounded-lg flex items-center gap-2 text-[14px] font-medium border border-[#7280ff] shadow-sm">
                       <Plus className="h-5 w-5" />
                       yes
@@ -437,8 +409,8 @@ const SingleProductUpload = React.memo(() => {
                   </div>
                   
                   <div className="flex items-center gap-3">
-                    <input type="checkbox" className="w-5 h-5 border border-gray-400 rounded" />
-                    <span className="text-[20px] font-medium text-black font-['Montserrat']">Other Also Bought</span>
+                    <input type="checkbox" className="w-5 h-5 border border-[#bcbcbc] border-solid rounded-[3px]" />
+                    <span className="text-[20px] font-medium text-[#000000] font-['Montserrat']">Other Also Bought</span>
                   </div>
                 </div>
               </div>
@@ -447,7 +419,7 @@ const SingleProductUpload = React.memo(() => {
             {/* Right Column - Product Images */}
             <div className="space-y-6">
               <div>
-                <h3 className="text-[32px] font-bold text-black font-['Montserrat'] leading-6 mb-6">Product Images/videos</h3>
+                <h3 className="text-[32px] font-bold text-[#111111] font-['Montserrat'] leading-[24px] mb-6">Product Images/videos</h3>
                 
                 {/* Main Image Preview */}
                 <div className="mb-6">
@@ -461,20 +433,20 @@ const SingleProductUpload = React.memo(() => {
                 {/* Upload Areas */}
                 <div className="space-y-4 mb-6">
                   <div>
-                    <h4 className="text-[21px] font-medium text-black font-['Montserrat'] mb-2">Upload image</h4>
+                    <h4 className="text-[21px] font-medium text-[#111111] font-['Montserrat'] mb-2">Upload image</h4>
                     <div className="w-[185px] h-[96px] border border-dashed border-gray-300 rounded flex flex-col items-center justify-center">
                       <Upload className="h-6 w-6 text-gray-400 mb-2" />
-                      <p className="text-[10px] font-medium text-black font-['Montserrat'] text-center">
+                      <p className="text-[10px] font-medium text-[#111111] font-['Montserrat'] text-center">
                         Drop your image here PNG. JPEG allowed
                       </p>
                     </div>
                   </div>
                   
                   <div>
-                    <h4 className="text-[21px] font-medium text-black font-['Montserrat'] mb-2">Upload video</h4>
+                    <h4 className="text-[21px] font-medium text-[#111111] font-['Montserrat'] mb-2">Upload video</h4>
                     <div className="w-[185px] h-[96px] border border-dashed border-gray-300 rounded flex flex-col items-center justify-center">
                       <Upload className="h-6 w-6 text-gray-400 mb-2" />
-                      <p className="text-[10px] font-medium text-black font-['Montserrat'] text-center">
+                      <p className="text-[10px] font-medium text-[#111111] font-['Montserrat'] text-center">
                         Drop your image here PNG. JPEG allowed
                       </p>
                     </div>
@@ -522,7 +494,7 @@ const SingleProductUpload = React.memo(() => {
             
             <div className="grid grid-cols-3 gap-6">
               <div>
-                <label className="block text-[21px] font-medium text-black font-['Montserrat'] mb-3">meta title</label>
+                <label className="block text-[21px] font-medium text-[#111111] font-['Montserrat'] mb-3">meta title</label>
                 <div className="h-[47px] border-2 border-black rounded-xl">
                   <input
                     type="text"
@@ -533,7 +505,7 @@ const SingleProductUpload = React.memo(() => {
                 </div>
               </div>
               <div>
-                <label className="block text-[21px] font-medium text-black font-['Montserrat'] mb-3">meta description</label>
+                <label className="block text-[21px] font-medium text-[#111111] font-['Montserrat'] mb-3">meta description</label>
                 <div className="h-[47px] border-2 border-black rounded-xl">
                   <input
                     type="text"
@@ -544,7 +516,7 @@ const SingleProductUpload = React.memo(() => {
                 </div>
               </div>
               <div>
-                <label className="block text-[21px] font-medium text-black font-['Montserrat'] mb-3">slug URL</label>
+                <label className="block text-[21px] font-medium text-[#111111] font-['Montserrat'] mb-3">slug URL</label>
                 <div className="h-[47px] border-2 border-black rounded-xl">
                   <input
                     type="text"
