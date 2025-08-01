@@ -35,6 +35,13 @@ const ProductBundling = () => {
 
   const [bundleList, setBundleList] = useState([]);
   const [dragItems, setDragItems] = useState([]);
+  const [showBundleList, setShowBundleList] = useState(false);
+  const [editingBundle, setEditingBundle] = useState(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
+  const [showDeleteSuccessModal, setShowDeleteSuccessModal] = useState(false);
+  const [bundleToDelete, setBundleToDelete] = useState(null);
 
   // Sample database of products
   const productDatabase = {
@@ -211,6 +218,9 @@ const ProductBundling = () => {
     if (currentBundle.main && currentBundle.items.length > 0) {
       setBundleList(prev => [...prev, currentBundle]);
       
+      // Show success modal
+      setShowSuccessModal(true);
+      
       // Reset form
       setMainProduct({ id: 'main', category: '', subcategory: '', item: '', productData: null });
       setBundleItems([
@@ -221,18 +231,304 @@ const ProductBundling = () => {
     }
   };
 
-  const removeBundleItem = (bundleId, itemType, itemIndex) => {
+  const handleEditBundle = (bundle) => {
+    setEditingBundle({ ...bundle });
+    setShowEditModal(true);
+  };
+
+  const handleUpdateBundle = () => {
+    setBundleList(prev => 
+      prev.map(bundle => 
+        bundle.id === editingBundle.id ? editingBundle : bundle
+      )
+    );
+    setShowEditModal(false);
+    setEditingBundle(null);
+  };
+
+  const handleDeleteBundle = (bundleId) => {
+    setBundleToDelete(bundleId);
+    setShowDeleteConfirmModal(true);
+  };
+
+  const confirmDeleteBundle = () => {
+    setBundleList(prev => prev.filter(bundle => bundle.id !== bundleToDelete));
+    setShowDeleteConfirmModal(false);
+    setBundleToDelete(null);
+    setShowDeleteSuccessModal(true);
+  };
+
+  const cancelDeleteBundle = () => {
+    setShowDeleteConfirmModal(false);
+    setBundleToDelete(null);
+  };
+
+  const handleRemoveItemFromEditBundle = (itemType, itemIndex) => {
     if (itemType === 'main') {
-      setBundleList(prev => prev.filter(bundle => bundle.id !== bundleId));
+      setEditingBundle(prev => ({ ...prev, main: null }));
     } else {
-      setBundleList(prev => 
-        prev.map(bundle => 
-          bundle.id === bundleId 
-            ? { ...bundle, items: bundle.items.filter((_, index) => index !== itemIndex) }
-            : bundle
-        ).filter(bundle => bundle.items.length > 0)
-      );
+      setEditingBundle(prev => ({
+        ...prev,
+        items: prev.items.filter((_, index) => index !== itemIndex)
+      }));
     }
+  };
+
+  // Edit Bundle Modal Component
+  const EditBundleModal = () => {
+    if (!showEditModal || !editingBundle) return null;
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-lg p-8 max-w-6xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold text-black font-montserrat">Edit bundle</h2>
+            <button 
+              onClick={() => setShowEditModal(false)}
+              className="p-2 hover:bg-gray-100 rounded-lg"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          <div className="grid grid-cols-3 gap-8 mb-8">
+            {/* Main Product */}
+            <div className="text-center">
+              <h3 className="text-xl font-bold text-black mb-4 font-montserrat">main</h3>
+              {editingBundle.main && (
+                <>
+                  <div className="w-[200px] h-[200px] bg-[#F3F4F6] rounded-lg mb-4 mx-auto overflow-hidden">
+                    <img 
+                      src={editingBundle.main.image} 
+                      alt="Main product" 
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div className="space-y-2 text-sm font-montserrat">
+                    <div><span className="font-normal">Product Name:</span> <span className="font-medium ml-1">{editingBundle.main.name}</span></div>
+                    <div><span className="font-normal">Category:</span> <span className="font-medium ml-1">{editingBundle.main.category}</span></div>
+                    <div><span className="font-normal">sub categories:</span> <span className="font-medium ml-1">{editingBundle.main.subcategory}</span></div>
+                  </div>
+                  <button 
+                    onClick={() => handleRemoveItemFromEditBundle('main')}
+                    className="mt-3 px-4 py-1 bg-red-100 text-red-600 rounded text-sm font-montserrat hover:bg-red-200"
+                  >
+                    Remove
+                  </button>
+                </>
+              )}
+            </div>
+
+            {/* Bundle Items */}
+            {editingBundle.items.map((item, index) => (
+              <div key={index} className="text-center">
+                <h3 className="text-xl font-bold text-black mb-4 font-montserrat">Item {index + 1}</h3>
+                <div className="w-[200px] h-[200px] bg-[#F3F4F6] rounded-lg mb-4 mx-auto overflow-hidden">
+                  <img 
+                    src={item.image} 
+                    alt={`Item ${index + 1}`} 
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="space-y-2 text-sm font-montserrat">
+                  <div><span className="font-normal">Product Name:</span> <span className="font-medium ml-1">{item.name}</span></div>
+                  <div><span className="font-normal">Category:</span> <span className="font-medium ml-1">{item.category}</span></div>
+                  <div><span className="font-normal">sub categories:</span> <span className="font-medium ml-1">{item.subcategory}</span></div>
+                </div>
+                <button 
+                  onClick={() => handleRemoveItemFromEditBundle('item', index)}
+                  className="mt-3 px-4 py-1 bg-red-100 text-red-600 rounded text-sm font-montserrat hover:bg-red-200"
+                >
+                  Remove
+                </button>
+              </div>
+            ))}
+          </div>
+
+          {/* Add new item section */}
+          <div className="border-t pt-6">
+            <div className="flex gap-4 mb-4">
+              <CustomDropdown 
+                placeholder="Category"
+                value=""
+                onChange={() => {}}
+                options={[
+                  { value: 't-shirt', label: 'T-shirt' },
+                  { value: 'pants', label: 'Pants' }
+                ]}
+              />
+              <CustomDropdown 
+                placeholder="sub category"
+                value=""
+                onChange={() => {}}
+                options={[]}
+              />
+              <CustomDropdown 
+                placeholder="Item"
+                value=""
+                onChange={() => {}}
+                options={[]}
+              />
+              <button className="bg-[#202224] text-white px-4 py-2.5 rounded-lg flex items-center gap-2 hover:bg-[#333537] transition-colors font-montserrat text-[14px]">
+                <Plus size={20} />
+                Assign Item
+              </button>
+            </div>
+
+            {/* Product details table */}
+            {editingBundle.main && (
+              <div className="mt-6">
+                <div className="grid grid-cols-10 gap-3 mb-3 text-[13px] text-black font-montserrat font-normal">
+                  <div>Image</div>
+                  <div>Product Name</div>
+                  <div>Category</div>
+                  <div>sub categories</div>
+                  <div>size</div>
+                  <div>quantity</div>
+                  <div>Price</div>
+                  <div>sale price</div>
+                  <div>SKU</div>
+                  <div>barcode no.</div>
+                </div>
+                
+                <div className="grid grid-cols-10 gap-3 text-[13px] font-medium text-[#111111] font-montserrat mb-2">
+                  <div className="w-12 h-12">
+                    <img src={editingBundle.main.image} alt="" className="w-full h-full object-cover rounded" />
+                  </div>
+                  <div>{editingBundle.main.name}</div>
+                  <div>{editingBundle.main.category}</div>
+                  <div>{editingBundle.main.subcategory}</div>
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                </div>
+
+                {editingBundle.main.variants.map((variant, index) => (
+                  <div key={index} className="grid grid-cols-10 gap-3 text-[11px] text-[#111111] mb-1 font-montserrat font-medium">
+                    <div></div>
+                    <div></div>
+                    <div></div>
+                    <div></div>
+                    <div>{variant.size}</div>
+                    <div>{variant.quantity}</div>
+                    <div>{variant.price}</div>
+                    <div>{variant.salePrice}</div>
+                    <div>{variant.sku}</div>
+                    <div>{variant.barcode}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Action buttons */}
+          <div className="flex justify-between mt-8">
+            <button 
+              onClick={() => setShowEditModal(false)}
+              className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 font-montserrat"
+            >
+              go back
+            </button>
+            <button 
+              onClick={handleUpdateBundle}
+              className="px-8 py-3 bg-[#202224] text-white rounded-lg hover:bg-[#333537] font-montserrat"
+            >
+              save
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Success Modal Component
+  const SuccessModal = () => {
+    if (!showSuccessModal) return null;
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-2xl p-8 max-w-md w-full mx-4 text-center">
+          {/* Success Icon */}
+          <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          
+          {/* Success Message */}
+          <h2 className="text-xl font-bold text-black mb-8 font-montserrat">Item assigned successfully!</h2>
+          
+          {/* Done Button */}
+          <button 
+            onClick={() => setShowSuccessModal(false)}
+            className="w-full bg-black text-white py-4 rounded-full text-lg font-medium hover:bg-gray-800 transition-colors font-montserrat"
+          >
+            Done
+          </button>
+        </div>
+      </div>
+    );
+  };
+
+  // Delete Confirmation Modal Component
+  const DeleteConfirmModal = () => {
+    if (!showDeleteConfirmModal) return null;
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-2xl p-8 max-w-md w-full mx-4 text-center">
+          {/* Confirmation Message */}
+          <h2 className="text-xl font-bold text-black mb-8 font-montserrat leading-relaxed">
+            Are you sure you<br />
+            want to delete this<br />
+            item
+          </h2>
+          
+          {/* Action Buttons */}
+          <div className="flex gap-4">
+            <button 
+              onClick={confirmDeleteBundle}
+              className="flex-1 bg-black text-white py-4 rounded-full text-lg font-medium hover:bg-gray-800 transition-colors font-montserrat"
+            >
+              yes
+            </button>
+            <button 
+              onClick={cancelDeleteBundle}
+              className="flex-1 bg-gray-100 text-black py-4 rounded-full text-lg font-medium hover:bg-gray-200 transition-colors font-montserrat"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Delete Success Modal Component
+  const DeleteSuccessModal = () => {
+    if (!showDeleteSuccessModal) return null;
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-2xl p-8 max-w-md w-full mx-4 text-center">
+          {/* Success Message */}
+          <h2 className="text-xl font-bold text-black mb-8 font-montserrat">Item deleted successfully!</h2>
+          
+          {/* Done Button */}
+          <button 
+            onClick={() => setShowDeleteSuccessModal(false)}
+            className="w-full bg-black text-white py-4 rounded-full text-lg font-medium hover:bg-gray-800 transition-colors font-montserrat"
+          >
+            Done
+          </button>
+        </div>
+      </div>
+    );
   };
 
   // Sortable Item Component for drag and drop
@@ -512,15 +808,43 @@ const ProductBundling = () => {
           </div>
         )}
 
+        {/* Bundle List Button */}
+        <div className="flex justify-center mt-12 pt-4">
+          <button 
+            onClick={() => setShowBundleList(!showBundleList)}
+            className="bg-[#202224] text-white px-[51px] py-4 rounded-full text-[16px] font-medium hover:bg-[#333537] transition-colors font-montserrat border border-black"
+          >
+            Bundle list ({bundleList.length})
+          </button>
+        </div>
+
         {/* Bundle List Section */}
-        {bundleList.length > 0 && (
+        {showBundleList && bundleList.length > 0 && (
           <div className="mt-16 mb-8">
             <h2 className="text-[21px] font-bold text-[#111111] font-montserrat mb-8">Bundle List</h2>
             
             <div className="space-y-8">
               {bundleList.map((bundle, bundleIndex) => (
                 <div key={bundle.id} className="border border-gray-200 rounded-lg p-6">
-                  <h3 className="text-lg font-semibold mb-4 font-montserrat">Bundle {bundleIndex + 1}</h3>
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-lg font-semibold font-montserrat">Bundle {bundleIndex + 1}</h3>
+                    <div className="flex gap-2">
+                      <button 
+                        onClick={() => handleEditBundle(bundle)}
+                        className="px-4 py-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition-colors font-montserrat text-sm flex items-center gap-2"
+                      >
+                        <Edit size={16} />
+                        Update
+                      </button>
+                      <button 
+                        onClick={() => handleDeleteBundle(bundle.id)}
+                        className="px-4 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors font-montserrat text-sm flex items-center gap-2"
+                      >
+                        <Trash2 size={16} />
+                        Delete
+                      </button>
+                    </div>
+                  </div>
                   
                   <div className="grid grid-cols-4 gap-6">
                     {/* Main Product */}
@@ -537,12 +861,6 @@ const ProductBundling = () => {
                         <div><span className="text-black font-normal">Product:</span> <span className="font-medium text-[#111111] ml-1">{bundle.main?.name}</span></div>
                         <div><span className="text-black font-normal">Category:</span> <span className="font-medium text-[#111111] ml-1">{bundle.main?.category}</span></div>
                       </div>
-                      <button 
-                        onClick={() => removeBundleItem(bundle.id, 'main')}
-                        className="mt-2 p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
-                      >
-                        <Trash2 size={14} className="text-[#667085]" />
-                      </button>
                     </div>
 
                     {/* Bundle Items */}
@@ -560,12 +878,6 @@ const ProductBundling = () => {
                           <div><span className="text-black font-normal">Product:</span> <span className="font-medium text-[#111111] ml-1">{item?.name}</span></div>
                           <div><span className="text-black font-normal">Category:</span> <span className="font-medium text-[#111111] ml-1">{item?.category}</span></div>
                         </div>
-                        <button 
-                          onClick={() => removeBundleItem(bundle.id, 'item', itemIndex)}
-                          className="mt-2 p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
-                        >
-                          <Trash2 size={14} className="text-[#667085]" />
-                        </button>
                       </div>
                     ))}
                   </div>
@@ -575,6 +887,18 @@ const ProductBundling = () => {
           </div>
         )}
       </div>
+
+      {/* Edit Bundle Modal */}
+      <EditBundleModal />
+      
+      {/* Success Modal */}
+      <SuccessModal />
+      
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmModal />
+      
+      {/* Delete Success Modal */}
+      <DeleteSuccessModal />
     </div>
   );
 };
