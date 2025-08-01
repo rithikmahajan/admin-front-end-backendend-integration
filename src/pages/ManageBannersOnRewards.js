@@ -16,30 +16,31 @@ import React, { useState } from 'react';
  * - Form validation and error handling
  */
 const ManageBannersOnRewards = () => {
-  const [title, setTitle] = useState('');
-  const [detail, setDetail] = useState('');
+  const [createDetail, setCreateDetail] = useState('');
   const [selectedImage, setSelectedImage] = useState(null);
   const [showScreenView, setShowScreenView] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showSaveSuccessModal, setShowSaveSuccessModal] = useState(false);
   const [editingBanner, setEditingBanner] = useState(null);
-  const [editTitle, setEditTitle] = useState('');
   const [editDetail, setEditDetail] = useState('');
   const [editImage, setEditImage] = useState(null);
+  const [textPosition, setTextPosition] = useState({ x: 20, y: 20 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [banners, setBanners] = useState([
     {
       id: 1,
-      title: 'Welcome reward',
-      detail: 'Enjoy a welcome reward to spend in your first month.',
+      detail: 'Welcome reward\nEnjoy a welcome reward to spend in your first month.\nBirthday reward\nCelebrate your birthday month with a special discount\nPrivate members\' sale\nUnlocked after your first order',
       priority: 1,
-      image: '/api/placeholder/400/300'
+      image: '/api/placeholder/400/300',
+      textPosition: { x: 20, y: 20 }
     },
     {
       id: 2,
-      title: 'Welcome reward',
-      detail: 'Enjoy a welcome reward to spend in your first month.',
+      detail: 'Welcome reward\nEnjoy a welcome reward to spend in your first month.\nBirthday reward\nCelebrate your birthday month with a special discount\nPrivate members\' sale\nUnlocked after your first order',
       priority: 2,
-      image: '/api/placeholder/400/300'
+      image: '/api/placeholder/400/300',
+      textPosition: { x: 20, y: 20 }
     }
   ]);
 
@@ -55,23 +56,23 @@ const ManageBannersOnRewards = () => {
   };
 
   const handlePostToRewards = () => {
-    if (!title || !detail) {
-      alert('Please fill in both title and detail fields');
+    if (!createDetail.trim()) {
+      alert('Please fill in the detail field');
       return;
     }
 
     const newBanner = {
       id: banners.length + 1,
-      title,
-      detail,
+      detail: createDetail,
       priority: banners.length + 1,
-      image: selectedImage || '/api/placeholder/400/300'
+      image: selectedImage || '/api/placeholder/400/300',
+      textPosition: { ...textPosition }
     };
 
     setBanners([...banners, newBanner]);
-    setTitle('');
-    setDetail('');
+    setCreateDetail('');
     setSelectedImage(null);
+    setTextPosition({ x: 20, y: 20 });
   };
 
   const handleDeleteBanner = (bannerId) => {
@@ -96,7 +97,6 @@ const ManageBannersOnRewards = () => {
 
   const handleEditBanner = (banner) => {
     setEditingBanner(banner);
-    setEditTitle(banner.title);
     setEditDetail(banner.detail);
     setEditImage(banner.image);
     setShowEditModal(true);
@@ -108,7 +108,6 @@ const ManageBannersOnRewards = () => {
         banner.id === editingBanner.id 
           ? { 
               ...banner, 
-              title: editTitle,
               detail: editDetail,
               image: editImage
             }
@@ -122,7 +121,6 @@ const ManageBannersOnRewards = () => {
   const handleCloseEdit = () => {
     setShowEditModal(false);
     setEditingBanner(null);
-    setEditTitle('');
     setEditDetail('');
     setEditImage(null);
   };
@@ -142,6 +140,37 @@ const ManageBannersOnRewards = () => {
     setShowSaveSuccessModal(false);
   };
 
+  // Drag and drop functionality for text positioning
+  const handleMouseDown = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    setIsDragging(true);
+    setDragOffset({
+      x: e.clientX - rect.left - textPosition.x,
+      y: e.clientY - rect.top - textPosition.y
+    });
+  };
+
+  const handleMouseMove = (e) => {
+    if (!isDragging) return;
+    
+    const rect = e.currentTarget.getBoundingClientRect();
+    const newX = e.clientX - rect.left - dragOffset.x;
+    const newY = e.clientY - rect.top - dragOffset.y;
+    
+    // Constrain within preview area bounds
+    const maxX = rect.width - 200; // Approximate text width
+    const maxY = rect.height - 100; // Approximate text height
+    
+    setTextPosition({
+      x: Math.max(0, Math.min(newX, maxX)),
+      y: Math.max(0, Math.min(newY, maxY))
+    });
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
   return (
     <div className="p-6 bg-white min-h-screen">
       {/* Page Title */}
@@ -154,19 +183,16 @@ const ManageBannersOnRewards = () => {
         <div className="flex-1 max-w-md">
           {/* Add Image Section */}
           <div className="mb-6">
-            <h2 className="text-xl font-bold text-black mb-4 text-center">Add image</h2>
-            
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center mb-4">
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center mb-4 h-32">
               {selectedImage ? (
                 <img 
                   src={selectedImage} 
                   alt="Uploaded preview" 
-                  className="max-w-full max-h-32 mx-auto rounded"
+                  className="max-w-full max-h-full mx-auto rounded object-contain"
                 />
               ) : (
-                <div className="text-gray-400">
+                <div className="text-gray-400 flex flex-col items-center justify-center h-full">
                   <div className="text-4xl mb-2">📧</div>
-                  <p>Click to upload image</p>
                 </div>
               )}
             </div>
@@ -183,27 +209,15 @@ const ManageBannersOnRewards = () => {
             </label>
           </div>
 
-          {/* Create Title */}
-          <div className="mb-6">
-            <label className="block text-lg font-bold text-black mb-2">Create title</label>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="w-full p-3 border-2 border-black rounded-xl focus:outline-none focus:border-blue-500"
-              placeholder="Enter banner title"
-            />
-          </div>
-
           {/* Create Detail */}
           <div className="mb-6">
             <label className="block text-lg font-bold text-black mb-2">Create detail</label>
             <textarea
-              value={detail}
-              onChange={(e) => setDetail(e.target.value)}
-              rows={6}
+              value={createDetail}
+              onChange={(e) => setCreateDetail(e.target.value)}
+              rows={8}
               className="w-full p-3 border-2 border-black rounded-xl resize-none focus:outline-none focus:border-blue-500"
-              placeholder="Enter banner details"
+              placeholder="Welcome reward&#10;Enjoy a welcome reward to spend in your first month.&#10;Birthday reward&#10;Celebrate your birthday month with a special discount&#10;Private members' sale&#10;Unlocked after your first order"
             />
           </div>
 
@@ -228,17 +242,72 @@ const ManageBannersOnRewards = () => {
         <div className="flex-1">
           {/* Preview Section */}
           <div className="mb-8">
-            <h2 className="text-lg font-bold text-black mb-4">Preview and arrange here</h2>
-            <div className="bg-gray-100 rounded-lg p-4 h-96 flex items-center justify-center">
-              {selectedImage ? (
+            <div className="flex items-center gap-2 mb-4">
+              <h2 className="text-lg font-bold text-black">Preview and arrange here</h2>
+              <div className="bg-black text-white rounded-full w-6 h-6 flex items-center justify-center text-sm">
+                i
+              </div>
+            </div>
+            <div 
+              className="bg-white border-2 border-gray-200 rounded-lg p-4 w-full h-64 relative overflow-hidden cursor-move"
+              style={{ aspectRatio: '16/9', maxWidth: '400px' }}
+              onMouseDown={handleMouseDown}
+              onMouseMove={handleMouseMove}
+              onMouseUp={handleMouseUp}
+              onMouseLeave={handleMouseUp}
+            >
+              {/* Background Image */}
+              {selectedImage && (
                 <img 
                   src={selectedImage} 
                   alt="Banner preview" 
-                  className="max-w-full max-h-full object-contain rounded"
+                  className="w-full h-full object-cover rounded absolute inset-0"
                 />
-              ) : (
-                <div className="text-gray-400 text-center">
-                  <p>Preview will appear here</p>
+              )}
+              
+              {/* Text Overlay - Merged into image */}
+              {(selectedImage || createDetail) && (
+                <div
+                  className="absolute cursor-move select-none max-w-xs"
+                  style={{
+                    left: textPosition.x,
+                    top: textPosition.y,
+                    transform: isDragging ? 'scale(1.02)' : 'scale(1)',
+                    transition: isDragging ? 'none' : 'transform 0.2s ease'
+                  }}
+                  onMouseDown={handleMouseDown}
+                >
+                  {createDetail ? (
+                    <div className="text-sm leading-tight">
+                      {createDetail.split('\n').map((line, index) => (
+                        <div 
+                          key={index} 
+                          className={`${index % 2 === 0 ? 'font-bold text-black text-shadow-sm' : 'text-gray-700 mb-2 text-shadow-sm'}`}
+                          style={{
+                            textShadow: '1px 1px 2px rgba(255, 255, 255, 0.8), -1px -1px 2px rgba(255, 255, 255, 0.8)'
+                          }}
+                        >
+                          {line}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div 
+                      className="text-sm text-gray-600"
+                      style={{
+                        textShadow: '1px 1px 2px rgba(255, 255, 255, 0.8)'
+                      }}
+                    >
+                      Add text content to preview
+                    </div>
+                  )}
+                </div>
+              )}
+              
+              {/* Centered message when no content */}
+              {!selectedImage && !createDetail && (
+                <div className="absolute inset-0 flex items-center justify-center text-gray-400">
+                  <p>Upload image and add text to preview</p>
                 </div>
               )}
             </div>
@@ -250,64 +319,104 @@ const ManageBannersOnRewards = () => {
             
             {banners.map((banner) => (
               <div key={banner.id} className="mb-6">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-lg font-bold text-black">posting {banner.id}</h3>
-                  <div className="flex items-center gap-2">
-                    <label className="text-lg font-bold text-black">priority {banner.id}</label>
+                <div className="flex items-start gap-4">
+                  {/* Left Column - Details */}
+                  <div className="flex-1">
+                    <div className="mb-2">
+                      <h3 className="text-lg font-bold text-black mb-1">posting {banner.id}</h3>
+                      <h4 className="text-sm font-medium text-black mb-2">detail</h4>
+                      <div className="text-sm text-gray-600 leading-relaxed">
+                        {banner.detail.split('\n').map((line, index) => (
+                          <div key={index} className={index % 2 === 0 ? 'font-medium text-black' : 'text-gray-600 mb-1'}>
+                            {line}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Middle Column - Uploaded Image */}
+                  <div className="w-32">
+                    <h4 className="text-sm font-medium text-black mb-2 text-center">uploaded image</h4>
+                    <div className="w-24 h-16 bg-gray-100 border-2 border-dashed border-gray-300 rounded flex items-center justify-center mx-auto">
+                      {banner.image && banner.image !== '/api/placeholder/400/300' ? (
+                        <img 
+                          src={banner.image} 
+                          alt={`Banner ${banner.id}`}
+                          className="w-full h-full object-cover rounded"
+                        />
+                      ) : (
+                        <div className="text-gray-400 text-xs">📧</div>
+                      )}
+                    </div>
+                  </div>
+                  
+                  {/* Priority Column */}
+                  <div className="w-20">
+                    <h4 className="text-sm font-medium text-black mb-2 text-center">priority</h4>
                     <input
                       type="number"
                       value={banner.priority}
                       onChange={(e) => handlePriorityChange(banner.id, e.target.value)}
-                      className="w-20 p-2 border-2 border-black rounded-xl text-center"
+                      className="w-12 p-1 border-2 border-black rounded text-center mx-auto block"
                       min="1"
                     />
                   </div>
-                </div>
-                
-                <div className="flex gap-4">
-                  {/* Banner Preview */}
-                  <div className="w-48 h-32 bg-gray-100 rounded-lg overflow-hidden">
-                    <img 
-                      src={banner.image} 
-                      alt={`Banner ${banner.id}`}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
                   
-                  {/* Banner Details */}
-                  <div className="flex-1">
-                    <h4 className="font-medium text-black mb-1">{banner.title}</h4>
-                    <p className="text-gray-600 text-sm mb-2">{banner.detail}</p>
-                    <div className="text-sm text-gray-600">
-                      <p>Birthday reward</p>
-                      <p>Celebrate your birthday month with a special discount</p>
-                      <p className="mt-1">Private members' sale</p>
-                      <p>Unlocked after your first order</p>
+                  {/* Preview Column */}
+                  <div className="w-48">
+                    <h4 className="text-sm font-medium text-black mb-2 text-center">Preview and arrange here</h4>
+                    <div className="w-44 h-32 bg-gray-100 rounded overflow-hidden relative mx-auto" style={{ aspectRatio: '16/11' }}>
+                      {banner.image && (
+                        <img 
+                          src={banner.image} 
+                          alt={`Banner ${banner.id} preview`}
+                          className="w-full h-full object-cover"
+                        />
+                      )}
+                      <div className="absolute inset-0 p-2">
+                        <div className="text-xs leading-tight">
+                          {banner.detail.split('\n').slice(0, 4).map((line, index) => (
+                            <div 
+                              key={index} 
+                              className={index % 2 === 0 ? 'font-bold text-black' : 'text-gray-700'}
+                              style={{
+                                textShadow: '1px 1px 2px rgba(255, 255, 255, 0.8), -1px -1px 2px rgba(255, 255, 255, 0.8)'
+                              }}
+                            >
+                              {line.length > 20 ? line.substring(0, 20) + '...' : line}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
                     </div>
                   </div>
                   
-                  {/* Action Buttons */}
-                  <div className="flex flex-col gap-2">
-                    <button 
-                      onClick={() => handleEditBanner(banner)}
-                      className="p-2 text-gray-500 hover:text-blue-500 transition-colors"
-                    >
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                        <path d="m18.5 2.5 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                      </svg>
-                    </button>
-                    <button 
-                      onClick={() => handleDeleteBanner(banner.id)}
-                      className="p-2 text-gray-500 hover:text-red-500 transition-colors"
-                    >
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <polyline points="3,6 5,6 21,6" />
-                        <path d="m19,6v14a2,2 0 0 1-2,2H7a2,2 0 0 1-2-2V6m3,0V4a2,2 0 0 1 2-2h4a2,2 0 0 1 2,2v2" />
-                        <line x1="10" y1="11" x2="10" y2="17" />
-                        <line x1="14" y1="11" x2="14" y2="17" />
-                      </svg>
-                    </button>
+                  {/* Action Column */}
+                  <div className="w-16">
+                    <h4 className="text-sm font-medium text-black mb-2 text-center">Action</h4>
+                    <div className="flex flex-col gap-2 items-center">
+                      <button 
+                        onClick={() => handleEditBanner(banner)}
+                        className="p-2 text-gray-500 hover:text-blue-500 transition-colors"
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                          <path d="m18.5 2.5 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                        </svg>
+                      </button>
+                      <button 
+                        onClick={() => handleDeleteBanner(banner.id)}
+                        className="p-2 text-gray-500 hover:text-red-500 transition-colors"
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <polyline points="3,6 5,6 21,6" />
+                          <path d="m19,6v14a2,2 0 0 1-2,2H7a2,2 0 0 1-2-2V6m3,0V4a2,2 0 0 1 2-2h4a2,2 0 0 1 2,2v2" />
+                          <line x1="10" y1="11" x2="10" y2="17" />
+                          <line x1="14" y1="11" x2="14" y2="17" />
+                        </svg>
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -328,10 +437,8 @@ const ManageBannersOnRewards = () => {
       {showEditModal && (
         <EditBannerModal
           banner={editingBanner}
-          title={editTitle}
           detail={editDetail}
           image={editImage}
-          onTitleChange={setEditTitle}
           onDetailChange={setEditDetail}
           onImageChange={handleEditImageUpload}
           onSave={handleSaveEdit}
@@ -375,60 +482,8 @@ const ScreenViewModal = ({ banners, onClose }) => {
 
         {/* Main Content */}
         <div className="flex h-[800px]">
-          {/* Sidebar Navigation */}
-          <div className="w-80 bg-white border-r border-gray-200 p-6 overflow-y-auto">
-            <div className="space-y-2">
-              {/* Dashboard Section */}
-              <div className="mb-6">
-                <h3 className="text-2xl font-bold text-black mb-4">Dashboard</h3>
-                <div className="space-y-2 text-sm">
-                  <div className="text-gray-700">Dashboard</div>
-                </div>
-              </div>
-
-              {/* App order area */}
-              <div className="mb-6">
-                <h3 className="text-2xl font-bold text-black mb-4">App order area</h3>
-                <div className="space-y-2 text-sm">
-                  <div className="text-gray-700">orders</div>
-                  <div className="text-gray-700">return requests</div>
-                  <div className="text-gray-700">Inbox</div>
-                  <div className="text-gray-700">vendor messages</div>
-                  <div className="text-gray-700">Users</div>
-                </div>
-              </div>
-
-              {/* App uploading area */}
-              <div className="mb-6">
-                <h3 className="text-2xl font-bold text-black mb-4">App uploading area</h3>
-                <div className="space-y-2 text-sm">
-                  <div className="text-gray-700">Category</div>
-                  <div className="text-gray-700">Subcategory</div>
-                  <div className="text-gray-700">Items</div>
-                  <div className="text-gray-700">Item details</div>
-                </div>
-              </div>
-
-              {/* App functional area */}
-              <div className="mb-6">
-                <h3 className="text-2xl font-bold text-black mb-4">App functional area</h3>
-                <div className="space-y-2 text-sm">
-                  <div className="text-gray-700">Filters</div>
-                  <div className="text-gray-700">Promocode</div>
-                  <div className="text-gray-700">Points</div>
-                  <div className="text-gray-700">Add Faq</div>
-                  <div className="text-gray-700">Manage banners rewards</div>
-                  <div className="text-gray-700">join us control screen</div>
-                  <div className="text-gray-700">Invite a friend</div>
-                  <div className="text-gray-700">Arrangement control</div>
-                  <div className="text-gray-700">product bundling</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Mobile Preview */}
-          <div className="flex-1 flex items-center justify-center bg-gray-50 p-8">
+          {/* Mobile Preview - Centered */}
+          <div className="flex-1 flex items-center justify-center bg-white p-8">
             <div className="w-96 h-[700px] bg-white rounded-3xl shadow-2xl overflow-hidden border-8 border-gray-800">
               {/* Phone Screen Content */}
               <div className="h-full flex flex-col">
@@ -457,15 +512,18 @@ const ScreenViewModal = ({ banners, onClose }) => {
 
                         {/* Second Banner - Yellow Concert Giveaway */}
                         {index === 1 && (
-                          <div className="bg-yellow-300 text-black p-6 min-h-[200px]">
+                          <div className="bg-yellow-300 text-black p-6 min-h-[200px] relative">
                             <div className="text-xs text-center mb-4">Expires in 8 days</div>
                             <div className="text-sm font-bold text-center mb-6">YORAA Concert Giveaways</div>
                             
-                            {/* Banner content area */}
+                            {/* Banner content area with text overlay */}
                             <div className="flex-1 flex items-center justify-center mb-4">
                               <div className="text-center">
-                                <div className="text-2xl font-bold mb-2">{banner.title}</div>
-                                <div className="text-sm">{banner.detail}</div>
+                                {banner.detail.split('\n').slice(0, 2).map((line, idx) => (
+                                  <div key={idx} className={idx === 0 ? 'text-lg font-bold mb-1' : 'text-sm'}>
+                                    {line}
+                                  </div>
+                                ))}
                               </div>
                             </div>
 
@@ -484,12 +542,17 @@ const ScreenViewModal = ({ banners, onClose }) => {
                             {banner.image && (
                               <img 
                                 src={banner.image} 
-                                alt={banner.title}
+                                alt="Banner"
                                 className="w-full h-32 object-cover rounded mb-2"
                               />
                             )}
-                            <h4 className="font-medium text-sm mb-1">{banner.title}</h4>
-                            <p className="text-xs text-gray-600">{banner.detail}</p>
+                            <div className="text-sm">
+                              {banner.detail.split('\n').map((line, idx) => (
+                                <div key={idx} className={idx % 2 === 0 ? 'font-medium text-black mb-1' : 'text-xs text-gray-600 mb-2'}>
+                                  {line}
+                                </div>
+                              ))}
+                            </div>
                           </div>
                         )}
                       </div>
@@ -510,16 +573,14 @@ const ScreenViewModal = ({ banners, onClose }) => {
  */
 const EditBannerModal = ({ 
   banner, 
-  title, 
   detail, 
   image, 
-  onTitleChange, 
   onDetailChange, 
   onImageChange, 
   onSave, 
   onClose 
 }) => {
-  const detailText = `Welcome reward
+  const detailText = detail || `Welcome reward
 Enjoy a welcome reward to spend in your first month.
 Birthday reward
 Celebrate your birthday month with a special discount
@@ -604,14 +665,13 @@ Unlocked after your first order`;
 
             {/* Banner Details Preview */}
             <div className="mt-4 p-4 bg-white rounded-lg border">
-              <h4 className="font-medium text-black mb-1">{banner?.title || 'Banner Title'}</h4>
+              <h4 className="font-medium text-black mb-1">Banner Preview</h4>
               <div className="text-sm text-gray-600 space-y-1">
-                <p>Welcome reward</p>
-                <p className="text-xs">Enjoy a welcome reward to spend in your first month.</p>
-                <p>Birthday reward</p>
-                <p className="text-xs">Celebrate your birthday month with a special discount</p>
-                <p>Private members' sale</p>
-                <p className="text-xs">Unlocked after your first order</p>
+                {detailText.split('\n').map((line, index) => (
+                  <div key={index} className={index % 2 === 0 ? 'font-medium text-black' : 'text-gray-600'}>
+                    {line}
+                  </div>
+                ))}
               </div>
             </div>
           </div>

@@ -393,7 +393,7 @@ const EditFaqModal = React.memo(({
   isFormValid 
 }) => {
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] w-full max-w-4xl max-h-[90vh] overflow-y-auto relative">
         {/* Modal Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
@@ -562,7 +562,7 @@ const FaqCard = React.memo(({ faq, onEdit, onDelete, isExpanded, onToggleExpand 
  */
 const SuccessPopup = React.memo(({ onClose }) => {
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] w-full max-w-md relative p-8">
         {/* Close Button */}
         <button
@@ -601,43 +601,28 @@ const SuccessPopup = React.memo(({ onClose }) => {
 const DeleteConfirmationModal = React.memo(({ faq, onConfirm, onCancel }) => {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] w-full max-w-md relative p-8">
-        {/* Close Button */}
-        <button
-          onClick={onCancel}
-          className="absolute top-4 right-4 p-1 hover:bg-gray-100 rounded-lg transition-colors"
-          aria-label="Close modal"
-        >
-          <X className="h-6 w-6 text-gray-600" />
-        </button>
-
+      <div className="bg-white rounded-xl w-full max-w-md p-8">
         {/* Confirmation Message */}
-        <div className="text-center mb-8 mt-4">
-          <h2 className="text-lg font-bold text-black tracking-[-0.41px] leading-[22px] mb-4">
-            Delete FAQ?
+        <div className="text-center mb-8">
+          <h2 className="text-xl font-medium text-black leading-tight">
+            Are you sure you<br />
+            want to delete this<br />
+            faq
           </h2>
-          <p className="text-sm text-gray-600 mb-2">
-            Are you sure you want to delete this FAQ?
-          </p>
-          {faq && (
-            <p className="text-sm font-medium text-gray-800 bg-gray-50 p-3 rounded-lg">
-              "{faq.title}"
-            </p>
-          )}
         </div>
 
         {/* Action Buttons */}
-        <div className="flex justify-center space-x-4">
+        <div className="flex space-x-4">
           <button
             onClick={onConfirm}
-            className="bg-red-600 text-white font-semibold text-sm px-8 py-3 rounded-full hover:bg-red-700 transition-colors"
+            className="flex-1 bg-black text-white font-medium text-base py-3 rounded-full hover:bg-gray-800 transition-colors"
             aria-label="Confirm delete"
           >
-            Delete
+            yes
           </button>
           <button
             onClick={onCancel}
-            className="bg-gray-200 text-gray-800 font-semibold text-sm px-8 py-3 rounded-full hover:bg-gray-300 transition-colors"
+            className="flex-1 bg-gray-100 text-black font-medium text-base py-3 rounded-full hover:bg-gray-200 transition-colors"
             aria-label="Cancel delete"
           >
             Cancel
@@ -654,7 +639,7 @@ const DeleteConfirmationModal = React.memo(({ faq, onConfirm, onCancel }) => {
  */
 const DeleteSuccessPopup = React.memo(({ onClose }) => {
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] w-full max-w-md relative p-8">
         {/* Close Button */}
         <button
