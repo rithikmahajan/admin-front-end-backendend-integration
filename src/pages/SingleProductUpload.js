@@ -149,528 +149,412 @@ const SingleProductUpload = React.memo(() => {
   }, [productData.productName, productData.regularPrice, variants.length]);
 
   return (
-    <div className="min-h-screen">
+    <div className="bg-white min-h-screen">
       {/* Header */}
-      <div>
-        <div className="px-4 py-3">
-          <div className="flex items-center">
-            <button 
-              onClick={() => navigate('/manage-items')}
-              className="flex items-center gap-2 text-gray-600 hover:text-gray-800 mr-3"
-            >
-              <ChevronDown className="h-5 w-5 rotate-90" />
-            </button>
-            <h1 className="text-base font-medium text-gray-900">Upload Items</h1>
-          </div>
+      <div className="px-4 py-6">
+        <div className="flex items-center gap-4">
+          <button 
+            onClick={() => navigate('/manage-items')}
+            className="flex items-center text-gray-600 hover:text-gray-800"
+          >
+            <ChevronDown className="h-6 w-6 rotate-90" />
+          </button>
+          <h1 className="text-[36px] font-bold text-black font-['Montserrat'] leading-6">Upload items</h1>
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="px-4 py-2">
-        <div className="overflow-hidden">
+      {/* Main Content Container */}
+      <div className="px-4 pb-8">
+        
+        {/* Returnable Section */}
+        <div className="py-6 border-b border-gray-200">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-[21px] font-medium text-black font-['Montserrat']">returnable</h3>
+            <div className="flex items-center gap-3">
+              <button 
+                className={`px-6 py-2 rounded-full font-medium text-[16px] border transition-colors ${
+                  productData.returnable === 'yes' 
+                    ? 'bg-[#000aff] text-white border-black' 
+                    : 'bg-white text-black border-gray-300'
+                }`}
+                onClick={() => handleProductDataChange('returnable', 'yes')}
+              >
+                yes
+              </button>
+              <button 
+                className={`px-6 py-2 rounded-full font-medium text-[16px] border transition-colors ${
+                  productData.returnable === 'no' 
+                    ? 'bg-[#000aff] text-white border-black' 
+                    : 'bg-white text-black border-gray-300'
+                }`}
+                onClick={() => handleProductDataChange('returnable', 'no')}
+              >
+                No
+              </button>
+              <button className="bg-[#000aff] text-white px-4 py-2.5 rounded-lg flex items-center gap-2 text-[14px] font-medium border border-[#7280ff] shadow-sm">
+                <Plus className="h-5 w-5" />
+                IMPORT
+              </button>
+            </div>
+          </div>
+          <div className="text-[14px] text-black">(default)</div>
+          <div className="flex items-center gap-2 mt-2">
+            <input type="checkbox" className="w-5 h-5 border border-gray-400 rounded" />
+            <span className="text-[14px]">List to:</span>
+            <span className="text-[15px]">amazon</span>
+            <input type="checkbox" className="w-5 h-5 border border-gray-400 rounded ml-2" />
+            <span className="text-[15px]">flipkart</span>
+            <input type="checkbox" className="w-5 h-5 border border-gray-400 rounded ml-2" />
+            <span className="text-[15px]">yoraa</span>
+            <input type="checkbox" className="w-5 h-5 border border-gray-400 rounded ml-2" />
+            <span className="text-[15px]">myntra</span>
+            <input type="checkbox" className="w-5 h-5 border border-gray-400 rounded ml-2" />
+            <span className="text-[15px]">nykaa</span>
+          </div>
+        </div>
+
+        {/* Variant Section */}
+        <div className="py-6">
+          <h2 className="text-[48px] font-bold text-black font-['Montserrat'] leading-6 mb-8">varient 1</h2>
           
-          {/* Returnable Section */}
-          <div className="py-2 border-b border-gray-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-xs font-medium text-gray-900">Returnable</h3>
-              </div>
-              <div className="flex items-center gap-2">
-                <button 
-                  className={`px-2 py-0.5 rounded-[4px] font-semibold transition-colors text-[11px] shadow-sm border ${
-                    productData.returnable === 'yes' 
-                      ? 'bg-[#1A73E8] text-white border-[#1A73E8]' 
-                      : 'bg-white text-gray-700 border-gray-300'
-                  }`}
-                  onClick={() => handleProductDataChange('returnable', 'yes')}
-                  style={{minWidth:'44px'}}
-                >
-                  Yes
-                </button>
-                <button 
-                  className={`px-2 py-0.5 rounded-[4px] font-semibold transition-colors text-[11px] shadow-sm border ${
-                    productData.returnable === 'no' 
-                      ? 'bg-[#1A73E8] text-white border-[#1A73E8]' 
-                      : 'bg-white text-gray-700 border-gray-300'
-                  }`}
-                  onClick={() => handleProductDataChange('returnable', 'no')}
-                  style={{minWidth:'44px'}}
-                >
-                  No
-                </button>
-                <button className="bg-[#F5F6FA] hover:bg-[#E4E7ED] text-[#1A73E8] px-2 py-0.5 rounded-[4px] flex items-center gap-0.5 text-[11px] font-semibold border border-[#E4E7ED] shadow-sm" style={{minWidth:'60px'}}>
-                  <Plus className="h-2 w-2 text-[#1A73E8]" />
-                  Import
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Variants Section */}
-          {variants.map((variant, index) => (
-            <div key={variant.id} className="border-b border-gray-200">
-              
-              {/* Variant Header */}
-              <div className="py-2">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <h2 className="text-xs font-semibold text-gray-900">variant {index + 1}</h2>
-                    {index === 0 && (
-                      <div className="bg-blue-600 text-white text-xs px-1.5 py-0.5 rounded text-[10px]">ACTIVE</div>
-                    )}
-                    {index > 0 && (
-                      <div className="text-red-600 text-[10px] font-medium">Same as article 1</div>
-                    )}
-                  </div>
-                  {index > 0 && (
-                    <div className="flex items-center gap-1.5">
-                      <button className="bg-blue-600 hover:bg-blue-700 text-white px-2 py-0.5 rounded flex items-center gap-0.5 text-[10px]">
-                        <Plus className="h-2 w-2" />
-                        IMPORT
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-5 gap-3">
-                
-                {/* Left Column - Product Details */}
-                <div className="col-span-4 space-y-2.5">
-                  
-                  {/* Product Name */}
-                  <div>
-                    <label className="block text-xs font-medium text-gray-900 mb-1">product name</label>
-                    <input
-                      type="text"
-                      value={variant.productName}
-                      onChange={(e) => handleVariantChange(variant.id, 'productName', e.target.value)}
-                      className="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-xs"
-                      placeholder="Enter product name"
-                    />
-                  </div>
-
-                  {/* Title */}
-                  <div>
-                    <label className="block text-xs font-medium text-gray-900 mb-1">title</label>
-                    <input
-                      type="text"
-                      value={variant.title}
-                      onChange={(e) => handleVariantChange(variant.id, 'title', e.target.value)}
-                      className="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-xs"
-                      placeholder="Enter title"
-                    />
-                  </div>
-
-                  {/* Description */}
-                  <div>
-                    <label className="block text-xs font-medium text-gray-900 mb-1">description</label>
-                    <div className="mb-1 text-[10px] text-gray-500">
-                      Watch the no. of letters that fit in the screen make this box structure
-                      as such so that we know that exactly how it will look at front side or
-                      make this box in shape of the screen
-                    </div>
-                    <textarea
-                      value={variant.description}
-                      onChange={(e) => handleVariantChange(variant.id, 'description', e.target.value)}
-                      rows={3}
-                      className="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none text-xs"
-                      placeholder="Enter product description here..."
-                    />
-                  </div>
-
-                  {/* Manufacturing Details */}
-                  <div>
-                    <label className="block text-xs font-medium text-gray-900 mb-1">manufacturing details</label>
-                    <textarea
-                      value={variant.manufacturingDetails}
-                      onChange={(e) => handleVariantChange(variant.id, 'manufacturingDetails', e.target.value)}
-                      rows={2}
-                      className="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none text-xs"
-                      placeholder="Enter manufacturing details"
-                    />
-                  </div>
-
-                  {/* Shipping Returns and Exchange */}
-                  <div>
-                    <label className="block text-xs font-medium text-gray-900 mb-1">shipping returns and exchange</label>
-                    <textarea
-                      value={variant.shippingReturns}
-                      onChange={(e) => handleVariantChange(variant.id, 'shippingReturns', e.target.value)}
-                      rows={2}
-                      className="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none text-xs"
-                      placeholder="Enter shipping and returns policy"
-                    />
-                  </div>
-
-                  {/* Pricing */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-xs font-medium text-gray-900 mb-1">regular price</label>
-                      <input
-                        type="number"
-                        value={variant.regularPrice}
-                        onChange={(e) => handleVariantChange(variant.id, 'regularPrice', e.target.value)}
-                        className="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-xs"
-                        placeholder="0.00"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-medium text-gray-900 mb-1">sale price</label>
-                      <input
-                        type="number"
-                        value={variant.salePrice}
-                        onChange={(e) => handleVariantChange(variant.id, 'salePrice', e.target.value)}
-                        className="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-xs"
-                        placeholder="0.00"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Stock Size */}
-                  <div>
-                    <label className="block text-xs font-medium text-gray-900 mb-1">Stock size</label>
-                    <div className="flex flex-wrap gap-1 mb-2">
-                      <button className="bg-blue-600 text-white px-2 py-0.5 rounded text-xs font-medium">
-                        No size
-                      </button>
-                      <button className="bg-white border border-gray-300 text-gray-700 px-2 py-0.5 rounded text-xs hover:bg-gray-50">
-                        Add size
-                      </button>
-                    </div>
-                    
-                    {/* Size Inputs Grid */}
-                    <div className="grid grid-cols-5 gap-1 mb-2">
-                      {[...Array(10)].map((_, i) => (
-                        <input
-                          key={i}
-                          type="text"
-                          className="px-1 py-1 border border-gray-300 rounded text-center text-xs"
-                          placeholder={i < 5 ? ['Size', 'Qty', 'Hsn', 'amzn', 'flip'][i] : ['yoraa', 'myntra', 'nykaa', 'SKU', 'barcode'][i - 5]}
-                        />
-                      ))}
-                    </div>
-                    
-                    {/* Additional Options */}
-                    <div className="flex flex-wrap gap-1">
-                      <button className="bg-white border border-gray-300 text-gray-700 px-2 py-0.5 rounded text-xs hover:bg-gray-50 flex items-center gap-0.5">
-                        <Plus className="h-2 w-2" />
-                        Size
-                      </button>
-                      <button className="bg-white border border-gray-300 text-gray-700 px-2 py-0.5 rounded text-xs hover:bg-gray-50 flex items-center gap-0.5">
-                        <Plus className="h-2 w-2" />
-                        Qty
-                      </button>
-                      <button className="bg-white border border-gray-300 text-gray-700 px-2 py-0.5 rounded text-xs hover:bg-gray-50 flex items-center gap-0.5">
-                        <Plus className="h-2 w-2" />
-                        Hsn
-                      </button>
-                      <button className="bg-white border border-gray-300 text-gray-700 px-2 py-0.5 rounded text-xs hover:bg-gray-50">
-                        Alt price
-                      </button>
-                      <button className="bg-white border border-gray-300 text-gray-700 px-2 py-0.5 rounded text-xs hover:bg-gray-50">
-                        SKU
-                      </button>
-                      <button className="bg-white border border-gray-300 text-gray-700 px-2 py-0.5 rounded text-xs hover:bg-gray-50">
-                        barcode
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Filter Section */}
-                  <div>
-                    <label className="block text-xs font-medium text-gray-900 mb-1">Filter</label>
-                    <div className="mb-1 text-xs text-gray-500">assign Filter(drop down)</div>
-                    <button className="bg-blue-600 text-white px-2 py-0.5 rounded text-xs font-medium flex items-center gap-0.5">
-                      <Plus className="h-2 w-2" />
-                      colour
-                    </button>
-                    
-                    {/* Color Data Display */}
-                    <div className="mt-2 bg-white border border-gray-300 rounded p-2 w-32">
-                      <div className="text-xs text-gray-500 mb-1">showing colour data</div>
-                      <div className="space-y-0.5">
-                        <div className="py-0.5 border-b border-gray-200 text-xs">s</div>
-                        <div className="py-0.5 border-b border-gray-200 text-xs">s</div>
-                        <div className="py-0.5 text-xs">s</div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Also Show In */}
-                  <div>
-                    <label className="block text-xs font-medium text-gray-900 mb-1">Also Show in</label>
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-1">
-                        <input 
-                          type="checkbox" 
-                          id={`also-show-like-${variant.id}`}
-                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-3 h-3"
-                        />
-                        <label htmlFor={`also-show-like-${variant.id}`} className="text-xs font-medium text-gray-900">
-                          You Might Also Like
-                        </label>
-                        <button className="bg-blue-600 text-white px-1.5 py-0.5 rounded text-xs font-medium flex items-center gap-0.5">
-                          <Plus className="h-2 w-2" />
-                          no
-                        </button>
-                      </div>
-                      
-                      <div className="flex items-center gap-1">
-                        <input 
-                          type="checkbox" 
-                          id={`similar-items-${variant.id}`}
-                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-3 h-3"
-                        />
-                        <label htmlFor={`similar-items-${variant.id}`} className="text-xs font-medium text-gray-900">
-                          Similar Items
-                        </label>
-                        <button className="bg-blue-600 text-white px-1.5 py-0.5 rounded text-xs font-medium flex items-center gap-0.5">
-                          <Plus className="h-2 w-2" />
-                          yes
-                        </button>
-                      </div>
-                      
-                      <div className="flex items-center gap-1">
-                        <input 
-                          type="checkbox" 
-                          id={`other-bought-${variant.id}`}
-                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-3 h-3"
-                        />
-                        <label htmlFor={`other-bought-${variant.id}`} className="text-xs font-medium text-gray-900">
-                          Other Also Bought
-                        </label>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Right Column - Product Images */}
-                <div className="space-y-2">
-                  <div>
-                    <h3 className="text-xs font-medium text-gray-900 mb-2">Product Images/videos</h3>
-                    
-                    {/* Main Image Upload with Preview */}
-                    <div className="mb-2 flex flex-col items-center">
-                      <div className="w-32 h-40 bg-white border border-gray-200 rounded mb-1 flex items-center justify-center relative">
-                        {/* This would be the main product image preview */}
-                        <div className="w-full h-full flex items-center justify-center overflow-hidden">
-                          <img 
-                            src="/assets/navbarLinks/account.svg" 
-                            alt="Product placeholder" 
-                            className="h-full w-auto object-contain"
-                          />
-                        </div>
-                        <button className="absolute top-1 right-1 bg-white rounded-full p-1 shadow-sm">
-                          <X className="h-2 w-2 text-gray-600" />
-                        </button>
-                      </div>
-                      
-                      {/* Thumbnail Selector */}
-                      <div className="flex gap-1 mb-2">
-                        {[...Array(5)].map((_, i) => (
-                          <button 
-                            key={i} 
-                            className="w-6 h-6 border border-gray-200 flex items-center justify-center"
-                          >
-                            {i === 0 && <div className="w-1.5 h-1.5 bg-black rounded-full"></div>}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                    
-                    {/* Upload Section */}
-                    <div className="mb-2">
-                      <button className="w-full border border-dashed border-gray-300 rounded p-1 text-center">
-                        <Upload className="h-3 w-3 text-gray-400 mx-auto" />
-                      </button>
-                    </div>
-
-                    {/* Uploaded Thumbnails */}
-                    <div className="space-y-1.5">
-                      {[...Array(6)].map((_, i) => (
-                        <div key={i} className="flex items-center gap-1.5">
-                          <div className="w-4 h-4 rounded-full bg-black flex items-center justify-center text-white text-[10px]">
-                            {i + 1}
-                          </div>
-                          <div className="w-5 h-7 bg-white border border-gray-200 flex items-center justify-center overflow-hidden">
-                            <img 
-                              src="/assets/navbarLinks/account.svg" 
-                              alt="Product thumbnail" 
-                              className="h-full w-auto object-contain"
-                            />
-                          </div>
-                          <button className="ml-auto text-blue-600">
-                            <Check className="h-2.5 w-2.5" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Meta Data Section */}
-              {index === 0 && (
-                <div className="p-3 border-t border-gray-200">
-                  <div className="flex items-center gap-2 mb-3">
-                    <button className="bg-blue-600 text-white px-2 py-0.5 rounded text-xs font-medium">
-                      add meta data
-                    </button>
-                    <button className="bg-blue-600 text-white px-2 py-0.5 rounded text-xs font-medium flex items-center gap-0.5">
-                      <Plus className="h-2 w-2" />
-                      IMPORT
-                    </button>
-                  </div>
-                  
-                  <div className="grid grid-cols-3 gap-2">
-                    <div>
-                      <label className="block text-xs font-medium text-gray-900 mb-1">meta title</label>
-                      <input
-                        type="text"
-                        value={productData.metaTitle}
-                        onChange={(e) => handleProductDataChange('metaTitle', e.target.value)}
-                        className="w-full px-2 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-xs"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-medium text-gray-900 mb-1">meta description</label>
-                      <input
-                        type="text"
-                        value={productData.metaDescription}
-                        onChange={(e) => handleProductDataChange('metaDescription', e.target.value)}
-                        className="w-full px-2 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-xs"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-medium text-gray-900 mb-1">slug URL</label>
-                      <input
-                        type="text"
-                        value={productData.slugUrl}
-                        onChange={(e) => handleProductDataChange('slugUrl', e.target.value)}
-                        className="w-full px-2 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-xs"
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          ))}
-
-          {/* Add Variant Button */}
-          <div className="py-3 border-b border-gray-200">
-            <button 
-              onClick={addVariant}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-2 py-0.5 rounded text-xs font-medium flex items-center gap-1"
-            >
-              <Plus className="h-2.5 w-2.5" />
-              Add Variant
-            </button>
-          </div>
-
-          {/* Size Chart Section */}
-          <div className="py-2 border-b border-gray-200">
-            <h3 className="text-xs font-bold text-gray-900 mb-2">SIZE CHART</h3>
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
             
-            <div className="grid grid-cols-3 gap-3">
-              <div>
-                <h4 className="text-xs font-medium text-gray-900 mb-1">size chart(inch)</h4>
-                <div className="border border-dashed border-gray-300 rounded p-2 text-center flex flex-col items-center justify-center h-16">
-                  <Upload className="h-3 w-3 text-gray-400 mb-1" />
-                  <p className="text-[10px] text-gray-500">Drop your image here</p>
-                </div>
-              </div>
+            {/* Left Column - Product Details */}
+            <div className="col-span-3 space-y-6">
               
+              {/* Product Name */}
               <div>
-                <h4 className="text-xs font-medium text-gray-900 mb-1">size chart(cm)</h4>
-                <div className="border border-dashed border-gray-300 rounded p-2 text-center flex flex-col items-center justify-center h-16">
-                  <Upload className="h-3 w-3 text-gray-400 mb-1" />
-                  <p className="text-[10px] text-gray-500">Drop your image here</p>
+                <label className="block text-[21px] font-medium text-black font-['Montserrat'] mb-3">product name</label>
+                <div className="h-[47px] border-2 border-black rounded-xl">
+                  <input
+                    type="text"
+                    value={variants[0]?.productName || ''}
+                    onChange={(e) => handleVariantChange(1, 'productName', e.target.value)}
+                    className="w-full h-full px-4 border-none rounded-xl focus:outline-none focus:ring-0 text-[16px]"
+                    placeholder="Enter product name"
+                  />
                 </div>
               </div>
-              
+
+              {/* Title */}
               <div>
-                <h4 className="text-xs font-medium text-gray-900 mb-1">size measurement image</h4>
-                <div className="border border-dashed border-gray-300 rounded p-2 text-center flex flex-col items-center justify-center h-16">
-                  <Upload className="h-3 w-3 text-gray-400 mb-1" />
-                  <p className="text-[10px] text-gray-500">Drop your image here</p>
+                <label className="block text-[21px] font-medium text-black font-['Montserrat'] mb-3">Title</label>
+                <div className="h-[47px] border-2 border-black rounded-xl">
+                  <input
+                    type="text"
+                    value={variants[0]?.title || ''}
+                    onChange={(e) => handleVariantChange(1, 'title', e.target.value)}
+                    className="w-full h-full px-4 border-none rounded-xl focus:outline-none focus:ring-0 text-[16px]"
+                    placeholder="Enter title"
+                  />
                 </div>
               </div>
-            </div>
-          </div>
 
-          {/* Category Assignment */}
-          <div className="py-2 border-b border-gray-200">
-            <div className="flex flex-wrap gap-2">
-              <button className="bg-black text-white px-2 py-0.5 rounded-sm text-[10px] font-medium flex items-center gap-0.5">
-                <Plus className="h-2 w-2" />
-                Assign category
-              </button>
-              <button className="bg-black text-white px-2 py-0.5 rounded-sm text-[10px] font-medium flex items-center gap-0.5">
-                <Plus className="h-2 w-2" />
-                Assign sub category
-              </button>
-              <button 
-                onClick={handlePublishProduct}
-                className="bg-blue-600 text-white px-2 py-0.5 rounded-sm text-[10px] font-medium flex items-center gap-0.5"
-              >
-                <Plus className="h-2 w-2" />
-                publish product
-              </button>
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="pt-2 pb-2">
-            <div className="flex gap-2">
-              <button 
-                onClick={handleSaveAsDraft}
-                className="bg-white border border-gray-300 text-gray-700 px-2 py-0.5 rounded-sm font-medium hover:bg-gray-50 text-[10px]"
-              >
-                save as draft
-              </button>
-              <button 
-                onClick={handleRecheckDetails}
-                className="bg-red-500 text-white px-2 py-0.5 rounded-sm font-medium hover:bg-red-600 text-[10px]"
-              >
-                RECHECK DETAILS
-              </button>
-            </div>
-          </div>
-
-          {/* Review Section */}
-          <div className="py-2">
-            <div className="absolute z-10 bg-white border border-gray-200 rounded shadow p-1.5 w-32">
-              <div className="text-[10px] text-gray-700 font-medium mb-1">RECHECK DETAILS</div>
-              <div className="space-y-0.5">
-                <div className="py-0.5 border-b border-gray-100 text-[10px] font-normal">DETAILS</div>
-                <div className="py-0.5 text-[10px] font-normal">IMAGES and sizes</div>
+              {/* Description */}
+              <div>
+                <label className="block text-[21px] font-medium text-black font-['Montserrat'] mb-1">Discription</label>
+                <div className="text-[21px] font-medium text-black font-['Montserrat'] mb-2">
+                  <p>watch the no, of letters that fit in the screen make this box structure</p>
+                  <p>as such so that we know that exactly how it will look at front side or</p>
+                  <p>make this box in shape of the screen</p>
+                </div>
+                <div className="h-[154px] border-2 border-black rounded-xl">
+                  <textarea
+                    value={variants[0]?.description || ''}
+                    onChange={(e) => handleVariantChange(1, 'description', e.target.value)}
+                    className="w-full h-full px-4 py-3 border-none rounded-xl resize-none focus:outline-none focus:ring-0 text-[16px]"
+                    placeholder="Enter product description here..."
+                  />
+                </div>
               </div>
-            </div>
-          </div>
 
-          {/* Product Previews - These appear to be modals/tooltips in the Figma */}
-          <div className="hidden">
-            {[...Array(3)].map((_, i) => (
-              <div key={i} className="absolute z-20 bg-white border border-gray-200 rounded shadow-md p-2 max-w-xs">
-                <div className="flex gap-2">
-                  <div className="w-8 h-8 bg-gray-100 rounded-sm flex-shrink-0 overflow-hidden">
-                    <img 
-                      src="/assets/navbarLinks/account.svg" 
-                      alt="Product preview" 
-                      className="h-full w-full object-contain"
+              {/* Manufacturing Details */}
+              <div>
+                <label className="block text-[21px] font-medium text-black font-['Montserrat'] mb-3">Manufacturing details</label>
+                <div className="h-[154px] border-2 border-black rounded-xl">
+                  <textarea
+                    value={variants[0]?.manufacturingDetails || ''}
+                    onChange={(e) => handleVariantChange(1, 'manufacturingDetails', e.target.value)}
+                    className="w-full h-full px-4 py-3 border-none rounded-xl resize-none focus:outline-none focus:ring-0 text-[16px]"
+                    placeholder="Enter manufacturing details"
+                  />
+                </div>
+              </div>
+
+              {/* Shipping Returns and Exchange */}
+              <div>
+                <label className="block text-[21px] font-medium text-black font-['Montserrat'] mb-3">Shipping returns and exchange</label>
+                <div className="h-[154px] border-2 border-black rounded-xl">
+                  <textarea
+                    value={variants[0]?.shippingReturns || ''}
+                    onChange={(e) => handleVariantChange(1, 'shippingReturns', e.target.value)}
+                    className="w-full h-full px-4 py-3 border-none rounded-xl resize-none focus:outline-none focus:ring-0 text-[16px]"
+                    placeholder="Enter shipping and returns policy"
+                  />
+                </div>
+              </div>
+
+              {/* Pricing */}
+              <div className="grid grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-[21px] font-medium text-black font-['Montserrat'] mb-3">Regular price</label>
+                  <div className="h-[47px] border-2 border-black rounded-xl">
+                    <input
+                      type="number"
+                      value={variants[0]?.regularPrice || ''}
+                      onChange={(e) => handleVariantChange(1, 'regularPrice', e.target.value)}
+                      className="w-full h-full px-4 border-none rounded-xl focus:outline-none focus:ring-0 text-[16px]"
+                      placeholder="0.00"
                     />
                   </div>
-                  <div className="flex-1">
-                    <p className="text-xs text-gray-900 leading-tight">
-                      {i === 0 ? "Save as draft to continue later" : 
-                       i === 1 ? "Publish to make live on store" : 
-                       "Check all fields before submitting"}
-                    </p>
+                </div>
+                <div>
+                  <label className="block text-[21px] font-medium text-black font-['Montserrat'] mb-3">Sale price</label>
+                  <div className="h-[47px] border-2 border-black rounded-xl">
+                    <input
+                      type="number"
+                      value={variants[0]?.salePrice || ''}
+                      onChange={(e) => handleVariantChange(1, 'salePrice', e.target.value)}
+                      className="w-full h-full px-4 border-none rounded-xl focus:outline-none focus:ring-0 text-[16px]"
+                      placeholder="0.00"
+                    />
                   </div>
                 </div>
               </div>
-            ))}
+
+              {/* Stock Size */}
+              <div>
+                <label className="block text-[21px] font-medium text-black font-['Montserrat'] mb-3">Stock size</label>
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="bg-[#000aff] text-white px-4 py-2.5 rounded-lg text-[14px] font-medium border border-[#7280ff] shadow-sm">
+                    No size
+                  </div>
+                  <div className="bg-white border border-gray-300 text-black px-4 py-2.5 rounded-lg text-[14px] hover:bg-gray-50">
+                    Add size
+                  </div>
+                  <div className="bg-[#000aff] text-white px-4 py-2.5 rounded-lg flex items-center gap-2 text-[14px] font-medium border border-[#7280ff] shadow-sm">
+                    <Plus className="h-5 w-5" />
+                    IMPORT
+                  </div>
+                </div>
+                
+                {/* Size Input Grid */}
+                <div className="grid grid-cols-10 gap-2 mb-4">
+                  {[
+                    'Size', 'Quantity', 'Hsn', 'amazon', 'flipkart', 
+                    'yoraa', 'myntra', 'nykaa', 'SKU', 'barcode no.'
+                  ].map((placeholder, i) => (
+                    <div key={i} className="h-[47px] border-2 border-black rounded-xl">
+                      <input
+                        type="text"
+                        className="w-full h-full px-2 text-center border-none rounded-xl focus:outline-none focus:ring-0 text-[14px]"
+                        placeholder={placeholder}
+                      />
+                    </div>
+                  ))}
+                </div>
+                
+                {/* Size Row 2 */}
+                <div className="grid grid-cols-10 gap-2 mb-4">
+                  {Array(10).fill('').map((_, i) => (
+                    <div key={i} className="h-[47px] border-2 border-black rounded-xl">
+                      <input
+                        type="text"
+                        className="w-full h-full px-2 text-center border-none rounded-xl focus:outline-none focus:ring-0 text-[14px]"
+                      />
+                    </div>
+                  ))}
+                </div>
+                
+                {/* Additional Size Options */}
+                <div className="flex flex-wrap gap-2">
+                  <button className="bg-white border border-gray-300 text-black px-4 py-2.5 rounded-lg text-[14px] hover:bg-gray-50 flex items-center gap-1">
+                    <Plus className="h-3 w-3" />
+                    Size
+                  </button>
+                  <button className="bg-white border border-gray-300 text-black px-4 py-2.5 rounded-lg text-[14px] hover:bg-gray-50 flex items-center gap-1">
+                    <Plus className="h-3 w-3" />
+                    Quantity
+                  </button>
+                  <button className="bg-white border border-gray-300 text-black px-4 py-2.5 rounded-lg text-[14px] hover:bg-gray-50 flex items-center gap-1">
+                    <Plus className="h-3 w-3" />
+                    Hsn
+                  </button>
+                  <button className="bg-white border border-gray-300 text-black px-4 py-2.5 rounded-lg text-[14px] hover:bg-gray-50">
+                    Add alternate price
+                  </button>
+                  <button className="bg-white border border-gray-300 text-black px-4 py-2.5 rounded-lg text-[14px] hover:bg-gray-50">
+                    SKU
+                  </button>
+                  <button className="bg-white border border-gray-300 text-black px-4 py-2.5 rounded-lg text-[14px] hover:bg-gray-50">
+                    barcode no.
+                  </button>
+                </div>
+                
+                <div className="text-right text-[15px] text-black mt-2">10000000000000</div>
+              </div>
+
+              {/* Filter Section */}
+              <div>
+                <label className="block text-[21px] font-medium text-black font-['Montserrat'] mb-1">Filter</label>
+                <div className="text-[21px] font-medium text-black font-['Montserrat'] mb-3">assign Filter(drop down)</div>
+                <button className="bg-[#000aff] text-white px-4 py-2.5 rounded-lg flex items-center gap-2 text-[14px] font-medium border border-[#7280ff] shadow-sm">
+                  <Plus className="h-5 w-5" />
+                  colour
+                </button>
+                
+                {/* Color Data Display */}
+                <div className="mt-4 bg-white border border-gray-200 rounded-xl shadow-lg p-4 w-[166px]">
+                  <div className="text-[14px] text-gray-500 mb-3">showing colour data</div>
+                  <div className="space-y-1">
+                    <div className="py-2 border-b border-gray-200 text-[14px] text-black">red</div>
+                    <div className="py-2 border-b border-gray-200 text-[14px] text-black">pink</div>
+                    <div className="py-2 text-[14px] text-black">orange</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Also Show In */}
+              <div>
+                <label className="block text-[21px] font-medium text-black font-['Montserrat'] mb-3">Also Show in</label>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <input type="checkbox" className="w-5 h-5 border border-gray-400 rounded" />
+                    <span className="text-[20px] font-medium text-black font-['Montserrat']">You Might Also Like</span>
+                    <button className="bg-[#000aff] text-white px-4 py-2.5 rounded-lg flex items-center gap-2 text-[14px] font-medium border border-[#7280ff] shadow-sm">
+                      <Plus className="h-5 w-5" />
+                      no
+                    </button>
+                  </div>
+                  
+                  <div className="flex items-center gap-3">
+                    <input type="checkbox" className="w-5 h-5 border border-gray-400 rounded" />
+                    <span className="text-[20px] font-medium text-black font-['Montserrat']">SImailar Items</span>
+                    <button className="bg-[#000aff] text-white px-4 py-2.5 rounded-lg flex items-center gap-2 text-[14px] font-medium border border-[#7280ff] shadow-sm">
+                      <Plus className="h-5 w-5" />
+                      yes
+                    </button>
+                  </div>
+                  
+                  <div className="flex items-center gap-3">
+                    <input type="checkbox" className="w-5 h-5 border border-gray-400 rounded" />
+                    <span className="text-[20px] font-medium text-black font-['Montserrat']">Other Also Bought</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Column - Product Images */}
+            <div className="space-y-6">
+              <div>
+                <h3 className="text-[32px] font-bold text-black font-['Montserrat'] leading-6 mb-6">Product Images/videos</h3>
+                
+                {/* Main Image Preview */}
+                <div className="mb-6">
+                  <img 
+                    src="/assets/navbarLinks/account.svg" 
+                    alt="Product main image" 
+                    className="w-[276px] h-[286px] object-contain bg-gray-100 rounded"
+                  />
+                </div>
+                
+                {/* Upload Areas */}
+                <div className="space-y-4 mb-6">
+                  <div>
+                    <h4 className="text-[21px] font-medium text-black font-['Montserrat'] mb-2">Upload image</h4>
+                    <div className="w-[185px] h-[96px] border border-dashed border-gray-300 rounded flex flex-col items-center justify-center">
+                      <Upload className="h-6 w-6 text-gray-400 mb-2" />
+                      <p className="text-[10px] font-medium text-black font-['Montserrat'] text-center">
+                        Drop your image here PNG. JPEG allowed
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <h4 className="text-[21px] font-medium text-black font-['Montserrat'] mb-2">Upload video</h4>
+                    <div className="w-[185px] h-[96px] border border-dashed border-gray-300 rounded flex flex-col items-center justify-center">
+                      <Upload className="h-6 w-6 text-gray-400 mb-2" />
+                      <p className="text-[10px] font-medium text-black font-['Montserrat'] text-center">
+                        Drop your image here PNG. JPEG allowed
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Thumbnail List */}
+                <div className="space-y-4">
+                  {[...Array(5)].map((_, i) => (
+                    <div key={i} className="flex items-center gap-3">
+                      <img 
+                        src="/assets/navbarLinks/account.svg" 
+                        alt={`Product thumbnail ${i + 1}`} 
+                        className="w-[86px] h-[83px] object-contain bg-gray-100 rounded"
+                      />
+                      <div className="flex-1">
+                        <p className="text-[16px] font-semibold text-[#232321] font-['Open_Sans']">
+                          Product thumbnail.png
+                        </p>
+                        <div className="w-[289px] h-1 bg-[#e7e7e3] rounded-lg mt-2">
+                          <div className="w-[137px] h-1 bg-[#003f62] rounded-lg"></div>
+                        </div>
+                      </div>
+                      <button className="p-2">
+                        <Check className="h-8 w-8 text-blue-600" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Meta Data Section */}
+          <div className="mt-12 py-6 border-t border-gray-200">
+            <div className="flex items-center gap-4 mb-6">
+              <button className="bg-[#000aff] text-white px-4 py-2.5 rounded-lg text-[14px] font-medium border border-[#7280ff] shadow-sm">
+                add meta data
+              </button>
+              <button className="bg-[#000aff] text-white px-4 py-2.5 rounded-lg flex items-center gap-2 text-[14px] font-medium border border-[#7280ff] shadow-sm">
+                <Plus className="h-5 w-5" />
+                IMPORT
+              </button>
+            </div>
+            
+            <div className="grid grid-cols-3 gap-6">
+              <div>
+                <label className="block text-[21px] font-medium text-black font-['Montserrat'] mb-3">meta title</label>
+                <div className="h-[47px] border-2 border-black rounded-xl">
+                  <input
+                    type="text"
+                    value={productData.metaTitle}
+                    onChange={(e) => handleProductDataChange('metaTitle', e.target.value)}
+                    className="w-full h-full px-4 border-none rounded-xl focus:outline-none focus:ring-0 text-[16px]"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-[21px] font-medium text-black font-['Montserrat'] mb-3">meta description</label>
+                <div className="h-[47px] border-2 border-black rounded-xl">
+                  <input
+                    type="text"
+                    value={productData.metaDescription}
+                    onChange={(e) => handleProductDataChange('metaDescription', e.target.value)}
+                    className="w-full h-full px-4 border-none rounded-xl focus:outline-none focus:ring-0 text-[16px]"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-[21px] font-medium text-black font-['Montserrat'] mb-3">slug URL</label>
+                <div className="h-[47px] border-2 border-black rounded-xl">
+                  <input
+                    type="text"
+                    value={productData.slugUrl}
+                    onChange={(e) => handleProductDataChange('slugUrl', e.target.value)}
+                    className="w-full h-full px-4 border-none rounded-xl focus:outline-none focus:ring-0 text-[16px]"
+                  />
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -679,16 +563,10 @@ const SingleProductUpload = React.memo(() => {
       {isPublishModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded shadow-lg max-w-[200px] w-full mx-4 relative">
-            
-            {/* Modal Content */}
             <div className="p-4 text-center">
-              
-              {/* Confirmation Message */}
               <h2 className="text-sm font-medium text-black mb-4 leading-tight">
                 Are you sure you want to publish this product?
               </h2>
-
-              {/* Action Buttons */}
               <div className="flex gap-2 justify-center">
                 <button
                   onClick={handleConfirmPublish}
