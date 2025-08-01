@@ -29,6 +29,10 @@ const InviteAFriend = () => {
   const [showIssueSuccessModal, setShowIssueSuccessModal] = useState(false);
   const [showIssueFinalSuccessModal, setShowIssueFinalSuccessModal] = useState(false);
   
+  // Delete code 2FA flow states
+  const [showDelete2FAModal, setShowDelete2FAModal] = useState(false);
+  const [showDeleteFinalSuccessModal, setShowDeleteFinalSuccessModal] = useState(false);
+  
   const [toggleAction, setToggleAction] = useState('');
   
   const [editingCode, setEditingCode] = useState(null);
@@ -265,15 +269,13 @@ const InviteAFriend = () => {
 
   const handleConfirmDelete = () => {
     setShowDeleteConfirmationModal(false);
-    setShowDeleteSuccessModal(true);
+    setShowDelete2FAModal(true);
   };
 
   const handleDeleteSuccessDone = () => {
-    if (deletingCode) {
-      setIssuedCodes(issuedCodes.filter(code => code.id !== deletingCode.id));
-      setDeletingCode(null);
-    }
+    // This now just transitions to the final success modal
     setShowDeleteSuccessModal(false);
+    setShowDeleteFinalSuccessModal(true);
   };
 
   const handleCancelDelete = () => {
@@ -294,6 +296,10 @@ const InviteAFriend = () => {
           nextInputId = `otp-off-${index + 1}`;
         } else if (showEdit2FAModal) {
           nextInputId = `edit-otp-${index + 1}`;
+        } else if (showDelete2FAModal) {
+          nextInputId = `delete-otp-${index + 1}`;
+        } else if (showIssue2FAModal) {
+          nextInputId = `issue-otp-${index + 1}`;
         } else {
           nextInputId = `otp-${index + 1}`;
         }
@@ -310,6 +316,8 @@ const InviteAFriend = () => {
         prevInputId = `otp-off-${index - 1}`;
       } else if (showEdit2FAModal) {
         prevInputId = `edit-otp-${index - 1}`;
+      } else if (showDelete2FAModal) {
+        prevInputId = `delete-otp-${index - 1}`;
       } else if (showIssue2FAModal) {
         prevInputId = `issue-otp-${index - 1}`;
       } else {
@@ -374,6 +382,57 @@ const InviteAFriend = () => {
 
   const handleCloseIssueFinalSuccessModal = () => {
     setShowIssueFinalSuccessModal(false);
+  };
+
+  // Delete code 2FA flow handlers
+  const handleDelete2FASubmit = () => {
+    const otpString = otpCode.join('');
+    if (otpString.length === 4 && verificationPassword && defaultPassword) {
+      setShowDelete2FAModal(false);
+      // Reset 2FA form
+      setOtpCode(['', '', '', '']);
+      setVerificationPassword('');
+      setDefaultPassword('');
+      // Show success modal
+      setShowDeleteSuccessModal(true);
+    } else {
+      alert('Please fill in all fields');
+    }
+  };
+
+  const handleCancelDelete2FA = () => {
+    setShowDelete2FAModal(false);
+    // Reset 2FA form
+    setOtpCode(['', '', '', '']);
+    setVerificationPassword('');
+    setDefaultPassword('');
+    // Reset delete state
+    setDeletingCode(null);
+  };
+
+  const handleDeleteSuccessModalDone = () => {
+    setShowDeleteSuccessModal(false);
+    setShowDeleteFinalSuccessModal(true);
+  };
+
+  const handleDeleteFinalSuccessModalDone = () => {
+    setShowDeleteFinalSuccessModal(false);
+    
+    // Actually delete the code now
+    if (deletingCode) {
+      setIssuedCodes(issuedCodes.filter(code => code.id !== deletingCode.id));
+      setDeletingCode(null);
+    }
+  };
+
+  const handleCloseDeleteSuccessModal = () => {
+    setShowDeleteSuccessModal(false);
+    setDeletingCode(null);
+  };
+
+  const handleCloseDeleteFinalSuccessModal = () => {
+    setShowDeleteFinalSuccessModal(false);
+    setDeletingCode(null);
   };
 
   return (
@@ -1552,6 +1611,178 @@ const InviteAFriend = () => {
             
             {/* Modal height spacer to ensure proper modal size */}
             <div className="h-[240px]"></div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete 2FA Modal - Based on first Figma design */}
+      {showDelete2FAModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white overflow-clip relative rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] w-full max-w-[430px] mx-4">
+            {/* Close button */}
+            <button 
+              onClick={handleCancelDelete2FA}
+              className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700 z-10"
+            >
+              <div className="absolute bottom-[17.18%] left-[17.18%] right-[17.18%] top-[17.17%]">
+                <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </div>
+            </button>
+            
+            {/* Main content text */}
+            <div className="absolute left-1/2 top-[23px] transform -translate-x-1/2 w-[303px] text-center">
+              <p className="font-bold text-black text-[18px] leading-[22px] tracking-[-0.41px] font-['Montserrat']">
+                if you want to change or access these settings please enter the OPT send to your registered mobile no. and the password
+              </p>
+            </div>
+            
+            {/* Verification Code Section */}
+            <div className="absolute left-16 top-[127px] flex flex-col gap-2">
+              <div className="grid-cols-[max-content] grid-rows-[max-content] inline-grid place-items-start relative">
+                <div className="grid-cols-[max-content] grid-rows-[max-content] inline-grid leading-[0] place-items-start relative">
+                  <div className="font-bold text-black text-[24px] leading-[48px] tracking-[0.72px] font-['Montserrat'] h-[42px] w-[225px]">
+                    <p>Verification code</p>
+                  </div>
+                </div>
+              </div>
+              <div className="font-normal text-black text-[14px] leading-[24px] font-['Montserrat'] w-[308px]">
+                <p>Please enter the verification code we sent to your phone number</p>
+              </div>
+            </div>
+            
+            {/* OTP Input Circles */}
+            <div className="absolute left-[79px] top-[241px] w-[268px] h-[58px] flex gap-4 justify-center items-center">
+              {otpCode.map((digit, index) => (
+                <div key={index} className="w-[58px] h-[58px] rounded-full border-2 border-gray-300 flex items-center justify-center">
+                  <input
+                    id={`delete-otp-${index}`}
+                    type="text"
+                    value={digit}
+                    onChange={(e) => handleOtpChange(index, e.target.value)}
+                    onKeyDown={(e) => handleOtpKeyDown(index, e)}
+                    className="w-8 h-8 text-center text-xl font-semibold bg-transparent border-none outline-none"
+                    maxLength="1"
+                  />
+                </div>
+              ))}
+            </div>
+            
+            {/* Verification Code Input Container */}
+            <div className="absolute left-16 top-[373px] flex flex-col gap-5">
+              <div className="relative w-[310px] h-[50px]">
+                <input
+                  type={showVerificationPassword ? "text" : "password"}
+                  value={verificationPassword}
+                  onChange={(e) => setVerificationPassword(e.target.value)}
+                  className="w-full h-full border-b border-gray-300 bg-transparent text-[16px] font-normal font-['Mulish'] tracking-[0.32px] text-[#bdbcbc] outline-none focus:border-black"
+                  placeholder="Password"
+                />
+                <button
+                  onClick={() => setShowVerificationPassword(!showVerificationPassword)}
+                  className="absolute right-3 top-3.5 w-6 h-6 text-gray-400"
+                >
+                  <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d={showVerificationPassword ? "M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L8.464 8.464m1.414 1.414L12 12m-1.122-2.122L8.464 8.464m0 0L7.05 7.05M21 12a9 9 0 11-18 0 9 9 0 0118 0z" : "M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"} />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            
+            {/* Email verification text */}
+            <div className="absolute left-[68px] top-[calc(50%+1px)] transform -translate-y-1/2 w-[308px]">
+              <p className="font-normal text-black text-[14px] leading-[24px] font-['Montserrat']">
+                Please enter the verification code we sent to your email address
+              </p>
+            </div>
+            
+            {/* Password Input Container */}
+            <div className="absolute left-16 top-[471px] flex flex-col gap-5">
+              <div className="relative w-[310px] h-[50px]">
+                <input
+                  type={showDefaultPassword ? "text" : "password"}
+                  value={defaultPassword}
+                  onChange={(e) => setDefaultPassword(e.target.value)}
+                  className="w-full h-full border-b border-gray-300 bg-transparent text-[16px] font-normal font-['Mulish'] tracking-[0.32px] text-[#bdbcbc] outline-none focus:border-black"
+                  placeholder="Password"
+                />
+                <button
+                  onClick={() => setShowDefaultPassword(!showDefaultPassword)}
+                  className="absolute right-3 top-3.5 w-6 h-6 text-gray-400"
+                >
+                  <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d={showDefaultPassword ? "M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L8.464 8.464m1.414 1.414L12 12m-1.122-2.122L8.464 8.464m0 0L7.05 7.05M21 12a9 9 0 11-18 0 9 9 0 0118 0z" : "M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"} />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            
+            {/* Default code text */}
+            <div className="absolute left-[65px] top-[calc(50%+111px)] transform -translate-y-1/2 w-[308px]">
+              <p className="font-normal text-black text-[14px] leading-[24px] font-['Montserrat']">
+                Please enter the default code.
+              </p>
+            </div>
+            
+            {/* Submit Button */}
+            <div className="absolute left-[58px] top-[569px] w-[310px] h-[51px]">
+              <button
+                onClick={handleDelete2FASubmit}
+                className="w-full h-full bg-black rounded-[26.5px] text-white font-bold text-[16px] leading-[24px] font-['Montserrat'] uppercase hover:bg-gray-800 transition-colors"
+              >
+                Submit
+              </button>
+            </div>
+            
+            {/* Modal height spacer */}
+            <div className="h-[650px]"></div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Final Success Modal - Based on second Figma design */}
+      {showDeleteFinalSuccessModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white overflow-clip relative rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] w-full max-w-md mx-4">
+            {/* Close button */}
+            <button 
+              onClick={handleCloseDeleteFinalSuccessModal}
+              className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700 z-10"
+            >
+              <div className="absolute bottom-[17.18%] left-[17.18%] right-[17.18%] top-[17.17%]">
+                <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </div>
+            </button>
+            
+            {/* Check icon */}
+            <div className="absolute left-1/2 top-[60px] transform -translate-x-1/2 w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+              <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            
+            {/* Success message */}
+            <div className="absolute left-1/2 top-[115px] transform -translate-x-1/2 w-[242px] text-center">
+              <p className="font-bold text-black text-[18px] leading-[22px] tracking-[-0.41px] font-['Montserrat']">
+                id verified successfully!
+              </p>
+            </div>
+            
+            {/* Done Button Container */}
+            <div className="absolute top-[209px] left-1/2 transform" style={{ transform: 'translateX(calc(-50% + 7px))' }}>
+              <button
+                onClick={handleDeleteFinalSuccessModalDone}
+                className="bg-black text-white rounded-3xl w-[270px] h-12 font-semibold text-[16px] leading-[1.406] font-['Montserrat'] hover:bg-gray-800 transition-colors"
+              >
+                Done
+              </button>
+            </div>
+            
+            {/* Modal height spacer */}
+            <div className="h-[280px]"></div>
           </div>
         </div>
       )}
