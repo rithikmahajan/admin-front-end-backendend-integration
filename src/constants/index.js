@@ -5,6 +5,10 @@
  * This improves maintainability and prevents code duplication.
  */
 
+// Design System Variables
+export * from './designVariables';
+export * from './styleUtils';
+
 // Product Management Constants
 export const CATEGORY_OPTIONS = [
   'All categories',
