@@ -37,14 +37,14 @@ const ManageBannersOnRewards = () => {
       id: 1,
       detail: 'Welcome reward\nEnjoy a welcome reward to spend in your first month.\nBirthday reward\nCelebrate your birthday month with a special discount\nPrivate members\' sale\nUnlocked after your first order',
       priority: 1,
-      image: '/api/placeholder/400/300',
+      image: 'https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=400&h=300&q=80',
       textPosition: { x: 20, y: 20 }
     },
     {
       id: 2,
       detail: 'Welcome reward\nEnjoy a welcome reward to spend in your first month.\nBirthday reward\nCelebrate your birthday month with a special discount\nPrivate members\' sale\nUnlocked after your first order',
       priority: 2,
-      image: '/api/placeholder/400/300',
+      image: 'https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=400&h=300&q=80',
       textPosition: { x: 20, y: 20 }
     }
   ]);
@@ -73,7 +73,7 @@ const ManageBannersOnRewards = () => {
       id: banners.length + 1,
       detail: createDetail,
       priority: banners.length + 1,
-      image: selectedImage || '/api/placeholder/400/300',
+      image: selectedImage || null,
       textPosition: { ...textPosition }
     };
 
@@ -110,14 +110,6 @@ const ManageBannersOnRewards = () => {
 
   const handleCloseDeleteSuccessModal = () => {
     setShowDeleteSuccessModal(false);
-  };
-
-  const handlePriorityChange = (bannerId, newPriority) => {
-    setBanners(banners.map(banner => 
-      banner.id === bannerId 
-        ? { ...banner, priority: parseInt(newPriority) }
-        : banner
-    ));
   };
 
   const handleViewScreenView = () => {
@@ -376,17 +368,18 @@ const ManageBannersOnRewards = () => {
                   {/* Column 2 - Uploaded Image */}
                   <div className="col-span-1 text-center">
                     <h4 className="text-sm font-medium text-black mb-3">uploaded image</h4>
-                    <div className="w-32 h-24 bg-white border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center mx-auto">
+                    <div className="w-32 h-24 bg-white border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center mx-auto overflow-hidden">
                       {banner.image && banner.image !== '/api/placeholder/400/300' ? (
                         <img 
                           src={banner.image} 
                           alt={`Banner ${banner.id}`}
-                          className="w-full h-full object-cover rounded-lg"
+                          className="w-full h-full object-cover"
                         />
                       ) : (
-                        <div className="text-blue-500 text-2xl">
-                          <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M20 6L9 17l-5-5"/>
+                        <div className="text-blue-500 text-4xl">
+                          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
+                            <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/>
+                            <circle cx="12" cy="13" r="3"/>
                           </svg>
                         </div>
                       )}
@@ -397,13 +390,9 @@ const ManageBannersOnRewards = () => {
                   <div className="col-span-1 text-center">
                     <h4 className="text-sm font-medium text-black mb-3">priority</h4>
                     <div className="flex justify-center">
-                      <input
-                        type="number"
-                        value={banner.priority}
-                        onChange={(e) => handlePriorityChange(banner.id, e.target.value)}
-                        className="w-12 h-8 border-2 border-black rounded-md text-center text-sm font-medium"
-                        min="1"
-                      />
+                      <div className="w-12 h-8 border-2 border-black rounded-md flex items-center justify-center text-sm font-medium bg-white">
+                        {banner.priority}
+                      </div>
                     </div>
                   </div>
                   
@@ -829,12 +818,24 @@ Unlocked after your first order`;
                 onMouseLeave={handleEditMouseUp}
               >
                 {/* Background image - woman in jeans */}
-                <div 
-                  className="absolute inset-0 bg-cover bg-center"
-                  style={{
-                    backgroundImage: `url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjU2IiBoZWlnaHQ9IjMyMCIgdmlld0JveD0iMCAwIDI1NiAzMjAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyNTYiIGhlaWdodD0iMzIwIiBmaWxsPSIjRjVGNUY1Ii8+CjxyZWN0IHg9IjIwIiB5PSI0MCIgd2lkdGg9IjIxNiIgaGVpZ2h0PSIyNDAiIGZpbGw9IiNFNUU1RTUiIHJ4PSIxMiIvPgo8c3ZnIHg9IjgwIiB5PSIxMDAiIHdpZHRoPSI5NiIgaGVpZ2h0PSIxMjAiIHZpZXdCb3g9IjAgMCA5NiAxMjAiIGZpbGw9Im5vbmUiPgo8c3ZnIHdpZHRoPSI5NiIgaGVpZ2h0PSIxMjAiIHZpZXdCb3g9IjAgMCA5NiAxMjAiIGZpbGw9Im5vbmUiPgo8cmVjdCB3aWR0aD0iOTYiIGhlaWdodD0iNjAiIGZpbGw9IiNGRkZGRkYiIHJ4PSI4Ii8+CjxyZWN0IHk9IjYwIiB3aWR0aD0iOTYiIGhlaWdodD0iNjAiIGZpbGw9IiM3NkE5RkEiIHJ4PSI4Ii8+Cjwvc3ZnPgo8L3N2Zz4KPC9zdmc+Cjwvc3ZnPgo=')`
-                  }}
-                />
+                <div className="absolute inset-0">
+                  {/* Use the uploaded image if available, otherwise show the default woman in jeans background */}
+                  {image && image !== '/api/placeholder/400/300' && !image.includes('placeholder') ? (
+                    <img 
+                      src={image} 
+                      alt="Banner background" 
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div 
+                      className="w-full h-full bg-cover bg-center bg-no-repeat"
+                      style={{
+                        backgroundImage: `url('https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1587&h=2000&q=80')`,
+                        backgroundPosition: 'center center'
+                      }}
+                    />
+                  )}
+                </div>
                 
                 {/* Draggable Text Overlay */}
                 <div

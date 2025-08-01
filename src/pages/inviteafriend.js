@@ -23,6 +23,12 @@ const InviteAFriend = () => {
   const [showOffSuccessModal, setShowOffSuccessModal] = useState(false);
   const [showFinalSuccessModal, setShowFinalSuccessModal] = useState(false);
   const [showOffFinalSuccessModal, setShowOffFinalSuccessModal] = useState(false);
+  
+  // Issue code 2FA flow states
+  const [showIssue2FAModal, setShowIssue2FAModal] = useState(false);
+  const [showIssueSuccessModal, setShowIssueSuccessModal] = useState(false);
+  const [showIssueFinalSuccessModal, setShowIssueFinalSuccessModal] = useState(false);
+  
   const [toggleAction, setToggleAction] = useState('');
   
   const [editingCode, setEditingCode] = useState(null);
@@ -51,19 +57,10 @@ const InviteAFriend = () => {
 
   const handleIssueCode = () => {
     if (userName && codeToIssue && codeLimit && codeValue) {
-      const newCode = {
-        id: issuedCodes.length + 1,
-        username: userName,
-        code: codeToIssue.toUpperCase(),
-        description: 'Invite a friend and get additional 10% off on your 1st purchase'
-      };
-      setIssuedCodes([...issuedCodes, newCode]);
-      
-      // Reset form
-      setUserName('');
-      setCodeToIssue('');
-      setCodeLimit('');
-      setCodeValue('');
+      // Start 2FA flow for issuing code
+      setShowIssue2FAModal(true);
+    } else {
+      alert('Please fill in all fields');
     }
   };
 
@@ -313,12 +310,70 @@ const InviteAFriend = () => {
         prevInputId = `otp-off-${index - 1}`;
       } else if (showEdit2FAModal) {
         prevInputId = `edit-otp-${index - 1}`;
+      } else if (showIssue2FAModal) {
+        prevInputId = `issue-otp-${index - 1}`;
       } else {
         prevInputId = `otp-${index - 1}`;
       }
       const prevInput = document.getElementById(prevInputId);
       if (prevInput) prevInput.focus();
     }
+  };
+
+  // Issue code 2FA flow handlers
+  const handleIssue2FASubmit = () => {
+    const otpString = otpCode.join('');
+    if (otpString.length === 4 && verificationPassword && defaultPassword) {
+      setShowIssue2FAModal(false);
+      // Reset 2FA form
+      setOtpCode(['', '', '', '']);
+      setVerificationPassword('');
+      setDefaultPassword('');
+      // Show success modal
+      setShowIssueSuccessModal(true);
+    } else {
+      alert('Please fill in all fields');
+    }
+  };
+
+  const handleCancelIssue2FA = () => {
+    setShowIssue2FAModal(false);
+    // Reset 2FA form
+    setOtpCode(['', '', '', '']);
+    setVerificationPassword('');
+    setDefaultPassword('');
+  };
+
+  const handleIssueSuccessModalDone = () => {
+    setShowIssueSuccessModal(false);
+    setShowIssueFinalSuccessModal(true);
+  };
+
+  const handleIssueFinalSuccessModalDone = () => {
+    setShowIssueFinalSuccessModal(false);
+    
+    // Actually create the code now
+    const newCode = {
+      id: issuedCodes.length + 1,
+      username: userName,
+      code: codeToIssue.toUpperCase(),
+      description: 'Invite a friend and get additional 10% off on your 1st purchase'
+    };
+    setIssuedCodes([...issuedCodes, newCode]);
+    
+    // Reset form
+    setUserName('');
+    setCodeToIssue('');
+    setCodeLimit('');
+    setCodeValue('');
+  };
+
+  const handleCloseIssueSuccessModal = () => {
+    setShowIssueSuccessModal(false);
+  };
+
+  const handleCloseIssueFinalSuccessModal = () => {
+    setShowIssueFinalSuccessModal(false);
   };
 
   return (
@@ -1292,6 +1347,203 @@ const InviteAFriend = () => {
             <div className="absolute top-[155px] left-1/2 transform" style={{ transform: 'translateX(calc(-50% + 7px))' }}>
               <button
                 onClick={handleDeleteSuccessDone}
+                className="bg-black text-white rounded-3xl w-[270px] h-12 font-semibold text-[16px] leading-[22px] font-['Montserrat'] hover:bg-gray-800 transition-colors"
+              >
+                Done
+              </button>
+            </div>
+            
+            {/* Modal height spacer to ensure proper modal size */}
+            <div className="h-[240px]"></div>
+          </div>
+        </div>
+      )}
+
+      {/* Issue Code 2FA Modal */}
+      {showIssue2FAModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div
+            className="bg-white rounded-[32px] shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative"
+            style={{ width: '600px', minHeight: '600px', padding: '48px 56px' }}
+          >
+            {/* Close button */}
+            <button 
+              onClick={handleCancelIssue2FA}
+              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            
+            {/* Header text */}
+            <div className="text-center mb-6">
+              <p className="text-lg font-bold text-black mb-4 tracking-[-0.41px] leading-[22px]">
+                If you want to change or access these settings please enter the OTP send to your registered mobile no. and the password
+              </p>
+            </div>
+
+            {/* Verification Code Section */}
+            <div className="mb-6">
+              <h3 className="text-2xl font-bold text-black mb-2 tracking-[0.72px]">
+                Verification code
+              </h3>
+              <p className="text-sm text-black mb-4">
+                Please enter the verification code we sent to your phone number
+              </p>
+              
+              {/* OTP Input Circles */}
+              <div className="flex justify-center gap-4 mb-4">
+                {otpCode.map((digit, index) => (
+                  <input
+                    key={index}
+                    id={`issue-otp-${index}`}
+                    type="text"
+                    value={digit}
+                    onChange={(e) => handleOtpChange(index, e.target.value)}
+                    onKeyDown={(e) => handleOtpKeyDown(index, e)}
+                    className="w-12 h-12 border-2 border-gray-300 rounded-full text-center text-lg font-semibold focus:border-blue-500 focus:outline-none"
+                    maxLength={1}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* Email verification text */}
+            <p className="text-sm text-black mb-4 text-center">
+              Please enter the verification code we sent to your email address
+            </p>
+
+            {/* Verification Password Input */}
+            <div className="mb-4 relative">
+              <input
+                type={showVerificationPassword ? "text" : "password"}
+                value={verificationPassword}
+                onChange={(e) => setVerificationPassword(e.target.value)}
+                placeholder="Password"
+                className="w-full border-b border-gray-300 pb-2 text-base focus:border-blue-500 focus:outline-none bg-transparent"
+              />
+              <button
+                type="button"
+                onClick={() => setShowVerificationPassword(!showVerificationPassword)}
+                className="absolute right-0 top-0 text-gray-400 hover:text-gray-600"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  {showVerificationPassword ? (
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  ) : (
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
+                  )}
+                </svg>
+              </button>
+            </div>
+
+            {/* Default code text */}
+            <p className="text-sm text-black mb-4">
+              Please enter the default code.
+            </p>
+
+            {/* Default Password Input */}
+            <div className="mb-6 relative">
+              <input
+                type={showDefaultPassword ? "text" : "password"}
+                value={defaultPassword}
+                onChange={(e) => setDefaultPassword(e.target.value)}
+                placeholder="Password"
+                className="w-full border-b border-gray-300 pb-2 text-base focus:border-blue-500 focus:outline-none bg-transparent"
+              />
+              <button
+                type="button"
+                onClick={() => setShowDefaultPassword(!showDefaultPassword)}
+                className="absolute right-0 top-0 text-gray-400 hover:text-gray-600"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  {showDefaultPassword ? (
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  ) : (
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
+                  )}
+                </svg>
+              </button>
+            </div>
+
+            {/* Submit Button */}
+            <button
+              onClick={handleIssue2FASubmit}
+              className="w-full bg-black text-white py-3 rounded-[26.5px] font-bold text-base uppercase hover:bg-gray-800 transition-colors"
+            >
+              SUBMIT
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Issue Success Modal */}
+      {showIssueSuccessModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-md mx-4 overflow-clip">
+            {/* Close button - positioned exactly as in Figma */}
+            <button 
+              onClick={handleCloseIssueSuccessModal}
+              className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700"
+            >
+              <div className="absolute bottom-[17.18%] left-[17.18%] right-[17.18%] top-[17.17%]">
+                <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </div>
+            </button>
+            
+            {/* Modal content - positioned exactly as in Figma */}
+            <div className="absolute top-[61px] left-1/2 transform -translate-x-1/2 w-[242px] text-center">
+              <p className="font-bold text-black text-[18px] leading-[22px] tracking-[-0.41px] font-['Montserrat']">
+                id verified successfully!
+              </p>
+            </div>
+            
+            {/* Done Button Container - positioned exactly as in Figma */}
+            <div className="absolute top-[155px] left-1/2 transform" style={{ transform: 'translateX(calc(-50% + 7px))' }}>
+              <button
+                onClick={handleIssueSuccessModalDone}
+                className="bg-black text-white rounded-3xl w-[270px] h-12 font-semibold text-[16px] leading-[22px] font-['Montserrat'] hover:bg-gray-800 transition-colors"
+              >
+                Done
+              </button>
+            </div>
+            
+            {/* Modal height spacer to ensure proper modal size */}
+            <div className="h-[240px]"></div>
+          </div>
+        </div>
+      )}
+
+      {/* Issue Final Success Modal */}
+      {showIssueFinalSuccessModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-md mx-4 overflow-clip">
+            {/* Close button - positioned exactly as in Figma */}
+            <button 
+              onClick={handleCloseIssueFinalSuccessModal}
+              className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700"
+            >
+              <div className="absolute bottom-[17.18%] left-[17.18%] right-[17.18%] top-[17.17%]">
+                <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </div>
+            </button>
+            
+            {/* Modal content - positioned exactly as in Figma */}
+            <div className="absolute top-[61px] left-1/2 transform -translate-x-1/2 w-[242px] text-center">
+              <p className="font-bold text-black text-[18px] leading-[22px] tracking-[-0.41px] font-['Montserrat']">
+                promo issued successfully!
+              </p>
+            </div>
+            
+            {/* Done Button Container - positioned exactly as in Figma */}
+            <div className="absolute top-[155px] left-1/2 transform" style={{ transform: 'translateX(calc(-50% + 7px))' }}>
+              <button
+                onClick={handleIssueFinalSuccessModalDone}
                 className="bg-black text-white rounded-3xl w-[270px] h-12 font-semibold text-[16px] leading-[22px] font-['Montserrat'] hover:bg-gray-800 transition-colors"
               >
                 Done
