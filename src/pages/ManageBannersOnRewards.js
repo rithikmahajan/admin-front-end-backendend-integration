@@ -21,6 +21,8 @@ const ManageBannersOnRewards = () => {
   const [showScreenView, setShowScreenView] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showSaveSuccessModal, setShowSaveSuccessModal] = useState(false);
+  const [showConfirmationModal, setShowConfirmationModal] = useState(false);
+  const [showPostSuccessModal, setShowPostSuccessModal] = useState(false);
   const [editingBanner, setEditingBanner] = useState(null);
   const [editDetail, setEditDetail] = useState('');
   const [editImage, setEditImage] = useState(null);
@@ -60,7 +62,10 @@ const ManageBannersOnRewards = () => {
       alert('Please fill in the detail field');
       return;
     }
+    setShowConfirmationModal(true);
+  };
 
+  const handleConfirmPost = () => {
     const newBanner = {
       id: banners.length + 1,
       detail: createDetail,
@@ -73,6 +78,12 @@ const ManageBannersOnRewards = () => {
     setCreateDetail('');
     setSelectedImage(null);
     setTextPosition({ x: 20, y: 20 });
+    setShowConfirmationModal(false);
+    setShowPostSuccessModal(true);
+  };
+
+  const handleCancelPost = () => {
+    setShowConfirmationModal(false);
   };
 
   const handleDeleteBanner = (bannerId) => {
@@ -138,6 +149,10 @@ const ManageBannersOnRewards = () => {
 
   const handleCloseSaveSuccessModal = () => {
     setShowSaveSuccessModal(false);
+  };
+
+  const handleClosePostSuccessModal = () => {
+    setShowPostSuccessModal(false);
   };
 
   // Drag and drop functionality for text positioning
@@ -450,6 +465,19 @@ const ManageBannersOnRewards = () => {
       {showSaveSuccessModal && (
         <SaveSuccessModal onClose={handleCloseSaveSuccessModal} />
       )}
+
+      {/* Confirmation Modal for Post to Rewards */}
+      {showConfirmationModal && (
+        <ConfirmationModal 
+          onConfirm={handleConfirmPost}
+          onCancel={handleCancelPost}
+        />
+      )}
+
+      {/* Post Success Modal */}
+      {showPostSuccessModal && (
+        <PostSuccessModal onClose={handleClosePostSuccessModal} />
+      )}
     </div>
   );
 };
@@ -675,6 +703,83 @@ Unlocked after your first order`;
               </div>
             </div>
           </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/**
+ * Confirmation Modal Component - Shows confirmation dialog for posting to rewards
+ * Matches the Figma design exactly
+ */
+const ConfirmationModal = ({ onConfirm, onCancel }) => {
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] w-full max-w-md relative p-8">
+        {/* Confirmation Message */}
+        <div className="text-center mb-8">
+          <h2 className="font-['Montserrat'] text-xl font-bold text-black leading-tight">
+            Are you sure you<br />
+            want to post to<br />
+            rewards
+          </h2>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex justify-center space-x-4">
+          <button
+            onClick={onConfirm}
+            className="bg-black text-white font-['Montserrat'] font-semibold text-base px-12 py-3 rounded-full hover:bg-gray-800 transition-colors"
+            style={{ width: '120px', height: '48px' }}
+          >
+            yes
+          </button>
+          
+          <button
+            onClick={onCancel}
+            className="bg-white text-black font-['Montserrat'] font-semibold text-base px-12 py-3 rounded-full border border-gray-300 hover:bg-gray-50 transition-colors"
+            style={{ width: '120px', height: '48px' }}
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/**
+ * Post Success Modal Component - Shows "posting updated successfully!" with checkmark
+ * Matches the Figma design exactly
+ */
+const PostSuccessModal = ({ onClose }) => {
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] w-full max-w-md relative p-8">
+        {/* Success Icon */}
+        <div className="text-center mb-6">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
+            <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          
+          <h2 className="font-['Montserrat'] text-lg font-bold text-black leading-tight">
+            posting updated<br />
+            successfully!
+          </h2>
+        </div>
+
+        {/* Done Button */}
+        <div className="flex justify-center">
+          <button
+            onClick={onClose}
+            className="bg-black text-white font-['Montserrat'] font-semibold text-base px-12 py-3 rounded-full hover:bg-gray-800 transition-colors"
+            style={{ width: '270px', height: '48px' }}
+          >
+            Done
+          </button>
         </div>
       </div>
     </div>
