@@ -34,7 +34,6 @@ const UploadCategory = () => {
   ];
 
   const categoryOptions = [
-    'Category',
     'men',
     'women',
     'kids'
@@ -167,6 +166,7 @@ const UploadCategory = () => {
                   onChange={(e) => setSelectedCategory(e.target.value)}
                   className="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-3 pr-8 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-48"
                 >
+                  <option value="Category" disabled>Category</option>
                   {categoryOptions.map((option, index) => (
                     <option key={index} value={option}>{option}</option>
                   ))}
@@ -478,16 +478,16 @@ const UploadCategory = () => {
             <div className="p-8 text-center">
               
               {/* Success Icon */}
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+              <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path>
                 </svg>
               </div>
 
               {/* Success Message */}
               <div className="mb-8">
                 <h2 className="text-lg font-semibold text-gray-900 leading-tight">
-                  Category saved<br />successfully!
+                  category updated<br />successfully!
                 </h2>
               </div>
 
@@ -547,9 +547,9 @@ const UploadCategory = () => {
             <div className="p-8 text-center">
               
               {/* Success Icon */}
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+              <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path>
                 </svg>
               </div>
 
