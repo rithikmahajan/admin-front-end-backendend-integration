@@ -7,7 +7,8 @@ import {
   Edit, 
   Download, 
   MoreHorizontal,
-  X
+  X,
+  Printer
 } from 'lucide-react';
 
 /**
@@ -42,18 +43,15 @@ const Orders = React.memo(() => {
    */
   const orders = useMemo(() => [
     {
-      orderId: '12345670922O',
+      orderId: '1234567892220',
       paymentStatus: 'Pending',
       image: '/api/placeholder/60/60',
       productName: 'T shirt',
       name: 'Tarnnish',
       date: '13 aug 2024',
       hsn: '406000',
-      size: {
-        small: 5,
-        medium: 10,
-        large: 115
-      },
+      size: ['small', 'medium', 'large'],
+      sizeQuantity: [5, 10, 115],
       quantity: 130,
       price: 4566,
       salePrice: 4566,
@@ -66,18 +64,15 @@ const Orders = React.memo(() => {
       actions: 'On way'
     },
     {
-      orderId: '12345670922O',
+      orderId: '1234567892220',
       paymentStatus: 'Paid',
       image: '/api/placeholder/60/60',
       productName: 'T shirt',
       name: 'Tarnnish',
       date: '13 aug 2024',
       hsn: '406000',
-      size: {
-        small: 5,
-        medium: 10,
-        large: 115
-      },
+      size: ['small', 'medium', 'large'],
+      sizeQuantity: [5, 10, 115],
       quantity: 130,
       price: 4566,
       salePrice: 4566,
@@ -108,10 +103,10 @@ const Orders = React.memo(() => {
    */
   const getStatusColor = useMemo(() => (status) => {
     const statusMap = {
-      accepted: 'bg-green-100 text-green-800',
-      processing: 'bg-blue-100 text-blue-800',
-      rejected: 'bg-red-100 text-red-800',
-      pending: 'bg-yellow-100 text-yellow-800'
+      accepted: 'bg-green-100 text-green-700',
+      processing: 'bg-blue-100 text-blue-700',
+      rejected: 'bg-red-100 text-red-700',
+      pending: 'bg-yellow-100 text-yellow-700'
     };
     return statusMap[status?.toLowerCase()] || 'bg-gray-100 text-gray-800';
   }, []);
@@ -172,12 +167,20 @@ const Orders = React.memo(() => {
   }, [orders, orderStatus]);
 
   return (
-    <div className="bg-white min-h-screen p-6">
+    <div className="bg-gray-50 min-h-screen p-6">
+      <div className="max-w-full mx-auto bg-white rounded-lg shadow-sm p-6">
       {/* Header Section - Title and date in one line */}
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-black">orders list</h1>
-        <div className="flex items-center space-x-2">
-          <span className="text-sm text-gray-600">06/05/1999 - 06/05/1999</span>
+        <div className="flex items-center space-x-3">
+          <h1 className="text-xl font-semibold text-black">orders list</h1>
+          <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded">
+            <Printer className="h-4 w-4" />
+          </button>
+        </div>
+        <div className="flex items-center space-x-2 bg-gray-50 px-3 py-1 rounded">
+          <span className="text-sm text-gray-600">06/05/1999</span>
+          <span className="text-sm text-gray-400">-</span>
+          <span className="text-sm text-gray-600">06/05/1999</span>
           <Calendar className="h-4 w-4 text-gray-400" />
         </div>
       </div>
@@ -188,7 +191,7 @@ const Orders = React.memo(() => {
           {/* Filter Icon and Label */}
           <div className="flex items-center space-x-2">
             <Filter className="h-4 w-4 text-gray-400" />
-            <span className="text-sm text-gray-700">Filter By</span>
+            <span className="text-sm text-gray-700 font-medium">Filter By</span>
           </div>
 
           {/* Date Filter */}
@@ -196,14 +199,14 @@ const Orders = React.memo(() => {
             <select 
               value={filterBy}
               onChange={handleFilterByChange}
-              className="appearance-none bg-white border border-gray-300 rounded px-3 py-1.5 pr-8 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="appearance-none bg-white border border-gray-300 rounded px-3 py-2 pr-8 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               aria-label="Filter by date"
             >
               <option>Date</option>
               <option>This Week</option>
               <option>This Month</option>
             </select>
-            <ChevronDown className="h-3 w-3 absolute right-2 top-2.5 text-gray-400 pointer-events-none" />
+            <ChevronDown className="h-3 w-3 absolute right-2 top-3 text-gray-400 pointer-events-none" />
           </div>
 
           {/* Order Type Filter */}
@@ -211,14 +214,14 @@ const Orders = React.memo(() => {
             <select 
               value={orderType}
               onChange={handleOrderTypeChange}
-              className="appearance-none bg-white border border-gray-300 rounded px-3 py-1.5 pr-8 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="appearance-none bg-white border border-gray-300 rounded px-3 py-2 pr-8 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               aria-label="Filter by order type"
             >
               <option>Order Type</option>
               <option>Online</option>
               <option>Offline</option>
             </select>
-            <ChevronDown className="h-3 w-3 absolute right-2 top-2.5 text-gray-400 pointer-events-none" />
+            <ChevronDown className="h-3 w-3 absolute right-2 top-3 text-gray-400 pointer-events-none" />
           </div>
 
           {/* Order Status Filter */}
@@ -226,7 +229,7 @@ const Orders = React.memo(() => {
             <select 
               value={orderStatus}
               onChange={handleOrderStatusChange}
-              className="appearance-none bg-white border border-gray-300 rounded px-3 py-1.5 pr-8 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="appearance-none bg-white border border-gray-300 rounded px-3 py-2 pr-8 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               aria-label="Filter by order status"
             >
               <option>Order Status</option>
@@ -234,14 +237,14 @@ const Orders = React.memo(() => {
               <option>Processing</option>
               <option>Accepted</option>
             </select>
-            <ChevronDown className="h-3 w-3 absolute right-2 top-2.5 text-gray-400 pointer-events-none" />
+            <ChevronDown className="h-3 w-3 absolute right-2 top-3 text-gray-400 pointer-events-none" />
           </div>
         </div>
 
         {/* Reset Filter Button */}
         <button 
           onClick={handleResetFilter}
-          className="flex items-center space-x-1 text-red-500 hover:text-red-700 text-sm"
+          className="flex items-center space-x-1 text-red-500 hover:text-red-700 text-sm font-medium"
           aria-label="Reset all filters"
         >
           <X className="h-4 w-4" />
@@ -250,33 +253,33 @@ const Orders = React.memo(() => {
       </div>
 
       {/* Orders Table */}
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto bg-white rounded-lg border border-gray-200">
         <table className="w-full">
           {/* Table Header */}
-          <thead>
+          <thead className="bg-gray-50">
             <tr className="border-b border-gray-200">
-              <th className="pb-3 text-left text-xs font-medium text-gray-700 uppercase">order id</th>
-              <th className="pb-3 text-left text-xs font-medium text-gray-700 uppercase">Image</th>
-              <th className="pb-3 text-left text-xs font-medium text-gray-700 uppercase">Product Name</th>
-              <th className="pb-3 text-left text-xs font-medium text-gray-700 uppercase">name</th>
-              <th className="pb-3 text-left text-xs font-medium text-gray-700 uppercase">date</th>
-              <th className="pb-3 text-left text-xs font-medium text-gray-700 uppercase">HSN</th>
-              <th className="pb-3 text-left text-xs font-medium text-gray-700 uppercase">size</th>
-              <th className="pb-3 text-left text-xs font-medium text-gray-700 uppercase">quantity</th>
-              <th className="pb-3 text-left text-xs font-medium text-gray-700 uppercase">Price</th>
-              <th className="pb-3 text-left text-xs font-medium text-gray-700 uppercase">Sale Price</th>
-              <th className="pb-3 text-left text-xs font-medium text-gray-700 uppercase">SKU</th>
-              <th className="pb-3 text-left text-xs font-medium text-gray-700 uppercase">barcode no.</th>
-              <th className="pb-3 text-left text-xs font-medium text-gray-700 uppercase">status</th>
-              <th className="pb-3 text-left text-xs font-medium text-gray-700 uppercase">slot vendor</th>
-              <th className="pb-3 text-left text-xs font-medium text-gray-700 uppercase">courier alloted</th>
-              <th className="pb-3 text-left text-xs font-medium text-gray-700 uppercase">delivered</th>
-              <th className="pb-3 text-left text-xs font-medium text-gray-700 uppercase">actions</th>
+              <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">order id</th>
+              <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Image</th>
+              <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Product Name</th>
+              <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">name</th>
+              <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">date</th>
+              <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">HSN</th>
+              <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">size</th>
+              <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">quantity</th>
+              <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Price</th>
+              <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Sale Price</th>
+              <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">SKU</th>
+              <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">barcode no.</th>
+              <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">status</th>
+              <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">slot vendor</th>
+              <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">courier alloted</th>
+              <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">delivered</th>
+              <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">actions</th>
             </tr>
           </thead>
           
           {/* Table Body */}
-          <tbody>
+          <tbody className="bg-white divide-y divide-gray-100">
             {filteredOrders.map((order, index) => (
               <OrderRow 
                 key={`${order.orderId}-${index}`}
@@ -291,15 +294,16 @@ const Orders = React.memo(() => {
       </div>
 
       {/* Footer Status */}
-      <div className="mt-6 flex justify-center">
-        <span className="inline-block px-4 py-2 bg-red-100 text-red-800 text-sm font-medium rounded">
+      <div className="mt-8 flex justify-center">
+        <span className="inline-block px-6 py-2 bg-red-100 text-red-700 text-sm font-medium rounded-md">
           Rejected
         </span>
       </div>
 
       {/* Footer Date */}
-      <div className="mt-4 text-center text-sm text-gray-500">
+      <div className="mt-6 text-center text-sm text-gray-500">
         Deal on 10/JUN/2020
+      </div>
       </div>
     </div>
   );
@@ -344,131 +348,133 @@ const OrderRow = React.memo(({
   }, [order.orderId]);
 
   return (
-    <tr className="border-b border-gray-100">
+    <tr className="border-b border-gray-100 hover:bg-gray-50">
       {/* Order ID with Payment Status Badge */}
-      <td className="py-3">
-        <div className="space-y-1">
+      <td className="py-4 px-2">
+        <div className="space-y-2">
           <div className="text-sm font-medium text-gray-900">{order.orderId}</div>
-          <span className={`inline-block px-2 py-0.5 text-xs font-medium rounded ${getPaymentStatusColor(order.paymentStatus)}`}>
+          <span className={`inline-block px-2 py-1 text-xs font-medium rounded ${getPaymentStatusColor(order.paymentStatus)}`}>
             {order.paymentStatus}
           </span>
         </div>
       </td>
 
       {/* Product Image */}
-      <td className="py-3">
-        <div className="w-10 h-10 bg-gray-200 rounded flex items-center justify-center">
-          <div className="w-6 h-6 bg-blue-300 rounded" aria-label="Product image"></div>
+      <td className="py-4 px-2">
+        <div className="w-12 h-12 bg-gray-100 rounded overflow-hidden flex items-center justify-center">
+          <div className="w-10 h-10 bg-blue-200 rounded flex items-center justify-center">
+            <div className="w-6 h-6 bg-blue-400 rounded" aria-label="Product image"></div>
+          </div>
         </div>
       </td>
 
       {/* Product Information */}
-      <td className="py-3">
-        <span className="text-sm text-gray-900">{order.productName}</span>
+      <td className="py-4 px-2">
+        <span className="text-sm font-medium text-gray-900">{order.productName}</span>
       </td>
 
-      <td className="py-3">
+      <td className="py-4 px-2">
         <span className="text-sm text-gray-700">{order.name}</span>
       </td>
 
-      <td className="py-3">
+      <td className="py-4 px-2">
         <span className="text-sm text-gray-700">{order.date}</span>
       </td>
 
-      <td className="py-3">
+      <td className="py-4 px-2">
         <span className="text-sm text-gray-700">{order.hsn}</span>
       </td>
 
       {/* Size Information */}
-      <td className="py-3">
-        <div className="space-y-0.5">
-          <div className="text-xs text-gray-600">small</div>
-          <div className="text-xs text-gray-600">medium</div>
-          <div className="text-xs text-gray-600">large</div>
+      <td className="py-4 px-2">
+        <div className="space-y-1">
+          {order.size.map((size, index) => (
+            <div key={size} className="text-xs text-gray-600">{size}</div>
+          ))}
         </div>
       </td>
 
       {/* Quantity */}
-      <td className="py-3">
-        <div className="space-y-0.5">
-          <div className="text-xs text-gray-900">{order.size.small}</div>
-          <div className="text-xs text-gray-900">{order.size.medium}</div>
-          <div className="text-xs text-gray-900">{order.size.large}</div>
+      <td className="py-4 px-2">
+        <div className="space-y-1">
+          {order.sizeQuantity.map((qty, index) => (
+            <div key={index} className="text-xs text-gray-900 font-medium">{qty}</div>
+          ))}
         </div>
       </td>
 
       {/* Price */}
-      <td className="py-3">
-        <span className="text-sm text-gray-700">{order.price}</span>
+      <td className="py-4 px-2">
+        <span className="text-sm text-gray-700 font-medium">₹{order.price}</span>
       </td>
 
-      <td className="py-3">
-        <span className="text-sm text-gray-700">{order.salePrice}</span>
+      <td className="py-4 px-2">
+        <span className="text-sm text-gray-700 font-medium">₹{order.salePrice}</span>
       </td>
 
       {/* SKU */}
-      <td className="py-3">
+      <td className="py-4 px-2">
         <span className="text-sm text-gray-700">{order.sku}</span>
       </td>
 
       {/* Barcode */}
-      <td className="py-3">
-        <span className="text-xs text-gray-700 font-mono">{order.barcodeNo}</span>
+      <td className="py-4 px-2">
+        <span className="text-xs text-gray-700 font-mono break-all">{order.barcodeNo}</span>
       </td>
 
       {/* Status */}
-      <td className="py-3">
-        <span className={`inline-block px-2 py-1 text-xs font-medium rounded ${getStatusColor(order.status)}`}>
+      <td className="py-4 px-2">
+        <span className={`inline-block px-3 py-1 text-xs font-medium rounded-full ${getStatusColor(order.status)}`}>
           {order.status}
         </span>
       </td>
 
-      <td className="py-3">
+      <td className="py-4 px-2">
         <span className="text-sm text-gray-700">{order.slotVendor}</span>
       </td>
 
       {/* Courier Status */}
-      <td className="py-3">
-        <span className={`inline-block px-2 py-0.5 text-xs font-medium rounded ${getCourierStatusColor(order.courierAlloted)}`}>
+      <td className="py-4 px-2">
+        <span className={`inline-block px-2 py-1 text-xs font-medium rounded ${getCourierStatusColor(order.courierAlloted)}`}>
           {order.courierAlloted}
         </span>
       </td>
 
-      <td className="py-3">
-        <span className={`inline-block px-2 py-0.5 text-xs font-medium rounded ${getCourierStatusColor(order.delivered)}`}>
+      <td className="py-4 px-2">
+        <span className={`inline-block px-2 py-1 text-xs font-medium rounded ${getCourierStatusColor(order.delivered)}`}>
           {order.delivered}
         </span>
       </td>
 
       {/* Actions */}
-      <td className="py-3">
-        <div className="flex items-center space-x-2">
-          <span className="text-sm text-blue-600">{order.actions}</span>
+      <td className="py-4 px-2">
+        <div className="flex flex-col items-start space-y-2">
+          <span className="text-sm text-blue-600 font-medium">{order.actions}</span>
           <div className="flex items-center space-x-1">
             <button 
               onClick={handleView}
-              className="p-1 text-gray-400 hover:text-gray-600"
+              className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded"
               aria-label="View order"
             >
               <Eye className="h-4 w-4" />
             </button>
             <button 
               onClick={handleEdit}
-              className="p-1 text-gray-400 hover:text-gray-600"
+              className="p-1.5 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded"
               aria-label="Edit order"
             >
               <Edit className="h-4 w-4" />
             </button>
             <button 
               onClick={handleDownload}
-              className="p-1 text-gray-400 hover:text-gray-600"
+              className="p-1.5 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded"
               aria-label="Download order"
             >
               <Download className="h-4 w-4" />
             </button>
             <button 
               onClick={handleMore}
-              className="p-1 text-gray-400 hover:text-gray-600"
+              className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded"
               aria-label="More actions"
             >
               <MoreHorizontal className="h-4 w-4" />
