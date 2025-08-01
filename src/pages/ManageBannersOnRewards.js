@@ -23,6 +23,9 @@ const ManageBannersOnRewards = () => {
   const [showSaveSuccessModal, setShowSaveSuccessModal] = useState(false);
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
   const [showPostSuccessModal, setShowPostSuccessModal] = useState(false);
+  const [showDeleteConfirmationModal, setShowDeleteConfirmationModal] = useState(false);
+  const [showDeleteSuccessModal, setShowDeleteSuccessModal] = useState(false);
+  const [bannerToDelete, setBannerToDelete] = useState(null);
   const [editingBanner, setEditingBanner] = useState(null);
   const [editDetail, setEditDetail] = useState('');
   const [editImage, setEditImage] = useState(null);
@@ -87,7 +90,26 @@ const ManageBannersOnRewards = () => {
   };
 
   const handleDeleteBanner = (bannerId) => {
-    setBanners(banners.filter(banner => banner.id !== bannerId));
+    setBannerToDelete(bannerId);
+    setShowDeleteConfirmationModal(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (bannerToDelete) {
+      setBanners(banners.filter(banner => banner.id !== bannerToDelete));
+      setShowDeleteConfirmationModal(false);
+      setBannerToDelete(null);
+      setShowDeleteSuccessModal(true);
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setShowDeleteConfirmationModal(false);
+    setBannerToDelete(null);
+  };
+
+  const handleCloseDeleteSuccessModal = () => {
+    setShowDeleteSuccessModal(false);
   };
 
   const handlePriorityChange = (bannerId, newPriority) => {
@@ -484,6 +506,19 @@ const ManageBannersOnRewards = () => {
       {/* Post Success Modal */}
       {showPostSuccessModal && (
         <PostSuccessModal onClose={handleClosePostSuccessModal} />
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirmationModal && (
+        <DeleteConfirmationModal 
+          onConfirm={handleConfirmDelete}
+          onCancel={handleCancelDelete}
+        />
+      )}
+
+      {/* Delete Success Modal */}
+      {showDeleteSuccessModal && (
+        <DeleteSuccessModal onClose={handleCloseDeleteSuccessModal} />
       )}
     </div>
   );
@@ -944,6 +979,83 @@ const SaveSuccessModal = ({ onClose }) => {
             onClick={onClose}
             className="bg-black text-white font-['Montserrat'] font-semibold text-base px-12 py-3 rounded-full hover:bg-gray-800 transition-colors"
             aria-label="Close success popup"
+            style={{ width: '270px', height: '48px' }}
+          >
+            Done
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/**
+ * Delete Confirmation Modal Component - Shows confirmation dialog for deleting banners
+ * Matches the Figma design exactly
+ */
+const DeleteConfirmationModal = ({ onConfirm, onCancel }) => {
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] w-full max-w-md relative p-8">
+        {/* Confirmation Message */}
+        <div className="text-center mb-8">
+          <h2 className="font-['Montserrat'] text-[18px] font-bold text-black leading-[22px] tracking-[-0.41px]">
+            Are you sure you<br />
+            want to delete this<br />
+            post
+          </h2>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex justify-center space-x-4">
+          <button
+            onClick={onConfirm}
+            className="bg-black text-white font-['Montserrat'] font-semibold text-base px-12 py-3 rounded-full hover:bg-gray-800 transition-colors"
+            style={{ width: '149px', height: '48px' }}
+          >
+            yes
+          </button>
+          
+          <button
+            onClick={onCancel}
+            className="bg-white text-black font-['Montserrat'] font-medium text-base px-12 py-3 rounded-full border border-gray-300 hover:bg-gray-50 transition-colors"
+            style={{ width: '209px', height: '48px' }}
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/**
+ * Delete Success Modal Component - Shows "posting deleted successfully!" with checkmark
+ * Matches the Figma design exactly
+ */
+const DeleteSuccessModal = ({ onClose }) => {
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] w-full max-w-md relative p-8">
+        {/* Success Icon */}
+        <div className="text-center mb-6">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
+            <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          
+          <h2 className="font-['Montserrat'] text-[18px] font-bold text-black leading-[22px] tracking-[-0.41px]">
+            posting deleted<br />
+            successfully!
+          </h2>
+        </div>
+
+        {/* Done Button */}
+        <div className="flex justify-center">
+          <button
+            onClick={onClose}
+            className="bg-black text-white font-['Montserrat'] font-semibold text-base px-12 py-3 rounded-full hover:bg-gray-800 transition-colors"
             style={{ width: '270px', height: '48px' }}
           >
             Done
