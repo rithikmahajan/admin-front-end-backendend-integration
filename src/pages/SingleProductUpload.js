@@ -1,8 +1,7 @@
 import React, { useState, useCallback, useMemo } from 'react';
-import { Upload, Plus, X, ChevronDown, Check } from 'lucide-react';
+import { Upload, Plus, ChevronDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { DEFAULT_VARIANT, DEFAULT_PRODUCT_DATA, FILE_UPLOAD, validateImageFile, getTailwindClasses } from '../constants';
-import { useFormValidation, useDebounce } from '../hooks';
+import { DEFAULT_VARIANT, DEFAULT_PRODUCT_DATA, validateImageFile } from '../constants';
 
 /**
  * SingleProductUpload Component
@@ -49,10 +48,23 @@ const SingleProductUpload = React.memo(() => {
   // UI state management
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedSubCategory, setSelectedSubCategory] = useState('');
-  const [showUI, setShowUI] = useState(true);
   const [isPublishModalOpen, setIsPublishModalOpen] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState([]);
-  const [draggedIndex, setDraggedIndex] = useState(null);
+  
+  // New state for additional functionality
+  const [stockSizeOption, setStockSizeOption] = useState('sizes'); // 'noSize', 'sizes', 'import'
+  const [customSizes, setCustomSizes] = useState([]);
+  const [alsoShowInOptions, setAlsoShowInOptions] = useState({
+    youMightAlsoLike: { enabled: false, value: 'no' },
+    similarItems: { enabled: false, value: 'no' },
+    othersAlsoBought: { enabled: false, value: 'no' }
+  });
+  const [showVariant2, setShowVariant2] = useState(false);
+  const [commonSizeChart, setCommonSizeChart] = useState({
+    cmChart: null,
+    inchChart: null,
+    measurementGuide: null
+  });
 
   // Memoized handlers to prevent unnecessary re-renders
   const handleProductDataChange = useCallback((field, value) => {
@@ -145,6 +157,54 @@ const SingleProductUpload = React.memo(() => {
     // TODO: Implement actual file upload for size charts
   }, []);
 
+  // New handlers for additional functionality
+  const handleStockSizeOptionChange = useCallback((option) => {
+    setStockSizeOption(option);
+  }, []);
+
+  const handleCustomSizeAdd = useCallback(() => {
+    const newSize = {
+      size: '',
+      quantity: '',
+      hsn: '',
+      sku: '',
+      barcode: '',
+      prices: {
+        amazon: '',
+        flipkart: '',
+        myntra: '',
+        nykaa: '',
+        yoraa: ''
+      }
+    };
+    setCustomSizes(prev => [...prev, newSize]);
+  }, []);
+
+  const handleCustomSizeChange = useCallback((index, field, value) => {
+    setCustomSizes(prev => prev.map((size, i) => 
+      i === index ? { ...size, [field]: value } : size
+    ));
+  }, []);
+
+  const handleAlsoShowInChange = useCallback((option, field, value) => {
+    setAlsoShowInOptions(prev => ({
+      ...prev,
+      [option]: { ...prev[option], [field]: value }
+    }));
+  }, []);
+
+  const handleImportExcel = useCallback((type) => {
+    // TODO: Implement Excel import functionality
+    console.log(`Importing ${type} from Excel`);
+  }, []);
+
+  const handleCommonSizeChartUpload = useCallback((type, file) => {
+    setCommonSizeChart(prev => ({
+      ...prev,
+      [type]: file
+    }));
+  }, []);
+
   // Publishing and navigation handlers
   const handlePublishProduct = useCallback(() => {
     setIsPublishModalOpen(true);
@@ -175,46 +235,6 @@ const SingleProductUpload = React.memo(() => {
   const handleFileUpload = useCallback((files, type = 'image') => {
     handleImageUpload(1, files);
   }, [handleImageUpload]);
-
-  const handleDragStart = useCallback((e, index) => {
-    setDraggedIndex(index);
-    e.dataTransfer.effectAllowed = 'move';
-  }, []);
-
-  const handleDragOver = useCallback((e) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-  }, []);
-
-  const handleDrop = useCallback((e, dropIndex) => {
-    e.preventDefault();
-    
-    if (draggedIndex === null || draggedIndex === dropIndex) return;
-    
-    setUploadedFiles(prev => {
-      const newFiles = [...prev];
-      const draggedFile = newFiles[draggedIndex];
-      
-      // Remove dragged item
-      newFiles.splice(draggedIndex, 1);
-      
-      // Insert at new position
-      const insertIndex = draggedIndex < dropIndex ? dropIndex - 1 : dropIndex;
-      newFiles.splice(insertIndex, 0, draggedFile);
-      
-      return newFiles;
-    });
-    
-    setDraggedIndex(null);
-  }, [draggedIndex]);
-
-  const handleDragEnd = useCallback(() => {
-    setDraggedIndex(null);
-  }, []);
-
-  const removeFile = useCallback((fileId) => {
-    setUploadedFiles(prev => prev.filter(f => f.id !== fileId));
-  }, []);
 
   // Drag and drop for upload areas
   const handleUploadDragOver = useCallback((e) => {
@@ -347,13 +367,13 @@ const SingleProductUpload = React.memo(() => {
               
               {/* Product Name */}
               <div>
-                <label className="block text-[21px] font-medium text-[#111111] font-['Montserrat'] mb-3 leading-[24px]">product name</label>
-                <div className="h-[47px] border-2 border-black rounded-xl">
+                <label className="block text-[14px] font-medium text-[#111111] font-['Montserrat'] mb-2">product name</label>
+                <div className="w-full max-w-[400px]">
                   <input
                     type="text"
                     value={variants[0]?.productName || ''}
                     onChange={(e) => handleVariantChange(1, 'productName', e.target.value)}
-                    className="w-full h-[47px] px-4 border-0 rounded-xl focus:outline-none focus:ring-0 text-[16px] bg-white font-['Montserrat']"
+                    className="w-full h-[40px] px-3 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-[14px] bg-white font-['Montserrat']"
                     placeholder="Enter product name"
                   />
                 </div>
@@ -361,13 +381,13 @@ const SingleProductUpload = React.memo(() => {
 
               {/* Title */}
               <div>
-                <label className="block text-[21px] font-medium text-[#111111] font-['Montserrat'] mb-3 leading-[24px]">Title</label>
-                <div className="h-[47px] border-2 border-black rounded-xl">
+                <label className="block text-[14px] font-medium text-[#111111] font-['Montserrat'] mb-2">Title</label>
+                <div className="w-full max-w-[400px]">
                   <input
                     type="text"
                     value={variants[0]?.title || ''}
                     onChange={(e) => handleVariantChange(1, 'title', e.target.value)}
-                    className="w-full h-[47px] px-4 border-0 rounded-xl focus:outline-none focus:ring-0 text-[16px] bg-white font-['Montserrat']"
+                    className="w-full h-[40px] px-3 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-[14px] bg-white font-['Montserrat']"
                     placeholder="Enter title"
                   />
                 </div>
@@ -375,13 +395,12 @@ const SingleProductUpload = React.memo(() => {
 
               {/* Description */}
               <div className="mb-6">
-                <label className="block text-[21px] font-medium text-[#111111] font-['Montserrat'] mb-3 leading-[24px]">Discription</label>
-                
-                <div className="h-[154px] border-2 border-[#000000] rounded-xl">
+                <label className="block text-[14px] font-medium text-[#111111] font-['Montserrat'] mb-2">Description</label>
+                <div className="w-full max-w-[500px]">
                   <textarea
                     value={variants[0]?.description || 'Premium quality fabric with comfortable fit. Perfect for casual and formal occasions. Available in multiple sizes with excellent durability and style.'}
                     onChange={(e) => handleVariantChange(1, 'description', e.target.value)}
-                    className="w-full h-[154px] px-4 py-3 border-0 rounded-xl resize-none focus:outline-none focus:ring-0 text-[16px] bg-white font-['Montserrat']"
+                    className="w-full h-[100px] px-3 py-2 border border-gray-300 rounded-md resize-none focus:outline-none focus:ring-1 focus:ring-blue-500 text-[14px] bg-white font-['Montserrat']"
                     placeholder="Enter product description here..."
                   />
                 </div>
@@ -389,12 +408,12 @@ const SingleProductUpload = React.memo(() => {
 
               {/* Manufacturing Details */}
               <div className="mb-6">
-                <label className="block text-[21px] font-medium text-[#111111] font-['Montserrat'] mb-3 leading-[24px]">Manufacturing details</label>
-                <div className="h-[154px] border-2 border-[#000000] rounded-xl">
+                <label className="block text-[14px] font-medium text-[#111111] font-['Montserrat'] mb-2">Manufacturing details</label>
+                <div className="w-full max-w-[500px]">
                   <textarea
                     value={variants[0]?.manufacturingDetails || ''}
                     onChange={(e) => handleVariantChange(1, 'manufacturingDetails', e.target.value)}
-                    className="w-full h-[154px] px-4 py-3 border-0 rounded-xl resize-none focus:outline-none focus:ring-0 text-[16px] bg-white font-['Montserrat']"
+                    className="w-full h-[100px] px-3 py-2 border border-gray-300 rounded-md resize-none focus:outline-none focus:ring-1 focus:ring-blue-500 text-[14px] bg-white font-['Montserrat']"
                     placeholder="Enter manufacturing details"
                   />
                 </div>
@@ -402,119 +421,370 @@ const SingleProductUpload = React.memo(() => {
 
               {/* Shipping Returns and Exchange */}
               <div className="mb-6">
-                <label className="block text-[21px] font-medium text-[#111111] font-['Montserrat'] mb-3 leading-[24px]">Shipping returns and exchange</label>
-                <div className="h-[154px] border-2 border-[#000000] rounded-xl">
+                <label className="block text-[14px] font-medium text-[#111111] font-['Montserrat'] mb-2">Shipping returns and exchange</label>
+                <div className="w-full max-w-[500px]">
                   <textarea
                     value={variants[0]?.shippingReturns || ''}
                     onChange={(e) => handleVariantChange(1, 'shippingReturns', e.target.value)}
-                    className="w-full h-[154px] px-4 py-3 border-0 rounded-xl resize-none focus:outline-none focus:ring-0 text-[16px] bg-white font-['Montserrat']"
+                    className="w-full h-[100px] px-3 py-2 border border-gray-300 rounded-md resize-none focus:outline-none focus:ring-1 focus:ring-blue-500 text-[14px] bg-white font-['Montserrat']"
                     placeholder="Enter shipping and returns policy"
                   />
                 </div>
               </div>
 
               {/* Pricing */}
-              <div className="grid grid-cols-2 gap-6 mb-6">
+              <div className="grid grid-cols-2 gap-6 mb-6 max-w-[400px]">
                 <div>
-                  <label className="block text-[21px] font-medium text-[#111111] font-['Montserrat'] mb-3 leading-[24px]">Regular price</label>
-                  <div className="h-[47px] border-2 border-[#000000] rounded-xl">
-                    <input
-                      type="number"
-                      value={variants[0]?.regularPrice || ''}
-                      onChange={(e) => handleVariantChange(1, 'regularPrice', e.target.value)}
-                      className="w-full h-[47px] px-4 border-0 rounded-xl focus:outline-none focus:ring-0 text-[16px] bg-white font-['Montserrat']"
-                      placeholder="0.00"
-                    />
-                  </div>
+                  <label className="block text-[14px] font-medium text-[#111111] font-['Montserrat'] mb-2">Regular price</label>
+                  <input
+                    type="number"
+                    value={variants[0]?.regularPrice || ''}
+                    onChange={(e) => handleVariantChange(1, 'regularPrice', e.target.value)}
+                    className="w-full h-[40px] px-3 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-[14px] bg-white font-['Montserrat']"
+                    placeholder="0.00"
+                  />
                 </div>
                 <div>
-                  <label className="block text-[21px] font-medium text-[#111111] font-['Montserrat'] mb-3 leading-[24px]">Sale price</label>
-                  <div className="h-[47px] border-2 border-[#000000] rounded-xl">
-                    <input
-                      type="number"
-                      value={variants[0]?.salePrice || ''}
-                      onChange={(e) => handleVariantChange(1, 'salePrice', e.target.value)}
-                      className="w-full h-[47px] px-4 border-0 rounded-xl focus:outline-none focus:ring-0 text-[16px] bg-white font-['Montserrat']"
-                      placeholder="0.00"
-                    />
-                  </div>
+                  <label className="block text-[14px] font-medium text-[#111111] font-['Montserrat'] mb-2">Sale price</label>
+                  <input
+                    type="number"
+                    value={variants[0]?.salePrice || ''}
+                    onChange={(e) => handleVariantChange(1, 'salePrice', e.target.value)}
+                    className="w-full h-[40px] px-3 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-[14px] bg-white font-['Montserrat']"
+                    placeholder="0.00"
+                  />
                 </div>
               </div>
 
               {/* Stock Size */}
               <div className="mb-6">
-                <label className="block text-[21px] font-medium text-[#111111] font-['Montserrat'] mb-3 leading-[24px]">Stock size</label>
-                <div className="grid grid-cols-5 gap-[10px]">
-                  {['XS', 'S', 'M', 'L', 'XL'].map((size) => (
-                    <button
-                      key={size}
-                      type="button"
-                      onClick={() => {
-                        const currentSizes = variants[0]?.stockSizes || [];
-                        const newSizes = currentSizes.includes(size)
-                          ? currentSizes.filter(s => s !== size)
-                          : [...currentSizes, size];
-                        handleVariantChange(1, 'stockSizes', newSizes);
-                      }}
-                      className={`h-[40px] rounded-[8px] border-2 text-[16px] font-medium font-['Montserrat'] transition-colors ${
-                        (variants[0]?.stockSizes || []).includes(size)
-                          ? 'bg-[#000AFF] text-white border-[#000AFF]'
-                          : 'bg-white text-[#111111] border-[#BCBCBC]'
-                      }`}
-                    >
-                      {size}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Filter Section */}
-              <div>
-                <label className="block text-[21px] font-medium text-[#111111] font-['Montserrat'] mb-3 leading-[24px]">Filter</label>
-                <div className="text-[21px] font-medium text-[#111111] font-['Montserrat'] mb-3">assign Filter(drop down)</div>
-                <button className="bg-[#000AFF] text-white px-4 py-2.5 rounded-lg flex items-center gap-2 text-[14px] font-['Montserrat'] shadow-sm">
-                  <Plus className="h-5 w-5" />
-                  colour
-                </button>
+                <label className="block text-[14px] font-medium text-[#111111] font-['Montserrat'] mb-2">Stock size</label>
                 
-                {/* Color Data Display */}
-                <div className="mt-4 bg-white border border-gray-200 rounded-xl shadow-lg p-4 w-[166px]">
-                  <div className="text-[14px] text-[#bfbfbf] font-medium mb-3">showing colour data</div>
-                  <div className="space-y-1">
-                    <div className="py-2 border-b border-gray-200 text-[14px] text-black">red</div>
-                    <div className="py-2 border-b border-gray-200 text-[14px] text-black">pink</div>
-                    <div className="py-2 text-[14px] text-black">orange</div>
-                  </div>
+                {/* Size Options */}
+                <div className="flex items-center gap-4 mb-4">
+                  <button
+                    type="button"
+                    onClick={() => handleStockSizeOptionChange('noSize')}
+                    className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                      stockSizeOption === 'noSize'
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    No Size
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleStockSizeOptionChange('sizes')}
+                    className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                      stockSizeOption === 'sizes'
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    Add Size
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleImportExcel('sizes')}
+                    className="px-4 py-2 rounded-md text-sm font-medium bg-green-600 text-white hover:bg-green-700 transition-colors"
+                  >
+                    Import Excel
+                  </button>
                 </div>
+
+                {stockSizeOption === 'sizes' && (
+                  <>
+                    {/* Standard Sizes */}
+                    <div className="grid grid-cols-5 gap-[10px] mb-4 max-w-[400px]">
+                      {['XS', 'S', 'M', 'L', 'XL'].map((size) => (
+                        <button
+                          key={size}
+                          type="button"
+                          onClick={() => {
+                            const currentSizes = variants[0]?.stockSizes || [];
+                            const newSizes = currentSizes.includes(size)
+                              ? currentSizes.filter(s => s !== size)
+                              : [...currentSizes, size];
+                            handleVariantChange(1, 'stockSizes', newSizes);
+                          }}
+                          className={`h-[40px] rounded-[8px] border-2 text-[14px] font-medium font-['Montserrat'] transition-colors ${
+                            (variants[0]?.stockSizes || []).includes(size)
+                              ? 'bg-[#000AFF] text-white border-[#000AFF]'
+                              : 'bg-white text-[#111111] border-[#BCBCBC]'
+                          }`}
+                        >
+                          {size}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Add Custom Size Button */}
+                    <button
+                      type="button"
+                      onClick={handleCustomSizeAdd}
+                      className="mb-4 px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition-colors"
+                    >
+                      Add Custom Size
+                    </button>
+
+                    {/* Custom Sizes Table */}
+                    {customSizes.length > 0 && (
+                      <div className="overflow-x-auto mb-4">
+                        <table className="min-w-full border border-gray-300 rounded-lg">
+                          <thead className="bg-gray-50">
+                            <tr>
+                              <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Size</th>
+                              <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Quantity</th>
+                              <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">HSN</th>
+                              <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">SKU</th>
+                              <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Barcode</th>
+                              <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Amazon</th>
+                              <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Flipkart</th>
+                              <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Myntra</th>
+                              <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Nykaa</th>
+                              <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Yoraa</th>
+                            </tr>
+                          </thead>
+                          <tbody className="bg-white divide-y divide-gray-200">
+                            {customSizes.map((sizeData, index) => (
+                              <tr key={index}>
+                                <td className="px-3 py-2">
+                                  <input
+                                    type="text"
+                                    value={sizeData.size}
+                                    onChange={(e) => handleCustomSizeChange(index, 'size', e.target.value)}
+                                    className="w-16 px-2 py-1 border border-gray-300 rounded text-sm"
+                                    placeholder="Size"
+                                  />
+                                </td>
+                                <td className="px-3 py-2">
+                                  <input
+                                    type="number"
+                                    value={sizeData.quantity}
+                                    onChange={(e) => handleCustomSizeChange(index, 'quantity', e.target.value)}
+                                    className="w-20 px-2 py-1 border border-gray-300 rounded text-sm"
+                                    placeholder="Qty"
+                                  />
+                                </td>
+                                <td className="px-3 py-2">
+                                  <input
+                                    type="text"
+                                    value={sizeData.hsn}
+                                    onChange={(e) => handleCustomSizeChange(index, 'hsn', e.target.value)}
+                                    className="w-24 px-2 py-1 border border-gray-300 rounded text-sm"
+                                    placeholder="HSN"
+                                  />
+                                </td>
+                                <td className="px-3 py-2">
+                                  <input
+                                    type="text"
+                                    value={sizeData.sku}
+                                    onChange={(e) => handleCustomSizeChange(index, 'sku', e.target.value)}
+                                    className="w-24 px-2 py-1 border border-gray-300 rounded text-sm"
+                                    placeholder="SKU"
+                                  />
+                                </td>
+                                <td className="px-3 py-2">
+                                  <input
+                                    type="text"
+                                    value={sizeData.barcode}
+                                    onChange={(e) => handleCustomSizeChange(index, 'barcode', e.target.value)}
+                                    className="w-32 px-2 py-1 border border-gray-300 rounded text-sm"
+                                    placeholder="Barcode"
+                                  />
+                                </td>
+                                <td className="px-3 py-2">
+                                  <input
+                                    type="number"
+                                    value={sizeData.prices.amazon}
+                                    onChange={(e) => handleCustomSizeChange(index, 'prices', {...sizeData.prices, amazon: e.target.value})}
+                                    className="w-20 px-2 py-1 border border-gray-300 rounded text-sm"
+                                    placeholder="Price"
+                                  />
+                                </td>
+                                <td className="px-3 py-2">
+                                  <input
+                                    type="number"
+                                    value={sizeData.prices.flipkart}
+                                    onChange={(e) => handleCustomSizeChange(index, 'prices', {...sizeData.prices, flipkart: e.target.value})}
+                                    className="w-20 px-2 py-1 border border-gray-300 rounded text-sm"
+                                    placeholder="Price"
+                                  />
+                                </td>
+                                <td className="px-3 py-2">
+                                  <input
+                                    type="number"
+                                    value={sizeData.prices.myntra}
+                                    onChange={(e) => handleCustomSizeChange(index, 'prices', {...sizeData.prices, myntra: e.target.value})}
+                                    className="w-20 px-2 py-1 border border-gray-300 rounded text-sm"
+                                    placeholder="Price"
+                                  />
+                                </td>
+                                <td className="px-3 py-2">
+                                  <input
+                                    type="number"
+                                    value={sizeData.prices.nykaa}
+                                    onChange={(e) => handleCustomSizeChange(index, 'prices', {...sizeData.prices, nykaa: e.target.value})}
+                                    className="w-20 px-2 py-1 border border-gray-300 rounded text-sm"
+                                    placeholder="Price"
+                                  />
+                                </td>
+                                <td className="px-3 py-2">
+                                  <input
+                                    type="number"
+                                    value={sizeData.prices.yoraa}
+                                    onChange={(e) => handleCustomSizeChange(index, 'prices', {...sizeData.prices, yoraa: e.target.value})}
+                                    className="w-20 px-2 py-1 border border-gray-300 rounded text-sm"
+                                    placeholder="Price"
+                                  />
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </>
+                )}
               </div>
 
               {/* Also Show In */}
               <div>
-                <label className="block text-[21px] font-medium text-[#111111] font-['Montserrat'] mb-3 leading-[24px]">Also Show in</label>
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <input type="checkbox" className="w-5 h-5 border border-[#bcbcbc] border-solid rounded-[3px]" />
-                    <span className="text-[20px] font-medium text-[#000000] font-['Montserrat']">You Might Also Like</span>
-                    <button className="bg-[#000AFF] text-white px-4 py-2.5 rounded-lg flex items-center gap-2 text-[14px] font-['Montserrat'] shadow-sm">
-                      <Plus className="h-5 w-5" />
-                      no
-                    </button>
+                <label className="block text-[14px] font-medium text-[#111111] font-['Montserrat'] mb-3">Also Show in</label>
+                <div className="space-y-4">
+                  <div className="flex items-center gap-4">
+                    <span className="text-[14px] font-medium text-[#000000] font-['Montserrat'] w-48">You Might Also Like</span>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => handleAlsoShowInChange('youMightAlsoLike', 'value', 'yes')}
+                        className={`px-4 py-1 rounded-md text-sm font-medium transition-colors ${
+                          alsoShowInOptions.youMightAlsoLike.value === 'yes'
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        }`}
+                      >
+                        Yes
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleAlsoShowInChange('youMightAlsoLike', 'value', 'no')}
+                        className={`px-4 py-1 rounded-md text-sm font-medium transition-colors ${
+                          alsoShowInOptions.youMightAlsoLike.value === 'no'
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        }`}
+                      >
+                        No
+                      </button>
+                    </div>
+                    {alsoShowInOptions.youMightAlsoLike.value === 'yes' && (
+                      <div className="flex items-center gap-2">
+                        <input 
+                          type="checkbox" 
+                          checked={alsoShowInOptions.youMightAlsoLike.enabled}
+                          onChange={(e) => handleAlsoShowInChange('youMightAlsoLike', 'enabled', e.target.checked)}
+                          className="w-4 h-4 border border-gray-300 rounded"
+                        />
+                        <span className="text-sm text-gray-600">Enable</span>
+                      </div>
+                    )}
                   </div>
                   
-                  <div className="flex items-center gap-3">
-                    <input type="checkbox" className="w-5 h-5 border border-[#bcbcbc] border-solid rounded-[3px]" />
-                    <span className="text-[20px] font-medium text-[#000000] font-['Montserrat']">SImailar Items</span>
-                    <button className="bg-[#000AFF] text-white px-4 py-2.5 rounded-lg flex items-center gap-2 text-[14px] font-['Montserrat'] shadow-sm">
-                      <Plus className="h-5 w-5" />
-                      yes
-                    </button>
+                  <div className="flex items-center gap-4">
+                    <span className="text-[14px] font-medium text-[#000000] font-['Montserrat'] w-48">Similar Items</span>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => handleAlsoShowInChange('similarItems', 'value', 'yes')}
+                        className={`px-4 py-1 rounded-md text-sm font-medium transition-colors ${
+                          alsoShowInOptions.similarItems.value === 'yes'
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        }`}
+                      >
+                        Yes
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleAlsoShowInChange('similarItems', 'value', 'no')}
+                        className={`px-4 py-1 rounded-md text-sm font-medium transition-colors ${
+                          alsoShowInOptions.similarItems.value === 'no'
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        }`}
+                      >
+                        No
+                      </button>
+                    </div>
+                    {alsoShowInOptions.similarItems.value === 'yes' && (
+                      <div className="flex items-center gap-2">
+                        <input 
+                          type="checkbox" 
+                          checked={alsoShowInOptions.similarItems.enabled}
+                          onChange={(e) => handleAlsoShowInChange('similarItems', 'enabled', e.target.checked)}
+                          className="w-4 h-4 border border-gray-300 rounded"
+                        />
+                        <span className="text-sm text-gray-600">Enable</span>
+                      </div>
+                    )}
                   </div>
                   
-                  <div className="flex items-center gap-3">
-                    <input type="checkbox" className="w-5 h-5 border border-[#bcbcbc] border-solid rounded-[3px]" />
-                    <span className="text-[20px] font-medium text-[#000000] font-['Montserrat']">Other Also Bought</span>
+                  <div className="flex items-center gap-4">
+                    <span className="text-[14px] font-medium text-[#000000] font-['Montserrat'] w-48">Others Also Bought</span>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => handleAlsoShowInChange('othersAlsoBought', 'value', 'yes')}
+                        className={`px-4 py-1 rounded-md text-sm font-medium transition-colors ${
+                          alsoShowInOptions.othersAlsoBought.value === 'yes'
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        }`}
+                      >
+                        Yes
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleAlsoShowInChange('othersAlsoBought', 'value', 'no')}
+                        className={`px-4 py-1 rounded-md text-sm font-medium transition-colors ${
+                          alsoShowInOptions.othersAlsoBought.value === 'no'
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        }`}
+                      >
+                        No
+                      </button>
+                    </div>
+                    {alsoShowInOptions.othersAlsoBought.value === 'yes' && (
+                      <div className="flex items-center gap-2">
+                        <input 
+                          type="checkbox" 
+                          checked={alsoShowInOptions.othersAlsoBought.enabled}
+                          onChange={(e) => handleAlsoShowInChange('othersAlsoBought', 'enabled', e.target.checked)}
+                          className="w-4 h-4 border border-gray-300 rounded"
+                        />
+                        <span className="text-sm text-gray-600">Enable</span>
+                      </div>
+                    )}
                   </div>
                 </div>
+
+                {/* Add Variant 2 Button */}
+                {(alsoShowInOptions.youMightAlsoLike.enabled || 
+                  alsoShowInOptions.similarItems.enabled || 
+                  alsoShowInOptions.othersAlsoBought.enabled) && (
+                  <div className="mt-4">
+                    <button
+                      type="button"
+                      onClick={() => setShowVariant2(true)}
+                      className="px-6 py-2 bg-green-600 text-white rounded-md text-sm font-medium hover:bg-green-700 transition-colors"
+                    >
+                      Add Variant 2
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -529,7 +799,7 @@ const SingleProductUpload = React.memo(() => {
                     {uploadedFiles.length > 0 && uploadedFiles[0].type === 'image' ? (
                       <img 
                         src={uploadedFiles[0].url} 
-                        alt="Product main image" 
+                        alt="Product preview" 
                         className="w-full h-full object-cover"
                       />
                     ) : uploadedFiles.length > 0 && uploadedFiles[0].type === 'video' ? (
@@ -748,47 +1018,333 @@ const SingleProductUpload = React.memo(() => {
               <button className="bg-[#000AFF] text-white px-4 py-2.5 rounded-lg text-[14px] font-['Montserrat'] shadow-sm">
                 add meta data
               </button>
-              <button className="bg-[#000AFF] text-white px-4 py-2.5 rounded-lg flex items-center gap-2 text-[14px] font-['Montserrat'] shadow-sm">
+              <button 
+                onClick={() => handleImportExcel('metadata')}
+                className="bg-[#000AFF] text-white px-4 py-2.5 rounded-lg flex items-center gap-2 text-[14px] font-['Montserrat'] shadow-sm"
+              >
                 <Plus className="h-5 w-5" />
-                IMPORT
+                IMPORT EXCEL
               </button>
             </div>
             
             <div className="grid grid-cols-3 gap-6">
               <div>
-                <label className="block text-[21px] font-medium text-[#111111] font-['Montserrat'] mb-3 leading-[24px]">meta title</label>
-                <div className="h-[47px] border-2 border-black rounded-xl">
-                  <input
-                    type="text"
-                    value={productData.metaTitle}
-                    onChange={(e) => handleProductDataChange('metaTitle', e.target.value)}
-                    className="w-full h-[47px] px-4 border-0 rounded-xl focus:outline-none focus:ring-0 text-[16px] bg-white font-['Montserrat']"
-                  />
-                </div>
+                <label className="block text-[14px] font-medium text-[#111111] font-['Montserrat'] mb-2">meta title</label>
+                <input
+                  type="text"
+                  value={productData.metaTitle}
+                  onChange={(e) => handleProductDataChange('metaTitle', e.target.value)}
+                  className="w-full h-[40px] px-3 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-[14px] bg-white font-['Montserrat']"
+                />
               </div>
               <div>
-                <label className="block text-[21px] font-medium text-[#111111] font-['Montserrat'] mb-3 leading-[24px]">meta description</label>
-                <div className="h-[47px] border-2 border-black rounded-xl">
-                  <input
-                    type="text"
-                    value={productData.metaDescription}
-                    onChange={(e) => handleProductDataChange('metaDescription', e.target.value)}
-                    className="w-full h-[47px] px-4 border-0 rounded-xl focus:outline-none focus:ring-0 text-[16px] bg-white font-['Montserrat']"
-                  />
-                </div>
+                <label className="block text-[14px] font-medium text-[#111111] font-['Montserrat'] mb-2">meta description</label>
+                <input
+                  type="text"
+                  value={productData.metaDescription}
+                  onChange={(e) => handleProductDataChange('metaDescription', e.target.value)}
+                  className="w-full h-[40px] px-3 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-[14px] bg-white font-['Montserrat']"
+                />
               </div>
               <div>
-                <label className="block text-[21px] font-medium text-[#111111] font-['Montserrat'] mb-3 leading-[24px]">slug URL</label>
-                <div className="h-[47px] border-2 border-black rounded-xl">
-                  <input
-                    type="text"
-                    value={productData.slugUrl}
-                    onChange={(e) => handleProductDataChange('slugUrl', e.target.value)}
-                    className="w-full h-[47px] px-4 border-0 rounded-xl focus:outline-none focus:ring-0 text-[16px] bg-white font-['Montserrat']"
-                  />
+                <label className="block text-[14px] font-medium text-[#111111] font-['Montserrat'] mb-2">slug URL</label>
+                <input
+                  type="text"
+                  value={productData.slugUrl}
+                  onChange={(e) => handleProductDataChange('slugUrl', e.target.value)}
+                  className="w-full h-[40px] px-3 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-[14px] bg-white font-['Montserrat']"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Variant 2 Section */}
+          {showVariant2 && (
+            <div className="mt-12 py-6 border-t border-gray-200">
+              <h2 className="text-[32px] font-bold text-[#111111] font-['Montserrat'] leading-[24px] mb-8">Variant 2</h2>
+              
+              <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+                {/* Left Column - Variant 2 Details */}
+                <div className="col-span-3 space-y-6">
+                  {/* Title */}
+                  <div>
+                    <label className="block text-[14px] font-medium text-[#111111] font-['Montserrat'] mb-2">Title</label>
+                    <div className="w-full max-w-[400px]">
+                      <input
+                        type="text"
+                        value={variants[1]?.title || ''}
+                        onChange={(e) => {
+                          if (variants.length < 2) {
+                            setVariants(prev => [...prev, { ...DEFAULT_VARIANT, id: 2, name: 'Variant 2', title: e.target.value }]);
+                          } else {
+                            handleVariantChange(2, 'title', e.target.value);
+                          }
+                        }}
+                        className="w-full h-[40px] px-3 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-[14px] bg-white font-['Montserrat']"
+                        placeholder="Enter variant 2 title"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Manufacturing Details */}
+                  <div>
+                    <label className="block text-[14px] font-medium text-[#111111] font-['Montserrat'] mb-2">Manufacturing details</label>
+                    <div className="w-full max-w-[500px]">
+                      <textarea
+                        value={variants[1]?.manufacturingDetails || ''}
+                        onChange={(e) => handleVariantChange(2, 'manufacturingDetails', e.target.value)}
+                        className="w-full h-[100px] px-3 py-2 border border-gray-300 rounded-md resize-none focus:outline-none focus:ring-1 focus:ring-blue-500 text-[14px] bg-white font-['Montserrat']"
+                        placeholder="Enter manufacturing details for variant 2"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Description */}
+                  <div>
+                    <label className="block text-[14px] font-medium text-[#111111] font-['Montserrat'] mb-2">Description</label>
+                    <div className="w-full max-w-[500px]">
+                      <textarea
+                        value={variants[1]?.description || ''}
+                        onChange={(e) => handleVariantChange(2, 'description', e.target.value)}
+                        className="w-full h-[100px] px-3 py-2 border border-gray-300 rounded-md resize-none focus:outline-none focus:ring-1 focus:ring-blue-500 text-[14px] bg-white font-['Montserrat']"
+                        placeholder="Enter description for variant 2"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Pricing for Variant 2 */}
+                  <div className="grid grid-cols-2 gap-6 mb-6 max-w-[400px]">
+                    <div>
+                      <label className="block text-[14px] font-medium text-[#111111] font-['Montserrat'] mb-2">Regular price</label>
+                      <input
+                        type="number"
+                        value={variants[1]?.regularPrice || ''}
+                        onChange={(e) => handleVariantChange(2, 'regularPrice', e.target.value)}
+                        className="w-full h-[40px] px-3 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-[14px] bg-white font-['Montserrat']"
+                        placeholder="0.00"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[14px] font-medium text-[#111111] font-['Montserrat'] mb-2">Sale price</label>
+                      <input
+                        type="number"
+                        value={variants[1]?.salePrice || ''}
+                        onChange={(e) => handleVariantChange(2, 'salePrice', e.target.value)}
+                        className="w-full h-[40px] px-3 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-[14px] bg-white font-['Montserrat']"
+                        placeholder="0.00"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right Column - Variant 2 Images */}
+                <div className="space-y-6">
+                  <h3 className="text-[24px] font-bold text-[#111111] font-['Montserrat']">Variant 2 Images</h3>
+                  {/* Similar image upload structure as variant 1 */}
+                  <div className="space-y-4">
+                    <div>
+                      <h4 className="text-[14px] font-medium text-[#111111] font-['Montserrat'] mb-3">Upload image</h4>
+                      <label className="cursor-pointer">
+                        <input 
+                          type="file" 
+                          multiple 
+                          accept="image/*" 
+                          className="hidden" 
+                          onChange={(e) => handleImageUpload(2, e.target.files)}
+                        />
+                        <div className="w-[185px] h-[96px] border border-dashed border-gray-300 rounded flex flex-col items-center justify-center hover:border-gray-400 transition-colors">
+                          <Upload className="h-6 w-6 text-gray-400 mb-2" />
+                          <p className="text-[10px] font-medium text-[#111111] font-['Montserrat'] text-center px-2">
+                            Drop your image here PNG. JPEG allowed
+                          </p>
+                        </div>
+                      </label>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
+          )}
+
+          {/* Common Size Chart Section */}
+          <div className="mt-12 py-6 border-t border-gray-200">
+            <h3 className="text-[18px] font-bold text-[#111111] font-['Montserrat'] mb-6">Common Size Chart</h3>
+            <div className="grid grid-cols-3 gap-6">
+              {/* CM Chart */}
+              <div>
+                <label className="block text-[14px] font-medium text-[#111111] font-['Montserrat'] mb-3">Size Chart (CM)</label>
+                <div className="w-[150px] h-[120px] bg-gray-100 rounded border overflow-hidden mb-3">
+                  {commonSizeChart.cmChart ? (
+                    <img 
+                      src={URL.createObjectURL(commonSizeChart.cmChart)} 
+                      alt="CM chart"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <span className="text-sm text-gray-500 font-['Montserrat']">CM Chart</span>
+                    </div>
+                  )}
+                </div>
+                <label className="cursor-pointer">
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    className="hidden" 
+                    onChange={(e) => handleCommonSizeChartUpload('cmChart', e.target.files[0])}
+                  />
+                  <span className="text-sm text-blue-600 hover:text-blue-700 font-['Montserrat']">
+                    Upload CM Chart
+                  </span>
+                </label>
+              </div>
+
+              {/* Inch Chart */}
+              <div>
+                <label className="block text-[14px] font-medium text-[#111111] font-['Montserrat'] mb-3">Size Chart (Inches)</label>
+                <div className="w-[150px] h-[120px] bg-gray-100 rounded border overflow-hidden mb-3">
+                  {commonSizeChart.inchChart ? (
+                    <img 
+                      src={URL.createObjectURL(commonSizeChart.inchChart)} 
+                      alt="Inch chart"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <span className="text-sm text-gray-500 font-['Montserrat']">Inch Chart</span>
+                    </div>
+                  )}
+                </div>
+                <label className="cursor-pointer">
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    className="hidden" 
+                    onChange={(e) => handleCommonSizeChartUpload('inchChart', e.target.files[0])}
+                  />
+                  <span className="text-sm text-blue-600 hover:text-blue-700 font-['Montserrat']">
+                    Upload Inch Chart
+                  </span>
+                </label>
+              </div>
+
+              {/* Measurement Guide */}
+              <div>
+                <label className="block text-[14px] font-medium text-[#111111] font-['Montserrat'] mb-3">How to Measure Guide</label>
+                <div className="w-[150px] h-[120px] bg-gray-100 rounded border overflow-hidden mb-3">
+                  {commonSizeChart.measurementGuide ? (
+                    <img 
+                      src={URL.createObjectURL(commonSizeChart.measurementGuide)} 
+                      alt="Measurement guide"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <span className="text-sm text-gray-500 font-['Montserrat']">Guide</span>
+                    </div>
+                  )}
+                </div>
+                <label className="cursor-pointer">
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    className="hidden" 
+                    onChange={(e) => handleCommonSizeChartUpload('measurementGuide', e.target.files[0])}
+                  />
+                  <span className="text-sm text-blue-600 hover:text-blue-700 font-['Montserrat']">
+                    Upload Guide
+                  </span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          {/* Category Assignment Section */}
+          <div className="mt-12 py-6 border-t border-gray-200">
+            <h3 className="text-[18px] font-bold text-[#111111] font-['Montserrat'] mb-6">Category Assignment</h3>
+            <div className="grid grid-cols-2 gap-6 max-w-[600px]">
+              <div>
+                <label className="block text-[14px] font-medium text-[#111111] font-['Montserrat'] mb-2">Category</label>
+                <select
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  className="w-full h-[40px] px-3 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-[14px] bg-white font-['Montserrat']"
+                >
+                  <option value="">Select Category</option>
+                  <option value="men">Men</option>
+                  <option value="women">Women</option>
+                  <option value="kids">Kids</option>
+                  <option value="accessories">Accessories</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-[14px] font-medium text-[#111111] font-['Montserrat'] mb-2">Subcategory</label>
+                <select
+                  value={selectedSubCategory}
+                  onChange={(e) => setSelectedSubCategory(e.target.value)}
+                  className="w-full h-[40px] px-3 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-[14px] bg-white font-['Montserrat']"
+                >
+                  <option value="">Select Subcategory</option>
+                  {selectedCategory === 'men' && (
+                    <>
+                      <option value="jacket">Jacket</option>
+                      <option value="shirt">Shirt</option>
+                      <option value="pants">Pants</option>
+                      <option value="shoes">Shoes</option>
+                    </>
+                  )}
+                  {selectedCategory === 'women' && (
+                    <>
+                      <option value="dress">Dress</option>
+                      <option value="top">Top</option>
+                      <option value="skirt">Skirt</option>
+                      <option value="shoes">Shoes</option>
+                    </>
+                  )}
+                  {selectedCategory === 'kids' && (
+                    <>
+                      <option value="clothing">Clothing</option>
+                      <option value="shoes">Shoes</option>
+                      <option value="toys">Toys</option>
+                    </>
+                  )}
+                </select>
+              </div>
+            </div>
+            {selectedCategory && selectedSubCategory && (
+              <div className="mt-4 p-3 bg-blue-50 rounded-md">
+                <p className="text-sm text-blue-800 font-['Montserrat']">
+                  Category Path: {selectedCategory} → {selectedSubCategory}
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Action Buttons */}
+          <div className="mt-12 flex justify-center gap-4">
+            <button
+              onClick={handleSaveAsDraft}
+              className="px-6 py-3 bg-gray-500 text-white rounded-lg text-[16px] font-medium font-['Montserrat'] hover:bg-gray-600 transition-colors"
+            >
+              Save as Draft
+            </button>
+            <button
+              onClick={handleRecheckDetails}
+              className="px-6 py-3 bg-yellow-500 text-white rounded-lg text-[16px] font-medium font-['Montserrat'] hover:bg-yellow-600 transition-colors"
+            >
+              Recheck Details
+            </button>
+            <button
+              onClick={handlePublishProduct}
+              disabled={!isFormValid}
+              className={`px-6 py-3 rounded-lg text-[16px] font-medium font-['Montserrat'] transition-colors ${
+                isFormValid
+                  ? 'bg-green-600 text-white hover:bg-green-700'
+                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              }`}
+            >
+              Publish Product
+            </button>
           </div>
         </div>
       </div>

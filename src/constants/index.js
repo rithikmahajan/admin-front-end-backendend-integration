@@ -108,6 +108,7 @@ export const DEFAULT_VARIANT = {
   regularPrice: '',
   salePrice: '',
   images: [],
+  stockSizes: [],
   sizes: [],
   alsoShowIn: {
     youMightAlsoLike: false,
@@ -162,4 +163,21 @@ export const validateImageFile = (file) => {
   }
   
   return { valid: true };
+};
+
+export const getTailwindClasses = (componentName, variant = 'default') => {
+  // Utility function to generate consistent Tailwind classes
+  const classMap = {
+    button: {
+      default: 'px-4 py-2 rounded-md font-medium transition-colors',
+      primary: 'bg-blue-600 text-white hover:bg-blue-700',
+      secondary: 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+    },
+    input: {
+      default: 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500',
+      error: 'border-red-500 focus:ring-red-500'
+    }
+  };
+  
+  return classMap[componentName]?.[variant] || '';
 };
