@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
-import { Upload, Plus, ChevronDown } from 'lucide-react';
+import { Upload, Plus, ChevronDown, X, Move, CheckCircle, XCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { DEFAULT_VARIANT, DEFAULT_PRODUCT_DATA, validateImageFile } from '../constants';
 
@@ -34,7 +34,14 @@ const SingleProductUpload = React.memo(() => {
     {
       ...DEFAULT_VARIANT,
       id: 1,
-      name: 'Variant 1'
+      name: 'Variant 1',
+      images: [],
+      videos: [],
+      maxImageSlots: 5,
+      uploadStatus: {
+        images: [], // Array of {id, status: 'uploading'|'success'|'failed', progress: 0-100}
+        videos: []
+      }
     }
   ]);
 
@@ -43,6 +50,18 @@ const SingleProductUpload = React.memo(() => {
     inchChart: null,
     cmChart: null,
     measurementImage: null
+  });
+
+  // Common size charts for all variants
+  const [commonSizeChart, setCommonSizeChart] = useState({
+    cmChart: null,
+    inchChart: null,
+    measurementGuide: null,
+    uploadStatus: {
+      cmChart: null,
+      inchChart: null,
+      measurementGuide: null
+    }
   });
 
   // UI state management
@@ -67,11 +86,6 @@ const SingleProductUpload = React.memo(() => {
   const [variantCount, setVariantCount] = useState(1); // Track number of variants
   const [nestingOptions, setNestingOptions] = useState({}); // Track nesting options for each variant
   const [excelFile, setExcelFile] = useState(null); // Track uploaded Excel file
-  const [commonSizeChart, setCommonSizeChart] = useState({
-    cmChart: null,
-    inchChart: null,
-    measurementGuide: null
-  });
 
   // State for permanent options feature
   const [permanentOptions, setPermanentOptions] = useState([]);
@@ -158,23 +172,52 @@ const SingleProductUpload = React.memo(() => {
     const newVariant = {
       ...DEFAULT_VARIANT,
       id: Date.now(),
-      name: `Variant ${newVariantCount}`
+      name: `Variant ${newVariantCount}`,
+      images: [],
+      videos: [],
+      maxImageSlots: 5,
+      uploadStatus: {
+        images: [],
+        videos: []
+      }
     };
     setVariants(prev => [...prev, newVariant]);
     setVariantCount(newVariantCount);
   }, [variantCount]);
 
-  const handleImageUpload = useCallback((variantId, files) => {
+  const handleImageUpload = useCallback((variantId, files, type = 'images') => {
     // Validate each file before processing
     const validFiles = [];
     const errors = [];
     
     Array.from(files).forEach(file => {
-      const validation = validateImageFile(file);
-      if (validation.valid) {
-        validFiles.push(file);
-      } else {
-        errors.push(`${file.name}: ${validation.error}`);
+      if (type === 'images') {
+        const validation = validateImageFile(file);
+        if (validation.valid) {
+          validFiles.push(file);
+        } else {
+          errors.push(`${file.name}: ${validation.error}`);
+        }
+      } else if (type === 'videos') {
+        // Accept all video formats including .blend
+        const allowedVideoTypes = [
+          'video/mp4', 'video/mov', 'video/avi', 'video/wmv', 'video/flv', 
+          'video/webm', 'video/mkv', 'video/m4v', 'video/3gp', 'video/ogv',
+          'application/octet-stream' // For .blend files
+        ];
+        const allowedExtensions = ['.mp4', '.mov', '.avi', '.wmv', '.flv', '.webm', '.mkv', '.m4v', '.3gp', '.ogv', '.blend'];
+        
+        const fileExtension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
+        const isValidType = allowedVideoTypes.includes(file.type) || allowedExtensions.includes(fileExtension);
+        const isValidSize = file.size <= 100 * 1024 * 1024; // 100MB limit for videos
+        
+        if (isValidType && isValidSize) {
+          validFiles.push(file);
+        } else if (!isValidType) {
+          errors.push(`${file.name}: Invalid video format. Supported formats: MP4, MOV, AVI, WMV, FLV, WebM, MKV, M4V, 3GP, OGV, BLEND`);
+        } else if (!isValidSize) {
+          errors.push(`${file.name}: File size exceeds 100MB limit`);
+        }
       }
     });
     
@@ -184,41 +227,110 @@ const SingleProductUpload = React.memo(() => {
     }
     
     if (validFiles.length > 0) {
-      // Add files to uploaded files list with progress simulation
+      // Create file data objects with upload status
       const newFiles = validFiles.map(file => ({
         id: Date.now() + Math.random(),
         file,
         name: file.name,
         progress: 0,
-        completed: false,
+        status: 'uploading',
         type: file.type.startsWith('image/') ? 'image' : 'video',
         url: URL.createObjectURL(file)
       }));
+
+      // Update variant with new files and upload status
+      setVariants(prev => prev.map(variant => {
+        if (variant.id === variantId) {
+          const updatedFiles = [...(variant[type] || []), ...newFiles];
+          const updatedStatus = [...(variant.uploadStatus[type] || []), ...newFiles.map(f => ({
+            id: f.id,
+            status: 'uploading',
+            progress: 0
+          }))];
+
+          return {
+            ...variant,
+            [type]: updatedFiles,
+            uploadStatus: {
+              ...variant.uploadStatus,
+              [type]: updatedStatus
+            }
+          };
+        }
+        return variant;
+      }));
       
-      setUploadedFiles(prev => [...prev, ...newFiles]);
-      
-      // Simulate upload progress
+      // Simulate upload progress for each file
       newFiles.forEach(fileData => {
         const interval = setInterval(() => {
-          setUploadedFiles(prev => prev.map(f => {
-            if (f.id === fileData.id) {
-              const newProgress = Math.min(f.progress + Math.random() * 20, 100);
+          setVariants(prev => prev.map(variant => {
+            if (variant.id === variantId) {
+              const updatedFiles = variant[type].map(f => {
+                if (f.id === fileData.id && f.progress < 100) {
+                  const newProgress = Math.min(f.progress + Math.random() * 20, 100);
+                  return {
+                    ...f,
+                    progress: newProgress,
+                    status: newProgress >= 100 ? 'success' : 'uploading'
+                  };
+                }
+                return f;
+              });
+
+              const updatedStatus = variant.uploadStatus[type].map(s => {
+                if (s.id === fileData.id) {
+                  const newProgress = Math.min(s.progress + Math.random() * 20, 100);
+                  return {
+                    ...s,
+                    progress: newProgress,
+                    status: newProgress >= 100 ? 'success' : 'uploading'
+                  };
+                }
+                return s;
+              });
+
               return {
-                ...f,
-                progress: newProgress,
-                completed: newProgress >= 100
+                ...variant,
+                [type]: updatedFiles,
+                uploadStatus: {
+                  ...variant.uploadStatus,
+                  [type]: updatedStatus
+                }
               };
             }
-            return f;
+            return variant;
           }));
         }, 200);
         
-        // Clear interval when complete
-        setTimeout(() => clearInterval(interval), 2000);
+        // Clear interval when complete and potentially simulate some failures
+        setTimeout(() => {
+          clearInterval(interval);
+          // Randomly simulate some upload failures (10% chance)
+          if (Math.random() < 0.1) {
+            setVariants(prev => prev.map(variant => {
+              if (variant.id === variantId) {
+                const updatedStatus = variant.uploadStatus[type].map(s => {
+                  if (s.id === fileData.id) {
+                    return { ...s, status: 'failed', progress: 0 };
+                  }
+                  return s;
+                });
+
+                return {
+                  ...variant,
+                  uploadStatus: {
+                    ...variant.uploadStatus,
+                    [type]: updatedStatus
+                  }
+                };
+              }
+              return variant;
+            }));
+          }
+        }, 2500);
       });
       
-      console.log('Uploading valid images for variant:', variantId, validFiles);
-      // TODO: Implement actual file upload logic
+      console.log(`Uploading valid ${type} for variant:`, variantId, validFiles);
     }
   }, []);
 
@@ -228,6 +340,105 @@ const SingleProductUpload = React.memo(() => {
       [type]: file
     }));
     // TODO: Implement actual file upload for size charts
+  }, []);
+
+  // Handle common size chart uploads with status tracking
+  const handleCommonSizeChartUpload = useCallback((type, file) => {
+    // Set the file
+    setCommonSizeChart(prev => ({
+      ...prev,
+      [type]: file,
+      uploadStatus: {
+        ...prev.uploadStatus,
+        [type]: { status: 'uploading', progress: 0 }
+      }
+    }));
+
+    // Simulate upload progress
+    const interval = setInterval(() => {
+      setCommonSizeChart(prev => {
+        const currentStatus = prev.uploadStatus[type];
+        if (currentStatus && currentStatus.progress < 100) {
+          const newProgress = Math.min(currentStatus.progress + Math.random() * 25, 100);
+          return {
+            ...prev,
+            uploadStatus: {
+              ...prev.uploadStatus,
+              [type]: {
+                status: newProgress >= 100 ? 'success' : 'uploading',
+                progress: newProgress
+              }
+            }
+          };
+        }
+        return prev;
+      });
+    }, 200);
+
+    // Clear interval and potentially simulate failure
+    setTimeout(() => {
+      clearInterval(interval);
+      // 5% chance of failure
+      if (Math.random() < 0.05) {
+        setCommonSizeChart(prev => ({
+          ...prev,
+          uploadStatus: {
+            ...prev.uploadStatus,
+            [type]: { status: 'failed', progress: 0 }
+          }
+        }));
+      }
+    }, 2000);
+  }, []);
+
+  // Remove file from variant
+  const removeFile = useCallback((variantId, fileId, type = 'images') => {
+    setVariants(prev => prev.map(variant => {
+      if (variant.id === variantId) {
+        const updatedFiles = variant[type].filter(f => f.id !== fileId);
+        const updatedStatus = variant.uploadStatus[type].filter(s => s.id !== fileId);
+        
+        return {
+          ...variant,
+          [type]: updatedFiles,
+          uploadStatus: {
+            ...variant.uploadStatus,
+            [type]: updatedStatus
+          }
+        };
+      }
+      return variant;
+    }));
+  }, []);
+
+  // Drag and drop reordering for files
+  const reorderFiles = useCallback((variantId, type, startIndex, endIndex) => {
+    setVariants(prev => prev.map(variant => {
+      if (variant.id === variantId) {
+        const files = [...variant[type]];
+        const [reorderedItem] = files.splice(startIndex, 1);
+        files.splice(endIndex, 0, reorderedItem);
+        
+        return {
+          ...variant,
+          [type]: files
+        };
+      }
+      return variant;
+    }));
+  }, []);
+
+  // Add more image slots for a variant (one at a time)
+  const addMoreImageSlots = useCallback((variantId) => {
+    setVariants(prev => prev.map(variant => {
+      if (variant.id === variantId) {
+        return {
+          ...variant,
+          maxImageSlots: (variant.maxImageSlots || 5) + 1
+        };
+      }
+      return variant;
+    }));
   }, []);
 
   // New handlers for additional functionality
@@ -444,13 +655,6 @@ const SingleProductUpload = React.memo(() => {
       }
     };
     input.click();
-  }, []);
-
-  const handleCommonSizeChartUpload = useCallback((type, file) => {
-    setCommonSizeChart(prev => ({
-      ...prev,
-      [type]: file
-    }));
   }, []);
 
   // Nesting options handlers
@@ -754,8 +958,8 @@ const SingleProductUpload = React.memo(() => {
   }, []);
 
   // File upload handlers
-  const handleFileUpload = useCallback((files, type = 'image') => {
-    handleImageUpload(1, files);
+  const handleFileUpload = useCallback((files, type = 'images', variantId = 1) => {
+    handleImageUpload(variantId, files, type);
   }, [handleImageUpload]);
 
   // Drag and drop for upload areas
@@ -774,13 +978,13 @@ const SingleProductUpload = React.memo(() => {
     e.stopPropagation();
   }, []);
 
-  const handleUploadDrop = useCallback((e, type = 'image') => {
+  const handleUploadDrop = useCallback((e, type = 'images', variantId = 1) => {
     e.preventDefault();
     e.stopPropagation();
     
     const files = e.dataTransfer.files;
     if (files.length > 0) {
-      handleFileUpload(files, type);
+      handleFileUpload(files, type, variantId);
     }
   }, [handleFileUpload]);
 
@@ -1148,71 +1352,139 @@ const SingleProductUpload = React.memo(() => {
               <div>
                 <h3 className="text-[32px] font-bold text-[#111111] font-['Montserrat'] leading-[24px] mb-6">Product Images/videos</h3>
                 
-                {/* Main Image Preview */}
-                <div className="mb-6">
-                  <div className="w-[276px] h-[286px] bg-gray-100 rounded border overflow-hidden">
-                    {uploadedFiles.length > 0 && uploadedFiles[0].type === 'image' ? (
-                      <img 
-                        src={uploadedFiles[0].url} 
-                        alt="Product preview" 
-                        className="w-full h-full object-cover"
-                      />
-                    ) : uploadedFiles.length > 0 && uploadedFiles[0].type === 'video' ? (
-                      <video 
-                        src={uploadedFiles[0].url} 
-                        className="w-full h-full object-cover"
-                        controls={false}
-                        muted
-                      />
+                {/* Main Product Image and Additional Images Grid */}
+                <div className="space-y-4">
+                  {/* Main Product Image */}
+                  <div className="w-[276px] h-[286px] bg-gray-100 rounded border overflow-hidden relative">
+                    {variants[0]?.images && variants[0]?.images.length > 0 ? (
+                      <>
+                        <img 
+                          src={variants[0].images[0].url} 
+                          alt="Main product view"
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute top-2 left-2 bg-blue-600 text-white text-xs px-2 py-1 rounded">
+                          Main
+                        </div>
+                      </>
                     ) : (
                       <div className="w-full h-full flex items-center justify-center bg-gray-50">
                         <span className="text-gray-400 text-sm font-['Montserrat']">Main Product Image</span>
                       </div>
                     )}
                   </div>
-                </div>
-                
-                {/* 5 Image Preview Thumbnails - Horizontal Row */}
-                <div className="mb-6">
-                  <div className="flex gap-2">
-                    {[...Array(5)].map((_, index) => (
-                      <div 
-                        key={index} 
-                        className={`w-[86px] h-[83px] bg-gray-100 rounded border-2 overflow-hidden cursor-pointer transition-all ${
-                          uploadedFiles[index] ? 'border-blue-500' : 'border-gray-200'
-                        }`}
-                        onClick={() => {
-                          if (uploadedFiles[index]) {
-                            // Move clicked image to main preview by reordering array
-                            const newFiles = [...uploadedFiles];
-                            const clickedFile = newFiles.splice(index, 1)[0];
-                            newFiles.unshift(clickedFile);
-                            setUploadedFiles(newFiles);
-                          }
-                        }}
-                      >
-                        {uploadedFiles[index] ? (
-                          uploadedFiles[index].type === 'image' ? (
-                            <img 
-                              src={uploadedFiles[index].url} 
-                              alt={`Thumbnail ${index + 1}`}
+
+                  {/* Additional Images Grid (5 slots initially, expandable) */}
+                  <div className="grid grid-cols-5 gap-2">
+                    {Array.from({ length: variants[0]?.maxImageSlots || 5 }).map((_, index) => {
+                      const imageIndex = index + 1; // Skip main image (index 0)
+                      const image = variants[0]?.images?.[imageIndex];
+                      
+                      return (
+                        <div 
+                          key={`slot-${index}`}
+                          className="w-[52px] h-[52px] bg-gray-100 rounded border overflow-hidden relative group cursor-pointer"
+                          draggable={!!image}
+                          onDragStart={(e) => {
+                            if (image) {
+                              e.dataTransfer.setData('text/plain', imageIndex.toString());
+                              e.dataTransfer.setData('variant-id', variants[0]?.id.toString());
+                              e.dataTransfer.setData('type', 'images');
+                            }
+                          }}
+                          onDragOver={(e) => e.preventDefault()}
+                          onDrop={(e) => {
+                            e.preventDefault();
+                            const dragIndex = parseInt(e.dataTransfer.getData('text/plain'));
+                            const dragVariantId = parseInt(e.dataTransfer.getData('variant-id'));
+                            const dragType = e.dataTransfer.getData('type');
+                            
+                            if (dragVariantId === variants[0]?.id && dragType === 'images' && dragIndex !== imageIndex) {
+                              reorderFiles(variants[0]?.id, 'images', dragIndex, imageIndex);
+                            }
+                          }}
+                        >
+                          {image ? (
+                            <>
+                              <img 
+                                src={image.url} 
+                                alt={`Product view ${index + 1}`}
+                                className="w-full h-full object-cover"
+                              />
+                              <button
+                                onClick={() => removeFile(variants[0]?.id, image.id, 'images')}
+                                className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center text-xs hover:bg-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                              >
+                                <X className="w-2 h-2" />
+                              </button>
+                              <div className="absolute bottom-0 left-0 w-full bg-black bg-opacity-50 text-white text-[10px] text-center py-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                Drag
+                              </div>
+                            </>
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-gray-50 border-dashed border-gray-300 border-2">
+                              <Plus className="w-4 h-4 text-gray-400" />
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Add More Images Button */}
+                  <button
+                    onClick={() => addMoreImageSlots(variants[0]?.id)}
+                    className="text-blue-600 hover:text-blue-700 text-sm font-['Montserrat'] flex items-center gap-1"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add More Slots
+                  </button>
+
+                  {/* Videos Grid if any */}
+                  {variants[0]?.videos && variants[0]?.videos.length > 0 && (
+                    <div className="space-y-2">
+                      <h4 className="text-[14px] font-medium text-[#111111] font-['Montserrat']">Videos</h4>
+                      <div className="grid grid-cols-5 gap-2">
+                        {variants[0].videos.map((video, index) => (
+                          <div 
+                            key={video.id}
+                            className="w-[52px] h-[52px] bg-gray-100 rounded border overflow-hidden relative group cursor-move"
+                            draggable
+                            onDragStart={(e) => {
+                              e.dataTransfer.setData('text/plain', index.toString());
+                              e.dataTransfer.setData('variant-id', variants[0]?.id.toString());
+                              e.dataTransfer.setData('type', 'videos');
+                            }}
+                            onDragOver={(e) => e.preventDefault()}
+                            onDrop={(e) => {
+                              e.preventDefault();
+                              const dragIndex = parseInt(e.dataTransfer.getData('text/plain'));
+                              const dragVariantId = parseInt(e.dataTransfer.getData('variant-id'));
+                              const dragType = e.dataTransfer.getData('type');
+                              
+                              if (dragVariantId === variants[0]?.id && dragType === 'videos' && dragIndex !== index) {
+                                reorderFiles(variants[0]?.id, 'videos', dragIndex, index);
+                              }
+                            }}
+                          >
+                            <video 
+                              src={video.url} 
                               className="w-full h-full object-cover"
                             />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center bg-gray-200">
-                              <span className="text-xs text-gray-600 font-['Montserrat']">VIDEO</span>
-                            </div>
-                          )
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center bg-gray-50">
-                            <div className="w-6 h-6 border-2 border-dashed border-gray-300 rounded flex items-center justify-center">
-                              <Plus className="w-3 h-3 text-gray-400" />
+                            <button
+                              onClick={() => removeFile(variants[0]?.id, video.id, 'videos')}
+                              className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center text-xs hover:bg-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              <X className="w-2 h-2" />
+                            </button>
+                            <div className="absolute bottom-0 left-0 w-full bg-black bg-opacity-50 text-white text-[8px] text-center py-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                              Video
                             </div>
                           </div>
-                        )}
+                        ))}
                       </div>
-                    ))}
-                  </div>
+                    </div>
+                  )}
                 </div>
                 
                 {/* Upload Areas */}
@@ -1225,14 +1497,14 @@ const SingleProductUpload = React.memo(() => {
                         multiple 
                         accept="image/*" 
                         className="hidden" 
-                        onChange={(e) => handleFileUpload(e.target.files, 'image')}
+                        onChange={(e) => handleImageUpload(variants[0]?.id, e.target.files, 'images')}
                       />
                       <div 
                         className="w-[185px] h-[96px] border border-dashed border-gray-300 rounded flex flex-col items-center justify-center hover:border-gray-400 transition-colors"
                         onDragOver={handleUploadDragOver}
                         onDragEnter={handleUploadDragEnter}
                         onDragLeave={handleUploadDragLeave}
-                        onDrop={(e) => handleUploadDrop(e, 'image')}
+                        onDrop={(e) => handleUploadDrop(e, 'images', variants[0]?.id)}
                       >
                         <Upload className="h-6 w-6 text-gray-400 mb-2" />
                         <p className="text-[10px] font-medium text-[#111111] font-['Montserrat'] text-center px-2">
@@ -1240,6 +1512,33 @@ const SingleProductUpload = React.memo(() => {
                         </p>
                       </div>
                     </label>
+                    {/* Upload Status Bar for Images */}
+                    {variants[0]?.uploadStatus?.images?.length > 0 && (
+                      <div className="mt-2 space-y-1 max-h-20 overflow-y-auto">
+                        {variants[0].uploadStatus.images.slice(-3).map((status) => (
+                          <div key={status.id} className="flex items-center gap-2 text-xs bg-gray-50 p-2 rounded">
+                            {status.status === 'uploading' && (
+                              <>
+                                <div className="w-3 h-3 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                                <span className="text-blue-600">Uploading... {Math.round(status.progress)}%</span>
+                              </>
+                            )}
+                            {status.status === 'success' && (
+                              <>
+                                <CheckCircle className="w-3 h-3 text-green-500" />
+                                <span className="text-green-600">Image uploaded successfully</span>
+                              </>
+                            )}
+                            {status.status === 'failed' && (
+                              <>
+                                <XCircle className="w-3 h-3 text-red-500" />
+                                <span className="text-red-600">Image upload failed</span>
+                              </>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                   
                   <div>
@@ -1248,121 +1547,53 @@ const SingleProductUpload = React.memo(() => {
                       <input 
                         type="file" 
                         multiple 
-                        accept="video/*" 
+                        accept="video/*,.blend" 
                         className="hidden" 
-                        onChange={(e) => handleFileUpload(e.target.files, 'video')}
+                        onChange={(e) => handleImageUpload(variants[0]?.id, e.target.files, 'videos')}
                       />
                       <div 
                         className="w-[185px] h-[96px] border border-dashed border-gray-300 rounded flex flex-col items-center justify-center hover:border-gray-400 transition-colors"
                         onDragOver={handleUploadDragOver}
                         onDragEnter={handleUploadDragEnter}
                         onDragLeave={handleUploadDragLeave}
-                        onDrop={(e) => handleUploadDrop(e, 'video')}
+                        onDrop={(e) => handleUploadDrop(e, 'videos', variants[0]?.id)}
                       >
                         <Upload className="h-6 w-6 text-gray-400 mb-2" />
                         <p className="text-[10px] font-medium text-[#111111] font-['Montserrat'] text-center px-2">
-                          Drop your video here MP4. MOV allowed
+                          Drop video here MP4, MOV, BLEND, etc.
                         </p>
                       </div>
                     </label>
+                    {/* Upload Status Bar for Videos */}
+                    {variants[0]?.uploadStatus?.videos?.length > 0 && (
+                      <div className="mt-2 space-y-1 max-h-20 overflow-y-auto">
+                        {variants[0].uploadStatus.videos.slice(-3).map((status) => (
+                          <div key={status.id} className="flex items-center gap-2 text-xs bg-gray-50 p-2 rounded">
+                            {status.status === 'uploading' && (
+                              <>
+                                <div className="w-3 h-3 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                                <span className="text-blue-600">Uploading... {Math.round(status.progress)}%</span>
+                              </>
+                            )}
+                            {status.status === 'success' && (
+                              <>
+                                <CheckCircle className="w-3 h-3 text-green-500" />
+                                <span className="text-green-600">Video uploaded successfully</span>
+                              </>
+                            )}
+                            {status.status === 'failed' && (
+                              <>
+                                <XCircle className="w-3 h-3 text-red-500" />
+                                <span className="text-red-600">Video upload failed</span>
+                              </>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
 
-                {/* Size Chart Upload Section - 3 vertical thumbnails */}
-                <div className="space-y-4">
-                  <h4 className="text-[21px] font-medium text-[#111111] font-['Montserrat'] mb-3">Size Charts</h4>
-                  <div className="space-y-3">
-                    {/* Inch Chart */}
-                    <div className="flex items-center gap-3">
-                      <div className="w-[86px] h-[83px] bg-gray-100 rounded border overflow-hidden">
-                        {sizeChart.inchChart ? (
-                          <img 
-                            src={URL.createObjectURL(sizeChart.inchChart)} 
-                            alt="Inch chart"
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <span className="text-xs text-gray-500 font-['Montserrat']">Inch</span>
-                          </div>
-                        )}
-                      </div>
-                      <div className="flex-1">
-                        <label className="cursor-pointer">
-                          <input 
-                            type="file" 
-                            accept="image/*" 
-                            className="hidden" 
-                            onChange={(e) => handleSizeChartUpload('inchChart', e.target.files[0])}
-                          />
-                          <span className="text-sm text-blue-600 hover:text-blue-700 font-['Montserrat']">
-                            Upload Inch Chart
-                          </span>
-                        </label>
-                      </div>
-                    </div>
-
-                    {/* CM Chart */}
-                    <div className="flex items-center gap-3">
-                      <div className="w-[86px] h-[83px] bg-gray-100 rounded border overflow-hidden">
-                        {sizeChart.cmChart ? (
-                          <img 
-                            src={URL.createObjectURL(sizeChart.cmChart)} 
-                            alt="CM chart"
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <span className="text-xs text-gray-500 font-['Montserrat']">CM</span>
-                          </div>
-                        )}
-                      </div>
-                      <div className="flex-1">
-                        <label className="cursor-pointer">
-                          <input 
-                            type="file" 
-                            accept="image/*" 
-                            className="hidden" 
-                            onChange={(e) => handleSizeChartUpload('cmChart', e.target.files[0])}
-                          />
-                          <span className="text-sm text-blue-600 hover:text-blue-700 font-['Montserrat']">
-                            Upload CM Chart
-                          </span>
-                        </label>
-                      </div>
-                    </div>
-
-                    {/* Measurement Image */}
-                    <div className="flex items-center gap-3">
-                      <div className="w-[86px] h-[83px] bg-gray-100 rounded border overflow-hidden">
-                        {sizeChart.measurementImage ? (
-                          <img 
-                            src={URL.createObjectURL(sizeChart.measurementImage)} 
-                            alt="Measurement guide"
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <span className="text-xs text-gray-500 font-['Montserrat']">Guide</span>
-                          </div>
-                        )}
-                      </div>
-                      <div className="flex-1">
-                        <label className="cursor-pointer">
-                          <input 
-                            type="file" 
-                            accept="image/*" 
-                            className="hidden" 
-                            onChange={(e) => handleSizeChartUpload('measurementImage', e.target.files[0])}
-                          />
-                          <span className="text-sm text-blue-600 hover:text-blue-700 font-['Montserrat']">
-                            Upload Measurement Guide
-                          </span>
-                        </label>
-                      </div>
-                    </div>
-                  </div>
-                </div>
               </div>
             </div>
           </div>
@@ -1787,13 +2018,139 @@ const SingleProductUpload = React.memo(() => {
                   <div className="space-y-6">
                     <h3 className="text-[24px] font-bold text-[#111111] font-['Montserrat']">Variant {variantNumber} Images</h3>
                     
-                    {/* Main Product Image */}
-                    <div className="mb-6">
-                      <div className="w-[276px] h-[286px] bg-gray-100 rounded border overflow-hidden">
-                        <div className="w-full h-full flex items-center justify-center bg-gray-50">
-                          <span className="text-gray-400 text-sm font-['Montserrat']">Variant {variantNumber} Image</span>
-                        </div>
+                    {/* Main Product Image and Additional Images Grid */}
+                    <div className="space-y-4">
+                      {/* Main Product Image */}
+                      <div className="w-[276px] h-[286px] bg-gray-100 rounded border overflow-hidden relative">
+                        {variant.images && variant.images.length > 0 ? (
+                          <>
+                            <img 
+                              src={variant.images[0].url} 
+                              alt={`Variant ${variantNumber} main view`}
+                              className="w-full h-full object-cover"
+                            />
+                            <div className="absolute top-2 left-2 bg-blue-600 text-white text-xs px-2 py-1 rounded">
+                              Main
+                            </div>
+                          </>
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-gray-50">
+                            <span className="text-gray-400 text-sm font-['Montserrat']">Main Product Image</span>
+                          </div>
+                        )}
                       </div>
+
+                      {/* Additional Images Grid (5 slots initially, expandable) */}
+                      <div className="grid grid-cols-5 gap-2">
+                        {Array.from({ length: variant.maxImageSlots || 5 }).map((_, index) => {
+                          const imageIndex = index + 1; // Skip main image (index 0)
+                          const image = variant.images?.[imageIndex];
+                          
+                          return (
+                            <div 
+                              key={`slot-${index}`}
+                              className="w-[52px] h-[52px] bg-gray-100 rounded border overflow-hidden relative group cursor-pointer"
+                              draggable={!!image}
+                              onDragStart={(e) => {
+                                if (image) {
+                                  e.dataTransfer.setData('text/plain', imageIndex.toString());
+                                  e.dataTransfer.setData('variant-id', variant.id.toString());
+                                  e.dataTransfer.setData('type', 'images');
+                                }
+                              }}
+                              onDragOver={(e) => e.preventDefault()}
+                              onDrop={(e) => {
+                                e.preventDefault();
+                                const dragIndex = parseInt(e.dataTransfer.getData('text/plain'));
+                                const dragVariantId = parseInt(e.dataTransfer.getData('variant-id'));
+                                const dragType = e.dataTransfer.getData('type');
+                                
+                                if (dragVariantId === variant.id && dragType === 'images' && dragIndex !== imageIndex) {
+                                  reorderFiles(variant.id, 'images', dragIndex, imageIndex);
+                                }
+                              }}
+                            >
+                              {image ? (
+                                <>
+                                  <img 
+                                    src={image.url} 
+                                    alt={`Variant ${variantNumber} view ${index + 1}`}
+                                    className="w-full h-full object-cover"
+                                  />
+                                  <button
+                                    onClick={() => removeFile(variant.id, image.id, 'images')}
+                                    className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center text-xs hover:bg-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                                  >
+                                    <X className="w-2 h-2" />
+                                  </button>
+                                  <div className="absolute bottom-0 left-0 w-full bg-black bg-opacity-50 text-white text-[10px] text-center py-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    Drag
+                                  </div>
+                                </>
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center bg-gray-50 border-dashed border-gray-300 border-2">
+                                  <Plus className="w-4 h-4 text-gray-400" />
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      {/* Add More Images Button */}
+                      <button
+                        onClick={() => addMoreImageSlots(variant.id)}
+                        className="text-blue-600 hover:text-blue-700 text-sm font-['Montserrat'] flex items-center gap-1"
+                      >
+                        <Plus className="w-4 h-4" />
+                        Add More Slots
+                      </button>
+
+                      {/* Videos Grid if any */}
+                      {variant.videos && variant.videos.length > 0 && (
+                        <div className="space-y-2">
+                          <h4 className="text-[14px] font-medium text-[#111111] font-['Montserrat']">Videos</h4>
+                          <div className="grid grid-cols-5 gap-2">
+                            {variant.videos.map((video, index) => (
+                              <div 
+                                key={video.id}
+                                className="w-[52px] h-[52px] bg-gray-100 rounded border overflow-hidden relative group cursor-move"
+                                draggable
+                                onDragStart={(e) => {
+                                  e.dataTransfer.setData('text/plain', index.toString());
+                                  e.dataTransfer.setData('variant-id', variant.id.toString());
+                                  e.dataTransfer.setData('type', 'videos');
+                                }}
+                                onDragOver={(e) => e.preventDefault()}
+                                onDrop={(e) => {
+                                  e.preventDefault();
+                                  const dragIndex = parseInt(e.dataTransfer.getData('text/plain'));
+                                  const dragVariantId = parseInt(e.dataTransfer.getData('variant-id'));
+                                  const dragType = e.dataTransfer.getData('type');
+                                  
+                                  if (dragVariantId === variant.id && dragType === 'videos' && dragIndex !== index) {
+                                    reorderFiles(variant.id, 'videos', dragIndex, index);
+                                  }
+                                }}
+                              >
+                                <video 
+                                  src={video.url} 
+                                  className="w-full h-full object-cover"
+                                />
+                                <button
+                                  onClick={() => removeFile(variant.id, video.id, 'videos')}
+                                  className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center text-xs hover:bg-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                                >
+                                  <X className="w-2 h-2" />
+                                </button>
+                                <div className="absolute bottom-0 left-0 w-full bg-black bg-opacity-50 text-white text-[8px] text-center py-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                  Video
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                     
                     {/* Upload Section */}
@@ -1806,15 +2163,100 @@ const SingleProductUpload = React.memo(() => {
                             multiple 
                             accept="image/*" 
                             className="hidden" 
-                            onChange={(e) => handleImageUpload(variant.id, e.target.files)}
+                            onChange={(e) => handleImageUpload(variant.id, e.target.files, 'images')}
                           />
-                          <div className="w-[185px] h-[96px] border border-dashed border-gray-300 rounded flex flex-col items-center justify-center hover:border-gray-400 transition-colors">
+                          <div 
+                            className="w-[185px] h-[96px] border border-dashed border-gray-300 rounded flex flex-col items-center justify-center hover:border-gray-400 transition-colors"
+                            onDragOver={handleUploadDragOver}
+                            onDragEnter={handleUploadDragEnter}
+                            onDragLeave={handleUploadDragLeave}
+                            onDrop={(e) => handleUploadDrop(e, 'images', variant.id)}
+                          >
                             <Upload className="h-6 w-6 text-gray-400 mb-2" />
                             <p className="text-[10px] font-medium text-[#111111] font-['Montserrat'] text-center px-2">
                               Drop your image here PNG. JPEG allowed
                             </p>
                           </div>
                         </label>
+                        {/* Upload Status Bar for Images */}
+                        {variant.uploadStatus?.images?.length > 0 && (
+                          <div className="mt-2 space-y-1 max-h-20 overflow-y-auto">
+                            {variant.uploadStatus.images.slice(-3).map((status) => (
+                              <div key={status.id} className="flex items-center gap-2 text-xs bg-gray-50 p-2 rounded">
+                                {status.status === 'uploading' && (
+                                  <>
+                                    <div className="w-3 h-3 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                                    <span className="text-blue-600">Uploading... {Math.round(status.progress)}%</span>
+                                  </>
+                                )}
+                                {status.status === 'success' && (
+                                  <>
+                                    <CheckCircle className="w-3 h-3 text-green-500" />
+                                    <span className="text-green-600">Image uploaded successfully</span>
+                                  </>
+                                )}
+                                {status.status === 'failed' && (
+                                  <>
+                                    <XCircle className="w-3 h-3 text-red-500" />
+                                    <span className="text-red-600">Image upload failed</span>
+                                  </>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      <div>
+                        <h4 className="text-[14px] font-medium text-[#111111] font-['Montserrat'] mb-3">Upload video</h4>
+                        <label className="cursor-pointer">
+                          <input 
+                            type="file" 
+                            multiple 
+                            accept="video/*,.blend" 
+                            className="hidden" 
+                            onChange={(e) => handleImageUpload(variant.id, e.target.files, 'videos')}
+                          />
+                          <div 
+                            className="w-[185px] h-[96px] border border-dashed border-gray-300 rounded flex flex-col items-center justify-center hover:border-gray-400 transition-colors"
+                            onDragOver={handleUploadDragOver}
+                            onDragEnter={handleUploadDragEnter}
+                            onDragLeave={handleUploadDragLeave}
+                            onDrop={(e) => handleUploadDrop(e, 'videos', variant.id)}
+                          >
+                            <Upload className="h-6 w-6 text-gray-400 mb-2" />
+                            <p className="text-[10px] font-medium text-[#111111] font-['Montserrat'] text-center px-2">
+                              Drop video here MP4, MOV, BLEND, etc.
+                            </p>
+                          </div>
+                        </label>
+                        {/* Upload Status Bar for Videos */}
+                        {variant.uploadStatus?.videos?.length > 0 && (
+                          <div className="mt-2 space-y-1 max-h-20 overflow-y-auto">
+                            {variant.uploadStatus.videos.slice(-3).map((status) => (
+                              <div key={status.id} className="flex items-center gap-2 text-xs bg-gray-50 p-2 rounded">
+                                {status.status === 'uploading' && (
+                                  <>
+                                    <div className="w-3 h-3 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                                    <span className="text-blue-600">Uploading... {Math.round(status.progress)}%</span>
+                                  </>
+                                )}
+                                {status.status === 'success' && (
+                                  <>
+                                    <CheckCircle className="w-3 h-3 text-green-500" />
+                                    <span className="text-green-600">Video uploaded successfully</span>
+                                  </>
+                                )}
+                                {status.status === 'failed' && (
+                                  <>
+                                    <XCircle className="w-3 h-3 text-red-500" />
+                                    <span className="text-red-600">Video upload failed</span>
+                                  </>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -2020,6 +2462,29 @@ const SingleProductUpload = React.memo(() => {
                     Upload CM Chart
                   </span>
                 </label>
+                {/* Status indicator for CM chart */}
+                {commonSizeChart.uploadStatus.cmChart && (
+                  <div className="flex items-center gap-2 mt-2 text-xs">
+                    {commonSizeChart.uploadStatus.cmChart.status === 'uploading' && (
+                      <>
+                        <div className="w-3 h-3 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                        <span className="text-blue-600">Uploading... {Math.round(commonSizeChart.uploadStatus.cmChart.progress)}%</span>
+                      </>
+                    )}
+                    {commonSizeChart.uploadStatus.cmChart.status === 'success' && (
+                      <>
+                        <CheckCircle className="w-3 h-3 text-green-500" />
+                        <span className="text-green-600">Upload successful</span>
+                      </>
+                    )}
+                    {commonSizeChart.uploadStatus.cmChart.status === 'failed' && (
+                      <>
+                        <XCircle className="w-3 h-3 text-red-500" />
+                        <span className="text-red-600">Upload failed</span>
+                      </>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Inch Chart */}
@@ -2049,6 +2514,29 @@ const SingleProductUpload = React.memo(() => {
                     Upload Inch Chart
                   </span>
                 </label>
+                {/* Status indicator for Inch chart */}
+                {commonSizeChart.uploadStatus.inchChart && (
+                  <div className="flex items-center gap-2 mt-2 text-xs">
+                    {commonSizeChart.uploadStatus.inchChart.status === 'uploading' && (
+                      <>
+                        <div className="w-3 h-3 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                        <span className="text-blue-600">Uploading... {Math.round(commonSizeChart.uploadStatus.inchChart.progress)}%</span>
+                      </>
+                    )}
+                    {commonSizeChart.uploadStatus.inchChart.status === 'success' && (
+                      <>
+                        <CheckCircle className="w-3 h-3 text-green-500" />
+                        <span className="text-green-600">Upload successful</span>
+                      </>
+                    )}
+                    {commonSizeChart.uploadStatus.inchChart.status === 'failed' && (
+                      <>
+                        <XCircle className="w-3 h-3 text-red-500" />
+                        <span className="text-red-600">Upload failed</span>
+                      </>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Measurement Guide */}
@@ -2078,6 +2566,29 @@ const SingleProductUpload = React.memo(() => {
                     Upload Guide
                   </span>
                 </label>
+                {/* Status indicator for Measurement guide */}
+                {commonSizeChart.uploadStatus.measurementGuide && (
+                  <div className="flex items-center gap-2 mt-2 text-xs">
+                    {commonSizeChart.uploadStatus.measurementGuide.status === 'uploading' && (
+                      <>
+                        <div className="w-3 h-3 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                        <span className="text-blue-600">Uploading... {Math.round(commonSizeChart.uploadStatus.measurementGuide.progress)}%</span>
+                      </>
+                    )}
+                    {commonSizeChart.uploadStatus.measurementGuide.status === 'success' && (
+                      <>
+                        <CheckCircle className="w-3 h-3 text-green-500" />
+                        <span className="text-green-600">Upload successful</span>
+                      </>
+                    )}
+                    {commonSizeChart.uploadStatus.measurementGuide.status === 'failed' && (
+                      <>
+                        <XCircle className="w-3 h-3 text-red-500" />
+                        <span className="text-red-600">Upload failed</span>
+                      </>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </div>
