@@ -139,6 +139,8 @@ const ManageItems = React.memo(() => {
       },
       barcodeNo: '44000000000000',
       status: 'scheduled',
+      scheduledDate: '2025-08-15',
+      scheduledTime: '14:30',
       metaTitle: 'tshirt white',
       metaDescription: 'tshirt white trending',
       slugUrl: 'tu.beee/hhhhhh/hahahha.com',
@@ -408,6 +410,30 @@ const ManageItems = React.memo(() => {
       'scheduled': 'text-[#ffd56d]'
     };
     return styles[status.toLowerCase()] || styles.draft;
+  }, []);
+
+  const formatScheduledDateTime = useCallback((date, time) => {
+    if (!date || !time) return '';
+    
+    // Parse the date and format it
+    const dateObj = new Date(date);
+    const formattedDate = dateObj.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
+    
+    // Format the time (assuming it's in HH:MM format)
+    const [hours, minutes] = time.split(':');
+    const timeObj = new Date();
+    timeObj.setHours(parseInt(hours), parseInt(minutes));
+    const formattedTime = timeObj.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
+    
+    return `${formattedDate} at ${formattedTime}`;
   }, []);
 
   const handleViewMetaData = useCallback((item) => {
@@ -1016,6 +1042,11 @@ const ManageItems = React.memo(() => {
                       <span className={`${getStatusStyle(item.status)} text-[14px] font-medium font-['Montserrat']`}>
                         {item.status}
                       </span>
+                      {item.status === 'scheduled' && item.scheduledDate && item.scheduledTime && (
+                        <div className="text-[10px] text-gray-600 mt-1 font-['Montserrat']">
+                          {formatScheduledDateTime(item.scheduledDate, item.scheduledTime)}
+                        </div>
+                      )}
                     </div>
 
                     {/* Meta Data */}
