@@ -10,7 +10,10 @@ const ManageItems = React.memo(() => {
   const [selectedCategory, setSelectedCategory] = useState('All categories');
   const [selectedSubCategory, setSelectedSubCategory] = useState('All subcategories');
   const [showDraftsOnly, setShowDraftsOnly] = useState(false);
+  const [showLiveOnly, setShowLiveOnly] = useState(false);
+  const [showScheduledOnly, setShowScheduledOnly] = useState(false);
   const [draftItems, setDraftItems] = useState([]);
+  const [publishedItems, setPublishedItems] = useState([]);
   
   // Modal state management
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -44,8 +47,8 @@ const ManageItems = React.memo(() => {
   const [itemToCancelSchedule, setItemToCancelSchedule] = useState(null);
   const [isCancelScheduleSuccessModalOpen, setIsCancelScheduleSuccessModalOpen] = useState(false);
 
-  // Sample items data
-  const items = useMemo(() => [
+  // Sample items data - converted to state for better management
+  const [sampleItems, setSampleItems] = useState([
     {
       id: 1,
       image: '/api/placeholder/120/116',
@@ -139,9 +142,9 @@ const ManageItems = React.memo(() => {
       keepCopyAndMove: false,
       moveToEyx: false
     }
-  ], []);
+  ]);
 
-  // Load draft items from localStorage on component mount
+  // Load draft and published items from localStorage on component mount
   useEffect(() => {
     const savedDrafts = localStorage.getItem('yoraa_draft_items');
     if (savedDrafts) {
@@ -152,12 +155,81 @@ const ManageItems = React.memo(() => {
         console.error('Error loading draft items:', error);
       }
     }
+
+    const savedPublished = localStorage.getItem('yoraa_published_items');
+    if (savedPublished) {
+      try {
+        const parsedPublished = JSON.parse(savedPublished);
+        setPublishedItems(parsedPublished);
+      } catch (error) {
+        console.error('Error loading published items:', error);
+      }
+    }
   }, []);
 
-  // Combined items (sample + drafts)
+  // Draft management handlers
+  const handleViewAllDrafts = useCallback(() => {
+    setShowDraftsOnly(!showDraftsOnly);
+    setShowLiveOnly(false);
+    setShowScheduledOnly(false);
+  }, [showDraftsOnly]);
+
+  const handleViewAllLive = useCallback(() => {
+    setShowLiveOnly(!showLiveOnly);
+    setShowDraftsOnly(false);
+    setShowScheduledOnly(false);
+  }, [showLiveOnly]);
+
+  const handleViewAllScheduled = useCallback(() => {
+    setShowScheduledOnly(!showScheduledOnly);
+    setShowDraftsOnly(false);
+    setShowLiveOnly(false);
+  }, [showScheduledOnly]);
+
+  // Keyboard shortcuts for filter buttons
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      // Only trigger if not typing in an input field
+      if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') {
+        return;
+      }
+
+      if (event.altKey) {
+        switch (event.key) {
+          case 'd':
+          case 'D':
+            event.preventDefault();
+            handleViewAllDrafts();
+            break;
+          case 'l':
+          case 'L':
+            event.preventDefault();
+            handleViewAllLive();
+            break;
+          case 's':
+          case 'S':
+            event.preventDefault();
+            handleViewAllScheduled();
+            break;
+          case 'c':
+          case 'C':
+            event.preventDefault();
+            setShowDraftsOnly(false);
+            setShowLiveOnly(false);
+            setShowScheduledOnly(false);
+            break;
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [handleViewAllDrafts, handleViewAllLive, handleViewAllScheduled]);
+
+  // Combined items (sample + drafts + published)
   const allItems = useMemo(() => {
-    return [...items, ...draftItems];
-  }, [items, draftItems]);
+    return [...sampleItems, ...draftItems, ...publishedItems];
+  }, [sampleItems, draftItems, publishedItems]);
 
   const categoryOptions = [
     'All categories',
@@ -188,11 +260,19 @@ const ManageItems = React.memo(() => {
       const matchesSubCategory = selectedSubCategory === 'All subcategories' || 
                                 item.subCategories === selectedSubCategory;
       
-      const matchesDraftFilter = showDraftsOnly ? item.status === 'draft' : true;
+      // Status filtering - only apply one filter at a time
+      let matchesStatusFilter = true;
+      if (showDraftsOnly) {
+        matchesStatusFilter = item.status === 'draft';
+      } else if (showLiveOnly) {
+        matchesStatusFilter = item.status === 'live';
+      } else if (showScheduledOnly) {
+        matchesStatusFilter = item.status === 'scheduled';
+      }
       
-      return matchesSearch && matchesCategory && matchesSubCategory && matchesDraftFilter;
+      return matchesSearch && matchesCategory && matchesSubCategory && matchesStatusFilter;
     });
-  }, [allItems, searchTerm, selectedCategory, selectedSubCategory, showDraftsOnly]);
+  }, [allItems, searchTerm, selectedCategory, selectedSubCategory, showDraftsOnly, showLiveOnly, showScheduledOnly]);
 
   // Handlers
   const handleBulkUpload = useCallback(() => {
@@ -204,11 +284,11 @@ const ManageItems = React.memo(() => {
   }, [navigate]);
 
   const handleEdit = useCallback((itemId) => {
-    const itemToEdit = items.find(item => item.id === itemId);
+    const itemToEdit = allItems.find(item => item.id === itemId);
     setEditingItem(itemToEdit);
     setNewDetails('');
     setIsEditModalOpen(true);
-  }, [items]);
+  }, [allItems]);
 
   const handleSaveEdit = useCallback(() => {
     console.log('Saving edit for item:', editingItem.id, 'New details:', newDetails);
@@ -229,18 +309,29 @@ const ManageItems = React.memo(() => {
   }, []);
 
   const handleDelete = useCallback((itemId) => {
-    const itemToDeleteObj = items.find(item => item.id === itemId);
+    const itemToDeleteObj = allItems.find(item => item.id === itemId);
     setItemToDelete(itemToDeleteObj);
     setIsDeleteConfirmModalOpen(true);
-  }, [items]);
+  }, [allItems]);
 
   const handleConfirmDelete = useCallback(() => {
     console.log('Deleting item:', itemToDelete.id);
-    // In a real app, you would delete the item from your state management system
+    
+    // Check if it's a draft or published item and remove from appropriate localStorage
+    if (itemToDelete.status === 'draft') {
+      const updatedDrafts = draftItems.filter(item => item.id !== itemToDelete.id);
+      setDraftItems(updatedDrafts);
+      localStorage.setItem('yoraa_draft_items', JSON.stringify(updatedDrafts));
+    } else if (itemToDelete.status === 'live') {
+      const updatedPublished = publishedItems.filter(item => item.id !== itemToDelete.id);
+      setPublishedItems(updatedPublished);
+      localStorage.setItem('yoraa_published_items', JSON.stringify(updatedPublished));
+    }
+    
     setIsDeleteConfirmModalOpen(false);
     setItemToDelete(null);
     setIsDeleteSuccessModalOpen(true);
-  }, [itemToDelete]);
+  }, [itemToDelete, draftItems, publishedItems]);
 
   const handleCancelDelete = useCallback(() => {
     setIsDeleteConfirmModalOpen(false);
@@ -314,18 +405,47 @@ const ManageItems = React.memo(() => {
 
   const handleItemAction = useCallback((itemId, action, value) => {
     console.log(`${action} for item ${itemId}:`, value);
-    // Update the item's state in the items array
-    const updatedItems = items.map(item => 
-      item.id === itemId ? { ...item, [action]: value } : item
-    );
-    // In a real app, you would update this in your state management system
-    console.log('Updated items:', updatedItems);
-  }, [items]);
-
-  // Draft management handlers
-  const handleViewAllDrafts = useCallback(() => {
-    setShowDraftsOnly(!showDraftsOnly);
-  }, [showDraftsOnly]);
+    
+    // Check if it's a sample item (ids 1, 2, 3)
+    const sampleItemIndex = sampleItems.findIndex(item => item.id === itemId);
+    if (sampleItemIndex !== -1) {
+      const updatedSampleItems = [...sampleItems];
+      updatedSampleItems[sampleItemIndex] = { 
+        ...updatedSampleItems[sampleItemIndex], 
+        [action]: value 
+      };
+      setSampleItems(updatedSampleItems);
+      return;
+    }
+    
+    // Update draft items
+    const draftItemIndex = draftItems.findIndex(item => item.id === itemId);
+    if (draftItemIndex !== -1) {
+      const updatedDrafts = [...draftItems];
+      updatedDrafts[draftItemIndex] = { 
+        ...updatedDrafts[draftItemIndex], 
+        [action]: value 
+      };
+      setDraftItems(updatedDrafts);
+      localStorage.setItem('yoraa_draft_items', JSON.stringify(updatedDrafts));
+      return;
+    }
+    
+    // Update published items
+    const publishedItemIndex = publishedItems.findIndex(item => item.id === itemId);
+    if (publishedItemIndex !== -1) {
+      const updatedPublished = [...publishedItems];
+      updatedPublished[publishedItemIndex] = { 
+        ...updatedPublished[publishedItemIndex], 
+        [action]: value 
+      };
+      setPublishedItems(updatedPublished);
+      localStorage.setItem('yoraa_published_items', JSON.stringify(updatedPublished));
+      return;
+    }
+    
+    console.log('Item not found in any collection');
+  }, [sampleItems, draftItems, publishedItems]);
 
   const handleMakeLive = useCallback((item) => {
     setItemToMakeLive(item);
@@ -334,19 +454,30 @@ const ManageItems = React.memo(() => {
 
   const handleConfirmMakeLive = useCallback(() => {
     if (itemToMakeLive) {
-      // Update item status to live
-      const updatedDrafts = draftItems.map(item => 
-        item.id === itemToMakeLive.id ? { ...item, status: 'live' } : item
-      );
+      // Move item from drafts to published items
+      const updatedItem = { 
+        ...itemToMakeLive, 
+        status: 'live',
+        publishedAt: new Date().toISOString(),
+        id: `pub_${Date.now()}` // Give it a new published ID
+      };
+      
+      // Remove from drafts
+      const updatedDrafts = draftItems.filter(item => item.id !== itemToMakeLive.id);
       setDraftItems(updatedDrafts);
       localStorage.setItem('yoraa_draft_items', JSON.stringify(updatedDrafts));
+      
+      // Add to published items
+      const updatedPublished = [...publishedItems, updatedItem];
+      setPublishedItems(updatedPublished);
+      localStorage.setItem('yoraa_published_items', JSON.stringify(updatedPublished));
       
       console.log('Making item live:', itemToMakeLive.id);
     }
     setIsMakeLiveConfirmModalOpen(false);
     setItemToMakeLive(null);
     setIsMakeLiveSuccessModalOpen(true);
-  }, [itemToMakeLive, draftItems]);
+  }, [itemToMakeLive, draftItems, publishedItems]);
 
   const handleCancelMakeLive = useCallback(() => {
     setIsMakeLiveConfirmModalOpen(false);
@@ -450,10 +581,29 @@ const ManageItems = React.memo(() => {
             <div className="flex flex-col sm:flex-row gap-3">
               <button 
                 onClick={handleViewAllDrafts}
-                className="flex items-center gap-2 bg-[#ef3826] hover:bg-red-700 text-white font-['Montserrat'] font-normal py-2.5 px-4 rounded-lg transition-colors shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] border border-[#ef3826] text-[14px]"
+                className={`flex items-center gap-2 ${showDraftsOnly ? 'bg-[#dc2626] ring-2 ring-red-300' : 'bg-[#ef3826]'} hover:bg-red-700 text-white font-['Montserrat'] font-normal py-2.5 px-4 rounded-lg transition-colors shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] border border-[#ef3826] text-[14px]`}
+                title="Alt + D to toggle"
               >
                 <span className="leading-[20px]">
                   {showDraftsOnly ? 'Show All Items' : 'View all drafts'}
+                </span>
+              </button>
+              <button 
+                onClick={handleViewAllLive}
+                className={`flex items-center gap-2 ${showLiveOnly ? 'bg-[#16a34a] ring-2 ring-green-300' : 'bg-[#22c55e]'} hover:bg-green-700 text-white font-['Montserrat'] font-normal py-2.5 px-4 rounded-lg transition-colors shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] border border-[#22c55e] text-[14px]`}
+                title="Alt + L to toggle"
+              >
+                <span className="leading-[20px]">
+                  {showLiveOnly ? 'Show All Items' : 'View all live'}
+                </span>
+              </button>
+              <button 
+                onClick={handleViewAllScheduled}
+                className={`flex items-center gap-2 ${showScheduledOnly ? 'bg-[#ca8a04] ring-2 ring-yellow-300' : 'bg-[#eab308]'} hover:bg-yellow-600 text-white font-['Montserrat'] font-normal py-2.5 px-4 rounded-lg transition-colors shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] border border-[#eab308] text-[14px]`}
+                title="Alt + S to toggle"
+              >
+                <span className="leading-[20px]">
+                  {showScheduledOnly ? 'Show All Items' : 'View all scheduled'}
                 </span>
               </button>
               <button 
@@ -542,6 +692,80 @@ const ManageItems = React.memo(() => {
         {/* Table Section */}
         <div className="px-6 py-6">
           
+          {/* Filter Summary */}
+          <div className="mb-4 p-4 bg-gray-50 rounded-lg">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-4">
+                <span className="text-[18px] font-bold text-[#111111] font-['Montserrat']">
+                  Showing {filteredItems.length} items
+                </span>
+                {(showDraftsOnly || showLiveOnly || showScheduledOnly) && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-[14px] text-[#666666] font-['Montserrat']">
+                      Filtered by:
+                    </span>
+                    {showDraftsOnly && (
+                      <span className="bg-[#ef3826] text-white text-[12px] font-medium font-['Montserrat'] px-2 py-1 rounded-full">
+                        Draft Items
+                      </span>
+                    )}
+                    {showLiveOnly && (
+                      <span className="bg-[#22c55e] text-white text-[12px] font-medium font-['Montserrat'] px-2 py-1 rounded-full">
+                        Live Items
+                      </span>
+                    )}
+                    {showScheduledOnly && (
+                      <span className="bg-[#eab308] text-white text-[12px] font-medium font-['Montserrat'] px-2 py-1 rounded-full">
+                        Scheduled Items
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
+              {(showDraftsOnly || showLiveOnly || showScheduledOnly) && (
+                <button
+                  onClick={() => {
+                    setShowDraftsOnly(false);
+                    setShowLiveOnly(false);
+                    setShowScheduledOnly(false);
+                  }}
+                  className="bg-white hover:bg-gray-100 text-[14px] text-[#666666] hover:text-[#111111] font-['Montserrat'] px-3 py-1 rounded-md border transition-colors"
+                  title="Alt + C to clear filters"
+                >
+                  Clear Filter
+                </button>
+              )}
+            </div>
+            
+            {/* Summary Statistics */}
+            <div className="flex items-center gap-6 text-[14px] font-['Montserrat']">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 bg-[#ef3826] rounded-full"></div>
+                <span className="text-[#666666]">
+                  Drafts: <span className="font-medium text-[#111111]">{allItems.filter(item => item.status === 'draft').length}</span>
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 bg-[#22c55e] rounded-full"></div>
+                <span className="text-[#666666]">
+                  Live: <span className="font-medium text-[#111111]">{allItems.filter(item => item.status === 'live').length}</span>
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 bg-[#eab308] rounded-full"></div>
+                <span className="text-[#666666]">
+                  Scheduled: <span className="font-medium text-[#111111]">{allItems.filter(item => item.status === 'scheduled').length}</span>
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 bg-[#6b7280] rounded-full"></div>
+                <span className="text-[#666666]">
+                  Total: <span className="font-medium text-[#111111]">{allItems.length}</span>
+                </span>
+              </div>
+            </div>
+          </div>
+
           {/* Table Container */}
           <div className="bg-white border border-[#d5d5d5] rounded-lg overflow-x-auto">
             {/* Table Header */}
@@ -776,35 +1000,35 @@ const ManageItems = React.memo(() => {
                   {/* Row-level Bulk Actions */}
                   <div className="px-3 py-2 bg-gray-50 text-[12px] font-['Montserrat'] min-w-[1350px]">
                     <div className="flex items-center gap-8">
-                      <div className="flex items-center gap-2">
+                      <div className={`flex items-center gap-2 ${item.moveToSale ? 'bg-blue-50 p-2 rounded-md' : ''}`}>
                         <input 
                           type="checkbox" 
                           id={`move-to-sale-${item.id}`}
                           checked={item.moveToSale}
                           onChange={(e) => handleItemAction(item.id, 'moveToSale', e.target.checked)}
-                          className="w-4 h-4 rounded-[3px] border-[#bcbcbc]" 
+                          className="w-4 h-4 rounded-[3px] border-[#bcbcbc] text-blue-600 focus:ring-blue-500 focus:ring-2" 
                         />
-                        <label htmlFor={`move-to-sale-${item.id}`} className="text-black">move to sale</label>
+                        <label htmlFor={`move-to-sale-${item.id}`} className={`${item.moveToSale ? 'text-blue-700 font-medium' : 'text-black'}`}>move to sale</label>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className={`flex items-center gap-2 ${item.keepCopyAndMove ? 'bg-green-50 p-2 rounded-md' : ''}`}>
                         <input 
                           type="checkbox" 
                           id={`keep-copy-${item.id}`}
                           checked={item.keepCopyAndMove}
                           onChange={(e) => handleItemAction(item.id, 'keepCopyAndMove', e.target.checked)}
-                          className="w-4 h-4 rounded-[3px] border-[#bcbcbc]" 
+                          className="w-4 h-4 rounded-[3px] border-[#bcbcbc] text-blue-600 focus:ring-blue-500 focus:ring-2" 
                         />
-                        <label htmlFor={`keep-copy-${item.id}`} className="text-black">keep a copy and move</label>
+                        <label htmlFor={`keep-copy-${item.id}`} className={`${item.keepCopyAndMove ? 'text-green-700 font-medium' : 'text-black'}`}>make a copy and move to sale</label>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className={`flex items-center gap-2 ${item.moveToEyx ? 'bg-purple-50 p-2 rounded-md' : ''}`}>
                         <input 
                           type="checkbox" 
                           id={`move-to-eyx-${item.id}`}
                           checked={item.moveToEyx}
                           onChange={(e) => handleItemAction(item.id, 'moveToEyx', e.target.checked)}
-                          className="w-4 h-4 rounded-[3px] border-[#bcbcbc]" 
+                          className="w-4 h-4 rounded-[3px] border-[#bcbcbc] text-blue-600 focus:ring-blue-500 focus:ring-2" 
                         />
-                        <label htmlFor={`move-to-eyx-${item.id}`} className="text-black">move to eyx</label>
+                        <label htmlFor={`move-to-eyx-${item.id}`} className={`${item.moveToEyx ? 'text-purple-700 font-medium' : 'text-black'}`}>move to eyx</label>
                       </div>
                     </div>
                   </div>
@@ -1072,35 +1296,35 @@ const ManageItems = React.memo(() => {
               {/* Row-level Bulk Actions */}
               <div className="mb-8 p-4 bg-gray-50 rounded-lg">
                 <div className="flex items-center gap-8 text-[14px] font-['Montserrat']">
-                  <div className="flex items-center gap-2">
+                  <div className={`flex items-center gap-2 ${editingItem.moveToSale ? 'bg-blue-50 p-2 rounded-md' : ''}`}>
                     <input 
                       type="checkbox" 
                       id="modal-move-to-sale"
                       checked={editingItem.moveToSale}
                       onChange={(e) => handleItemAction(editingItem.id, 'moveToSale', e.target.checked)}
-                      className="w-4 h-4 rounded-[3px] border-[#bcbcbc]" 
+                      className="w-4 h-4 rounded-[3px] border-[#bcbcbc] text-blue-600 focus:ring-blue-500 focus:ring-2" 
                     />
-                    <label htmlFor="modal-move-to-sale" className="text-black">move to sale</label>
+                    <label htmlFor="modal-move-to-sale" className={`${editingItem.moveToSale ? 'text-blue-700 font-medium' : 'text-black'}`}>move to sale</label>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className={`flex items-center gap-2 ${editingItem.keepCopyAndMove ? 'bg-green-50 p-2 rounded-md' : ''}`}>
                     <input 
                       type="checkbox" 
                       id="modal-keep-copy"
                       checked={editingItem.keepCopyAndMove}
                       onChange={(e) => handleItemAction(editingItem.id, 'keepCopyAndMove', e.target.checked)}
-                      className="w-4 h-4 rounded-[3px] border-[#bcbcbc]" 
+                      className="w-4 h-4 rounded-[3px] border-[#bcbcbc] text-blue-600 focus:ring-blue-500 focus:ring-2" 
                     />
-                    <label htmlFor="modal-keep-copy" className="text-black">keep a copy and move</label>
+                    <label htmlFor="modal-keep-copy" className={`${editingItem.keepCopyAndMove ? 'text-green-700 font-medium' : 'text-black'}`}>make a copy and move to sale</label>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className={`flex items-center gap-2 ${editingItem.moveToEyx ? 'bg-purple-50 p-2 rounded-md' : ''}`}>
                     <input 
                       type="checkbox" 
                       id="modal-move-to-eyx"
                       checked={editingItem.moveToEyx}
                       onChange={(e) => handleItemAction(editingItem.id, 'moveToEyx', e.target.checked)}
-                      className="w-4 h-4 rounded-[3px] border-[#bcbcbc]" 
+                      className="w-4 h-4 rounded-[3px] border-[#bcbcbc] text-blue-600 focus:ring-blue-500 focus:ring-2" 
                     />
-                    <label htmlFor="modal-move-to-eyx" className="text-black">move to eyx</label>
+                    <label htmlFor="modal-move-to-eyx" className={`${editingItem.moveToEyx ? 'text-purple-700 font-medium' : 'text-black'}`}>move to eyx</label>
                   </div>
                 </div>
               </div>
