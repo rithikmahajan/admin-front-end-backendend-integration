@@ -110,6 +110,8 @@ export const DEFAULT_VARIANT = {
   images: [],
   stockSizes: [],
   sizes: [],
+  stockSizeOption: 'sizes', // 'noSize', 'sizes'
+  customSizes: [],
   alsoShowIn: {
     youMightAlsoLike: false,
     similarItems: false,

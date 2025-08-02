@@ -59,6 +59,11 @@ const SingleProductUpload = React.memo(() => {
     similarItems: { value: 'no' },
     othersAlsoBought: { value: 'no' }
   });
+  const [dynamicAlsoShowInOptions, setDynamicAlsoShowInOptions] = useState([
+    { id: 'youMightAlsoLike', label: 'You Might Also Like', value: 'no' },
+    { id: 'similarItems', label: 'Similar Items', value: 'no' },
+    { id: 'othersAlsoBought', label: 'Others Also Bought', value: 'no' }
+  ]);
   const [variantCount, setVariantCount] = useState(1); // Track number of variants
   const [nestingOptions, setNestingOptions] = useState({}); // Track nesting options for each variant
   const [excelFile, setExcelFile] = useState(null); // Track uploaded Excel file
@@ -195,11 +200,119 @@ const SingleProductUpload = React.memo(() => {
       ...prev,
       [option]: { ...prev[option], [field]: value }
     }));
+    
+    // Also update dynamic options array
+    setDynamicAlsoShowInOptions(prev => 
+      prev.map(item => 
+        item.id === option ? { ...item, [field]: value } : item
+      )
+    );
+  }, []);
+
+  // Add new "Also Show in" option
+  const addAlsoShowInOption = useCallback(() => {
+    const newOptionId = `customOption${Date.now()}`;
+    const newOption = {
+      id: newOptionId,
+      label: `Custom Option ${dynamicAlsoShowInOptions.length + 1}`,
+      value: 'no',
+      isCustom: true
+    };
+    
+    setDynamicAlsoShowInOptions(prev => [...prev, newOption]);
+    setAlsoShowInOptions(prev => ({
+      ...prev,
+      [newOptionId]: { value: 'no' }
+    }));
+  }, [dynamicAlsoShowInOptions.length]);
+
+  // Remove custom "Also Show in" option
+  const removeAlsoShowInOption = useCallback((optionId) => {
+    setDynamicAlsoShowInOptions(prev => prev.filter(item => item.id !== optionId));
+    setAlsoShowInOptions(prev => {
+      const newOptions = { ...prev };
+      delete newOptions[optionId];
+      return newOptions;
+    });
+  }, []);
+
+  // Update custom option label
+  const updateAlsoShowInLabel = useCallback((optionId, newLabel) => {
+    setDynamicAlsoShowInOptions(prev => 
+      prev.map(item => 
+        item.id === optionId ? { ...item, label: newLabel } : item
+      )
+    );
   }, []);
 
   const handleImportExcel = useCallback((type) => {
-    // TODO: Implement Excel import functionality
-    console.log(`Importing ${type} from Excel`);
+    // Create a hidden file input element
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.xlsx,.xls,.csv';
+    input.onchange = (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        console.log(`Importing ${type} from Excel:`, file.name);
+        
+        if (type === 'sizes') {
+          // TODO: Parse Excel file and populate size data
+          // This would typically involve reading the Excel file and extracting size information
+          // For now, we'll simulate importing some sample data
+          const sampleSizes = [
+            {
+              size: 'S',
+              quantity: '10',
+              hsn: '61091000',
+              sku: 'SKU001',
+              barcode: '1234567890123',
+              prices: {
+                amazon: '599',
+                flipkart: '579',
+                myntra: '589',
+                nykaa: '599',
+                yoraa: '549'
+              }
+            },
+            {
+              size: 'M',
+              quantity: '15',
+              hsn: '61091000',
+              sku: 'SKU002',
+              barcode: '1234567890124',
+              prices: {
+                amazon: '599',
+                flipkart: '579',
+                myntra: '589',
+                nykaa: '599',
+                yoraa: '549'
+              }
+            },
+            {
+              size: 'L',
+              quantity: '12',
+              hsn: '61091000',
+              sku: 'SKU003',
+              barcode: '1234567890125',
+              prices: {
+                amazon: '599',
+                flipkart: '579',
+                myntra: '589',
+                nykaa: '599',
+                yoraa: '549'
+              }
+            }
+          ];
+          
+          setCustomSizes(sampleSizes);
+          setStockSizeOption('sizes');
+          alert(`Excel file "${file.name}" imported successfully! ${sampleSizes.length} sizes added.`);
+        }
+        
+        setExcelFile(file);
+      }
+    };
+    input.click();
   }, []);
 
   const handleCommonSizeChartUpload = useCallback((type, file) => {
@@ -211,24 +324,214 @@ const SingleProductUpload = React.memo(() => {
 
   // Nesting options handlers
   const handleNestingOptionChange = useCallback((variantId, option) => {
-    setNestingOptions(prev => ({
-      ...prev,
-      [variantId]: option
-    }));
-    
-    // Apply nesting logic based on selection
     if (option === 'sameAsArticle1') {
+      // Set all options to be copied from variant 1
+      const allOptions = ['title', 'description', 'manufacturingDetails', 'shippingReturns', 'regularPrice', 'salePrice', 'stockSize'];
+      setNestingOptions(prev => ({
+        ...prev,
+        [variantId]: allOptions
+      }));
+      
+      // Apply nesting logic - copy all data from first variant
       const firstVariant = variants[0];
-      handleVariantChange(variantId, 'productName', firstVariant?.productName || '');
-      handleVariantChange(variantId, 'title', firstVariant?.title || '');
-      handleVariantChange(variantId, 'description', firstVariant?.description || '');
-      handleVariantChange(variantId, 'manufacturingDetails', firstVariant?.manufacturingDetails || '');
-      handleVariantChange(variantId, 'shippingReturns', firstVariant?.shippingReturns || '');
-      handleVariantChange(variantId, 'regularPrice', firstVariant?.regularPrice || '');
-      handleVariantChange(variantId, 'salePrice', firstVariant?.salePrice || '');
-      handleVariantChange(variantId, 'stockSizes', firstVariant?.stockSizes || []);
+      if (firstVariant) {
+        handleVariantChange(variantId, 'title', firstVariant?.title || '');
+        handleVariantChange(variantId, 'description', firstVariant?.description || '');
+        handleVariantChange(variantId, 'manufacturingDetails', firstVariant?.manufacturingDetails || '');
+        handleVariantChange(variantId, 'shippingReturns', firstVariant?.shippingReturns || '');
+        handleVariantChange(variantId, 'regularPrice', firstVariant?.regularPrice || '');
+        handleVariantChange(variantId, 'salePrice', firstVariant?.salePrice || '');
+        
+        // Copy stock size data
+        const variantToUpdate = variants.find(v => v.id === variantId);
+        if (variantToUpdate) {
+          setVariants(prev => prev.map(variant => 
+            variant.id === variantId 
+              ? { 
+                  ...variant, 
+                  stockSizeOption: 'sizes',
+                  customSizes: [...(customSizes || [])]
+                }
+              : variant
+          ));
+        }
+      }
+    } else {
+      // Clear all options
+      setNestingOptions(prev => ({
+        ...prev,
+        [variantId]: []
+      }));
     }
-  }, [variants, handleVariantChange]);
+  }, [variants, handleVariantChange, customSizes]);
+
+  // Handle individual nesting options
+  const handleIndividualNestingChange = useCallback((variantId, field, isChecked) => {
+    setNestingOptions(prev => {
+      const currentOptions = prev[variantId] || [];
+      let newOptions;
+      
+      if (isChecked) {
+        newOptions = [...currentOptions, field];
+      } else {
+        newOptions = currentOptions.filter(option => option !== field);
+      }
+      
+      // Apply the specific field copying
+      if (isChecked) {
+        const firstVariant = variants[0];
+        if (firstVariant) {
+          switch (field) {
+            case 'title':
+              handleVariantChange(variantId, 'title', firstVariant?.title || '');
+              break;
+            case 'description':
+              handleVariantChange(variantId, 'description', firstVariant?.description || '');
+              break;
+            case 'manufacturingDetails':
+              handleVariantChange(variantId, 'manufacturingDetails', firstVariant?.manufacturingDetails || '');
+              break;  
+            case 'shippingReturns':
+              handleVariantChange(variantId, 'shippingReturns', firstVariant?.shippingReturns || '');
+              break;
+            case 'regularPrice':
+              handleVariantChange(variantId, 'regularPrice', firstVariant?.regularPrice || '');
+              break;
+            case 'salePrice':
+              handleVariantChange(variantId, 'salePrice', firstVariant?.salePrice || '');
+              break;
+            case 'stockSize':
+              // Copy stock size data
+              setVariants(prev => prev.map(variant => 
+                variant.id === variantId 
+                  ? { 
+                      ...variant, 
+                      stockSizeOption: 'sizes',
+                      customSizes: [...(customSizes || [])]
+                    }
+                  : variant
+              ));
+              break;
+            default:
+              break;
+          }
+        }
+      }
+      
+      return {
+        ...prev,
+        [variantId]: newOptions
+      };
+    });
+  }, [variants, handleVariantChange, customSizes]);
+
+  // Variant-specific stock size handlers
+  const handleVariantStockSizeOption = useCallback((variantId, option) => {
+    setVariants(prev => prev.map(variant => 
+      variant.id === variantId 
+        ? { ...variant, stockSizeOption: option }
+        : variant
+    ));
+  }, []);
+
+  const handleVariantCustomSizeAdd = useCallback((variantId) => {
+    const newSize = {
+      size: '',
+      quantity: '',
+      hsn: '',
+      sku: '',
+      barcode: '',
+      prices: {
+        amazon: '',
+        flipkart: '',
+        myntra: '',
+        nykaa: '',
+        yoraa: ''
+      }
+    };
+    
+    setVariants(prev => prev.map(variant => 
+      variant.id === variantId 
+        ? { 
+            ...variant, 
+            customSizes: [...(variant.customSizes || []), newSize]
+          }
+        : variant
+    ));
+  }, []);
+
+  const handleVariantCustomSizeChange = useCallback((variantId, sizeIndex, field, value) => {
+    setVariants(prev => prev.map(variant => 
+      variant.id === variantId 
+        ? {
+            ...variant,
+            customSizes: (variant.customSizes || []).map((size, i) => 
+              i === sizeIndex ? { ...size, [field]: value } : size
+            )
+          }
+        : variant
+    ));
+  }, []);
+
+  const handleVariantImportExcel = useCallback((variantId, type) => {
+    // Create a hidden file input element
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.xlsx,.xls,.csv';
+    input.onchange = (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        console.log(`Importing ${type} from Excel for variant ${variantId}:`, file.name);
+        
+        if (type === 'sizes') {
+          // Sample sizes for this variant
+          const sampleSizes = [
+            {
+              size: 'XS',
+              quantity: '8',
+              hsn: '61091000',
+              sku: `SKU${variantId}01`,
+              barcode: `123456789${variantId}23`,
+              prices: {
+                amazon: '599',
+                flipkart: '579',
+                myntra: '589',
+                nykaa: '599',
+                yoraa: '549'
+              }
+            },
+            {
+              size: 'S',
+              quantity: '10',
+              hsn: '61091000',
+              sku: `SKU${variantId}02`,
+              barcode: `123456789${variantId}24`,
+              prices: {
+                amazon: '599',
+                flipkart: '579',
+                myntra: '589',
+                nykaa: '599',
+                yoraa: '549'
+              }
+            }
+          ];
+          
+          setVariants(prev => prev.map(variant => 
+            variant.id === variantId 
+              ? { 
+                  ...variant, 
+                  stockSizeOption: 'sizes',
+                  customSizes: sampleSizes
+                }
+              : variant
+          ));
+          
+          alert(`Excel file "${file.name}" imported successfully for variant! ${sampleSizes.length} sizes added.`);
+        }
+      }
+    };
+    input.click();
+  }, []);
 
   // Excel file upload handler
   const handleExcelFileUpload = useCallback((file) => {
@@ -236,6 +539,25 @@ const SingleProductUpload = React.memo(() => {
     console.log('Excel file uploaded:', file.name);
     // TODO: Implement Excel parsing logic
     // You can use libraries like SheetJS (xlsx) to parse Excel files
+  }, []);
+
+  // Handle returnable import excel functionality
+  const handleReturnableImportExcel = useCallback(() => {
+    // Create a hidden file input element
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.xlsx,.xls,.csv';
+    input.onchange = (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        console.log('Importing returnable data from Excel:', file.name);
+        // TODO: Parse Excel file and populate returnable data
+        // This would typically involve reading the Excel file and extracting returnable information
+        setExcelFile(file);
+        alert(`Excel file "${file.name}" uploaded successfully for returnable data import!`);
+      }
+    };
+    input.click();
   }, []);
 
   // Publishing and navigation handlers
@@ -347,7 +669,10 @@ const SingleProductUpload = React.memo(() => {
                 <span className="text-[16px] font-medium font-['Montserrat'] leading-[1.2]">No</span>
               </button>
             </div>
-            <button className="bg-[#000AFF] text-white px-4 py-2.5 rounded-lg flex items-center gap-2 font-['Montserrat'] text-[14px] font-normal leading-[20px] shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] border border-[#7280FF] w-[150px] justify-center">
+            <button 
+              onClick={handleReturnableImportExcel}
+              className="bg-[#000AFF] text-white px-4 py-2.5 rounded-lg flex items-center gap-2 font-['Montserrat'] text-[14px] font-normal leading-[20px] shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] border border-[#7280FF] w-[150px] justify-center"
+            >
               <Plus className="h-5 w-5" />
               IMPORT
             </button>
@@ -649,96 +974,6 @@ const SingleProductUpload = React.memo(() => {
                   </>
                 )}
               </div>
-
-              {/* Also Show In */}
-              <div>
-                <label className="block text-[14px] font-medium text-[#111111] font-['Montserrat'] mb-3">Also Show in</label>
-                <div className="space-y-4">
-                  <div className="flex items-center gap-4">
-                    <span className="text-[14px] font-medium text-[#000000] font-['Montserrat'] w-48">You Might Also Like</span>
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => handleAlsoShowInChange('youMightAlsoLike', 'value', 'yes')}
-                        className={`px-4 py-1 rounded-md text-sm font-medium transition-colors ${
-                          alsoShowInOptions.youMightAlsoLike.value === 'yes'
-                            ? 'bg-blue-600 text-white'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                        }`}
-                      >
-                        Yes
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleAlsoShowInChange('youMightAlsoLike', 'value', 'no')}
-                        className={`px-4 py-1 rounded-md text-sm font-medium transition-colors ${
-                          alsoShowInOptions.youMightAlsoLike.value === 'no'
-                            ? 'bg-blue-600 text-white'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                        }`}
-                      >
-                        No
-                      </button>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center gap-4">
-                    <span className="text-[14px] font-medium text-[#000000] font-['Montserrat'] w-48">Similar Items</span>
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => handleAlsoShowInChange('similarItems', 'value', 'yes')}
-                        className={`px-4 py-1 rounded-md text-sm font-medium transition-colors ${
-                          alsoShowInOptions.similarItems.value === 'yes'
-                            ? 'bg-blue-600 text-white'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                        }`}
-                      >
-                        Yes
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleAlsoShowInChange('similarItems', 'value', 'no')}
-                        className={`px-4 py-1 rounded-md text-sm font-medium transition-colors ${
-                          alsoShowInOptions.similarItems.value === 'no'
-                            ? 'bg-blue-600 text-white'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                        }`}
-                      >
-                        No
-                      </button>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center gap-4">
-                    <span className="text-[14px] font-medium text-[#000000] font-['Montserrat'] w-48">Others Also Bought</span>
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => handleAlsoShowInChange('othersAlsoBought', 'value', 'yes')}
-                        className={`px-4 py-1 rounded-md text-sm font-medium transition-colors ${
-                          alsoShowInOptions.othersAlsoBought.value === 'yes'
-                            ? 'bg-blue-600 text-white'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                        }`}
-                      >
-                        Yes
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleAlsoShowInChange('othersAlsoBought', 'value', 'no')}
-                        className={`px-4 py-1 rounded-md text-sm font-medium transition-colors ${
-                          alsoShowInOptions.othersAlsoBought.value === 'no'
-                            ? 'bg-blue-600 text-white'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                        }`}
-                      >
-                        No
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
             </div>
 
             {/* Right Column - Product Images */}
@@ -1038,105 +1273,80 @@ const SingleProductUpload = React.memo(() => {
                         <div className="flex items-center gap-4 flex-wrap">
                           <label className="flex items-center gap-2 cursor-pointer">
                             <input
-                              type="radio"
-                              name={`nesting-${variant.id}`}
-                              value="sameAsArticle1"
-                              checked={nestingOptions[variant.id] === 'sameAsArticle1'}
-                              onChange={() => handleNestingOptionChange(variant.id, 'sameAsArticle1')}
+                              type="checkbox"
+                              checked={nestingOptions[variant.id] === 'sameAsArticle1' || nestingOptions[variant.id]?.includes?.('sameAsArticle1')}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  handleNestingOptionChange(variant.id, 'sameAsArticle1');
+                                } else {
+                                  handleNestingOptionChange(variant.id, '');
+                                }
+                              }}
                               className="w-4 h-4 text-blue-600"
                             />
                             <span className="text-[14px] text-[#111111] font-['Montserrat']">Same as article 1</span>
                           </label>
-                          <label className="flex items-center gap-2 cursor-pointer">
-                            <input
-                              type="radio"
-                              name={`nesting-${variant.id}`}
-                              value="selectAll"
-                              checked={nestingOptions[variant.id] === 'selectAll'}
-                              onChange={() => handleNestingOptionChange(variant.id, 'selectAll')}
-                              className="w-4 h-4 text-blue-600"
-                            />
-                            <span className="text-[14px] text-[#111111] font-['Montserrat']">Select all</span>
-                          </label>
                         </div>
-                        <div className="flex items-center gap-4 flex-wrap">
+                        <div className="grid grid-cols-2 gap-4 ml-6">
                           <label className="flex items-center gap-2 cursor-pointer">
                             <input
-                              type="radio"
-                              name={`nesting-${variant.id}`}
-                              value="title"
-                              checked={nestingOptions[variant.id] === 'title'}
-                              onChange={() => handleNestingOptionChange(variant.id, 'title')}
+                              type="checkbox"
+                              checked={nestingOptions[variant.id]?.includes?.('title') || false}
+                              onChange={(e) => handleIndividualNestingChange(variant.id, 'title', e.target.checked)}
                               className="w-4 h-4 text-blue-600"
                             />
                             <span className="text-[14px] text-[#111111] font-['Montserrat']">Title</span>
                           </label>
                           <label className="flex items-center gap-2 cursor-pointer">
                             <input
-                              type="radio"
-                              name={`nesting-${variant.id}`}
-                              value="description"
-                              checked={nestingOptions[variant.id] === 'description'}
-                              onChange={() => handleNestingOptionChange(variant.id, 'description')}
+                              type="checkbox"
+                              checked={nestingOptions[variant.id]?.includes?.('description') || false}
+                              onChange={(e) => handleIndividualNestingChange(variant.id, 'description', e.target.checked)}
                               className="w-4 h-4 text-blue-600"
                             />
                             <span className="text-[14px] text-[#111111] font-['Montserrat']">Description</span>
                           </label>
                           <label className="flex items-center gap-2 cursor-pointer">
                             <input
-                              type="radio"
-                              name={`nesting-${variant.id}`}
-                              value="manufacturingDetails"
-                              checked={nestingOptions[variant.id] === 'manufacturingDetails'}
-                              onChange={() => handleNestingOptionChange(variant.id, 'manufacturingDetails')}
+                              type="checkbox"
+                              checked={nestingOptions[variant.id]?.includes?.('manufacturingDetails') || false}
+                              onChange={(e) => handleIndividualNestingChange(variant.id, 'manufacturingDetails', e.target.checked)}
                               className="w-4 h-4 text-blue-600"
                             />
                             <span className="text-[14px] text-[#111111] font-['Montserrat']">Manufacturing details</span>
                           </label>
-                        </div>
-                        <div className="flex items-center gap-4 flex-wrap">
                           <label className="flex items-center gap-2 cursor-pointer">
                             <input
-                              type="radio"
-                              name={`nesting-${variant.id}`}
-                              value="shippingReturns"
-                              checked={nestingOptions[variant.id] === 'shippingReturns'}
-                              onChange={() => handleNestingOptionChange(variant.id, 'shippingReturns')}
+                              type="checkbox"
+                              checked={nestingOptions[variant.id]?.includes?.('shippingReturns') || false}
+                              onChange={(e) => handleIndividualNestingChange(variant.id, 'shippingReturns', e.target.checked)}
                               className="w-4 h-4 text-blue-600"
                             />
                             <span className="text-[14px] text-[#111111] font-['Montserrat']">Shipping returns and exchange</span>
                           </label>
                           <label className="flex items-center gap-2 cursor-pointer">
                             <input
-                              type="radio"
-                              name={`nesting-${variant.id}`}
-                              value="regularPrice"
-                              checked={nestingOptions[variant.id] === 'regularPrice'}
-                              onChange={() => handleNestingOptionChange(variant.id, 'regularPrice')}
+                              type="checkbox"
+                              checked={nestingOptions[variant.id]?.includes?.('regularPrice') || false}
+                              onChange={(e) => handleIndividualNestingChange(variant.id, 'regularPrice', e.target.checked)}
                               className="w-4 h-4 text-blue-600"
                             />
                             <span className="text-[14px] text-[#111111] font-['Montserrat']">Regular price</span>
                           </label>
-                        </div>
-                        <div className="flex items-center gap-4 flex-wrap">
                           <label className="flex items-center gap-2 cursor-pointer">
                             <input
-                              type="radio"
-                              name={`nesting-${variant.id}`}
-                              value="salePrice"
-                              checked={nestingOptions[variant.id] === 'salePrice'}
-                              onChange={() => handleNestingOptionChange(variant.id, 'salePrice')}
+                              type="checkbox"
+                              checked={nestingOptions[variant.id]?.includes?.('salePrice') || false}
+                              onChange={(e) => handleIndividualNestingChange(variant.id, 'salePrice', e.target.checked)}
                               className="w-4 h-4 text-blue-600"
                             />
                             <span className="text-[14px] text-[#111111] font-['Montserrat']">Sale price</span>
                           </label>
                           <label className="flex items-center gap-2 cursor-pointer">
                             <input
-                              type="radio"
-                              name={`nesting-${variant.id}`}
-                              value="stockSize"
-                              checked={nestingOptions[variant.id] === 'stockSize'}
-                              onChange={() => handleNestingOptionChange(variant.id, 'stockSize')}
+                              type="checkbox"
+                              checked={nestingOptions[variant.id]?.includes?.('stockSize') || false}
+                              onChange={(e) => handleIndividualNestingChange(variant.id, 'stockSize', e.target.checked)}
                               className="w-4 h-4 text-blue-600"
                             />
                             <span className="text-[14px] text-[#111111] font-['Montserrat']">Stock size</span>
@@ -1235,6 +1445,175 @@ const SingleProductUpload = React.memo(() => {
                         />
                       </div>
                     </div>
+
+                    {/* Stock Size Section for Variant */}
+                    <div className="mb-6">
+                      <label className="block text-[14px] font-medium text-[#111111] font-['Montserrat'] mb-2">Stock size - Variant {variantNumber}</label>
+                      
+                      {/* Stock Size Options */}
+                      <div className="flex items-center gap-4 mb-4">
+                        <button
+                          type="button"
+                          onClick={() => handleVariantStockSizeOption(variant.id, 'noSize')}
+                          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                            (variant.stockSizeOption || 'sizes') === 'noSize'
+                              ? 'bg-blue-600 text-white'
+                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          }`}
+                        >
+                          No Size
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleVariantStockSizeOption(variant.id, 'sizes')}
+                          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                            (variant.stockSizeOption || 'sizes') === 'sizes'
+                              ? 'bg-blue-600 text-white'
+                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          }`}
+                        >
+                          Add Size
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleVariantImportExcel(variant.id, 'sizes')}
+                          className="px-4 py-2 rounded-md text-sm font-medium bg-green-600 text-white hover:bg-green-700 transition-colors"
+                        >
+                          Import Excel
+                        </button>
+                      </div>
+
+                      {(variant.stockSizeOption || 'sizes') === 'sizes' && (
+                        <>
+                          {/* Add Custom Size Button */}
+                          <button
+                            type="button"
+                            onClick={() => handleVariantCustomSizeAdd(variant.id)}
+                            className="mb-4 px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition-colors"
+                          >
+                            Add Custom Size
+                          </button>
+
+                          {/* Custom Sizes Table */}
+                          {(variant.customSizes || []).length > 0 && (
+                            <div className="overflow-x-auto mb-4">
+                              <table className="min-w-full border border-gray-300 rounded-lg">
+                                <thead className="bg-gray-50">
+                                  <tr>
+                                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Size</th>
+                                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Quantity</th>
+                                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">HSN</th>
+                                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">SKU</th>
+                                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Barcode</th>
+                                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Amazon</th>
+                                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Flipkart</th>
+                                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Myntra</th>
+                                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Nykaa</th>
+                                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Yoraa</th>
+                                  </tr>
+                                </thead>
+                                <tbody className="bg-white divide-y divide-gray-200">
+                                  {(variant.customSizes || []).map((sizeData, index) => (
+                                    <tr key={index}>
+                                      <td className="px-3 py-2">
+                                        <input
+                                          type="text"
+                                          value={sizeData.size}
+                                          onChange={(e) => handleVariantCustomSizeChange(variant.id, index, 'size', e.target.value)}
+                                          className="w-16 px-2 py-1 border border-gray-300 rounded text-sm"
+                                          placeholder="Size"
+                                        />
+                                      </td>
+                                      <td className="px-3 py-2">
+                                        <input
+                                          type="number"
+                                          value={sizeData.quantity}
+                                          onChange={(e) => handleVariantCustomSizeChange(variant.id, index, 'quantity', e.target.value)}
+                                          className="w-20 px-2 py-1 border border-gray-300 rounded text-sm"
+                                          placeholder="Qty"
+                                        />
+                                      </td>
+                                      <td className="px-3 py-2">
+                                        <input
+                                          type="text"
+                                          value={sizeData.hsn}
+                                          onChange={(e) => handleVariantCustomSizeChange(variant.id, index, 'hsn', e.target.value)}
+                                          className="w-24 px-2 py-1 border border-gray-300 rounded text-sm"
+                                          placeholder="HSN"
+                                        />
+                                      </td>
+                                      <td className="px-3 py-2">
+                                        <input
+                                          type="text"
+                                          value={sizeData.sku}
+                                          onChange={(e) => handleVariantCustomSizeChange(variant.id, index, 'sku', e.target.value)}
+                                          className="w-24 px-2 py-1 border border-gray-300 rounded text-sm"
+                                          placeholder="SKU"
+                                        />
+                                      </td>
+                                      <td className="px-3 py-2">
+                                        <input
+                                          type="text"
+                                          value={sizeData.barcode}
+                                          onChange={(e) => handleVariantCustomSizeChange(variant.id, index, 'barcode', e.target.value)}
+                                          className="w-32 px-2 py-1 border border-gray-300 rounded text-sm"
+                                          placeholder="Barcode"
+                                        />
+                                      </td>
+                                      <td className="px-3 py-2">
+                                        <input
+                                          type="number"
+                                          value={sizeData.prices.amazon}
+                                          onChange={(e) => handleVariantCustomSizeChange(variant.id, index, 'prices', {...sizeData.prices, amazon: e.target.value})}
+                                          className="w-20 px-2 py-1 border border-gray-300 rounded text-sm"
+                                          placeholder="Price"
+                                        />
+                                      </td>
+                                      <td className="px-3 py-2">
+                                        <input
+                                          type="number"
+                                          value={sizeData.prices.flipkart}
+                                          onChange={(e) => handleVariantCustomSizeChange(variant.id, index, 'prices', {...sizeData.prices, flipkart: e.target.value})}
+                                          className="w-20 px-2 py-1 border border-gray-300 rounded text-sm"
+                                          placeholder="Price"
+                                        />
+                                      </td>
+                                      <td className="px-3 py-2">
+                                        <input
+                                          type="number"
+                                          value={sizeData.prices.myntra}
+                                          onChange={(e) => handleVariantCustomSizeChange(variant.id, index, 'prices', {...sizeData.prices, myntra: e.target.value})}
+                                          className="w-20 px-2 py-1 border border-gray-300 rounded text-sm"
+                                          placeholder="Price"
+                                        />
+                                      </td>
+                                      <td className="px-3 py-2">
+                                        <input
+                                          type="number"
+                                          value={sizeData.prices.nykaa}
+                                          onChange={(e) => handleVariantCustomSizeChange(variant.id, index, 'prices', {...sizeData.prices, nykaa: e.target.value})}
+                                          className="w-20 px-2 py-1 border border-gray-300 rounded text-sm"
+                                          placeholder="Price"
+                                        />
+                                      </td>
+                                      <td className="px-3 py-2">
+                                        <input
+                                          type="number"
+                                          value={sizeData.prices.yoraa}
+                                          onChange={(e) => handleVariantCustomSizeChange(variant.id, index, 'prices', {...sizeData.prices, yoraa: e.target.value})}
+                                          className="w-20 px-2 py-1 border border-gray-300 rounded text-sm"
+                                          placeholder="Price"
+                                        />
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </div>
                   </div>
 
                   {/* Right Column - Variant Images */}
@@ -1287,6 +1666,104 @@ const SingleProductUpload = React.memo(() => {
               <Plus className="h-5 w-5" />
               Add More Variants
             </button>
+          </div>
+
+          {/* Also Show In Section - Common for all variants */}
+          <div className="mt-12 py-6 border-t border-gray-200">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-[18px] font-bold text-[#111111] font-['Montserrat']">Also Show in</h3>
+              <button
+                type="button"
+                onClick={addAlsoShowInOption}
+                className="px-4 py-2 bg-[#000AFF] text-white rounded-lg text-[14px] font-medium font-['Montserrat'] hover:bg-blue-700 transition-colors flex items-center gap-2"
+              >
+                <Plus className="h-4 w-4" />
+                Add Option
+              </button>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {dynamicAlsoShowInOptions.map((option) => (
+                <div key={option.id} className="space-y-4 p-4 border border-gray-200 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    {option.isCustom ? (
+                      <input
+                        type="text"
+                        value={option.label}
+                        onChange={(e) => updateAlsoShowInLabel(option.id, e.target.value)}
+                        className="text-[14px] font-medium text-[#000000] font-['Montserrat'] border-b border-gray-300 bg-transparent focus:outline-none focus:border-blue-500 flex-1 mr-2"
+                        placeholder="Enter option name"
+                      />
+                    ) : (
+                      <span className="text-[14px] font-medium text-[#000000] font-['Montserrat']">
+                        {option.label}
+                      </span>
+                    )}
+                    
+                    {option.isCustom && (
+                      <button
+                        type="button"
+                        onClick={() => removeAlsoShowInOption(option.id)}
+                        className="text-red-500 hover:text-red-700 ml-2"
+                        title="Remove option"
+                      >
+                        ×
+                      </button>
+                    )}
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleAlsoShowInChange(option.id, 'value', 'yes')}
+                      className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                        alsoShowInOptions[option.id]?.value === 'yes'
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      Yes
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleAlsoShowInChange(option.id, 'value', 'no')}
+                      className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                        alsoShowInOptions[option.id]?.value === 'no'
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      No
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            {/* Visual indicator when options are selected */}
+            {dynamicAlsoShowInOptions.some(option => alsoShowInOptions[option.id]?.value === 'yes') && (
+              <div className="mt-6 p-4 bg-blue-50 rounded-md">
+                <h4 className="text-sm font-medium text-blue-800 font-['Montserrat'] mb-2">
+                  Active Options:
+                </h4>
+                <div className="flex flex-wrap gap-2">
+                  {dynamicAlsoShowInOptions
+                    .filter(option => alsoShowInOptions[option.id]?.value === 'yes')
+                    .map(option => (
+                      <span 
+                        key={option.id}
+                        className="px-3 py-1 bg-blue-200 text-blue-800 rounded-full text-xs font-['Montserrat']"
+                      >
+                        {option.label}
+                      </span>
+                    ))
+                  }
+                </div>
+                <p className="text-sm text-blue-700 font-['Montserrat'] mt-2">
+                  These options will be applied to all variants of this product
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Common Size Chart Section */}
