@@ -2,6 +2,7 @@ import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react'
 import { Upload, Plus, ChevronDown, X, Move, CheckCircle, XCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { DEFAULT_VARIANT, DEFAULT_PRODUCT_DATA, validateImageFile } from '../constants';
+import UploadProgressLoader from '../components/UploadProgressLoader';
 
 /**
  * SingleProductUpload Component
@@ -99,6 +100,23 @@ const SingleProductUpload = React.memo(() => {
   const [showDetailedReviewModal, setShowDetailedReviewModal] = useState(false);
   const recheckDropdownRef = useRef(null);
 
+  // State for image slot management
+  const [additionalSlotsEnabled, setAdditionalSlotsEnabled] = useState({});
+  
+  // State for notifications
+  const [notification, setNotification] = useState(null);
+
+  // Auto-dismiss notifications
+  useEffect(() => {
+    if (notification && notification.duration) {
+      const timer = setTimeout(() => {
+        setNotification(null);
+      }, notification.duration);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [notification]);
+
   // Load permanent options from localStorage on component mount
   useEffect(() => {
     const savedPermanentOptions = localStorage.getItem('yoraa_permanent_options');
@@ -186,6 +204,39 @@ const SingleProductUpload = React.memo(() => {
   }, [variantCount]);
 
   const handleImageUpload = useCallback((variantId, files, type = 'images') => {
+    // Find the current variant to check slot limits
+    const currentVariant = variants.find(v => v.id === variantId);
+    if (!currentVariant) return;
+
+    // Check if we're at the image slot limit
+    if (type === 'images') {
+      const currentImageCount = currentVariant.images?.length || 0;
+      const maxSlots = currentVariant.maxImageSlots || 5;
+      const availableSlots = maxSlots - currentImageCount;
+      
+      if (availableSlots <= 0) {
+        console.warn('Maximum image slots reached. Please add more slots first.');
+        setNotification({
+          type: 'warning',
+          message: 'Maximum image slots reached. Please add more slots first.',
+          duration: 3000
+        });
+        return;
+      }
+      
+      // Limit files to available slots
+      const originalFileCount = files.length;
+      files = Array.from(files).slice(0, availableSlots);
+      
+      if (originalFileCount > availableSlots) {
+        setNotification({
+          type: 'warning',
+          message: `Only ${availableSlots} slot${availableSlots === 1 ? '' : 's'} available. ${originalFileCount - availableSlots} file${originalFileCount - availableSlots === 1 ? '' : 's'} not uploaded.`,
+          duration: 4000
+        });
+      }
+    }
+
     // Validate each file before processing
     const validFiles = [];
     const errors = [];
@@ -332,7 +383,7 @@ const SingleProductUpload = React.memo(() => {
       
       console.log(`Uploading valid ${type} for variant:`, variantId, validFiles);
     }
-  }, []);
+  }, [variants]);
 
   const handleSizeChartUpload = useCallback((type, file) => {
     setSizeChart(prev => ({
@@ -428,8 +479,25 @@ const SingleProductUpload = React.memo(() => {
     }));
   }, []);
 
-  // Add more image slots for a variant (one at a time)
+  // Add more image slots for a variant (controlled access)
   const addMoreImageSlots = useCallback((variantId) => {
+    const currentVariant = variants.find(v => v.id === variantId);
+    if (!currentVariant) return;
+
+    const currentImageCount = currentVariant.images?.length || 0;
+    const currentMaxSlots = currentVariant.maxImageSlots || 5;
+
+    // Only allow adding slots if current slots are being used (at least 4 out of 5 initial slots used)
+    if (currentMaxSlots === 5 && currentImageCount < 4) {
+      console.warn('Please upload at least 4 images before adding more slots');
+      setNotification({
+        type: 'info',
+        message: 'Please upload at least 4 images before adding more slots',
+        duration: 3000
+      });
+      return;
+    }
+
     setVariants(prev => prev.map(variant => {
       if (variant.id === variantId) {
         return {
@@ -438,6 +506,27 @@ const SingleProductUpload = React.memo(() => {
         };
       }
       return variant;
+    }));
+
+    // Track that additional slots have been enabled for this variant
+    setAdditionalSlotsEnabled(prev => ({
+      ...prev,
+      [variantId]: true
+    }));
+
+    // Show success notification
+    setNotification({
+      type: 'success',
+      message: 'Additional image slot added successfully!',
+      duration: 2000
+    });
+  }, [variants]);
+
+  // Enable additional slots for a variant (manual approval)
+  const enableAdditionalSlots = useCallback((variantId) => {
+    setAdditionalSlotsEnabled(prev => ({
+      ...prev,
+      [variantId]: true
     }));
   }, []);
 
@@ -1431,14 +1520,78 @@ const SingleProductUpload = React.memo(() => {
                     })}
                   </div>
 
-                  {/* Add More Images Button */}
-                  <button
-                    onClick={() => addMoreImageSlots(variants[0]?.id)}
-                    className="text-blue-600 hover:text-blue-700 text-sm font-['Montserrat'] flex items-center gap-1"
-                  >
-                    <Plus className="w-4 h-4" />
-                    Add More Slots
-                  </button>
+                  {/* Add More Images Button with Status */}
+                  {(() => {
+                    const variant = variants[0];
+                    const currentImageCount = variant?.images?.length || 0;
+                    const maxSlots = variant?.maxImageSlots || 5;
+                    const canAddMoreSlots = currentImageCount >= 4; // Need at least 4 images before adding more slots
+                    const slotsAvailable = maxSlots - currentImageCount > 0;
+
+                    if (maxSlots === 5 && currentImageCount >= 5) {
+                      // All 5 default slots are used
+                      return (
+                        <div className="space-y-2">
+                          <div className="text-sm text-gray-600 font-['Montserrat']">
+                            All 5 default slots used ({currentImageCount}/{maxSlots})
+                          </div>
+                          <button
+                            onClick={() => addMoreImageSlots(variant?.id)}
+                            className="text-blue-600 hover:text-blue-700 text-sm font-['Montserrat'] flex items-center gap-1"
+                          >
+                            <Plus className="w-4 h-4" />
+                            Add Additional Slot
+                          </button>
+                        </div>
+                      );
+                    } else if (maxSlots === 5 && canAddMoreSlots) {
+                      // Can add more slots (4+ images uploaded)
+                      return (
+                        <div className="space-y-2">
+                          <div className="text-sm text-gray-600 font-['Montserrat']">
+                            Images uploaded: {currentImageCount}/5 default slots
+                          </div>
+                          <button
+                            onClick={() => addMoreImageSlots(variant?.id)}
+                            className="text-blue-600 hover:text-blue-700 text-sm font-['Montserrat'] flex items-center gap-1"
+                          >
+                            <Plus className="w-4 h-4" />
+                            Add Additional Slot
+                          </button>
+                        </div>
+                      );
+                    } else if (maxSlots > 5) {
+                      // Additional slots already added
+                      return (
+                        <div className="space-y-2">
+                          <div className="text-sm text-gray-600 font-['Montserrat']">
+                            Images uploaded: {currentImageCount}/{maxSlots} slots (5 default + {maxSlots - 5} additional)
+                          </div>
+                          {!slotsAvailable && (
+                            <button
+                              onClick={() => addMoreImageSlots(variant?.id)}
+                              className="text-blue-600 hover:text-blue-700 text-sm font-['Montserrat'] flex items-center gap-1"
+                            >
+                              <Plus className="w-4 h-4" />
+                              Add Another Slot
+                            </button>
+                          )}
+                        </div>
+                      );
+                    } else {
+                      // Less than 4 images, cannot add more slots yet
+                      return (
+                        <div className="space-y-2">
+                          <div className="text-sm text-gray-600 font-['Montserrat']">
+                            Images uploaded: {currentImageCount}/5 default slots
+                          </div>
+                          <div className="text-xs text-gray-500 font-['Montserrat']">
+                            Upload at least 4 images to enable additional slots
+                          </div>
+                        </div>
+                      );
+                    }
+                  })()}
 
                   {/* Videos Grid if any */}
                   {variants[0]?.videos && variants[0]?.videos.length > 0 && (
@@ -1491,54 +1644,49 @@ const SingleProductUpload = React.memo(() => {
                 <div className="space-y-4 mb-6">
                   <div>
                     <h4 className="text-[21px] font-medium text-[#111111] font-['Montserrat'] mb-3">Upload image</h4>
-                    <label className="cursor-pointer">
-                      <input 
-                        type="file" 
-                        multiple 
-                        accept="image/*" 
-                        className="hidden" 
-                        onChange={(e) => handleImageUpload(variants[0]?.id, e.target.files, 'images')}
-                      />
-                      <div 
-                        className="w-[185px] h-[96px] border border-dashed border-gray-300 rounded flex flex-col items-center justify-center hover:border-gray-400 transition-colors"
-                        onDragOver={handleUploadDragOver}
-                        onDragEnter={handleUploadDragEnter}
-                        onDragLeave={handleUploadDragLeave}
-                        onDrop={(e) => handleUploadDrop(e, 'images', variants[0]?.id)}
-                      >
-                        <Upload className="h-6 w-6 text-gray-400 mb-2" />
-                        <p className="text-[10px] font-medium text-[#111111] font-['Montserrat'] text-center px-2">
-                          Drop your image here PNG. JPEG allowed
-                        </p>
-                      </div>
-                    </label>
-                    {/* Upload Status Bar for Images */}
-                    {variants[0]?.uploadStatus?.images?.length > 0 && (
-                      <div className="mt-2 space-y-1 max-h-20 overflow-y-auto">
-                        {variants[0].uploadStatus.images.slice(-3).map((status) => (
-                          <div key={status.id} className="flex items-center gap-2 text-xs bg-gray-50 p-2 rounded">
-                            {status.status === 'uploading' && (
-                              <>
-                                <div className="w-3 h-3 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                                <span className="text-blue-600">Uploading... {Math.round(status.progress)}%</span>
-                              </>
-                            )}
-                            {status.status === 'success' && (
-                              <>
-                                <CheckCircle className="w-3 h-3 text-green-500" />
-                                <span className="text-green-600">Image uploaded successfully</span>
-                              </>
-                            )}
-                            {status.status === 'failed' && (
-                              <>
-                                <XCircle className="w-3 h-3 text-red-500" />
-                                <span className="text-red-600">Image upload failed</span>
-                              </>
-                            )}
+                    {(() => {
+                      const variant = variants[0];
+                      const currentImageCount = variant?.images?.length || 0;
+                      const maxSlots = variant?.maxImageSlots || 5;
+                      const slotsAvailable = maxSlots - currentImageCount > 0;
+                      
+                      return (
+                        <label className={`cursor-pointer ${!slotsAvailable ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                          <input 
+                            type="file" 
+                            multiple 
+                            accept="image/*" 
+                            className="hidden" 
+                            disabled={!slotsAvailable}
+                            onChange={(e) => slotsAvailable && handleImageUpload(variants[0]?.id, e.target.files, 'images')}
+                          />
+                          <div 
+                            className={`w-[185px] h-[96px] border border-dashed rounded flex flex-col items-center justify-center transition-colors ${
+                              slotsAvailable 
+                                ? 'border-gray-300 hover:border-gray-400' 
+                                : 'border-gray-200 bg-gray-50'
+                            }`}
+                            onDragOver={slotsAvailable ? handleUploadDragOver : undefined}
+                            onDragEnter={slotsAvailable ? handleUploadDragEnter : undefined}
+                            onDragLeave={slotsAvailable ? handleUploadDragLeave : undefined}
+                            onDrop={slotsAvailable ? (e) => handleUploadDrop(e, 'images', variants[0]?.id) : undefined}
+                          >
+                            <Upload className={`h-6 w-6 mb-2 ${slotsAvailable ? 'text-gray-400' : 'text-gray-300'}`} />
+                            <p className={`text-[10px] font-medium font-['Montserrat'] text-center px-2 ${slotsAvailable ? 'text-[#111111]' : 'text-gray-400'}`}>
+                              {slotsAvailable ? 'Drop your image here PNG. JPEG allowed' : 'All slots occupied'}
+                            </p>
                           </div>
-                        ))}
-                      </div>
-                    )}
+                        </label>
+                      );
+                    })()}
+                    {/* Upload Progress Loader for Images */}
+                    <UploadProgressLoader
+                      files={variants[0]?.images || []}
+                      uploadStatus={variants[0]?.uploadStatus?.images || []}
+                      onRemoveFile={(fileId) => removeFile(variants[0]?.id, fileId, 'images')}
+                      type="images"
+                      maxDisplay={5}
+                    />
                   </div>
                   
                   <div>
@@ -1564,33 +1712,14 @@ const SingleProductUpload = React.memo(() => {
                         </p>
                       </div>
                     </label>
-                    {/* Upload Status Bar for Videos */}
-                    {variants[0]?.uploadStatus?.videos?.length > 0 && (
-                      <div className="mt-2 space-y-1 max-h-20 overflow-y-auto">
-                        {variants[0].uploadStatus.videos.slice(-3).map((status) => (
-                          <div key={status.id} className="flex items-center gap-2 text-xs bg-gray-50 p-2 rounded">
-                            {status.status === 'uploading' && (
-                              <>
-                                <div className="w-3 h-3 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                                <span className="text-blue-600">Uploading... {Math.round(status.progress)}%</span>
-                              </>
-                            )}
-                            {status.status === 'success' && (
-                              <>
-                                <CheckCircle className="w-3 h-3 text-green-500" />
-                                <span className="text-green-600">Video uploaded successfully</span>
-                              </>
-                            )}
-                            {status.status === 'failed' && (
-                              <>
-                                <XCircle className="w-3 h-3 text-red-500" />
-                                <span className="text-red-600">Video upload failed</span>
-                              </>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    )}
+                    {/* Upload Progress Loader for Videos */}
+                    <UploadProgressLoader
+                      files={variants[0]?.videos || []}
+                      uploadStatus={variants[0]?.uploadStatus?.videos || []}
+                      onRemoveFile={(fileId) => removeFile(variants[0]?.id, fileId, 'videos')}
+                      type="videos"
+                      maxDisplay={5}
+                    />
                   </div>
                 </div>
 
@@ -2097,14 +2226,77 @@ const SingleProductUpload = React.memo(() => {
                         })}
                       </div>
 
-                      {/* Add More Images Button */}
-                      <button
-                        onClick={() => addMoreImageSlots(variant.id)}
-                        className="text-blue-600 hover:text-blue-700 text-sm font-['Montserrat'] flex items-center gap-1"
-                      >
-                        <Plus className="w-4 h-4" />
-                        Add More Slots
-                      </button>
+                      {/* Add More Images Button with Status */}
+                      {(() => {
+                        const currentImageCount = variant?.images?.length || 0;
+                        const maxSlots = variant?.maxImageSlots || 5;
+                        const canAddMoreSlots = currentImageCount >= 4; // Need at least 4 images before adding more slots
+                        const slotsAvailable = maxSlots - currentImageCount > 0;
+
+                        if (maxSlots === 5 && currentImageCount >= 5) {
+                          // All 5 default slots are used
+                          return (
+                            <div className="space-y-2">
+                              <div className="text-sm text-gray-600 font-['Montserrat']">
+                                All 5 default slots used ({currentImageCount}/{maxSlots})
+                              </div>
+                              <button
+                                onClick={() => addMoreImageSlots(variant.id)}
+                                className="text-blue-600 hover:text-blue-700 text-sm font-['Montserrat'] flex items-center gap-1"
+                              >
+                                <Plus className="w-4 h-4" />
+                                Add Additional Slot
+                              </button>
+                            </div>
+                          );
+                        } else if (maxSlots === 5 && canAddMoreSlots) {
+                          // Can add more slots (4+ images uploaded)
+                          return (
+                            <div className="space-y-2">
+                              <div className="text-sm text-gray-600 font-['Montserrat']">
+                                Images uploaded: {currentImageCount}/5 default slots
+                              </div>
+                              <button
+                                onClick={() => addMoreImageSlots(variant.id)}
+                                className="text-blue-600 hover:text-blue-700 text-sm font-['Montserrat'] flex items-center gap-1"
+                              >
+                                <Plus className="w-4 h-4" />
+                                Add Additional Slot
+                              </button>
+                            </div>
+                          );
+                        } else if (maxSlots > 5) {
+                          // Additional slots already added
+                          return (
+                            <div className="space-y-2">
+                              <div className="text-sm text-gray-600 font-['Montserrat']">
+                                Images uploaded: {currentImageCount}/{maxSlots} slots (5 default + {maxSlots - 5} additional)
+                              </div>
+                              {!slotsAvailable && (
+                                <button
+                                  onClick={() => addMoreImageSlots(variant.id)}
+                                  className="text-blue-600 hover:text-blue-700 text-sm font-['Montserrat'] flex items-center gap-1"
+                                >
+                                  <Plus className="w-4 h-4" />
+                                  Add Another Slot
+                                </button>
+                              )}
+                            </div>
+                          );
+                        } else {
+                          // Less than 4 images, cannot add more slots yet
+                          return (
+                            <div className="space-y-2">
+                              <div className="text-sm text-gray-600 font-['Montserrat']">
+                                Images uploaded: {currentImageCount}/5 default slots
+                              </div>
+                              <div className="text-xs text-gray-500 font-['Montserrat']">
+                                Upload at least 4 images to enable additional slots
+                              </div>
+                            </div>
+                          );
+                        }
+                      })()}
 
                       {/* Videos Grid if any */}
                       {variant.videos && variant.videos.length > 0 && (
@@ -2157,54 +2349,48 @@ const SingleProductUpload = React.memo(() => {
                     <div className="space-y-4">
                       <div>
                         <h4 className="text-[14px] font-medium text-[#111111] font-['Montserrat'] mb-3">Upload image</h4>
-                        <label className="cursor-pointer">
-                          <input 
-                            type="file" 
-                            multiple 
-                            accept="image/*" 
-                            className="hidden" 
-                            onChange={(e) => handleImageUpload(variant.id, e.target.files, 'images')}
-                          />
-                          <div 
-                            className="w-[185px] h-[96px] border border-dashed border-gray-300 rounded flex flex-col items-center justify-center hover:border-gray-400 transition-colors"
-                            onDragOver={handleUploadDragOver}
-                            onDragEnter={handleUploadDragEnter}
-                            onDragLeave={handleUploadDragLeave}
-                            onDrop={(e) => handleUploadDrop(e, 'images', variant.id)}
-                          >
-                            <Upload className="h-6 w-6 text-gray-400 mb-2" />
-                            <p className="text-[10px] font-medium text-[#111111] font-['Montserrat'] text-center px-2">
-                              Drop your image here PNG. JPEG allowed
-                            </p>
-                          </div>
-                        </label>
-                        {/* Upload Status Bar for Images */}
-                        {variant.uploadStatus?.images?.length > 0 && (
-                          <div className="mt-2 space-y-1 max-h-20 overflow-y-auto">
-                            {variant.uploadStatus.images.slice(-3).map((status) => (
-                              <div key={status.id} className="flex items-center gap-2 text-xs bg-gray-50 p-2 rounded">
-                                {status.status === 'uploading' && (
-                                  <>
-                                    <div className="w-3 h-3 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                                    <span className="text-blue-600">Uploading... {Math.round(status.progress)}%</span>
-                                  </>
-                                )}
-                                {status.status === 'success' && (
-                                  <>
-                                    <CheckCircle className="w-3 h-3 text-green-500" />
-                                    <span className="text-green-600">Image uploaded successfully</span>
-                                  </>
-                                )}
-                                {status.status === 'failed' && (
-                                  <>
-                                    <XCircle className="w-3 h-3 text-red-500" />
-                                    <span className="text-red-600">Image upload failed</span>
-                                  </>
-                                )}
+                        {(() => {
+                          const currentImageCount = variant?.images?.length || 0;
+                          const maxSlots = variant?.maxImageSlots || 5;
+                          const slotsAvailable = maxSlots - currentImageCount > 0;
+                          
+                          return (
+                            <label className={`cursor-pointer ${!slotsAvailable ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                              <input 
+                                type="file" 
+                                multiple 
+                                accept="image/*" 
+                                className="hidden" 
+                                disabled={!slotsAvailable}
+                                onChange={(e) => slotsAvailable && handleImageUpload(variant.id, e.target.files, 'images')}
+                              />
+                              <div 
+                                className={`w-[185px] h-[96px] border border-dashed rounded flex flex-col items-center justify-center transition-colors ${
+                                  slotsAvailable 
+                                    ? 'border-gray-300 hover:border-gray-400' 
+                                    : 'border-gray-200 bg-gray-50'
+                                }`}
+                                onDragOver={slotsAvailable ? handleUploadDragOver : undefined}
+                                onDragEnter={slotsAvailable ? handleUploadDragEnter : undefined}
+                                onDragLeave={slotsAvailable ? handleUploadDragLeave : undefined}
+                                onDrop={slotsAvailable ? (e) => handleUploadDrop(e, 'images', variant.id) : undefined}
+                              >
+                                <Upload className={`h-6 w-6 mb-2 ${slotsAvailable ? 'text-gray-400' : 'text-gray-300'}`} />
+                                <p className={`text-[10px] font-medium font-['Montserrat'] text-center px-2 ${slotsAvailable ? 'text-[#111111]' : 'text-gray-400'}`}>
+                                  {slotsAvailable ? 'Drop your image here PNG. JPEG allowed' : 'All slots occupied'}
+                                </p>
                               </div>
-                            ))}
-                          </div>
-                        )}
+                            </label>
+                          );
+                        })()}
+                        {/* Upload Progress Loader for Images */}
+                        <UploadProgressLoader
+                          files={variant.images || []}
+                          uploadStatus={variant.uploadStatus?.images || []}
+                          onRemoveFile={(fileId) => removeFile(variant.id, fileId, 'images')}
+                          type="images"
+                          maxDisplay={5}
+                        />
                       </div>
 
                       <div>
@@ -2230,33 +2416,14 @@ const SingleProductUpload = React.memo(() => {
                             </p>
                           </div>
                         </label>
-                        {/* Upload Status Bar for Videos */}
-                        {variant.uploadStatus?.videos?.length > 0 && (
-                          <div className="mt-2 space-y-1 max-h-20 overflow-y-auto">
-                            {variant.uploadStatus.videos.slice(-3).map((status) => (
-                              <div key={status.id} className="flex items-center gap-2 text-xs bg-gray-50 p-2 rounded">
-                                {status.status === 'uploading' && (
-                                  <>
-                                    <div className="w-3 h-3 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                                    <span className="text-blue-600">Uploading... {Math.round(status.progress)}%</span>
-                                  </>
-                                )}
-                                {status.status === 'success' && (
-                                  <>
-                                    <CheckCircle className="w-3 h-3 text-green-500" />
-                                    <span className="text-green-600">Video uploaded successfully</span>
-                                  </>
-                                )}
-                                {status.status === 'failed' && (
-                                  <>
-                                    <XCircle className="w-3 h-3 text-red-500" />
-                                    <span className="text-red-600">Video upload failed</span>
-                                  </>
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                        )}
+                        {/* Upload Progress Loader for Videos */}
+                        <UploadProgressLoader
+                          files={variant.videos || []}
+                          uploadStatus={variant.uploadStatus?.videos || []}
+                          onRemoveFile={(fileId) => removeFile(variant.id, fileId, 'videos')}
+                          type="videos"
+                          maxDisplay={5}
+                        />
                       </div>
                     </div>
                   </div>
@@ -3141,6 +3308,30 @@ const SingleProductUpload = React.memo(() => {
                 Close Review
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Notification Toast */}
+      {notification && (
+        <div 
+          className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg max-w-sm transition-all duration-300 ${
+            notification.type === 'warning' ? 'bg-yellow-100 border border-yellow-400 text-yellow-800' :
+            notification.type === 'info' ? 'bg-blue-100 border border-blue-400 text-blue-800' :
+            notification.type === 'error' ? 'bg-red-100 border border-red-400 text-red-800' :
+            'bg-green-100 border border-green-400 text-green-800'
+          }`}
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex-1 text-sm font-medium font-['Montserrat']">
+              {notification.message}
+            </div>
+            <button
+              onClick={() => setNotification(null)}
+              className="ml-3 text-lg leading-none hover:opacity-70"
+            >
+              ×
+            </button>
           </div>
         </div>
       )}
