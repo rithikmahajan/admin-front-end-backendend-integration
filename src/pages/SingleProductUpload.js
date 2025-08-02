@@ -52,14 +52,16 @@ const SingleProductUpload = React.memo(() => {
   const [uploadedFiles, setUploadedFiles] = useState([]);
   
   // New state for additional functionality
-  const [stockSizeOption, setStockSizeOption] = useState('sizes'); // 'noSize', 'sizes', 'import'
+  const [stockSizeOption, setStockSizeOption] = useState('sizes'); // 'noSize', 'sizes', 'import' - Default to 'sizes'
   const [customSizes, setCustomSizes] = useState([]);
   const [alsoShowInOptions, setAlsoShowInOptions] = useState({
-    youMightAlsoLike: { enabled: false, value: 'no' },
-    similarItems: { enabled: false, value: 'no' },
-    othersAlsoBought: { enabled: false, value: 'no' }
+    youMightAlsoLike: { value: 'no' },
+    similarItems: { value: 'no' },
+    othersAlsoBought: { value: 'no' }
   });
-  const [showVariant2, setShowVariant2] = useState(false);
+  const [variantCount, setVariantCount] = useState(1); // Track number of variants
+  const [nestingOptions, setNestingOptions] = useState({}); // Track nesting options for each variant
+  const [excelFile, setExcelFile] = useState(null); // Track uploaded Excel file
   const [commonSizeChart, setCommonSizeChart] = useState({
     cmChart: null,
     inchChart: null,
@@ -82,14 +84,16 @@ const SingleProductUpload = React.memo(() => {
     ));
   }, []);
 
-  const addVariant = useCallback(() => {
+  const addMoreVariants = useCallback(() => {
+    const newVariantCount = variantCount + 1;
     const newVariant = {
       ...DEFAULT_VARIANT,
-      id: Date.now(), // Use timestamp for unique ID
-      name: `Variant ${variants.length + 1}`
+      id: Date.now(),
+      name: `Variant ${newVariantCount}`
     };
     setVariants(prev => [...prev, newVariant]);
-  }, [variants.length]);
+    setVariantCount(newVariantCount);
+  }, [variantCount]);
 
   const handleImageUpload = useCallback((variantId, files) => {
     // Validate each file before processing
@@ -205,6 +209,35 @@ const SingleProductUpload = React.memo(() => {
     }));
   }, []);
 
+  // Nesting options handlers
+  const handleNestingOptionChange = useCallback((variantId, option) => {
+    setNestingOptions(prev => ({
+      ...prev,
+      [variantId]: option
+    }));
+    
+    // Apply nesting logic based on selection
+    if (option === 'sameAsArticle1') {
+      const firstVariant = variants[0];
+      handleVariantChange(variantId, 'productName', firstVariant?.productName || '');
+      handleVariantChange(variantId, 'title', firstVariant?.title || '');
+      handleVariantChange(variantId, 'description', firstVariant?.description || '');
+      handleVariantChange(variantId, 'manufacturingDetails', firstVariant?.manufacturingDetails || '');
+      handleVariantChange(variantId, 'shippingReturns', firstVariant?.shippingReturns || '');
+      handleVariantChange(variantId, 'regularPrice', firstVariant?.regularPrice || '');
+      handleVariantChange(variantId, 'salePrice', firstVariant?.salePrice || '');
+      handleVariantChange(variantId, 'stockSizes', firstVariant?.stockSizes || []);
+    }
+  }, [variants, handleVariantChange]);
+
+  // Excel file upload handler
+  const handleExcelFileUpload = useCallback((file) => {
+    setExcelFile(file);
+    console.log('Excel file uploaded:', file.name);
+    // TODO: Implement Excel parsing logic
+    // You can use libraries like SheetJS (xlsx) to parse Excel files
+  }, []);
+
   // Publishing and navigation handlers
   const handlePublishProduct = useCallback(() => {
     setIsPublishModalOpen(true);
@@ -314,13 +347,6 @@ const SingleProductUpload = React.memo(() => {
                 <span className="text-[16px] font-medium font-['Montserrat'] leading-[1.2]">No</span>
               </button>
             </div>
-            <div className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                className="w-5 h-5 border border-[#bcbcbc] rounded-[3px]"
-              />
-              <span className="text-[14px] font-['Montserrat'] text-[#000000] leading-[20px]">(default)</span>
-            </div>
             <button className="bg-[#000AFF] text-white px-4 py-2.5 rounded-lg flex items-center gap-2 font-['Montserrat'] text-[14px] font-normal leading-[20px] shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] border border-[#7280FF] w-[150px] justify-center">
               <Plus className="h-5 w-5" />
               IMPORT
@@ -331,7 +357,6 @@ const SingleProductUpload = React.memo(() => {
         {/* List To Section */}
         <div className="py-6 border-b border-gray-200">
           <div className="flex items-center gap-4">
-            <input type="checkbox" className="w-5 h-5 border border-[#bcbcbc] border-solid rounded-[3px]" />
             <span className="text-[14px] font-['Montserrat'] text-[#000000] leading-[20px]">List to:</span>
             <div className="flex items-center gap-1">
               <input type="checkbox" className="w-5 h-5 border border-[#bcbcbc] border-solid rounded-[3px]" />
@@ -342,7 +367,7 @@ const SingleProductUpload = React.memo(() => {
               <span className="text-[15px] text-black font-['Montserrat'] leading-[16.9px]">flipkart</span>
             </div>
             <div className="flex items-center gap-1">
-              <input type="checkbox" className="w-5 h-5 border border-[#bcbcbc] border-solid rounded-[3px]" />
+              <input type="checkbox" className="w-5 h-5 border border-[#bcbcbc] border-solid rounded-[3px]" defaultChecked />
               <span className="text-[15px] text-black font-['Montserrat'] leading-[16.9px]">yoraa</span>
             </div>
             <div className="flex items-center gap-1">
@@ -495,30 +520,6 @@ const SingleProductUpload = React.memo(() => {
 
                 {stockSizeOption === 'sizes' && (
                   <>
-                    {/* Standard Sizes */}
-                    <div className="grid grid-cols-5 gap-[10px] mb-4 max-w-[400px]">
-                      {['XS', 'S', 'M', 'L', 'XL'].map((size) => (
-                        <button
-                          key={size}
-                          type="button"
-                          onClick={() => {
-                            const currentSizes = variants[0]?.stockSizes || [];
-                            const newSizes = currentSizes.includes(size)
-                              ? currentSizes.filter(s => s !== size)
-                              : [...currentSizes, size];
-                            handleVariantChange(1, 'stockSizes', newSizes);
-                          }}
-                          className={`h-[40px] rounded-[8px] border-2 text-[14px] font-medium font-['Montserrat'] transition-colors ${
-                            (variants[0]?.stockSizes || []).includes(size)
-                              ? 'bg-[#000AFF] text-white border-[#000AFF]'
-                              : 'bg-white text-[#111111] border-[#BCBCBC]'
-                          }`}
-                        >
-                          {size}
-                        </button>
-                      ))}
-                    </div>
-
                     {/* Add Custom Size Button */}
                     <button
                       type="button"
@@ -679,17 +680,6 @@ const SingleProductUpload = React.memo(() => {
                         No
                       </button>
                     </div>
-                    {alsoShowInOptions.youMightAlsoLike.value === 'yes' && (
-                      <div className="flex items-center gap-2">
-                        <input 
-                          type="checkbox" 
-                          checked={alsoShowInOptions.youMightAlsoLike.enabled}
-                          onChange={(e) => handleAlsoShowInChange('youMightAlsoLike', 'enabled', e.target.checked)}
-                          className="w-4 h-4 border border-gray-300 rounded"
-                        />
-                        <span className="text-sm text-gray-600">Enable</span>
-                      </div>
-                    )}
                   </div>
                   
                   <div className="flex items-center gap-4">
@@ -718,17 +708,6 @@ const SingleProductUpload = React.memo(() => {
                         No
                       </button>
                     </div>
-                    {alsoShowInOptions.similarItems.value === 'yes' && (
-                      <div className="flex items-center gap-2">
-                        <input 
-                          type="checkbox" 
-                          checked={alsoShowInOptions.similarItems.enabled}
-                          onChange={(e) => handleAlsoShowInChange('similarItems', 'enabled', e.target.checked)}
-                          className="w-4 h-4 border border-gray-300 rounded"
-                        />
-                        <span className="text-sm text-gray-600">Enable</span>
-                      </div>
-                    )}
                   </div>
                   
                   <div className="flex items-center gap-4">
@@ -757,34 +736,8 @@ const SingleProductUpload = React.memo(() => {
                         No
                       </button>
                     </div>
-                    {alsoShowInOptions.othersAlsoBought.value === 'yes' && (
-                      <div className="flex items-center gap-2">
-                        <input 
-                          type="checkbox" 
-                          checked={alsoShowInOptions.othersAlsoBought.enabled}
-                          onChange={(e) => handleAlsoShowInChange('othersAlsoBought', 'enabled', e.target.checked)}
-                          className="w-4 h-4 border border-gray-300 rounded"
-                        />
-                        <span className="text-sm text-gray-600">Enable</span>
-                      </div>
-                    )}
                   </div>
                 </div>
-
-                {/* Add Variant 2 Button */}
-                {(alsoShowInOptions.youMightAlsoLike.enabled || 
-                  alsoShowInOptions.similarItems.enabled || 
-                  alsoShowInOptions.othersAlsoBought.enabled) && (
-                  <div className="mt-4">
-                    <button
-                      type="button"
-                      onClick={() => setShowVariant2(true)}
-                      className="px-6 py-2 bg-green-600 text-white rounded-md text-sm font-medium hover:bg-green-700 transition-colors"
-                    >
-                      Add Variant 2
-                    </button>
-                  </div>
-                )}
               </div>
             </div>
 
@@ -1018,13 +971,23 @@ const SingleProductUpload = React.memo(() => {
               <button className="bg-[#000AFF] text-white px-4 py-2.5 rounded-lg text-[14px] font-['Montserrat'] shadow-sm">
                 add meta data
               </button>
-              <button 
-                onClick={() => handleImportExcel('metadata')}
-                className="bg-[#000AFF] text-white px-4 py-2.5 rounded-lg flex items-center gap-2 text-[14px] font-['Montserrat'] shadow-sm"
-              >
-                <Plus className="h-5 w-5" />
-                IMPORT EXCEL
-              </button>
+              <label className="cursor-pointer">
+                <input 
+                  type="file" 
+                  accept=".xlsx,.xls,.csv" 
+                  className="hidden" 
+                  onChange={(e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                      handleExcelFileUpload(file);
+                    }
+                  }}
+                />
+                <div className="bg-[#000AFF] text-white px-4 py-2.5 rounded-lg flex items-center gap-2 text-[14px] font-['Montserrat'] shadow-sm hover:bg-blue-700 transition-colors">
+                  <Plus className="h-5 w-5" />
+                  {excelFile ? `${excelFile.name}` : 'IMPORT EXCEL'}
+                </div>
+              </label>
             </div>
             
             <div className="grid grid-cols-3 gap-6">
@@ -1058,113 +1021,273 @@ const SingleProductUpload = React.memo(() => {
             </div>
           </div>
 
-          {/* Variant 2 Section */}
-          {showVariant2 && (
-            <div className="mt-12 py-6 border-t border-gray-200">
-              <h2 className="text-[32px] font-bold text-[#111111] font-['Montserrat'] leading-[24px] mb-8">Variant 2</h2>
-              
-              <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-                {/* Left Column - Variant 2 Details */}
-                <div className="col-span-3 space-y-6">
-                  {/* Title */}
-                  <div>
-                    <label className="block text-[14px] font-medium text-[#111111] font-['Montserrat'] mb-2">Title</label>
-                    <div className="w-full max-w-[400px]">
-                      <input
-                        type="text"
-                        value={variants[1]?.title || ''}
-                        onChange={(e) => {
-                          if (variants.length < 2) {
-                            setVariants(prev => [...prev, { ...DEFAULT_VARIANT, id: 2, name: 'Variant 2', title: e.target.value }]);
-                          } else {
-                            handleVariantChange(2, 'title', e.target.value);
-                          }
-                        }}
-                        className="w-full h-[40px] px-3 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-[14px] bg-white font-['Montserrat']"
-                        placeholder="Enter variant 2 title"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Manufacturing Details */}
-                  <div>
-                    <label className="block text-[14px] font-medium text-[#111111] font-['Montserrat'] mb-2">Manufacturing details</label>
-                    <div className="w-full max-w-[500px]">
-                      <textarea
-                        value={variants[1]?.manufacturingDetails || ''}
-                        onChange={(e) => handleVariantChange(2, 'manufacturingDetails', e.target.value)}
-                        className="w-full h-[100px] px-3 py-2 border border-gray-300 rounded-md resize-none focus:outline-none focus:ring-1 focus:ring-blue-500 text-[14px] bg-white font-['Montserrat']"
-                        placeholder="Enter manufacturing details for variant 2"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Description */}
-                  <div>
-                    <label className="block text-[14px] font-medium text-[#111111] font-['Montserrat'] mb-2">Description</label>
-                    <div className="w-full max-w-[500px]">
-                      <textarea
-                        value={variants[1]?.description || ''}
-                        onChange={(e) => handleVariantChange(2, 'description', e.target.value)}
-                        className="w-full h-[100px] px-3 py-2 border border-gray-300 rounded-md resize-none focus:outline-none focus:ring-1 focus:ring-blue-500 text-[14px] bg-white font-['Montserrat']"
-                        placeholder="Enter description for variant 2"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Pricing for Variant 2 */}
-                  <div className="grid grid-cols-2 gap-6 mb-6 max-w-[400px]">
-                    <div>
-                      <label className="block text-[14px] font-medium text-[#111111] font-['Montserrat'] mb-2">Regular price</label>
-                      <input
-                        type="number"
-                        value={variants[1]?.regularPrice || ''}
-                        onChange={(e) => handleVariantChange(2, 'regularPrice', e.target.value)}
-                        className="w-full h-[40px] px-3 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-[14px] bg-white font-['Montserrat']"
-                        placeholder="0.00"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[14px] font-medium text-[#111111] font-['Montserrat'] mb-2">Sale price</label>
-                      <input
-                        type="number"
-                        value={variants[1]?.salePrice || ''}
-                        onChange={(e) => handleVariantChange(2, 'salePrice', e.target.value)}
-                        className="w-full h-[40px] px-3 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-[14px] bg-white font-['Montserrat']"
-                        placeholder="0.00"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Right Column - Variant 2 Images */}
-                <div className="space-y-6">
-                  <h3 className="text-[24px] font-bold text-[#111111] font-['Montserrat']">Variant 2 Images</h3>
-                  {/* Similar image upload structure as variant 1 */}
-                  <div className="space-y-4">
-                    <div>
-                      <h4 className="text-[14px] font-medium text-[#111111] font-['Montserrat'] mb-3">Upload image</h4>
-                      <label className="cursor-pointer">
-                        <input 
-                          type="file" 
-                          multiple 
-                          accept="image/*" 
-                          className="hidden" 
-                          onChange={(e) => handleImageUpload(2, e.target.files)}
-                        />
-                        <div className="w-[185px] h-[96px] border border-dashed border-gray-300 rounded flex flex-col items-center justify-center hover:border-gray-400 transition-colors">
-                          <Upload className="h-6 w-6 text-gray-400 mb-2" />
-                          <p className="text-[10px] font-medium text-[#111111] font-['Montserrat'] text-center px-2">
-                            Drop your image here PNG. JPEG allowed
-                          </p>
+          {/* Additional Variants Section */}
+          {variants.slice(1).map((variant, index) => {
+            const variantNumber = index + 2;
+            return (
+              <div key={variant.id} className="mt-12 py-6 border-t border-gray-200">
+                <h2 className="text-[32px] font-bold text-[#111111] font-['Montserrat'] leading-[24px] mb-8">Variant {variantNumber}</h2>
+                
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+                  {/* Left Column - Variant Details */}
+                  <div className="col-span-3 space-y-6">
+                    {/* Nesting Options */}
+                    <div className="mb-6">
+                      <label className="block text-[14px] font-medium text-[#111111] font-['Montserrat'] mb-3">Variant {variantNumber} Options</label>
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-4 flex-wrap">
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="radio"
+                              name={`nesting-${variant.id}`}
+                              value="sameAsArticle1"
+                              checked={nestingOptions[variant.id] === 'sameAsArticle1'}
+                              onChange={() => handleNestingOptionChange(variant.id, 'sameAsArticle1')}
+                              className="w-4 h-4 text-blue-600"
+                            />
+                            <span className="text-[14px] text-[#111111] font-['Montserrat']">Same as article 1</span>
+                          </label>
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="radio"
+                              name={`nesting-${variant.id}`}
+                              value="selectAll"
+                              checked={nestingOptions[variant.id] === 'selectAll'}
+                              onChange={() => handleNestingOptionChange(variant.id, 'selectAll')}
+                              className="w-4 h-4 text-blue-600"
+                            />
+                            <span className="text-[14px] text-[#111111] font-['Montserrat']">Select all</span>
+                          </label>
                         </div>
-                      </label>
+                        <div className="flex items-center gap-4 flex-wrap">
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="radio"
+                              name={`nesting-${variant.id}`}
+                              value="title"
+                              checked={nestingOptions[variant.id] === 'title'}
+                              onChange={() => handleNestingOptionChange(variant.id, 'title')}
+                              className="w-4 h-4 text-blue-600"
+                            />
+                            <span className="text-[14px] text-[#111111] font-['Montserrat']">Title</span>
+                          </label>
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="radio"
+                              name={`nesting-${variant.id}`}
+                              value="description"
+                              checked={nestingOptions[variant.id] === 'description'}
+                              onChange={() => handleNestingOptionChange(variant.id, 'description')}
+                              className="w-4 h-4 text-blue-600"
+                            />
+                            <span className="text-[14px] text-[#111111] font-['Montserrat']">Description</span>
+                          </label>
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="radio"
+                              name={`nesting-${variant.id}`}
+                              value="manufacturingDetails"
+                              checked={nestingOptions[variant.id] === 'manufacturingDetails'}
+                              onChange={() => handleNestingOptionChange(variant.id, 'manufacturingDetails')}
+                              className="w-4 h-4 text-blue-600"
+                            />
+                            <span className="text-[14px] text-[#111111] font-['Montserrat']">Manufacturing details</span>
+                          </label>
+                        </div>
+                        <div className="flex items-center gap-4 flex-wrap">
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="radio"
+                              name={`nesting-${variant.id}`}
+                              value="shippingReturns"
+                              checked={nestingOptions[variant.id] === 'shippingReturns'}
+                              onChange={() => handleNestingOptionChange(variant.id, 'shippingReturns')}
+                              className="w-4 h-4 text-blue-600"
+                            />
+                            <span className="text-[14px] text-[#111111] font-['Montserrat']">Shipping returns and exchange</span>
+                          </label>
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="radio"
+                              name={`nesting-${variant.id}`}
+                              value="regularPrice"
+                              checked={nestingOptions[variant.id] === 'regularPrice'}
+                              onChange={() => handleNestingOptionChange(variant.id, 'regularPrice')}
+                              className="w-4 h-4 text-blue-600"
+                            />
+                            <span className="text-[14px] text-[#111111] font-['Montserrat']">Regular price</span>
+                          </label>
+                        </div>
+                        <div className="flex items-center gap-4 flex-wrap">
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="radio"
+                              name={`nesting-${variant.id}`}
+                              value="salePrice"
+                              checked={nestingOptions[variant.id] === 'salePrice'}
+                              onChange={() => handleNestingOptionChange(variant.id, 'salePrice')}
+                              className="w-4 h-4 text-blue-600"
+                            />
+                            <span className="text-[14px] text-[#111111] font-['Montserrat']">Sale price</span>
+                          </label>
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="radio"
+                              name={`nesting-${variant.id}`}
+                              value="stockSize"
+                              checked={nestingOptions[variant.id] === 'stockSize'}
+                              onChange={() => handleNestingOptionChange(variant.id, 'stockSize')}
+                              className="w-4 h-4 text-blue-600"
+                            />
+                            <span className="text-[14px] text-[#111111] font-['Montserrat']">Stock size</span>
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Product Name */}
+                    <div>
+                      <label className="block text-[14px] font-medium text-[#111111] font-['Montserrat'] mb-2">product name</label>
+                      <div className="w-full max-w-[400px]">
+                        <input
+                          type="text"
+                          value={variant.productName || ''}
+                          onChange={(e) => handleVariantChange(variant.id, 'productName', e.target.value)}
+                          className="w-full h-[40px] px-3 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-[14px] bg-white font-['Montserrat']"
+                          placeholder={`Enter product name for variant ${variantNumber}`}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Title */}
+                    <div>
+                      <label className="block text-[14px] font-medium text-[#111111] font-['Montserrat'] mb-2">Title</label>
+                      <div className="w-full max-w-[400px]">
+                        <input
+                          type="text"
+                          value={variant.title || ''}
+                          onChange={(e) => handleVariantChange(variant.id, 'title', e.target.value)}
+                          className="w-full h-[40px] px-3 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-[14px] bg-white font-['Montserrat']"
+                          placeholder={`Enter title for variant ${variantNumber}`}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Description */}
+                    <div>
+                      <label className="block text-[14px] font-medium text-[#111111] font-['Montserrat'] mb-2">Description</label>
+                      <div className="w-full max-w-[500px]">
+                        <textarea
+                          value={variant.description || ''}
+                          onChange={(e) => handleVariantChange(variant.id, 'description', e.target.value)}
+                          className="w-full h-[100px] px-3 py-2 border border-gray-300 rounded-md resize-none focus:outline-none focus:ring-1 focus:ring-blue-500 text-[14px] bg-white font-['Montserrat']"
+                          placeholder={`Enter description for variant ${variantNumber}`}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Manufacturing Details */}
+                    <div>
+                      <label className="block text-[14px] font-medium text-[#111111] font-['Montserrat'] mb-2">Manufacturing details</label>
+                      <div className="w-full max-w-[500px]">
+                        <textarea
+                          value={variant.manufacturingDetails || ''}
+                          onChange={(e) => handleVariantChange(variant.id, 'manufacturingDetails', e.target.value)}
+                          className="w-full h-[100px] px-3 py-2 border border-gray-300 rounded-md resize-none focus:outline-none focus:ring-1 focus:ring-blue-500 text-[14px] bg-white font-['Montserrat']"
+                          placeholder={`Enter manufacturing details for variant ${variantNumber}`}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Shipping Returns */}
+                    <div>
+                      <label className="block text-[14px] font-medium text-[#111111] font-['Montserrat'] mb-2">Shipping returns and exchange</label>
+                      <div className="w-full max-w-[500px]">
+                        <textarea
+                          value={variant.shippingReturns || ''}
+                          onChange={(e) => handleVariantChange(variant.id, 'shippingReturns', e.target.value)}
+                          className="w-full h-[100px] px-3 py-2 border border-gray-300 rounded-md resize-none focus:outline-none focus:ring-1 focus:ring-blue-500 text-[14px] bg-white font-['Montserrat']"
+                          placeholder={`Enter shipping and returns policy for variant ${variantNumber}`}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Pricing */}
+                    <div className="grid grid-cols-2 gap-6 mb-6 max-w-[400px]">
+                      <div>
+                        <label className="block text-[14px] font-medium text-[#111111] font-['Montserrat'] mb-2">Regular price</label>
+                        <input
+                          type="number"
+                          value={variant.regularPrice || ''}
+                          onChange={(e) => handleVariantChange(variant.id, 'regularPrice', e.target.value)}
+                          className="w-full h-[40px] px-3 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-[14px] bg-white font-['Montserrat']"
+                          placeholder="0.00"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[14px] font-medium text-[#111111] font-['Montserrat'] mb-2">Sale price</label>
+                        <input
+                          type="number"
+                          value={variant.salePrice || ''}
+                          onChange={(e) => handleVariantChange(variant.id, 'salePrice', e.target.value)}
+                          className="w-full h-[40px] px-3 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-[14px] bg-white font-['Montserrat']"
+                          placeholder="0.00"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right Column - Variant Images */}
+                  <div className="space-y-6">
+                    <h3 className="text-[24px] font-bold text-[#111111] font-['Montserrat']">Variant {variantNumber} Images</h3>
+                    
+                    {/* Main Product Image */}
+                    <div className="mb-6">
+                      <div className="w-[276px] h-[286px] bg-gray-100 rounded border overflow-hidden">
+                        <div className="w-full h-full flex items-center justify-center bg-gray-50">
+                          <span className="text-gray-400 text-sm font-['Montserrat']">Variant {variantNumber} Image</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Upload Section */}
+                    <div className="space-y-4">
+                      <div>
+                        <h4 className="text-[14px] font-medium text-[#111111] font-['Montserrat'] mb-3">Upload image</h4>
+                        <label className="cursor-pointer">
+                          <input 
+                            type="file" 
+                            multiple 
+                            accept="image/*" 
+                            className="hidden" 
+                            onChange={(e) => handleImageUpload(variant.id, e.target.files)}
+                          />
+                          <div className="w-[185px] h-[96px] border border-dashed border-gray-300 rounded flex flex-col items-center justify-center hover:border-gray-400 transition-colors">
+                            <Upload className="h-6 w-6 text-gray-400 mb-2" />
+                            <p className="text-[10px] font-medium text-[#111111] font-['Montserrat'] text-center px-2">
+                              Drop your image here PNG. JPEG allowed
+                            </p>
+                          </div>
+                        </label>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
-          )}
+            );
+          })}
+
+          {/* Dynamic Add More Variants Button - appears after variants and before size charts */}
+          <div className="mt-8 py-4 flex justify-center">
+            <button
+              type="button"
+              onClick={addMoreVariants}
+              className="px-8 py-3 bg-[#000AFF] text-white rounded-lg text-[16px] font-medium font-['Montserrat'] hover:bg-blue-700 transition-colors flex items-center gap-2"
+            >
+              <Plus className="h-5 w-5" />
+              Add More Variants
+            </button>
+          </div>
 
           {/* Common Size Chart Section */}
           <div className="mt-12 py-6 border-t border-gray-200">
