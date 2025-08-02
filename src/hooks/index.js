@@ -7,6 +7,9 @@ import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
  * common functionality across components.
  */
 
+// Export responsive hooks
+export { default as useResponsive, useResponsiveGrid, useResponsiveSpacing, useResponsiveClasses } from './useResponsive';
+
 /**
  * useDebounce Hook
  * 

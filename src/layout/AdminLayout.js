@@ -38,11 +38,11 @@ const AdminLayout = React.memo(() => {
       {sidebarHidden && (
         <button
           onClick={handleSidebarVisibilityToggle}
-          className="fixed top-[140px] left-4 w-8 h-8 bg-white border border-gray-300 rounded-full shadow-md flex items-center justify-center hover:bg-gray-50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 z-50"
+          className="fixed top-[120px] sm:top-[140px] left-2 sm:left-4 w-6 h-6 sm:w-8 sm:h-8 bg-white border border-gray-300 rounded-full shadow-md flex items-center justify-center hover:bg-gray-50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 z-50"
           aria-label="Show sidebar"
           title="Show sidebar"
         >
-          <ChevronRight className="w-4 h-4 text-gray-600" />
+          <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4 text-gray-600" />
         </button>
       )}
       

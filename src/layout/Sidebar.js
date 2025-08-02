@@ -98,31 +98,31 @@ const Sidebar = React.memo(({ sidebarOpen, setSidebarOpen, sidebarHidden, onTogg
       )}
 
       {/* Sidebar */}
-      <div className={`fixed inset-y-0 left-0 z-40 w-80 bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 overflow-y-auto ${
+      <div className={`fixed inset-y-0 left-0 z-40 w-64 sm:w-72 lg:w-80 bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 overflow-y-auto ${
         sidebarOpen ? 'translate-x-0' : '-translate-x-full'
       } pt-[60px] relative`}>
         
         {/* Arrow Toggle Button */}
         <button
           onClick={onToggleSidebarVisibility}
-          className="absolute top-[80px] -right-4 w-8 h-8 bg-white border border-gray-300 rounded-full shadow-md flex items-center justify-center hover:bg-gray-50 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 z-50"
+          className="absolute top-[80px] -right-3 sm:-right-4 w-6 h-6 sm:w-8 sm:h-8 bg-white border border-gray-300 rounded-full shadow-md flex items-center justify-center hover:bg-gray-50 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 z-50"
           aria-label={sidebarHidden ? "Show sidebar" : "Hide sidebar"}
           title={sidebarHidden ? "Show sidebar" : "Hide sidebar"}
         >
-          <ChevronLeft className="w-4 h-4 text-gray-600" />
+          <ChevronLeft className="w-3 h-3 sm:w-4 sm:h-4 text-gray-600" />
         </button>
         
         {/* Sidebar Content */}
-        <div className="p-6 space-y-6">
+        <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
           {menuSections.map((section, sectionIndex) => (
-            <div key={sectionIndex} className="space-y-3">
+            <div key={sectionIndex} className="space-y-2 sm:space-y-3">
               {/* Section Title */}
-              <h3 className={`font-bold text-gray-900 ${section.titleSize} ${section.title === 'Dashboard' ? 'mb-2' : 'mb-4'}`}>
+              <h3 className={`font-bold text-gray-900 ${section.titleSize === 'text-2xl' ? 'text-xl sm:text-2xl' : 'text-lg sm:text-xl'} ${section.title === 'Dashboard' ? 'mb-1 sm:mb-2' : 'mb-2 sm:mb-4'}`}>
                 {section.title}
               </h3>
               
               {/* Section Items */}
-              <div className="space-y-2">
+              <div className="space-y-1 sm:space-y-2">
                 {section.items.map((item, itemIndex) => {
                   const isActive = location.pathname === item.path;
                   
@@ -130,14 +130,14 @@ const Sidebar = React.memo(({ sidebarOpen, setSidebarOpen, sidebarHidden, onTogg
                     <Link
                       key={itemIndex}
                       to={item.path}
-                      className={`block text-[15px] font-normal leading-[15px] transition-colors duration-200 ${
+                      className={`block text-sm sm:text-[15px] font-normal leading-[15px] transition-colors duration-200 py-1 ${
                         isActive 
                           ? 'text-blue-600 font-semibold' 
                           : 'text-gray-700 hover:text-blue-600'
                       } ${
                         section.title === 'Dashboard' 
-                          ? 'text-[15px]' 
-                          : 'text-[15px] ml-1'
+                          ? '' 
+                          : 'ml-0.5 sm:ml-1'
                       }`}
                     >
                       {item.name}

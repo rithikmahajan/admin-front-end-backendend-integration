@@ -64,6 +64,18 @@ export const SPACING = {
   '3XL': '48px'
 };
 
+// Responsive breakpoints for consistent usage
+export const BREAKPOINTS = {
+  XS: '320px',
+  SM: '640px',
+  MD: '768px',
+  LG: '1024px',
+  XL: '1280px',
+  '2XL': '1536px',
+  TABLET: '768px',
+  TABLET_LG: '1024px'
+};
+
 export const BORDERS = {
   RADIUS: {
     SM: '3px',
@@ -133,6 +145,16 @@ export const CSS_VARIABLES = `
     --spacing-xl: ${SPACING.XL};
     --spacing-2xl: ${SPACING['2XL']};
     --spacing-3xl: ${SPACING['3XL']};
+    
+    /* Responsive Breakpoints */
+    --breakpoint-xs: ${BREAKPOINTS.XS};
+    --breakpoint-sm: ${BREAKPOINTS.SM};
+    --breakpoint-md: ${BREAKPOINTS.MD};
+    --breakpoint-lg: ${BREAKPOINTS.LG};
+    --breakpoint-xl: ${BREAKPOINTS.XL};
+    --breakpoint-2xl: ${BREAKPOINTS['2XL']};
+    --breakpoint-tablet: ${BREAKPOINTS.TABLET};
+    --breakpoint-tablet-lg: ${BREAKPOINTS.TABLET_LG};
     
     /* Border Radius */
     --border-radius-sm: ${BORDERS.RADIUS.SM};
