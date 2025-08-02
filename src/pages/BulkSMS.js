@@ -1233,7 +1233,7 @@ const BulkSMS = memo(({ onClose }) => {
 
                   {/* Download Button */}
                   <button
-                    onClick={handleDownload}
+                    onClick={basicActionHandlers.handleDownload}
                     className="bg-white border border-[#dde2e4] text-[#252c32] px-3 py-1 rounded-md flex items-center gap-[5px] text-[14px] font-normal font-inter tracking-[-0.084px] leading-[24px]"
                   >
                     <Download className="w-6 h-6" />
@@ -1242,7 +1242,7 @@ const BulkSMS = memo(({ onClose }) => {
 
                   {/* Share Button */}
                   <button
-                    onClick={handleShare}
+                    onClick={basicActionHandlers.handleShare}
                     className="bg-white border border-[#dde2e4] text-[#252c32] px-3 py-1 rounded-md flex items-center gap-[5px] text-[14px] font-normal font-inter tracking-[-0.084px] leading-[24px]"
                   >
                     <Share2 className="w-6 h-6" />
@@ -1518,7 +1518,7 @@ const BulkSMS = memo(({ onClose }) => {
                 <div className="flex items-center justify-center gap-1 px-6 py-4">
                   {/* Edit Button */}
                   <button
-                    onClick={() => handleEditBlacklistItem(item.id)}
+                    onClick={() => blacklistHandlers.handleEditBlacklistItem(item.id)}
                     className="w-[26px] h-[27px] flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors p-[5px]"
                     title="Edit item"
                   >
@@ -1527,7 +1527,7 @@ const BulkSMS = memo(({ onClose }) => {
                   
                   {/* Delete Button */}
                   <button
-                    onClick={() => handleDeleteBlacklistItem(item.id)}
+                    onClick={() => blacklistHandlers.handleDeleteBlacklistItem(item.id)}
                     className="w-[26px] h-[27px] flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors p-[5px]"
                     title="Delete item"
                   >
@@ -1552,7 +1552,7 @@ const BulkSMS = memo(({ onClose }) => {
         <div className="flex items-center justify-center gap-4 mt-12">
           {/* Save as Draft */}
           <button
-            onClick={handleSaveDraft}
+            onClick={draftHandlers.handleSaveDraft}
             className="bg-white border border-[#d0d5dd] text-black px-4 py-2.5 rounded-lg text-[14px] font-normal font-montserrat leading-[20px] shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)]"
           >
             save as draft
@@ -1560,7 +1560,7 @@ const BulkSMS = memo(({ onClose }) => {
 
           {/* View Drafts */}
           <button
-            onClick={handleViewDrafts}
+            onClick={draftHandlers.handleViewDrafts}
             className="bg-white border border-[#d0d5dd] text-black px-4 py-2.5 rounded-lg text-[14px] font-normal font-montserrat leading-[20px] shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] flex items-center gap-2"
           >
             <Edit2 className="w-4 h-4" />
@@ -1569,7 +1569,7 @@ const BulkSMS = memo(({ onClose }) => {
 
           {/* Schedule for Later */}
           <button
-            onClick={handleScheduleLater}
+            onClick={scheduleAndSendHandlers.handleScheduleLater}
             className="bg-[#000aff] text-white px-4 py-2.5 rounded-lg flex items-center gap-2 text-[14px] font-normal font-montserrat leading-[20px] shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)]"
           >
             <Plus className="w-5 h-5" />
@@ -1578,7 +1578,7 @@ const BulkSMS = memo(({ onClose }) => {
 
           {/* Send Now */}
           <button
-            onClick={handleSendNow}
+            onClick={scheduleAndSendHandlers.handleSendNow}
             className="bg-[#ef3826] text-black px-4 py-2.5 rounded-lg text-[14px] font-normal font-montserrat leading-[20px] shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)]"
           >
             send now
@@ -1586,7 +1586,7 @@ const BulkSMS = memo(({ onClose }) => {
 
           {/* Preview */}
           <button
-            onClick={handlePreview}
+            onClick={basicActionHandlers.handlePreview}
             className="bg-black text-white px-4 py-3 rounded-3xl w-[270px] h-12 text-[16px] font-semibold font-montserrat text-center"
           >
             preview
@@ -1714,7 +1714,7 @@ const BulkSMS = memo(({ onClose }) => {
                 <input
                   type="text"
                   value={editingItem.number}
-                  onChange={(e) => handleEditItemChange('number', e.target.value)}
+                  onChange={(e) => blacklistHandlers.handleEditItemChange('number', e.target.value)}
                   className="w-full bg-white border border-[#d0d5dd] rounded-lg px-4 py-3 text-[14px] text-[#667085] font-inter focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Enter phone number"
                 />
@@ -1728,7 +1728,7 @@ const BulkSMS = memo(({ onClose }) => {
                 <input
                   type="email"
                   value={editingItem.email}
-                  onChange={(e) => handleEditItemChange('email', e.target.value)}
+                  onChange={(e) => blacklistHandlers.handleEditItemChange('email', e.target.value)}
                   className="w-full bg-white border border-[#d0d5dd] rounded-lg px-4 py-3 text-[14px] text-[#667085] font-inter focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Enter email address"
                 />
@@ -1738,13 +1738,13 @@ const BulkSMS = memo(({ onClose }) => {
             {/* Action Buttons */}
             <div className="flex items-center justify-end gap-4 mt-6">
               <button
-                onClick={handleCancelEdit}
+                onClick={blacklistHandlers.handleCancelEdit}
                 className="bg-white border border-gray-300 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-50 transition-colors"
               >
                 Cancel
               </button>
               <button
-                onClick={handleSaveEdit}
+                onClick={blacklistHandlers.handleSaveEdit}
                 className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
               >
                 Save Changes
@@ -1755,7 +1755,7 @@ const BulkSMS = memo(({ onClose }) => {
       )}
 
       {/* Delete Confirmation Modal */}
-      {showDeleteConfirm && (
+      {modals.showDeleteConfirm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-lg p-8 max-w-md mx-4">
             <div className="text-center">
@@ -1796,7 +1796,7 @@ const BulkSMS = memo(({ onClose }) => {
       )}
 
       {/* Edit Report Modal */}
-      {showEditReportModal && editingReport && (
+      {modals.showEditReportModal && editingReport && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-lg p-8 max-w-2xl mx-4 w-full">
             <div className="flex items-center justify-between mb-6">
@@ -1820,7 +1820,7 @@ const BulkSMS = memo(({ onClose }) => {
                   <input
                     type="text"
                     value={editingReport.date}
-                    onChange={(e) => handleEditReportChange('date', e.target.value)}
+                    onChange={(e) => reportsHandlers.handleEditReportChange('date', e.target.value)}
                     className="w-full bg-white border border-[#d0d5dd] rounded-lg px-4 py-3 text-[14px] text-[#667085] font-inter focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="Enter date"
                   />
@@ -1834,7 +1834,7 @@ const BulkSMS = memo(({ onClose }) => {
                   <input
                     type="text"
                     value={editingReport.name}
-                    onChange={(e) => handleEditReportChange('name', e.target.value)}
+                    onChange={(e) => reportsHandlers.handleEditReportChange('name', e.target.value)}
                     className="w-full bg-white border border-[#d0d5dd] rounded-lg px-4 py-3 text-[14px] text-[#667085] font-inter focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="Enter name"
                   />
@@ -1848,7 +1848,7 @@ const BulkSMS = memo(({ onClose }) => {
                   <input
                     type="text"
                     value={editingReport.senderId}
-                    onChange={(e) => handleEditReportChange('senderId', e.target.value)}
+                    onChange={(e) => reportsHandlers.handleEditReportChange('senderId', e.target.value)}
                     className="w-full bg-white border border-[#d0d5dd] rounded-lg px-4 py-3 text-[14px] text-[#667085] font-inter focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="Enter sender ID"
                   />
@@ -1865,7 +1865,7 @@ const BulkSMS = memo(({ onClose }) => {
                   <input
                     type="text"
                     value={editingReport.message}
-                    onChange={(e) => handleEditReportChange('message', e.target.value)}
+                    onChange={(e) => reportsHandlers.handleEditReportChange('message', e.target.value)}
                     className="w-full bg-white border border-[#d0d5dd] rounded-lg px-4 py-3 text-[14px] text-[#667085] font-inter focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="Enter message"
                   />
@@ -1879,7 +1879,7 @@ const BulkSMS = memo(({ onClose }) => {
                   <input
                     type="text"
                     value={editingReport.channel}
-                    onChange={(e) => handleEditReportChange('channel', e.target.value)}
+                    onChange={(e) => reportsHandlers.handleEditReportChange('channel', e.target.value)}
                     className="w-full bg-white border border-[#d0d5dd] rounded-lg px-4 py-3 text-[14px] text-[#667085] font-inter focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="Enter channel"
                   />
@@ -1893,7 +1893,7 @@ const BulkSMS = memo(({ onClose }) => {
                   <input
                     type="number"
                     value={editingReport.creditUsed}
-                    onChange={(e) => handleEditReportChange('creditUsed', parseInt(e.target.value) || 0)}
+                    onChange={(e) => reportsHandlers.handleEditReportChange('creditUsed', parseInt(e.target.value) || 0)}
                     className="w-full bg-white border border-[#d0d5dd] rounded-lg px-4 py-3 text-[14px] text-[#667085] font-inter focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="Enter credit used"
                   />
@@ -1904,13 +1904,13 @@ const BulkSMS = memo(({ onClose }) => {
             {/* Action Buttons */}
             <div className="flex items-center justify-end gap-4 mt-6">
               <button
-                onClick={handleCancelReportEdit}
+                onClick={reportsHandlers.handleCancelReportEdit}
                 className="bg-white border border-gray-300 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-50 transition-colors"
               >
                 Cancel
               </button>
               <button
-                onClick={handleSaveReportEdit}
+                onClick={reportsHandlers.handleSaveReportEdit}
                 className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
               >
                 Save Changes
@@ -1921,7 +1921,7 @@ const BulkSMS = memo(({ onClose }) => {
       )}
 
       {/* Delete Report Confirmation Modal */}
-      {showDeleteReportConfirm && (
+      {modals.showDeleteReportConfirm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-lg p-8 max-w-md mx-4">
             <div className="text-center">
@@ -1944,13 +1944,13 @@ const BulkSMS = memo(({ onClose }) => {
               {/* Action Buttons */}
               <div className="flex items-center justify-center gap-4">
                 <button
-                  onClick={handleCancelDeleteReport}
+                  onClick={reportsHandlers.handleCancelDeleteReport}
                   className="bg-white border border-gray-300 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-50 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
-                  onClick={handleConfirmDeleteReport}
+                  onClick={reportsHandlers.handleConfirmDeleteReport}
                   className="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition-colors"
                 >
                   Delete
@@ -1962,7 +1962,7 @@ const BulkSMS = memo(({ onClose }) => {
       )}
 
       {/* Drafts Modal */}
-      {showDraftsModal && (
+      {modals.showDraftsModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl shadow-xl w-[90%] max-w-4xl max-h-[80vh] overflow-y-auto">
             {/* Header */}
@@ -1971,7 +1971,7 @@ const BulkSMS = memo(({ onClose }) => {
                 SMS/email Drafts
               </h2>
               <button
-                onClick={() => setShowDraftsModal(false)}
+                onClick={() => toggleModal('showDraftsModal', false)}
                 className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
               >
                 <X className="w-5 h-5" />
@@ -2004,7 +2004,7 @@ const BulkSMS = memo(({ onClose }) => {
                         <div className="flex items-center gap-2">
                           {/* Edit Draft Button */}
                           <button
-                            onClick={() => handleEditDraft(draft)}
+                            onClick={() => draftHandlers.handleEditDraft(draft)}
                             className="w-[26px] h-[27px] flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors p-[5px]"
                             title="Edit draft"
                           >
@@ -2013,7 +2013,7 @@ const BulkSMS = memo(({ onClose }) => {
                           
                           {/* Delete Draft Button */}
                           <button
-                            onClick={() => handleDeleteDraft(draft.id)}
+                            onClick={() => draftHandlers.handleDeleteDraft(draft.id)}
                             className="w-[26px] h-[27px] flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors p-[5px]"
                             title="Delete draft"
                           >
@@ -2080,7 +2080,7 @@ const BulkSMS = memo(({ onClose }) => {
                         
                         {/* Load Draft Button */}
                         <button
-                          onClick={() => handleLoadDraft(draft)}
+                          onClick={() => draftHandlers.handleLoadDraft(draft)}
                           className="bg-[#ef3826] text-black px-4 py-2 rounded-lg text-[14px] font-montserrat hover:bg-[#d32f20] transition-colors"
                         >
                           Load Draft
@@ -2096,14 +2096,14 @@ const BulkSMS = memo(({ onClose }) => {
       )}
 
       {/* Draft Delete Confirmation Modal */}
-      {showDraftDeleteConfirm && (
+      {modals.showDraftDeleteConfirm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl shadow-xl p-6 w-[400px]">
             {/* Header */}
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-900">Confirm Delete</h3>
               <button
-                onClick={handleCancelDeleteDraft}
+                onClick={draftHandlers.handleCancelDeleteDraft}
                 className="p-1 hover:bg-gray-100 rounded"
               >
                 <X className="w-5 h-5" />
@@ -2119,13 +2119,13 @@ const BulkSMS = memo(({ onClose }) => {
               {/* Action Buttons */}
               <div className="flex items-center justify-center gap-4">
                 <button
-                  onClick={handleCancelDeleteDraft}
+                  onClick={draftHandlers.handleCancelDeleteDraft}
                   className="bg-white border border-gray-300 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-50 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
-                  onClick={handleConfirmDeleteDraft}
+                  onClick={draftHandlers.handleConfirmDeleteDraft}
                   className="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition-colors"
                 >
                   Delete
@@ -2146,7 +2146,7 @@ const BulkSMS = memo(({ onClose }) => {
                 Edit Draft: {editingDraft.name}
               </h2>
               <button
-                onClick={handleCancelDraftEdit}
+                onClick={draftHandlers.handleCancelDraftEdit}
                 className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
               >
                 <X className="w-5 h-5" />
@@ -2210,13 +2210,13 @@ const BulkSMS = memo(({ onClose }) => {
               {/* Action Buttons */}
               <div className="flex items-center justify-end gap-4 pt-4">
                 <button
-                  onClick={handleCancelDraftEdit}
+                  onClick={draftHandlers.handleCancelDraftEdit}
                   className="bg-white border border-gray-300 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-50 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
-                  onClick={handleSaveDraftEdit}
+                  onClick={draftHandlers.handleSaveDraftEdit}
                   className="bg-[#ef3826] text-black px-6 py-2 rounded-lg hover:bg-[#d32f20] transition-colors"
                 >
                   Save Changes
@@ -2228,12 +2228,12 @@ const BulkSMS = memo(({ onClose }) => {
       )}
 
       {/* Send Confirmation Modal */}
-      {showSendConfirm && (
+      {modals.showSendConfirm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] w-[420px] relative">
             {/* Close Button */}
             <button
-              onClick={handleCancelSend}
+              onClick={scheduleAndSendHandlers.handleCancelSend}
               className="absolute top-[33px] right-[33px] w-6 h-6 flex items-center justify-center hover:bg-gray-100 rounded transition-colors z-10"
             >
               <X className="w-4 h-4 text-gray-600" />
@@ -2250,7 +2250,7 @@ const BulkSMS = memo(({ onClose }) => {
               <div className="flex items-center justify-center gap-4">
                 {/* Yes Button */}
                 <button
-                  onClick={handleConfirmSend}
+                  onClick={scheduleAndSendHandlers.handleConfirmSend}
                   className="bg-black text-white px-[51px] py-4 rounded-3xl h-12 text-[16px] font-semibold font-montserrat min-w-[149px] hover:bg-gray-800 transition-colors"
                 >
                   yes
@@ -2258,7 +2258,7 @@ const BulkSMS = memo(({ onClose }) => {
 
                 {/* Cancel Button */}
                 <button
-                  onClick={handleCancelSend}
+                  onClick={scheduleAndSendHandlers.handleCancelSend}
                   className="bg-white border border-[#e4e4e4] text-black px-[51px] py-4 rounded-[100px] text-[16px] font-medium font-montserrat min-w-[149px] hover:bg-gray-50 transition-colors"
                 >
                   Cancel
