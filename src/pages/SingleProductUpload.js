@@ -1783,6 +1783,51 @@ const SingleProductUpload = React.memo(() => {
             </div>
           </div>
 
+          {/* Filter Section for Variant 1 */}
+          <div className="mt-12 py-6 border-t border-gray-200">
+            <h3 className="text-xl font-bold text-black mb-4 font-['Montserrat']">
+              Filter
+            </h3>
+            <h4 className="text-lg font-medium text-black mb-4 font-['Montserrat']">
+              assigned Filter
+            </h4>
+            
+            <div className="grid grid-cols-3 gap-4 mb-6">
+              {/* Color Filter */}
+              <div className="bg-white rounded-xl shadow-lg p-4">
+                <div className="text-sm font-medium text-gray-400 mb-2 font-['Montserrat']">
+                  showing colour data
+                </div>
+                <hr className="mb-2" />
+                <div className="text-black font-['Montserrat']">
+                  {productData.color || 'red'}
+                </div>
+              </div>
+              
+              {/* Category Filter */}
+              <div className="bg-white rounded-xl shadow-lg p-4">
+                <div className="text-sm font-medium text-gray-400 mb-2 font-['Montserrat']">
+                  showing category data
+                </div>
+                <hr className="mb-2" />
+                <div className="text-black font-['Montserrat']">
+                  {selectedCategory || 'men'}
+                </div>
+              </div>
+              
+              {/* Subcategory Filter */}
+              <div className="bg-white rounded-xl shadow-lg p-4">
+                <div className="text-sm font-medium text-gray-400 mb-2 font-['Montserrat']">
+                  showing Subcategory
+                </div>
+                <hr className="mb-2" />
+                <div className="text-black font-['Montserrat']">
+                  {selectedSubCategory || 'jacket'}
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* Additional Variants Section */}
           {variants.slice(1).map((variant, index) => {
             const variantNumber = index + 2;
@@ -3001,23 +3046,91 @@ const SingleProductUpload = React.memo(() => {
                   <h4 className="text-lg font-medium text-black mb-3 font-['Montserrat']">
                     Uploaded images
                   </h4>
-                  <div className="grid grid-cols-5 gap-4 mb-4">
-                    {uploadedFiles.slice(0, 5).map((file, index) => (
-                      <div key={index} className="aspect-square bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center">
-                        {file.url ? (
-                          <img src={file.url} alt={`Uploaded ${index + 1}`} className="w-full h-full object-cover rounded-lg" />
+                  
+                  {/* Display images from all variants */}
+                  {variants.map((variant, variantIndex) => (
+                    <div key={variant.id} className="mb-6">
+                      <h5 className="text-md font-medium text-gray-700 mb-2 font-['Montserrat']">
+                        {variant.name} ({variant.images?.length || 0} images)
+                      </h5>
+                      <div className="grid grid-cols-5 gap-4">
+                        {variant.images && variant.images.length > 0 ? (
+                          variant.images.map((image, imageIndex) => (
+                            <div key={image.id || imageIndex} className="aspect-square bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center">
+                              <img 
+                                src={image.url} 
+                                alt={`${variant.name} - Image ${imageIndex + 1}`} 
+                                className="w-full h-full object-cover rounded-lg" 
+                              />
+                            </div>
+                          ))
                         ) : (
-                          <div className="text-gray-400 text-sm">Image {index + 1}</div>
+                          <div className="col-span-5 text-gray-400 text-sm text-center py-4">
+                            No images uploaded for this variant
+                          </div>
+                        )}
+                        
+                        {/* Fill remaining slots for better visualization */}
+                        {variant.images && variant.images.length > 0 && variant.images.length < 5 && 
+                          Array.from({ length: 5 - variant.images.length }, (_, index) => (
+                            <div key={`empty-${variant.id}-${index}`} className="aspect-square bg-gray-50 rounded-lg border border-gray-200 flex items-center justify-center">
+                              <div className="text-gray-300 text-xs">Empty slot</div>
+                            </div>
+                          ))
+                        }
+                      </div>
+                    </div>
+                  ))}
+                  
+                  {/* Show message if no variants have images */}
+                  {variants.every(variant => !variant.images || variant.images.length === 0) && (
+                    <div className="text-gray-400 text-center py-8 border-2 border-dashed border-gray-200 rounded-lg">
+                      No images uploaded to any variants yet
+                    </div>
+                  )}
+                </div>
+
+                {/* Uploaded Videos */}
+                <div className="mb-6">
+                  <h4 className="text-lg font-medium text-black mb-3 font-['Montserrat']">
+                    Uploaded videos
+                  </h4>
+                  
+                  {/* Display videos from all variants */}
+                  {variants.map((variant, variantIndex) => (
+                    <div key={`videos-${variant.id}`} className="mb-6">
+                      <h5 className="text-md font-medium text-gray-700 mb-2 font-['Montserrat']">
+                        {variant.name} ({variant.videos?.length || 0} videos)
+                      </h5>
+                      <div className="grid grid-cols-3 gap-4">
+                        {variant.videos && variant.videos.length > 0 ? (
+                          variant.videos.map((video, videoIndex) => (
+                            <div key={video.id || videoIndex} className="aspect-video bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center">
+                              <video 
+                                src={video.url} 
+                                controls
+                                className="w-full h-full object-cover rounded-lg"
+                                preload="metadata"
+                              >
+                                Your browser does not support the video tag.
+                              </video>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="col-span-3 text-gray-400 text-sm text-center py-4">
+                            No videos uploaded for this variant
+                          </div>
                         )}
                       </div>
-                    ))}
-                    {/* Fill remaining slots if less than 5 images */}
-                    {Array.from({ length: Math.max(0, 5 - uploadedFiles.length) }, (_, index) => (
-                      <div key={`empty-${index}`} className="aspect-square bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center">
-                        <div className="text-gray-400 text-sm">Empty</div>
-                      </div>
-                    ))}
-                  </div>
+                    </div>
+                  ))}
+                  
+                  {/* Show message if no variants have videos */}
+                  {variants.every(variant => !variant.videos || variant.videos.length === 0) && (
+                    <div className="text-gray-400 text-center py-8 border-2 border-dashed border-gray-200 rounded-lg">
+                      No videos uploaded to any variants yet
+                    </div>
+                  )}
                 </div>
 
                 {/* Uploaded Size Chart Images */}
@@ -3027,22 +3140,34 @@ const SingleProductUpload = React.memo(() => {
                   </h4>
                   <div className="grid grid-cols-3 gap-4">
                     <div className="aspect-square bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center">
-                      {sizeChart.inchChart ? (
-                        <img src={URL.createObjectURL(sizeChart.inchChart)} alt="Size Chart Inches" className="w-full h-full object-cover rounded-lg" />
+                      {(commonSizeChart.inchChart || sizeChart.inchChart) ? (
+                        <img 
+                          src={URL.createObjectURL(commonSizeChart.inchChart || sizeChart.inchChart)} 
+                          alt="Size Chart Inches" 
+                          className="w-full h-full object-cover rounded-lg" 
+                        />
                       ) : (
                         <div className="text-gray-400 text-sm text-center">Size Chart<br/>Inches</div>
                       )}
                     </div>
                     <div className="aspect-square bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center">
-                      {sizeChart.cmChart ? (
-                        <img src={URL.createObjectURL(sizeChart.cmChart)} alt="Size Chart CM" className="w-full h-full object-cover rounded-lg" />
+                      {(commonSizeChart.cmChart || sizeChart.cmChart) ? (
+                        <img 
+                          src={URL.createObjectURL(commonSizeChart.cmChart || sizeChart.cmChart)} 
+                          alt="Size Chart CM" 
+                          className="w-full h-full object-cover rounded-lg" 
+                        />
                       ) : (
                         <div className="text-gray-400 text-sm text-center">Size Chart<br/>CM</div>
                       )}
                     </div>
                     <div className="aspect-square bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center">
-                      {sizeChart.measurementImage ? (
-                        <img src={URL.createObjectURL(sizeChart.measurementImage)} alt="How to Measure" className="w-full h-full object-cover rounded-lg" />
+                      {(commonSizeChart.measurementGuide || sizeChart.measurementImage) ? (
+                        <img 
+                          src={URL.createObjectURL(commonSizeChart.measurementGuide || sizeChart.measurementImage)} 
+                          alt="How to Measure" 
+                          className="w-full h-full object-cover rounded-lg" 
+                        />
                       ) : (
                         <div className="text-gray-400 text-sm text-center">How to<br/>Measure</div>
                       )}
@@ -3257,18 +3382,6 @@ const SingleProductUpload = React.memo(() => {
                     <div className="text-black font-['Montserrat']">
                       {selectedSubCategory || 'jacket'}
                     </div>
-                  </div>
-                </div>
-
-                <div className="flex gap-4 mb-4">
-                  <div className="bg-black text-white px-4 py-2 rounded-full font-['Montserrat']">
-                    colour
-                  </div>
-                  <div className="bg-black text-white px-4 py-2 rounded-full font-['Montserrat']">
-                    category
-                  </div>
-                  <div className="bg-black text-white px-4 py-2 rounded-full font-['Montserrat']">
-                    Subcategory
                   </div>
                 </div>
               </div>
