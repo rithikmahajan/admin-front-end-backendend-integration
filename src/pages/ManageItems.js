@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
-import { Search, Edit2, Trash2, ChevronDown, Plus, X } from 'lucide-react';
+import { Search, Edit2, Trash2, ChevronDown, Plus, X, Filter } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const ManageItems = React.memo(() => {
@@ -9,11 +9,15 @@ const ManageItems = React.memo(() => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All categories');
   const [selectedSubCategory, setSelectedSubCategory] = useState('All subcategories');
+  const [statusFilter, setStatusFilter] = useState('all'); // 'all', 'draft', 'live', 'scheduled'
   const [showDraftsOnly, setShowDraftsOnly] = useState(false);
   const [showLiveOnly, setShowLiveOnly] = useState(false);
   const [showScheduledOnly, setShowScheduledOnly] = useState(false);
   const [draftItems, setDraftItems] = useState([]);
   const [publishedItems, setPublishedItems] = useState([]);
+  
+  // Filter dropdown state
+  const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
   
   // Modal state management
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -169,22 +173,68 @@ const ManageItems = React.memo(() => {
 
   // Draft management handlers
   const handleViewAllDrafts = useCallback(() => {
-    setShowDraftsOnly(!showDraftsOnly);
+    const newStatus = statusFilter === 'draft' ? 'all' : 'draft';
+    setStatusFilter(newStatus);
+    setShowDraftsOnly(newStatus === 'draft');
     setShowLiveOnly(false);
     setShowScheduledOnly(false);
-  }, [showDraftsOnly]);
+  }, [statusFilter]);
 
   const handleViewAllLive = useCallback(() => {
-    setShowLiveOnly(!showLiveOnly);
+    const newStatus = statusFilter === 'live' ? 'all' : 'live';
+    setStatusFilter(newStatus);
+    setShowLiveOnly(newStatus === 'live');
     setShowDraftsOnly(false);
     setShowScheduledOnly(false);
-  }, [showLiveOnly]);
+  }, [statusFilter]);
 
   const handleViewAllScheduled = useCallback(() => {
-    setShowScheduledOnly(!showScheduledOnly);
+    const newStatus = statusFilter === 'scheduled' ? 'all' : 'scheduled';
+    setStatusFilter(newStatus);
+    setShowScheduledOnly(newStatus === 'scheduled');
     setShowDraftsOnly(false);
     setShowLiveOnly(false);
-  }, [showScheduledOnly]);
+  }, [statusFilter]);
+
+  // Filter dropdown handlers
+  const toggleFilterDropdown = useCallback(() => {
+    setIsFilterDropdownOpen(prev => !prev);
+  }, []);
+
+  const handleFilterOption = useCallback((filterType) => {
+    switch (filterType) {
+      case 'all_drafts':
+        handleViewAllDrafts();
+        break;
+      case 'all_live':
+        handleViewAllLive();
+        break;
+      case 'all_scheduled':
+        handleViewAllScheduled();
+        break;
+      case 'clear_filters':
+        setStatusFilter('all');
+        setShowDraftsOnly(false);
+        setShowLiveOnly(false);
+        setShowScheduledOnly(false);
+        break;
+      default:
+        break;
+    }
+    setIsFilterDropdownOpen(false);
+  }, [handleViewAllDrafts, handleViewAllLive, handleViewAllScheduled]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (isFilterDropdownOpen && !event.target.closest('.filter-dropdown')) {
+        setIsFilterDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isFilterDropdownOpen]);
 
   // Keyboard shortcuts for filter buttons
   useEffect(() => {
@@ -214,6 +264,7 @@ const ManageItems = React.memo(() => {
           case 'c':
           case 'C':
             event.preventDefault();
+            setStatusFilter('all');
             setShowDraftsOnly(false);
             setShowLiveOnly(false);
             setShowScheduledOnly(false);
@@ -580,33 +631,6 @@ const ManageItems = React.memo(() => {
             <h1 className="text-[24px] font-bold text-[#111111] font-['Montserrat']">Manage Items</h1>
             <div className="flex flex-col sm:flex-row gap-3">
               <button 
-                onClick={handleViewAllDrafts}
-                className={`flex items-center gap-2 ${showDraftsOnly ? 'bg-[#dc2626] ring-2 ring-red-300' : 'bg-[#ef3826]'} hover:bg-red-700 text-white font-['Montserrat'] font-normal py-2.5 px-4 rounded-lg transition-colors shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] border border-[#ef3826] text-[14px]`}
-                title="Alt + D to toggle"
-              >
-                <span className="leading-[20px]">
-                  {showDraftsOnly ? 'Show All Items' : 'View all drafts'}
-                </span>
-              </button>
-              <button 
-                onClick={handleViewAllLive}
-                className={`flex items-center gap-2 ${showLiveOnly ? 'bg-[#16a34a] ring-2 ring-green-300' : 'bg-[#22c55e]'} hover:bg-green-700 text-white font-['Montserrat'] font-normal py-2.5 px-4 rounded-lg transition-colors shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] border border-[#22c55e] text-[14px]`}
-                title="Alt + L to toggle"
-              >
-                <span className="leading-[20px]">
-                  {showLiveOnly ? 'Show All Items' : 'View all live'}
-                </span>
-              </button>
-              <button 
-                onClick={handleViewAllScheduled}
-                className={`flex items-center gap-2 ${showScheduledOnly ? 'bg-[#ca8a04] ring-2 ring-yellow-300' : 'bg-[#eab308]'} hover:bg-yellow-600 text-white font-['Montserrat'] font-normal py-2.5 px-4 rounded-lg transition-colors shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] border border-[#eab308] text-[14px]`}
-                title="Alt + S to toggle"
-              >
-                <span className="leading-[20px]">
-                  {showScheduledOnly ? 'Show All Items' : 'View all scheduled'}
-                </span>
-              </button>
-              <button 
                 onClick={handleBulkUpload}
                 className="flex items-center gap-2 bg-[#000aff] hover:bg-blue-700 text-white font-['Montserrat'] font-normal py-2.5 px-4 rounded-lg transition-colors shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] border border-[#7280ff] text-[14px]"
               >
@@ -685,6 +709,66 @@ const ManageItems = React.memo(() => {
                   <ChevronDown className="h-4 w-4 text-black" />
                 </div>
               </div>
+
+              {/* Filters Button with Dropdown */}
+              <div className="relative filter-dropdown">
+                <button 
+                  onClick={toggleFilterDropdown}
+                  className="flex items-center gap-2 bg-white border border-[#d0d5dd] rounded-lg px-4 py-2.5 text-[#344054] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 h-[40px] font-['Montserrat'] text-[14px] shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)]"
+                >
+                  <Filter className="h-5 w-5" />
+                  <span className="leading-[20px]">Filters</span>
+                </button>
+
+                {/* Dropdown Menu */}
+                {isFilterDropdownOpen && (
+                  <div className="absolute right-0 top-full mt-1 w-[274px] bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] z-50 overflow-hidden">
+                    {/* Choose sort by header */}
+                    <div className="px-[27px] py-3 border-b border-gray-200">
+                      <p className="text-[14px] font-medium text-[#bfbfbf] font-['Montserrat']">choose sort by</p>
+                    </div>
+                    
+                    {/* Filter Options */}
+                    <div className="py-2">
+                      <button
+                        onClick={() => handleFilterOption('all_live')}
+                        className={`w-full px-8 py-2 text-left hover:bg-gray-50 transition-colors ${
+                          statusFilter === 'live' ? 'bg-blue-50 text-blue-600' : 'text-[#000000]'
+                        }`}
+                      >
+                        <span className="text-[15px] font-medium font-['Montserrat'] tracking-[-0.375px]">View all live</span>
+                      </button>
+                      
+                      <button
+                        onClick={() => handleFilterOption('all_scheduled')}
+                        className={`w-full px-8 py-2 text-left hover:bg-gray-50 transition-colors ${
+                          statusFilter === 'scheduled' ? 'bg-blue-50 text-blue-600' : 'text-[#010101]'
+                        }`}
+                      >
+                        <span className="text-[14px] font-medium font-['Montserrat']">View all scheduled</span>
+                      </button>
+                      
+                      <button
+                        onClick={() => handleFilterOption('all_drafts')}
+                        className={`w-full px-8 py-2 text-left hover:bg-gray-50 transition-colors ${
+                          statusFilter === 'draft' ? 'bg-blue-50 text-blue-600' : 'text-[#010101]'
+                        }`}
+                      >
+                        <span className="text-[14px] font-medium font-['Montserrat']">View all drafts</span>
+                      </button>
+                      
+                      <div className="border-t border-gray-200 mt-2 pt-2">
+                        <button
+                          onClick={() => handleFilterOption('clear_filters')}
+                          className="w-full px-8 py-2 text-left hover:bg-gray-50 transition-colors text-[#010101]"
+                        >
+                          <span className="text-[14px] font-medium font-['Montserrat']">Clear all filters</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -725,6 +809,7 @@ const ManageItems = React.memo(() => {
               {(showDraftsOnly || showLiveOnly || showScheduledOnly) && (
                 <button
                   onClick={() => {
+                    setStatusFilter('all');
                     setShowDraftsOnly(false);
                     setShowLiveOnly(false);
                     setShowScheduledOnly(false);

@@ -99,7 +99,11 @@ const SingleProductUpload = React.memo(() => {
   // State for recheck details dropdown
   const [isRecheckDropdownOpen, setIsRecheckDropdownOpen] = useState(false);
   const [showDetailedReviewModal, setShowDetailedReviewModal] = useState(false);
+  const [selectedRecheckOption, setSelectedRecheckOption] = useState('All DETAILS');
   const recheckDropdownRef = useRef(null);
+  
+  // State for additional slots tracking
+  const [additionalSlotsEnabled, setAdditionalSlotsEnabled] = useState({});
   
   // State for notifications
   const [notification, setNotification] = useState(null);
