@@ -1,5 +1,5 @@
-import React, { useState, useMemo, useCallback } from 'react';
-import { Search, Edit2, Trash2, ChevronDown, Upload, Plus, X } from 'lucide-react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import { Search, Edit2, Trash2, ChevronDown, Plus, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const ManageItems = React.memo(() => {
@@ -9,6 +9,8 @@ const ManageItems = React.memo(() => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All categories');
   const [selectedSubCategory, setSelectedSubCategory] = useState('All subcategories');
+  const [showDraftsOnly, setShowDraftsOnly] = useState(false);
+  const [draftItems, setDraftItems] = useState([]);
   
   // Modal state management
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -26,6 +28,21 @@ const ManageItems = React.memo(() => {
     metaDescription: '',
     slugUrl: ''
   });
+  
+  // Draft management state
+  const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
+  const [itemToSchedule, setItemToSchedule] = useState(null);
+  const [scheduleDate, setScheduleDate] = useState('');
+  const [scheduleTime, setScheduleTime] = useState('');
+  const [isScheduleSuccessModalOpen, setIsScheduleSuccessModalOpen] = useState(false);
+  const [isMakeLiveConfirmModalOpen, setIsMakeLiveConfirmModalOpen] = useState(false);
+  const [itemToMakeLive, setItemToMakeLive] = useState(null);
+  const [isMakeLiveSuccessModalOpen, setIsMakeLiveSuccessModalOpen] = useState(false);
+  
+  // Cancel schedule modal state
+  const [isCancelScheduleConfirmModalOpen, setIsCancelScheduleConfirmModalOpen] = useState(false);
+  const [itemToCancelSchedule, setItemToCancelSchedule] = useState(null);
+  const [isCancelScheduleSuccessModalOpen, setIsCancelScheduleSuccessModalOpen] = useState(false);
 
   // Sample items data
   const items = useMemo(() => [
@@ -124,6 +141,24 @@ const ManageItems = React.memo(() => {
     }
   ], []);
 
+  // Load draft items from localStorage on component mount
+  useEffect(() => {
+    const savedDrafts = localStorage.getItem('yoraa_draft_items');
+    if (savedDrafts) {
+      try {
+        const parsedDrafts = JSON.parse(savedDrafts);
+        setDraftItems(parsedDrafts);
+      } catch (error) {
+        console.error('Error loading draft items:', error);
+      }
+    }
+  }, []);
+
+  // Combined items (sample + drafts)
+  const allItems = useMemo(() => {
+    return [...items, ...draftItems];
+  }, [items, draftItems]);
+
   const categoryOptions = [
     'All categories',
     'men',
@@ -142,7 +177,7 @@ const ManageItems = React.memo(() => {
 
   // Filtered items
   const filteredItems = useMemo(() => {
-    return items.filter(item => {
+    return allItems.filter(item => {
       const matchesSearch = item.productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            item.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            item.subCategories.toLowerCase().includes(searchTerm.toLowerCase());
@@ -153,9 +188,11 @@ const ManageItems = React.memo(() => {
       const matchesSubCategory = selectedSubCategory === 'All subcategories' || 
                                 item.subCategories === selectedSubCategory;
       
-      return matchesSearch && matchesCategory && matchesSubCategory;
+      const matchesDraftFilter = showDraftsOnly ? item.status === 'draft' : true;
+      
+      return matchesSearch && matchesCategory && matchesSubCategory && matchesDraftFilter;
     });
-  }, [items, searchTerm, selectedCategory, selectedSubCategory]);
+  }, [allItems, searchTerm, selectedCategory, selectedSubCategory, showDraftsOnly]);
 
   // Handlers
   const handleBulkUpload = useCallback(() => {
@@ -285,6 +322,122 @@ const ManageItems = React.memo(() => {
     console.log('Updated items:', updatedItems);
   }, [items]);
 
+  // Draft management handlers
+  const handleViewAllDrafts = useCallback(() => {
+    setShowDraftsOnly(!showDraftsOnly);
+  }, [showDraftsOnly]);
+
+  const handleMakeLive = useCallback((item) => {
+    setItemToMakeLive(item);
+    setIsMakeLiveConfirmModalOpen(true);
+  }, []);
+
+  const handleConfirmMakeLive = useCallback(() => {
+    if (itemToMakeLive) {
+      // Update item status to live
+      const updatedDrafts = draftItems.map(item => 
+        item.id === itemToMakeLive.id ? { ...item, status: 'live' } : item
+      );
+      setDraftItems(updatedDrafts);
+      localStorage.setItem('yoraa_draft_items', JSON.stringify(updatedDrafts));
+      
+      console.log('Making item live:', itemToMakeLive.id);
+    }
+    setIsMakeLiveConfirmModalOpen(false);
+    setItemToMakeLive(null);
+    setIsMakeLiveSuccessModalOpen(true);
+  }, [itemToMakeLive, draftItems]);
+
+  const handleCancelMakeLive = useCallback(() => {
+    setIsMakeLiveConfirmModalOpen(false);
+    setItemToMakeLive(null);
+  }, []);
+
+  const handleCloseMakeLiveSuccess = useCallback(() => {
+    setIsMakeLiveSuccessModalOpen(false);
+  }, []);
+
+  const handleScheduleItem = useCallback((item) => {
+    setItemToSchedule(item);
+    setScheduleDate('');
+    setScheduleTime('');
+    setIsScheduleModalOpen(true);
+  }, []);
+
+  const handleConfirmSchedule = useCallback(() => {
+    if (itemToSchedule && scheduleDate && scheduleTime) {
+      // Update item status to scheduled
+      const updatedDrafts = draftItems.map(item => 
+        item.id === itemToSchedule.id 
+          ? { 
+              ...item, 
+              status: 'scheduled',
+              scheduledDate: scheduleDate,
+              scheduledTime: scheduleTime
+            } 
+          : item
+      );
+      setDraftItems(updatedDrafts);
+      localStorage.setItem('yoraa_draft_items', JSON.stringify(updatedDrafts));
+      
+      console.log('Scheduling item:', itemToSchedule.id, 'for', scheduleDate, 'at', scheduleTime);
+    }
+    setIsScheduleModalOpen(false);
+    setItemToSchedule(null);
+    setScheduleDate('');
+    setScheduleTime('');
+    setIsScheduleSuccessModalOpen(true);
+  }, [itemToSchedule, scheduleDate, scheduleTime, draftItems]);
+
+  const handleCancelSchedule = useCallback(() => {
+    setIsScheduleModalOpen(false);
+    setItemToSchedule(null);
+    setScheduleDate('');
+    setScheduleTime('');
+  }, []);
+
+  const handleCloseScheduleSuccess = useCallback(() => {
+    setIsScheduleSuccessModalOpen(false);
+  }, []);
+
+  // Cancel schedule handlers
+  const handleCancelScheduleItem = useCallback((item) => {
+    setItemToCancelSchedule(item);
+    setIsCancelScheduleConfirmModalOpen(true);
+  }, []);
+
+  const handleConfirmCancelSchedule = useCallback(() => {
+    if (itemToCancelSchedule) {
+      // Update item status back to draft and remove schedule data
+      const updatedDrafts = draftItems.map(item => 
+        item.id === itemToCancelSchedule.id 
+          ? { 
+              ...item, 
+              status: 'draft',
+              scheduledDate: undefined,
+              scheduledTime: undefined
+            } 
+          : item
+      );
+      setDraftItems(updatedDrafts);
+      localStorage.setItem('yoraa_draft_items', JSON.stringify(updatedDrafts));
+      
+      console.log('Cancelling schedule for item:', itemToCancelSchedule.id);
+    }
+    setIsCancelScheduleConfirmModalOpen(false);
+    setItemToCancelSchedule(null);
+    setIsCancelScheduleSuccessModalOpen(true);
+  }, [itemToCancelSchedule, draftItems]);
+
+  const handleCancelCancelSchedule = useCallback(() => {
+    setIsCancelScheduleConfirmModalOpen(false);
+    setItemToCancelSchedule(null);
+  }, []);
+
+  const handleCloseCancelScheduleSuccess = useCallback(() => {
+    setIsCancelScheduleSuccessModalOpen(false);
+  }, []);
+
   return (
     <div className="bg-white min-h-full">
       {/* Main Content Container */}
@@ -295,6 +448,14 @@ const ManageItems = React.memo(() => {
           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6">
             <h1 className="text-[24px] font-bold text-[#111111] font-['Montserrat']">Manage Items</h1>
             <div className="flex flex-col sm:flex-row gap-3">
+              <button 
+                onClick={handleViewAllDrafts}
+                className="flex items-center gap-2 bg-[#ef3826] hover:bg-red-700 text-white font-['Montserrat'] font-normal py-2.5 px-4 rounded-lg transition-colors shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] border border-[#ef3826] text-[14px]"
+              >
+                <span className="leading-[20px]">
+                  {showDraftsOnly ? 'Show All Items' : 'View all drafts'}
+                </span>
+              </button>
               <button 
                 onClick={handleBulkUpload}
                 className="flex items-center gap-2 bg-[#000aff] hover:bg-blue-700 text-white font-['Montserrat'] font-normal py-2.5 px-4 rounded-lg transition-colors shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] border border-[#7280ff] text-[14px]"
@@ -560,18 +721,55 @@ const ManageItems = React.memo(() => {
 
                     {/* Action */}
                     <div className="flex justify-center gap-1">
-                      <button
-                        onClick={() => handleEdit(item.id)}
-                        className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors"
-                      >
-                        <Edit2 className="h-4 w-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(item.id)}
-                        className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
+                      {item.status === 'draft' ? (
+                        // Draft item actions
+                        <>
+                          <button
+                            onClick={() => handleMakeLive(item)}
+                            className="px-2 py-1 bg-green-500 text-white text-xs font-medium rounded hover:bg-green-600 transition-colors"
+                          >
+                            Make Live
+                          </button>
+                          <button
+                            onClick={() => handleScheduleItem(item)}
+                            className="px-2 py-1 bg-blue-500 text-white text-xs font-medium rounded hover:bg-blue-600 transition-colors"
+                          >
+                            Schedule
+                          </button>
+                        </>
+                      ) : item.status === 'scheduled' ? (
+                        // Scheduled item actions
+                        <>
+                          <button
+                            onClick={() => handleMakeLive(item)}
+                            className="px-2 py-1 bg-green-500 text-white text-xs font-medium rounded hover:bg-green-600 transition-colors"
+                          >
+                            Make Live
+                          </button>
+                          <button
+                            onClick={() => handleCancelScheduleItem(item)}
+                            className="px-2 py-1 bg-red-500 text-white text-xs font-medium rounded hover:bg-red-600 transition-colors"
+                          >
+                            Cancel Schedule
+                          </button>
+                        </>
+                      ) : (
+                        // Regular item actions
+                        <>
+                          <button
+                            onClick={() => handleEdit(item.id)}
+                            className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors"
+                          >
+                            <Edit2 className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(item.id)}
+                            className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </>
+                      )}
                     </div>
                   </div>
 
@@ -1171,6 +1369,292 @@ const ManageItems = React.memo(() => {
               {/* Done Button */}
               <button
                 onClick={handleCloseDeleteSuccess}
+                className="bg-black hover:bg-gray-800 text-white font-['Montserrat'] font-semibold py-3 px-8 rounded-3xl transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 w-[270px] h-12 text-[16px] leading-[1.406]"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Make Live Confirmation Modal */}
+      {isMakeLiveConfirmModalOpen && itemToMakeLive && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] max-w-sm w-full mx-4 relative">
+            
+            {/* Close Button */}
+            <button
+              onClick={handleCancelMakeLive}
+              className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors z-10"
+            >
+              <X className="h-5 w-5" />
+            </button>
+
+            {/* Modal Content */}
+            <div className="p-8 text-center relative">
+              
+              {/* Confirmation Message */}
+              <h2 className="text-[18px] font-bold text-black mb-8 leading-[22px] font-['Montserrat'] tracking-[-0.41px] px-4">
+                Are you sure you want to make this item live?
+              </h2>
+
+              {/* Action Buttons */}
+              <div className="flex gap-4 justify-center">
+                <button
+                  onClick={handleConfirmMakeLive}
+                  className="bg-green-600 hover:bg-green-700 text-white font-['Montserrat'] font-semibold py-3 px-8 rounded-3xl transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 w-[149px] h-12 text-[16px] leading-[1.406]"
+                >
+                  Yes
+                </button>
+                <button
+                  onClick={handleCancelMakeLive}
+                  className="bg-white hover:bg-gray-50 text-black font-['Montserrat'] font-medium py-3 px-8 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2 w-[209px] text-[16px] leading-[1.2] border border-[#e4e4e4]"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Make Live Success Modal */}
+      {isMakeLiveSuccessModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] max-w-sm w-full mx-4 relative">
+            
+            {/* Close Button */}
+            <button
+              onClick={handleCloseMakeLiveSuccess}
+              className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors z-10"
+            >
+              <X className="h-5 w-5" />
+            </button>
+
+            {/* Modal Content */}
+            <div className="p-8 text-center relative">
+              
+              {/* Success Icon - Green Checkmark */}
+              <div className="flex justify-center mb-6">
+                <div className="w-[60px] h-[60px] bg-green-500 rounded-full flex items-center justify-center">
+                  <svg 
+                    className="w-8 h-8 text-white" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
+                  >
+                    <path 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      strokeWidth={2} 
+                      d="M5 13l4 4L19 7" 
+                    />
+                  </svg>
+                </div>
+              </div>
+
+              {/* Success Message */}
+              <h2 className="text-[18px] font-bold text-black mb-8 leading-[22px] font-['Montserrat'] tracking-[-0.41px] px-4">
+                Item is now live!
+              </h2>
+
+              {/* Done Button */}
+              <button
+                onClick={handleCloseMakeLiveSuccess}
+                className="bg-black hover:bg-gray-800 text-white font-['Montserrat'] font-semibold py-3 px-8 rounded-3xl transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 w-[270px] h-12 text-[16px] leading-[1.406]"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Schedule Item Modal */}
+      {isScheduleModalOpen && itemToSchedule && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] max-w-md w-full mx-4 relative">
+            
+            {/* Close Button */}
+            <button
+              onClick={handleCancelSchedule}
+              className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors z-10"
+            >
+              <X className="h-5 w-5" />
+            </button>
+
+            {/* Modal Content */}
+            <div className="p-8 relative">
+              
+              {/* Header */}
+              <h2 className="text-[24px] font-bold text-black mb-8 leading-[29px] font-['Montserrat'] text-center">
+                Schedule Item for Later
+              </h2>
+
+              {/* Form Fields */}
+              <div className="space-y-6 mb-8">
+                <div>
+                  <input
+                    type="date"
+                    value={scheduleDate}
+                    onChange={(e) => setScheduleDate(e.target.value)}
+                    className="w-full h-[50px] px-4 py-3 border border-gray-300 rounded-lg font-['Montserrat'] text-[16px] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="nov 11,2025"
+                  />
+                </div>
+                <div>
+                  <input
+                    type="time"
+                    value={scheduleTime}
+                    onChange={(e) => setScheduleTime(e.target.value)}
+                    className="w-full h-[50px] px-4 py-3 border border-gray-300 rounded-lg font-['Montserrat'] text-[16px] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="8:45 pm"
+                  />
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-4 justify-center">
+                <button
+                  onClick={handleConfirmSchedule}
+                  disabled={!scheduleDate || !scheduleTime}
+                  className="bg-black hover:bg-gray-800 disabled:bg-gray-400 text-white font-['Montserrat'] font-medium py-4 px-8 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 text-[16px] leading-[1.2]"
+                >
+                  schedule now
+                </button>
+                <button
+                  onClick={handleCancelSchedule}
+                  className="bg-white hover:bg-gray-50 text-black font-['Montserrat'] font-medium py-4 px-8 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2 text-[16px] leading-[1.2] border border-[#e4e4e4]"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Schedule Success Modal */}
+      {isScheduleSuccessModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] max-w-sm w-full mx-4 relative">
+            
+            {/* Close Button */}
+            <button
+              onClick={handleCloseScheduleSuccess}
+              className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors z-10"
+            >
+              <X className="h-5 w-5" />
+            </button>
+
+            {/* Modal Content */}
+            <div className="p-8 text-center relative">
+              
+              {/* Success Icon - Green Checkmark */}
+              <div className="flex justify-center mb-6">
+                <div className="w-[60px] h-[60px] bg-green-500 rounded-full flex items-center justify-center">
+                  <svg 
+                    className="w-8 h-8 text-white" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
+                  >
+                    <path 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      strokeWidth={2} 
+                      d="M5 13l4 4L19 7" 
+                    />
+                  </svg>
+                </div>
+              </div>
+
+              {/* Success Message */}
+              <h2 className="text-[18px] font-bold text-black mb-8 leading-[22px] font-['Montserrat'] tracking-[-0.41px] px-4">
+                Item scheduled successfully!
+              </h2>
+
+              {/* Done Button */}
+              <button
+                onClick={handleCloseScheduleSuccess}
+                className="bg-black hover:bg-gray-800 text-white font-['Montserrat'] font-semibold py-3 px-8 rounded-3xl transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 w-[270px] h-12 text-[16px] leading-[1.406]"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Cancel Schedule Confirmation Modal */}
+      {isCancelScheduleConfirmModalOpen && itemToCancelSchedule && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 overflow-hidden">
+            
+            {/* Modal Content */}
+            <div className="p-8 text-center">
+              
+              {/* Question */}
+              <h2 className="text-[18px] font-bold text-black mb-8 leading-[22px] font-['Montserrat'] tracking-[-0.41px]">
+                Are you sure you want to cancel this scheduled item
+              </h2>
+
+              {/* Action Buttons */}
+              <div className="flex gap-4 justify-center">
+                <button
+                  onClick={handleConfirmCancelSchedule}
+                  className="bg-black hover:bg-gray-800 text-white font-['Montserrat'] font-medium py-3 px-6 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 text-[16px] leading-[1.2]"
+                >
+                  yes
+                </button>
+                <button
+                  onClick={handleCancelCancelSchedule}
+                  className="bg-white hover:bg-gray-50 text-black font-['Montserrat'] font-medium py-3 px-6 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2 text-[16px] leading-[1.2] border border-[#e4e4e4]"
+                >
+                  go back
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Cancel Schedule Success Modal */}
+      {isCancelScheduleSuccessModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 overflow-hidden">
+            
+            {/* Modal Content */}
+            <div className="p-8 text-center">
+              
+              {/* Success Icon */}
+              <div className="mb-6 flex justify-center">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+                  <svg 
+                    className="w-8 h-8 text-green-600" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
+                  >
+                    <path 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      strokeWidth={2} 
+                      d="M5 13l4 4L19 7" 
+                    />
+                  </svg>
+                </div>
+              </div>
+
+              {/* Success Message */}
+              <h2 className="text-[18px] font-bold text-black mb-8 leading-[22px] font-['Montserrat'] tracking-[-0.41px] px-4">
+                item schedule cancelled successfully!
+              </h2>
+
+              {/* Done Button */}
+              <button
+                onClick={handleCloseCancelScheduleSuccess}
                 className="bg-black hover:bg-gray-800 text-white font-['Montserrat'] font-semibold py-3 px-8 rounded-3xl transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 w-[270px] h-12 text-[16px] leading-[1.406]"
               >
                 Done

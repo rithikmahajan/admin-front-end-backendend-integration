@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
-import { Upload, Plus, ChevronDown, X, Move, CheckCircle, XCircle } from 'lucide-react';
+import { Upload, Plus, ChevronDown, X, CheckCircle, XCircle, Edit, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { DEFAULT_VARIANT, DEFAULT_PRODUCT_DATA, validateImageFile } from '../constants';
 import UploadProgressLoader from '../components/UploadProgressLoader';
@@ -93,6 +93,10 @@ const SingleProductUpload = React.memo(() => {
   const [showPermanentConfirmModal, setShowPermanentConfirmModal] = useState(false);
   const [showPermanentSuccessModal, setShowPermanentSuccessModal] = useState(false);
   const [selectedOptionForPermanent, setSelectedOptionForPermanent] = useState(null);
+  const [showEditPermanentModal, setShowEditPermanentModal] = useState(false);
+  const [editingPermanentOption, setEditingPermanentOption] = useState(null);
+  const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
+  const [deletingPermanentOption, setDeletingPermanentOption] = useState(null);
 
   // State for recheck details dropdown
   const [isRecheckDropdownOpen, setIsRecheckDropdownOpen] = useState(false);
@@ -676,6 +680,66 @@ const SingleProductUpload = React.memo(() => {
     );
   }, []);
 
+  // Handle editing a permanent option
+  const handleEditPermanentOption = useCallback((option) => {
+    setEditingPermanentOption({ ...option });
+    setShowEditPermanentModal(true);
+  }, []);
+
+  // Save edited permanent option
+  const saveEditedPermanentOption = useCallback(() => {
+    if (editingPermanentOption) {
+      setPermanentOptions(prev => {
+        const updated = prev.map(opt => 
+          opt.id === editingPermanentOption.id 
+            ? { ...editingPermanentOption }
+            : opt
+        );
+        localStorage.setItem('yoraa_permanent_options', JSON.stringify(updated));
+        return updated;
+      });
+
+      // Update the option in dynamicAlsoShowInOptions as well
+      setDynamicAlsoShowInOptions(prev => 
+        prev.map(item => 
+          item.id === editingPermanentOption.id 
+            ? { ...item, label: editingPermanentOption.label }
+            : item
+        )
+      );
+    }
+    
+    setShowEditPermanentModal(false);
+    setEditingPermanentOption(null);
+  }, [editingPermanentOption]);
+
+  // Cancel editing permanent option
+  const cancelEditPermanentOption = useCallback(() => {
+    setShowEditPermanentModal(false);
+    setEditingPermanentOption(null);
+  }, []);
+
+  // Handle delete confirmation for permanent option
+  const handleDeletePermanentOption = useCallback((option) => {
+    setDeletingPermanentOption(option);
+    setShowDeleteConfirmModal(true);
+  }, []);
+
+  // Confirm delete permanent option
+  const confirmDeletePermanentOption = useCallback(() => {
+    if (deletingPermanentOption) {
+      removePermanentOption(deletingPermanentOption.id);
+    }
+    setShowDeleteConfirmModal(false);
+    setDeletingPermanentOption(null);
+  }, [deletingPermanentOption, removePermanentOption]);
+
+  // Cancel delete permanent option
+  const cancelDeletePermanentOption = useCallback(() => {
+    setShowDeleteConfirmModal(false);
+    setDeletingPermanentOption(null);
+  }, []);
+
   const handleImportExcel = useCallback((type) => {
     // Create a hidden file input element
     const input = document.createElement('input');
@@ -1002,8 +1066,63 @@ const SingleProductUpload = React.memo(() => {
 
   const handleSaveAsDraft = useCallback(() => {
     console.log('Saving as draft:', { productData, variants, sizeChart });
-    // TODO: Implement draft saving functionality
-  }, [productData, variants, sizeChart]);
+    
+    // Create draft item data
+    const draftItem = {
+      id: Date.now(), // Simple ID generation for demo
+      image: variants[0]?.images?.[0]?.url || '/api/placeholder/120/116',
+      productName: productData.productName || 'Untitled Product',
+      category: selectedCategory || 'Uncategorized',
+      subCategories: selectedSubCategory || 'Uncategorized',
+      hsn: productData.hsn || '',
+      size: variants[0]?.customSizes?.map(s => s.size) || ['small', 'medium', 'large'],
+      quantity: variants.reduce((total, variant) => total + (variant.quantity || 0), 0) || 0,
+      price: variants[0]?.regularPrice || productData.regularPrice || 0,
+      salePrice: variants[0]?.salePrice || productData.salePrice || 0,
+      platforms: {
+        myntra: { enabled: true, price: variants[0]?.regularPrice || productData.regularPrice || 0 },
+        amazon: { enabled: true, price: variants[0]?.regularPrice || productData.regularPrice || 0 },
+        flipkart: { enabled: true, price: variants[0]?.regularPrice || productData.regularPrice || 0 },
+        nykaa: { enabled: true, price: variants[0]?.regularPrice || productData.regularPrice || 0 }
+      },
+      skus: variants[0]?.customSizes?.reduce((acc, size, idx) => {
+        acc[size.size] = `draft/${size.size}/${Date.now()}`;
+        return acc;
+      }, {}) || {
+        'small': `draft/s/${Date.now()}`,
+        'medium': `draft/m/${Date.now()}`,
+        'large': `draft/l/${Date.now()}`
+      },
+      barcodeNo: productData.barcode || '',
+      status: 'draft',
+      metaTitle: productData.metaTitle || '',
+      metaDescription: productData.metaDescription || '',
+      slugUrl: productData.slugUrl || '',
+      moveToSale: false,
+      keepCopyAndMove: false,
+      moveToEyx: false,
+      createdAt: new Date().toISOString(),
+      variants: variants,
+      sizeChart: sizeChart,
+      alsoShowInOptions: alsoShowInOptions
+    };
+    
+    // Save to localStorage (in a real app, this would be an API call)
+    const existingDrafts = JSON.parse(localStorage.getItem('yoraa_draft_items') || '[]');
+    const updatedDrafts = [...existingDrafts, draftItem];
+    localStorage.setItem('yoraa_draft_items', JSON.stringify(updatedDrafts));
+    
+    // Show success notification
+    setNotification({
+      type: 'success',
+      message: 'Product saved as draft successfully!'
+    });
+    
+    // Navigate to ManageItems page after a short delay
+    setTimeout(() => {
+      navigate('/manage-items');
+    }, 1500);
+  }, [productData, variants, sizeChart, selectedCategory, selectedSubCategory, alsoShowInOptions, navigate, setNotification]);
 
   const handleRecheckDetails = useCallback((option = 'All DETAILS') => {
     console.log('Rechecking details:', option);
@@ -2576,11 +2695,19 @@ const SingleProductUpload = React.memo(() => {
                         </span>
                         <button
                           type="button"
-                          onClick={() => removePermanentOption(option.id)}
-                          className="text-red-500 hover:text-red-700 text-xs"
-                          title="Remove from permanent"
+                          onClick={() => handleEditPermanentOption(option)}
+                          className="flex items-center gap-1 px-2 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded text-xs font-medium transition-colors"
+                          title="Edit permanent option"
                         >
-                          Remove
+                          <Edit className="w-3 h-3" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDeletePermanentOption(option)}
+                          className="flex items-center gap-1 px-2 py-1 bg-red-500 hover:bg-red-600 text-white rounded text-xs font-medium transition-colors"
+                          title="Delete permanent option"
+                        >
+                          <Trash2 className="w-3 h-3" />
                         </button>
                       </div>
                     )}
@@ -2620,23 +2747,39 @@ const SingleProductUpload = React.memo(() => {
                 <h4 className="text-sm font-medium text-green-800 font-['Montserrat'] mb-3">
                   Permanent Options:
                 </h4>
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {permanentOptions.map(option => (
-                    <div key={option.id} className="flex items-center justify-between bg-white p-3 rounded-md border border-green-200">
-                      <span className="text-sm font-medium text-gray-900 font-['Montserrat']">
-                        {option.label}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => removePermanentOption(option.id)}
-                        className="text-red-500 hover:text-red-700 text-sm font-['Montserrat']"
-                      >
-                        Remove
-                      </button>
+                    <div key={option.id} className="flex items-center justify-between bg-white p-4 rounded-lg border border-green-200 shadow-sm">
+                      <div className="flex items-center gap-3">
+                        <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
+                          Permanent
+                        </span>
+                        <span className="text-sm font-medium text-gray-900 font-['Montserrat']">
+                          {option.label}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => handleEditPermanentOption(option)}
+                          className="flex items-center gap-1 px-3 py-1.5 bg-blue-500 hover:bg-blue-600 text-white rounded-md text-xs font-medium transition-colors font-['Montserrat']"
+                        >
+                          <Edit className="w-3 h-3" />
+                          Edit
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDeletePermanentOption(option)}
+                          className="flex items-center gap-1 px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white rounded-md text-xs font-medium transition-colors font-['Montserrat']"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                          Delete
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
-                <p className="text-sm text-green-700 font-['Montserrat'] mt-2">
+                <p className="text-sm text-green-700 font-['Montserrat'] mt-3">
                   These options are saved permanently and will be available for future products.
                 </p>
               </div>
@@ -3011,6 +3154,88 @@ const SingleProductUpload = React.memo(() => {
               >
                 Done
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Permanent Option Modal */}
+      {showEditPermanentModal && editingPermanentOption && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-lg max-w-md w-full mx-4 relative">
+            <div className="p-6">
+              <h2 className="text-lg font-bold text-black mb-6 leading-tight font-['Montserrat']">
+                Edit Permanent Option
+              </h2>
+              
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2 font-['Montserrat']">
+                  Option Label
+                </label>
+                <input
+                  type="text"
+                  value={editingPermanentOption.label}
+                  onChange={(e) => setEditingPermanentOption(prev => ({ ...prev, label: e.target.value }))}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-['Montserrat']"
+                  placeholder="Enter option label"
+                />
+              </div>
+              
+              <div className="flex gap-4 justify-end">
+                <button
+                  onClick={cancelEditPermanentOption}
+                  className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 px-6 rounded-lg transition-colors focus:outline-none font-['Montserrat']"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={saveEditedPermanentOption}
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-lg transition-colors focus:outline-none font-['Montserrat']"
+                >
+                  Save Changes
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Permanent Option Confirmation Modal */}
+      {showDeleteConfirmModal && deletingPermanentOption && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-lg max-w-md w-full mx-4 relative">
+            <div className="p-6 text-center">
+              {/* Warning icon */}
+              <div className="mx-auto mb-4 w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
+                <div className="w-8 h-8 bg-red-600 rounded-full flex items-center justify-center">
+                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                  </svg>
+                </div>
+              </div>
+              
+              <h2 className="text-lg font-bold text-black mb-3 leading-tight font-['Montserrat']">
+                Delete Permanent Option
+              </h2>
+              
+              <p className="text-gray-600 mb-6 font-['Montserrat']">
+                Are you sure you want to delete "<strong>{deletingPermanentOption.label}</strong>"? This action cannot be undone.
+              </p>
+              
+              <div className="flex gap-4 justify-center">
+                <button
+                  onClick={cancelDeletePermanentOption}
+                  className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 px-6 rounded-lg transition-colors focus:outline-none font-['Montserrat']"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDeletePermanentOption}
+                  className="bg-red-600 hover:bg-red-700 text-white font-medium py-3 px-6 rounded-lg transition-colors focus:outline-none font-['Montserrat']"
+                >
+                  Delete
+                </button>
+              </div>
             </div>
           </div>
         </div>
