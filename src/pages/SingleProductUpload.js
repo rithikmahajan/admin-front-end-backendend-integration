@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { Upload, Plus, ChevronDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { DEFAULT_VARIANT, DEFAULT_PRODUCT_DATA, validateImageFile } from '../constants';
@@ -72,6 +72,70 @@ const SingleProductUpload = React.memo(() => {
     inchChart: null,
     measurementGuide: null
   });
+
+  // State for permanent options feature
+  const [permanentOptions, setPermanentOptions] = useState([]);
+  const [showPermanentConfirmModal, setShowPermanentConfirmModal] = useState(false);
+  const [showPermanentSuccessModal, setShowPermanentSuccessModal] = useState(false);
+  const [selectedOptionForPermanent, setSelectedOptionForPermanent] = useState(null);
+
+  // State for recheck details dropdown
+  const [isRecheckDropdownOpen, setIsRecheckDropdownOpen] = useState(false);
+  const [selectedRecheckOption, setSelectedRecheckOption] = useState('All DETAILS');
+  const [showDetailedReviewModal, setShowDetailedReviewModal] = useState(false);
+  const recheckDropdownRef = useRef(null);
+
+  // Load permanent options from localStorage on component mount
+  useEffect(() => {
+    const savedPermanentOptions = localStorage.getItem('yoraa_permanent_options');
+    if (savedPermanentOptions) {
+      try {
+        const parsed = JSON.parse(savedPermanentOptions);
+        setPermanentOptions(parsed);
+        
+        // Add permanent options to dynamicAlsoShowInOptions if not already there
+        setDynamicAlsoShowInOptions(prev => {
+          const existingIds = prev.map(opt => opt.id);
+          const newOptions = parsed.filter(opt => !existingIds.includes(opt.id));
+          return [...prev, ...newOptions.map(opt => ({ ...opt, isPermanent: true }))];
+        });
+
+        // Initialize alsoShowInOptions for permanent options
+        setAlsoShowInOptions(prev => {
+          const newOptions = { ...prev };
+          parsed.forEach(opt => {
+            if (!newOptions[opt.id]) {
+              newOptions[opt.id] = { value: 'no' };
+            }
+          });
+          return newOptions;
+        });
+      } catch (error) {
+        console.error('Error loading permanent options:', error);
+      }
+    }
+  }, []);
+
+  // Save permanent options to localStorage whenever they change
+  useEffect(() => {
+    if (permanentOptions.length > 0) {
+      localStorage.setItem('yoraa_permanent_options', JSON.stringify(permanentOptions));
+    }
+  }, [permanentOptions]);
+
+  // Click outside handler for recheck dropdown
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (recheckDropdownRef.current && !recheckDropdownRef.current.contains(event.target)) {
+        setIsRecheckDropdownOpen(false);
+      }
+    };
+
+    if (isRecheckDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [isRecheckDropdownOpen]);
 
   // Memoized handlers to prevent unnecessary re-renders
   const handleProductDataChange = useCallback((field, value) => {
@@ -241,6 +305,73 @@ const SingleProductUpload = React.memo(() => {
     setDynamicAlsoShowInOptions(prev => 
       prev.map(item => 
         item.id === optionId ? { ...item, label: newLabel } : item
+      )
+    );
+  }, []);
+
+  // Handle making an option permanent
+  const handleMakePermanent = useCallback((option) => {
+    setSelectedOptionForPermanent(option);
+    setShowPermanentConfirmModal(true);
+  }, []);
+
+  // Confirm making option permanent
+  const confirmMakePermanent = useCallback(() => {
+    if (selectedOptionForPermanent) {
+      // Add to permanent options if not already there
+      setPermanentOptions(prev => {
+        const existingOption = prev.find(opt => opt.id === selectedOptionForPermanent.id);
+        if (!existingOption) {
+          return [...prev, { ...selectedOptionForPermanent, isPermanent: true }];
+        }
+        return prev;
+      });
+
+      // Update the option in dynamicAlsoShowInOptions to mark as permanent
+      setDynamicAlsoShowInOptions(prev => 
+        prev.map(item => 
+          item.id === selectedOptionForPermanent.id 
+            ? { ...item, isPermanent: true }
+            : item
+        )
+      );
+    }
+    
+    setShowPermanentConfirmModal(false);
+    setShowPermanentSuccessModal(true);
+    setSelectedOptionForPermanent(null);
+  }, [selectedOptionForPermanent]);
+
+  // Cancel making option permanent
+  const cancelMakePermanent = useCallback(() => {
+    setShowPermanentConfirmModal(false);
+    setSelectedOptionForPermanent(null);
+  }, []);
+
+  // Close success modal
+  const closePermanentSuccessModal = useCallback(() => {
+    setShowPermanentSuccessModal(false);
+  }, []);
+
+  // Remove permanent option
+  const removePermanentOption = useCallback((optionId) => {
+    setPermanentOptions(prev => {
+      const updated = prev.filter(opt => opt.id !== optionId);
+      // Update localStorage
+      if (updated.length === 0) {
+        localStorage.removeItem('yoraa_permanent_options');
+      } else {
+        localStorage.setItem('yoraa_permanent_options', JSON.stringify(updated));
+      }
+      return updated;
+    });
+    
+    // Update the option in dynamicAlsoShowInOptions to unmark as permanent
+    setDynamicAlsoShowInOptions(prev => 
+      prev.map(item => 
+        item.id === optionId 
+          ? { ...item, isPermanent: false }
+          : item
       )
     );
   }, []);
@@ -581,9 +712,45 @@ const SingleProductUpload = React.memo(() => {
     // TODO: Implement draft saving functionality
   }, [productData, variants, sizeChart]);
 
-  const handleRecheckDetails = useCallback(() => {
-    console.log('Rechecking details');
-    // TODO: Implement validation highlighting
+  const handleRecheckDetails = useCallback((option = 'All DETAILS') => {
+    console.log('Rechecking details:', option);
+    setSelectedRecheckOption(option);
+    setIsRecheckDropdownOpen(false);
+    
+    // TODO: Implement specific validation highlighting based on selected option
+    switch (option) {
+      case 'All DETAILS':
+        console.log('Validating all product details');
+        // Show detailed review modal or navigate to review page
+        setShowDetailedReviewModal(true);
+        break;
+      case 'All text':
+        console.log('Validating all text fields');
+        break;
+      case 'All IMAGES':
+        console.log('Validating all images');
+        break;
+      case 'SIZE CHART':
+        console.log('Validating size chart');
+        break;
+      default:
+        console.log('Validating all details');
+    }
+  }, []);
+
+  // Handle recheck dropdown toggle
+  const toggleRecheckDropdown = useCallback(() => {
+    setIsRecheckDropdownOpen(prev => !prev);
+  }, []);
+
+  // Handle recheck option selection
+  const handleRecheckOptionSelect = useCallback((option) => {
+    handleRecheckDetails(option);
+  }, [handleRecheckDetails]);
+
+  // Close detailed review modal
+  const closeDetailedReviewModal = useCallback(() => {
+    setShowDetailedReviewModal(false);
   }, []);
 
   // File upload handlers
@@ -1735,6 +1902,34 @@ const SingleProductUpload = React.memo(() => {
                     >
                       No
                     </button>
+                    
+                    {/* Make Permanent Button - only show for custom options */}
+                    {option.isCustom && !option.isPermanent && (
+                      <button
+                        type="button"
+                        onClick={() => handleMakePermanent(option)}
+                        className="px-3 py-2 bg-red-500 text-white rounded-md text-xs font-medium hover:bg-red-600 transition-colors whitespace-nowrap"
+                      >
+                        make this a permanent option
+                      </button>
+                    )}
+
+                    {/* Permanent indicator */}
+                    {option.isPermanent && (
+                      <div className="flex items-center gap-2">
+                        <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
+                          Permanent
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => removePermanentOption(option.id)}
+                          className="text-red-500 hover:text-red-700 text-xs"
+                          title="Remove from permanent"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
@@ -1761,6 +1956,34 @@ const SingleProductUpload = React.memo(() => {
                 </div>
                 <p className="text-sm text-blue-700 font-['Montserrat'] mt-2">
                   These options will be applied to all variants of this product
+                </p>
+              </div>
+            )}
+
+            {/* Permanent Options Management */}
+            {permanentOptions.length > 0 && (
+              <div className="mt-6 p-4 bg-green-50 rounded-md">
+                <h4 className="text-sm font-medium text-green-800 font-['Montserrat'] mb-3">
+                  Permanent Options:
+                </h4>
+                <div className="space-y-2">
+                  {permanentOptions.map(option => (
+                    <div key={option.id} className="flex items-center justify-between bg-white p-3 rounded-md border border-green-200">
+                      <span className="text-sm font-medium text-gray-900 font-['Montserrat']">
+                        {option.label}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => removePermanentOption(option.id)}
+                        className="text-red-500 hover:text-red-700 text-sm font-['Montserrat']"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-sm text-green-700 font-['Montserrat'] mt-2">
+                  These options are saved permanently and will be available for future products.
                 </p>
               </div>
             )}
@@ -1928,12 +2151,50 @@ const SingleProductUpload = React.memo(() => {
             >
               Save as Draft
             </button>
-            <button
-              onClick={handleRecheckDetails}
-              className="px-6 py-3 bg-yellow-500 text-white rounded-lg text-[16px] font-medium font-['Montserrat'] hover:bg-yellow-600 transition-colors"
-            >
-              Recheck Details
-            </button>
+            {/* Recheck Details Dropdown */}
+            <div className="relative" ref={recheckDropdownRef}>
+              <button
+                onClick={toggleRecheckDropdown}
+                className="px-6 py-3 bg-yellow-500 text-white rounded-lg text-[16px] font-medium font-['Montserrat'] hover:bg-yellow-600 transition-colors flex items-center gap-2"
+              >
+                Recheck Details
+                <ChevronDown 
+                  className={`w-4 h-4 transition-transform ${isRecheckDropdownOpen ? 'rotate-180' : ''}`} 
+                />
+              </button>
+              
+              {/* Dropdown Menu */}
+              {isRecheckDropdownOpen && (
+                <div className="absolute top-full left-0 mt-1 bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] z-10 min-w-[218px]">
+                  {/* Header */}
+                  <div className="px-[21px] py-3 border-b border-gray-200">
+                    <p className="font-['Montserrat'] font-medium text-[14px] text-[#bfbfbf] leading-[1.2]">
+                      RECHECK DETAILS
+                    </p>
+                  </div>
+                  
+                  {/* Options */}
+                  <div className="py-2">
+                    {[
+                      'All DETAILS',
+                      'All text', 
+                      'All IMAGES',
+                      'SIZE CHART'
+                    ].map((option, index) => (
+                      <button
+                        key={option}
+                        onClick={() => handleRecheckOptionSelect(option)}
+                        className={`w-full px-[21px] py-3 text-left font-['Montserrat'] text-[14px] text-[#000000] leading-[20px] hover:bg-gray-50 transition-colors ${
+                          index < 3 ? 'border-b border-gray-200' : ''
+                        }`}
+                      >
+                        {option}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
             <button
               onClick={handlePublishProduct}
               disabled={!isFormValid}
@@ -1971,6 +2232,403 @@ const SingleProductUpload = React.memo(() => {
                   Cancel
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Permanent Option Confirmation Modal */}
+      {showPermanentConfirmModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-lg max-w-md w-full mx-4 relative">
+            <div className="p-6 text-center">
+              <h2 className="text-lg font-bold text-black mb-6 leading-tight font-['Montserrat']">
+                Are you sure you want to add this as permanent option
+              </h2>
+              <div className="flex gap-4 justify-center">
+                <button
+                  onClick={confirmMakePermanent}
+                  className="bg-black hover:bg-gray-800 text-white font-medium py-3 px-8 rounded-full transition-colors focus:outline-none font-['Montserrat']"
+                >
+                  yes
+                </button>
+                <button
+                  onClick={cancelMakePermanent}
+                  className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 px-8 rounded-full transition-colors focus:outline-none font-['Montserrat']"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Permanent Option Success Modal */}
+      {showPermanentSuccessModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-lg max-w-md w-full mx-4 relative">
+            <div className="p-6 text-center">
+              {/* Success checkmark icon */}
+              <div className="mx-auto mb-4 w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+                <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center">
+                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+              </div>
+              
+              <h2 className="text-lg font-bold text-black mb-6 leading-tight font-['Montserrat']">
+                option added successfully!
+              </h2>
+              
+              <button
+                onClick={closePermanentSuccessModal}
+                className="bg-black hover:bg-gray-800 text-white font-medium py-3 px-8 rounded-full transition-colors focus:outline-none font-['Montserrat']"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Detailed Review Modal */}
+      {showDetailedReviewModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+            {/* Modal Header */}
+            <div className="sticky top-0 bg-white border-b border-gray-200 p-6 flex justify-between items-center">
+              <h2 className="text-2xl font-bold text-black font-['Montserrat']">
+                Review All Details
+              </h2>
+              <button
+                onClick={closeDetailedReviewModal}
+                className="text-gray-500 hover:text-gray-700 text-xl font-bold"
+              >
+                ×
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-6">
+              {/* Images and Size Chart Section */}
+              <div className="mb-8">
+                <h3 className="text-xl font-medium text-black mb-4 font-['Montserrat']">
+                  Images and size chart
+                </h3>
+                
+                {/* Uploaded Images */}
+                <div className="mb-6">
+                  <h4 className="text-lg font-medium text-black mb-3 font-['Montserrat']">
+                    Uploaded images
+                  </h4>
+                  <div className="grid grid-cols-5 gap-4 mb-4">
+                    {uploadedFiles.slice(0, 5).map((file, index) => (
+                      <div key={index} className="aspect-square bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center">
+                        {file.url ? (
+                          <img src={file.url} alt={`Uploaded ${index + 1}`} className="w-full h-full object-cover rounded-lg" />
+                        ) : (
+                          <div className="text-gray-400 text-sm">Image {index + 1}</div>
+                        )}
+                      </div>
+                    ))}
+                    {/* Fill remaining slots if less than 5 images */}
+                    {Array.from({ length: Math.max(0, 5 - uploadedFiles.length) }, (_, index) => (
+                      <div key={`empty-${index}`} className="aspect-square bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center">
+                        <div className="text-gray-400 text-sm">Empty</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Uploaded Size Chart Images */}
+                <div className="mb-6">
+                  <h4 className="text-lg font-medium text-black mb-3 font-['Montserrat']">
+                    Uploaded Size chart images
+                  </h4>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="aspect-square bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center">
+                      {sizeChart.inchChart ? (
+                        <img src={URL.createObjectURL(sizeChart.inchChart)} alt="Size Chart Inches" className="w-full h-full object-cover rounded-lg" />
+                      ) : (
+                        <div className="text-gray-400 text-sm text-center">Size Chart<br/>Inches</div>
+                      )}
+                    </div>
+                    <div className="aspect-square bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center">
+                      {sizeChart.cmChart ? (
+                        <img src={URL.createObjectURL(sizeChart.cmChart)} alt="Size Chart CM" className="w-full h-full object-cover rounded-lg" />
+                      ) : (
+                        <div className="text-gray-400 text-sm text-center">Size Chart<br/>CM</div>
+                      )}
+                    </div>
+                    <div className="aspect-square bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center">
+                      {sizeChart.measurementImage ? (
+                        <img src={URL.createObjectURL(sizeChart.measurementImage)} alt="How to Measure" className="w-full h-full object-cover rounded-lg" />
+                      ) : (
+                        <div className="text-gray-400 text-sm text-center">How to<br/>Measure</div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Variant Details */}
+              {variants.map((variant, index) => (
+                <div key={variant.id} className="mb-8 border border-gray-200 rounded-lg p-6">
+                  <h3 className="text-2xl font-bold text-black mb-6 font-['Montserrat']">
+                    Variant {index + 1}
+                  </h3>
+
+                  {/* Returnable */}
+                  <div className="mb-6">
+                    <label className="text-lg font-medium text-black font-['Montserrat'] block mb-2">
+                      returnable
+                    </label>
+                    <div className="flex gap-4">
+                      <button className={`px-6 py-2 rounded-full font-medium font-['Montserrat'] ${variant.returnable ? 'bg-blue-600 text-white' : 'bg-gray-200 text-black'}`}>
+                        yes
+                      </button>
+                      <button className={`px-6 py-2 rounded-full font-medium font-['Montserrat'] ${!variant.returnable ? 'bg-blue-600 text-white' : 'bg-gray-200 text-black'}`}>
+                        No
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Product Name */}
+                  <div className="mb-6">
+                    <label className="text-lg font-medium text-black font-['Montserrat'] block mb-2">
+                      product name
+                    </label>
+                    <div className="border-2 border-black rounded-lg p-3 bg-gray-50">
+                      <span className="text-black font-['Montserrat']">{productData.productName || 'Not specified'}</span>
+                    </div>
+                  </div>
+
+                  {/* Title */}
+                  <div className="mb-6">
+                    <label className="text-lg font-medium text-black font-['Montserrat'] block mb-2">
+                      Title
+                    </label>
+                    <div className="border-2 border-black rounded-lg p-3 bg-gray-50">
+                      <span className="text-black font-['Montserrat']">{variant.title || productData.productName || 'Not specified'}</span>
+                    </div>
+                  </div>
+
+                  {/* Description */}
+                  <div className="mb-6">
+                    <label className="text-lg font-medium text-black font-['Montserrat'] block mb-2">
+                      Description
+                    </label>
+                    <div className="border-2 border-black rounded-lg p-3 bg-gray-50 min-h-[100px]">
+                      <span className="text-black font-['Montserrat']">{variant.description || productData.description || 'Not specified'}</span>
+                    </div>
+                  </div>
+
+                  {/* Manufacturing Details */}
+                  <div className="mb-6">
+                    <label className="text-lg font-medium text-black font-['Montserrat'] block mb-2">
+                      Manufacturing details
+                    </label>
+                    <div className="border-2 border-black rounded-lg p-3 bg-gray-50 min-h-[100px]">
+                      <span className="text-black font-['Montserrat']">{variant.manufacturingDetails || productData.manufacturingDetails || 'Not specified'}</span>
+                    </div>
+                  </div>
+
+                  {/* Shipping Returns and Exchange */}
+                  <div className="mb-6">
+                    <label className="text-lg font-medium text-black font-['Montserrat'] block mb-2">
+                      Shipping returns and exchange
+                    </label>
+                    <div className="border-2 border-black rounded-lg p-3 bg-gray-50 min-h-[100px]">
+                      <span className="text-black font-['Montserrat']">{variant.shippingReturns || productData.shippingReturns || 'Not specified'}</span>
+                    </div>
+                  </div>
+
+                  {/* Pricing */}
+                  <div className="grid grid-cols-2 gap-6 mb-6">
+                    <div>
+                      <label className="text-lg font-medium text-black font-['Montserrat'] block mb-2">
+                        Regular price
+                      </label>
+                      <div className="border-2 border-black rounded-lg p-3 bg-gray-50">
+                        <span className="text-black font-['Montserrat']">{variant.regularPrice || productData.regularPrice || 'Not specified'}</span>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-lg font-medium text-black font-['Montserrat'] block mb-2">
+                        Sale price
+                      </label>
+                      <div className="border-2 border-black rounded-lg p-3 bg-gray-50">
+                        <span className="text-black font-['Montserrat']">{variant.salePrice || productData.salePrice || 'Not specified'}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Stock Size */}
+                  <div className="mb-6">
+                    <label className="text-lg font-medium text-black font-['Montserrat'] block mb-2">
+                      Stock size
+                    </label>
+                    <div className="flex gap-4 mb-4">
+                      <button className={`px-4 py-2 rounded-lg font-medium font-['Montserrat'] ${variant.stockSizeOption === 'noSize' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-black'}`}>
+                        No size
+                      </button>
+                      <button className={`px-4 py-2 rounded-lg font-medium font-['Montserrat'] ${variant.stockSizeOption === 'sizes' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-black'}`}>
+                        sizes
+                      </button>
+                    </div>
+
+                    {/* Size Details - Mock data structure similar to Figma */}
+                    {(variant.customSizes || customSizes).length > 0 && (
+                      <div className="grid grid-cols-6 gap-2 text-sm">
+                        <div className="font-medium">Size</div>
+                        <div className="font-medium">Quantity</div>
+                        <div className="font-medium">Amazon</div>
+                        <div className="font-medium">Flipkart</div>
+                        <div className="font-medium">Myntra</div>
+                        <div className="font-medium">Nykaa</div>
+                        {(variant.customSizes || customSizes).slice(0, 2).map((size, sizeIndex) => (
+                          <React.Fragment key={sizeIndex}>
+                            <div className="border border-gray-300 rounded p-2">{size.size || 'S'}</div>
+                            <div className="border border-gray-300 rounded p-2">{size.quantity || '50'}</div>
+                            <div className="border border-gray-300 rounded p-2">{size.prices?.amazon || '1000'}</div>
+                            <div className="border border-gray-300 rounded p-2">{size.prices?.flipkart || '1200'}</div>
+                            <div className="border border-gray-300 rounded p-2">{size.prices?.myntra || '1100'}</div>
+                            <div className="border border-gray-300 rounded p-2">{size.prices?.nykaa || '1300'}</div>
+                          </React.Fragment>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Meta Data */}
+                  <div className="mb-6">
+                    <div className="bg-blue-600 text-white px-4 py-2 rounded-lg inline-block mb-4 font-['Montserrat']">
+                      meta data
+                    </div>
+                    
+                    <div className="grid grid-cols-1 gap-4">
+                      <div>
+                        <label className="text-lg font-medium text-black font-['Montserrat'] block mb-2">
+                          meta title
+                        </label>
+                        <div className="border-2 border-black rounded-lg p-3 bg-gray-50">
+                          <span className="text-black font-['Montserrat']">{variant.metaTitle || productData.metaTitle || 'Not specified'}</span>
+                        </div>
+                      </div>
+                      <div>
+                        <label className="text-lg font-medium text-black font-['Montserrat'] block mb-2">
+                          meta description
+                        </label>
+                        <div className="border-2 border-black rounded-lg p-3 bg-gray-50">
+                          <span className="text-black font-['Montserrat']">{variant.metaDescription || productData.metaDescription || 'Not specified'}</span>
+                        </div>
+                      </div>
+                      <div>
+                        <label className="text-lg font-medium text-black font-['Montserrat'] block mb-2">
+                          slug URL
+                        </label>
+                        <div className="border-2 border-black rounded-lg p-3 bg-gray-50">
+                          <span className="text-black font-['Montserrat']">{variant.slugUrl || productData.slugUrl || 'Not specified'}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+
+              {/* Filter Section */}
+              <div className="mb-8">
+                <h3 className="text-xl font-bold text-black mb-4 font-['Montserrat']">
+                  Filter
+                </h3>
+                <h4 className="text-lg font-medium text-black mb-4 font-['Montserrat']">
+                  assigned Filter
+                </h4>
+                
+                <div className="grid grid-cols-3 gap-4 mb-6">
+                  {/* Color Filter */}
+                  <div className="bg-white rounded-xl shadow-lg p-4">
+                    <div className="text-sm font-medium text-gray-400 mb-2 font-['Montserrat']">
+                      showing colour data
+                    </div>
+                    <hr className="mb-2" />
+                    <div className="text-black font-['Montserrat']">
+                      {productData.color || 'red'}
+                    </div>
+                  </div>
+                  
+                  {/* Category Filter */}
+                  <div className="bg-white rounded-xl shadow-lg p-4">
+                    <div className="text-sm font-medium text-gray-400 mb-2 font-['Montserrat']">
+                      showing category data
+                    </div>
+                    <hr className="mb-2" />
+                    <div className="text-black font-['Montserrat']">
+                      {selectedCategory || 'men'}
+                    </div>
+                  </div>
+                  
+                  {/* Subcategory Filter */}
+                  <div className="bg-white rounded-xl shadow-lg p-4">
+                    <div className="text-sm font-medium text-gray-400 mb-2 font-['Montserrat']">
+                      showing Subcategory
+                    </div>
+                    <hr className="mb-2" />
+                    <div className="text-black font-['Montserrat']">
+                      {selectedSubCategory || 'jacket'}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex gap-4 mb-4">
+                  <div className="bg-black text-white px-4 py-2 rounded-full font-['Montserrat']">
+                    colour
+                  </div>
+                  <div className="bg-black text-white px-4 py-2 rounded-full font-['Montserrat']">
+                    category
+                  </div>
+                  <div className="bg-black text-white px-4 py-2 rounded-full font-['Montserrat']">
+                    Subcategory
+                  </div>
+                </div>
+              </div>
+
+              {/* Also Showing In Section */}
+              <div className="mb-8">
+                <h3 className="text-xl font-bold text-black mb-4 font-['Montserrat']">
+                  Also Showing in
+                </h3>
+                
+                <div className="space-y-3">
+                  {dynamicAlsoShowInOptions.map((option) => (
+                    <div key={option.id} className="flex items-center justify-between">
+                      <div className="text-lg font-medium text-black font-['Montserrat']">
+                        {option.label}
+                      </div>
+                      <div className="flex gap-2">
+                        <button className={`px-4 py-2 rounded-full font-medium font-['Montserrat'] ${option.value === 'yes' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-black'}`}>
+                          yes
+                        </button>
+                        <button className={`px-4 py-2 rounded-full font-medium font-['Montserrat'] ${option.value === 'no' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-black'}`}>
+                          No
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="border-t border-gray-200 p-6 flex justify-end">
+              <button
+                onClick={closeDetailedReviewModal}
+                className="bg-black hover:bg-gray-800 text-white font-medium py-3 px-8 rounded-lg transition-colors font-['Montserrat']"
+              >
+                Close Review
+              </button>
             </div>
           </div>
         </div>
