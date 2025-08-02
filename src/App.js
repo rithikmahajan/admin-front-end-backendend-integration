@@ -4,7 +4,7 @@ import AdminLayout from './layout/AdminLayout';
 
 // Lazy load components for better performance and code splitting
 // This reduces the initial bundle size and improves loading times
-const Dashboard = React.lazy(() => import('./pages/Dashboard_optimized'));
+const Dashboard = React.lazy(() => import('./pages/database'));
 const Users = React.lazy(() => import('./pages/Users'));
 const Products = React.lazy(() => import('./pages/Products'));
 const Orders = React.lazy(() => import('./pages/Orders'));
