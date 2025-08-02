@@ -2,133 +2,244 @@ import React, { useState } from 'react';
 import { Search, Edit2, Trash2, ChevronDown, X, Upload, Image as ImageIcon } from 'lucide-react';
 
 const UploadCategory = () => {
-  const [selectedCategory, setSelectedCategory] = useState('Category');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  // Modal states
+  const [modals, setModals] = useState({
+    add: false,
+    edit: false,
+    success: false,
+    delete: false,
+    deleteSuccess: false
+  });
+
+  // Form states
+  const [formData, setFormData] = useState({
+    selectedCategory: 'Category',
+    searchTerm: '',
+    newCategoryName: '',
+    uploadedImage: null
+  });
+
+  // Category states
   const [editingCategory, setEditingCategory] = useState(null);
-  const [newCategoryName, setNewCategoryName] = useState('');
-  const [uploadedImage, setUploadedImage] = useState(null);
-  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deletingCategory, setDeletingCategory] = useState(null);
-  const [isDeleteSuccessModalOpen, setIsDeleteSuccessModalOpen] = useState(false);
 
-  // Sample category data - matches the Figma design
-  const categories = [
-    {
-      id: 1,
-      name: 'men',
-      image: '/api/placeholder/208/208'
-    },
-    {
-      id: 2,
-      name: 'women',
-      image: '/api/placeholder/208/208'
-    },
-    {
-      id: 3,
-      name: 'Kids',
-      image: '/api/placeholder/208/208'
-    }
+  // Constants
+  const SAMPLE_CATEGORIES = [
+    { id: 1, name: 'men', image: '/api/placeholder/208/208' },
+    { id: 2, name: 'women', image: '/api/placeholder/208/208' },
+    { id: 3, name: 'Kids', image: '/api/placeholder/208/208' }
   ];
 
-  const categoryOptions = [
-    'men',
-    'women',
-    'kids'
-  ];
+  const CATEGORY_OPTIONS = ['men', 'women', 'kids'];
 
+  // Utility functions
+  const openModal = (modalName) => {
+    setModals(prev => ({ ...prev, [modalName]: true }));
+  };
+
+  const closeModal = (modalName) => {
+    setModals(prev => ({ ...prev, [modalName]: false }));
+  };
+
+  const closeAllModals = () => {
+    setModals({
+      add: false,
+      edit: false,
+      success: false,
+      delete: false,
+      deleteSuccess: false
+    });
+  };
+
+  const resetFormData = () => {
+    setFormData(prev => ({
+      ...prev,
+      newCategoryName: '',
+      uploadedImage: null
+    }));
+    setEditingCategory(null);
+    setDeletingCategory(null);
+  };
+
+  const updateFormData = (key, value) => {
+    setFormData(prev => ({ ...prev, [key]: value }));
+  };
+
+  // Event handlers
   const handleImageUpload = (event) => {
     const file = event.target.files[0];
     if (file) {
       const reader = new FileReader();
       reader.onload = (e) => {
-        setUploadedImage(e.target.result);
+        updateFormData('uploadedImage', e.target.result);
       };
       reader.readAsDataURL(file);
     }
   };
 
+  const handleRemoveImage = () => {
+    updateFormData('uploadedImage', null);
+  };
+
+  // Category management handlers
+  const handleAddNewCategory = () => {
+    resetFormData();
+    openModal('add');
+  };
+
+  const handleSaveNewCategory = () => {
+    console.log('Adding new category:', formData.newCategoryName, 'Image:', formData.uploadedImage);
+    // API call would go here
+    closeModal('add');
+    openModal('success');
+  };
+
   const handleEdit = (categoryId) => {
-    const categoryToEdit = categories.find(cat => cat.id === categoryId);
-    setEditingCategory(categoryToEdit);
-    setNewCategoryName(categoryToEdit.name);
-    setUploadedImage(categoryToEdit.image);
-    setIsEditModalOpen(true);
+    const categoryToEdit = SAMPLE_CATEGORIES.find(cat => cat.id === categoryId);
+    if (categoryToEdit) {
+      setEditingCategory(categoryToEdit);
+      updateFormData('newCategoryName', categoryToEdit.name);
+      updateFormData('uploadedImage', categoryToEdit.image);
+      openModal('edit');
+    }
   };
 
   const handleSaveEdit = () => {
-    console.log('Saving edit for category:', editingCategory.id, 'New name:', newCategoryName);
-    // Here you would typically update the category in your state or make an API call
-    
-    // Close edit modal and show success modal
-    setIsEditModalOpen(false);
-    setIsSuccessModalOpen(true);
-  };
-
-  const handleCloseEdit = () => {
-    setIsEditModalOpen(false);
-    setEditingCategory(null);
-    setNewCategoryName('');
-    setUploadedImage(null);
-  };
-
-  const handleCloseSuccess = () => {
-    setIsSuccessModalOpen(false);
-    setEditingCategory(null);
-    setNewCategoryName('');
-    setUploadedImage(null);
+    console.log('Saving edit for category:', editingCategory.id, 'New name:', formData.newCategoryName);
+    // API call would go here
+    closeModal('edit');
+    openModal('success');
   };
 
   const handleDelete = (categoryId) => {
-    const categoryToDelete = categories.find(cat => cat.id === categoryId);
-    setDeletingCategory(categoryToDelete);
-    setIsDeleteModalOpen(true);
+    const categoryToDelete = SAMPLE_CATEGORIES.find(cat => cat.id === categoryId);
+    if (categoryToDelete) {
+      setDeletingCategory(categoryToDelete);
+      openModal('delete');
+    }
   };
 
   const handleConfirmDelete = () => {
     console.log('Deleting category:', deletingCategory.id);
-    // Here you would typically remove the category from your state or make an API call
-    
-    // Close delete modal and show delete success modal
-    setIsDeleteModalOpen(false);
-    setIsDeleteSuccessModalOpen(true);
+    // API call would go here
+    closeModal('delete');
+    openModal('deleteSuccess');
   };
 
-  const handleCancelDelete = () => {
-    setIsDeleteModalOpen(false);
-    setDeletingCategory(null);
+  const handleCloseWithReset = (modalName) => {
+    closeModal(modalName);
+    resetFormData();
   };
 
-  const handleCloseDeleteSuccess = () => {
-    setIsDeleteSuccessModalOpen(false);
-    setDeletingCategory(null);
-  };
+  // Computed values
+  const filteredCategories = SAMPLE_CATEGORIES.filter(category =>
+    category.name.toLowerCase().includes(formData.searchTerm.toLowerCase())
+  );
 
-  const handleAddNewCategory = () => {
-    setNewCategoryName('');
-    setUploadedImage(null);
-    setIsAddModalOpen(true);
-  };
+  // Component renderers
+  const renderImageUploadSection = (title = "Upload image") => (
+    <div>
+      <h3 className="text-lg font-semibold text-gray-900 mb-6">{title}</h3>
+      
+      <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center bg-gray-50">
+        {formData.uploadedImage ? (
+          <div className="space-y-4">
+            <img
+              src={formData.uploadedImage}
+              alt="Category"
+              className="mx-auto w-32 h-32 object-cover rounded-lg"
+            />
+            <button
+              onClick={handleRemoveImage}
+              className="text-sm text-gray-500 hover:text-gray-700"
+            >
+              Remove image
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <div className="mx-auto w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
+              <ImageIcon className="h-8 w-8 text-gray-400" />
+            </div>
+            <div className="space-y-2">
+              <p className="text-sm text-gray-600">Drop your image</p>
+              <p className="text-xs text-gray-500">here PNG, JPEG allowed</p>
+            </div>
+          </div>
+        )}
+      </div>
 
-  const handleSaveNewCategory = () => {
-    console.log('Adding new category:', newCategoryName, 'Image:', uploadedImage);
-    // Here you would typically add the category to your state or make an API call
-    
-    // Close add modal and show success modal
-    setIsAddModalOpen(false);
-    setIsSuccessModalOpen(true);
-  };
+      <div className="mt-6">
+        <label className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-lg transition-colors cursor-pointer inline-flex items-center gap-2">
+          <Upload className="h-4 w-4" />
+          Upload image
+          <input
+            type="file"
+            className="hidden"
+            accept="image/*"
+            onChange={handleImageUpload}
+          />
+        </label>
+      </div>
+    </div>
+  );
 
-  const handleCloseAddModal = () => {
-    setIsAddModalOpen(false);
-    setNewCategoryName('');
-    setUploadedImage(null);
-  };
+  const renderCategoryInput = (title, placeholder = "Enter category name") => (
+    <div>
+      <h3 className="text-lg font-semibold text-gray-900 mb-6">{title}</h3>
+      
+      <input
+        type="text"
+        value={formData.newCategoryName}
+        onChange={(e) => updateFormData('newCategoryName', e.target.value)}
+        className="w-full px-4 py-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
+        placeholder={placeholder}
+      />
+    </div>
+  );
 
-  const filteredCategories = categories.filter(category =>
-    category.name.toLowerCase().includes(searchTerm.toLowerCase())
+  const renderModalActions = (onSave, onCancel, saveText = "save", cancelText = "go back") => (
+    <div className="flex justify-center gap-4 mt-12">
+      <button
+        onClick={onSave}
+        className="bg-black hover:bg-gray-800 text-white font-medium py-3 px-12 rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+      >
+        {saveText}
+      </button>
+      <button
+        onClick={onCancel}
+        className="text-gray-600 hover:text-gray-800 font-medium py-3 px-12 transition-colors focus:outline-none"
+      >
+        {cancelText}
+      </button>
+    </div>
+  );
+
+  const renderSuccessModal = (message, onClose) => (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full mx-4 overflow-hidden">
+        <div className="p-8 text-center">
+          <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path>
+            </svg>
+          </div>
+          
+          <div className="mb-8">
+            <h2 className="text-lg font-semibold text-gray-900 leading-tight">
+              {message}
+            </h2>
+          </div>
+
+          <button
+            onClick={onClose}
+            className="w-full bg-black hover:bg-gray-800 text-white font-medium py-3 px-6 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+          >
+            Done
+          </button>
+        </div>
+      </div>
+    </div>
   );
 
   return (
@@ -153,8 +264,8 @@ const UploadCategory = () => {
                 <input
                   type="text"
                   placeholder="Search"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  value={formData.searchTerm}
+                  onChange={(e) => updateFormData('searchTerm', e.target.value)}
                   className="block w-80 pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg bg-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
@@ -162,12 +273,12 @@ const UploadCategory = () => {
               {/* Category Dropdown */}
               <div className="relative">
                 <select
-                  value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  value={formData.selectedCategory}
+                  onChange={(e) => updateFormData('selectedCategory', e.target.value)}
                   className="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-3 pr-8 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-48"
                 >
                   <option value="Category" disabled>Category</option>
-                  {categoryOptions.map((option, index) => (
+                  {CATEGORY_OPTIONS.map((option, index) => (
                     <option key={index} value={option}>{option}</option>
                   ))}
                 </select>
@@ -262,7 +373,7 @@ const UploadCategory = () => {
       </div>
 
       {/* Add Category Modal */}
-      {isAddModalOpen && (
+      {modals.add && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-2xl shadow-xl max-w-4xl w-full mx-4 overflow-hidden">
             
@@ -272,7 +383,7 @@ const UploadCategory = () => {
                 Add category
               </h2>
               <button
-                onClick={handleCloseAddModal}
+                onClick={() => handleCloseWithReset('add')}
                 className="absolute top-4 right-4 p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors"
               >
                 <X className="h-5 w-5" />
@@ -282,91 +393,20 @@ const UploadCategory = () => {
             {/* Modal Content */}
             <div className="p-8">
               <div className="grid grid-cols-2 gap-12">
-                
-                {/* Left Column - Upload Image */}
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-6">Upload image</h3>
-                  
-                  {/* Image Upload Area */}
-                  <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center bg-gray-50">
-                    {uploadedImage ? (
-                      <div className="space-y-4">
-                        <img
-                          src={uploadedImage}
-                          alt="Uploaded category"
-                          className="mx-auto w-32 h-32 object-cover rounded-lg"
-                        />
-                        <button
-                          onClick={() => setUploadedImage(null)}
-                          className="text-sm text-gray-500 hover:text-gray-700"
-                        >
-                          Remove image
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="space-y-4">
-                        <div className="mx-auto w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
-                          <ImageIcon className="h-8 w-8 text-gray-400" />
-                        </div>
-                        <div className="space-y-2">
-                          <p className="text-sm text-gray-600">Drop your image</p>
-                          <p className="text-xs text-gray-500">here PNG, JPEG allowed</p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Upload Button */}
-                  <div className="mt-6">
-                    <label className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-lg transition-colors cursor-pointer inline-flex items-center gap-2">
-                      <Upload className="h-4 w-4" />
-                      Upload image
-                      <input
-                        type="file"
-                        className="hidden"
-                        accept="image/*"
-                        onChange={handleImageUpload}
-                      />
-                    </label>
-                  </div>
-                </div>
-
-                {/* Right Column - Type new category */}
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-6">Type new category</h3>
-                  
-                  <input
-                    type="text"
-                    value={newCategoryName}
-                    onChange={(e) => setNewCategoryName(e.target.value)}
-                    className="w-full px-4 py-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
-                    placeholder="Enter category name"
-                  />
-                </div>
+                {renderImageUploadSection()}
+                {renderCategoryInput("Type new category")}
               </div>
-
-              {/* Action Buttons */}
-              <div className="flex justify-center gap-4 mt-12">
-                <button
-                  onClick={handleSaveNewCategory}
-                  className="bg-black hover:bg-gray-800 text-white font-medium py-3 px-12 rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
-                >
-                  save
-                </button>
-                <button
-                  onClick={handleCloseAddModal}
-                  className="text-gray-600 hover:text-gray-800 font-medium py-3 px-12 transition-colors focus:outline-none"
-                >
-                  go back
-                </button>
-              </div>
+              {renderModalActions(
+                handleSaveNewCategory,
+                () => handleCloseWithReset('add')
+              )}
             </div>
           </div>
         </div>
       )}
 
       {/* Edit Category Modal */}
-      {isEditModalOpen && editingCategory && (
+      {modals.edit && editingCategory && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-2xl shadow-xl max-w-4xl w-full mx-4 overflow-hidden">
             
@@ -376,7 +416,7 @@ const UploadCategory = () => {
                 Edit Category
               </h2>
               <button
-                onClick={handleCloseEdit}
+                onClick={() => handleCloseWithReset('edit')}
                 className="absolute top-4 right-4 p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors"
               >
                 <X className="h-5 w-5" />
@@ -386,125 +426,26 @@ const UploadCategory = () => {
             {/* Modal Content */}
             <div className="p-8">
               <div className="grid grid-cols-2 gap-12">
-                
-                {/* Left Column - Upload Image */}
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-6">Upload image</h3>
-                  
-                  {/* Image Upload Area */}
-                  <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center bg-gray-50">
-                    {uploadedImage ? (
-                      <div className="space-y-4">
-                        <img
-                          src={uploadedImage}
-                          alt="Category"
-                          className="mx-auto w-32 h-32 object-cover rounded-lg"
-                        />
-                        <button
-                          onClick={() => setUploadedImage(null)}
-                          className="text-sm text-gray-500 hover:text-gray-700"
-                        >
-                          Remove image
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="space-y-4">
-                        <div className="mx-auto w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
-                          <ImageIcon className="h-8 w-8 text-gray-400" />
-                        </div>
-                        <div className="space-y-2">
-                          <p className="text-sm text-gray-600">Drop your image</p>
-                          <p className="text-xs text-gray-500">here PNG, JPEG allowed</p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Upload Button */}
-                  <div className="mt-6">
-                    <label className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-lg transition-colors cursor-pointer inline-flex items-center gap-2">
-                      <Upload className="h-4 w-4" />
-                      Upload image
-                      <input
-                        type="file"
-                        className="hidden"
-                        accept="image/*"
-                        onChange={handleImageUpload}
-                      />
-                    </label>
-                  </div>
-                </div>
-
-                {/* Right Column - Edit category name */}
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-6">Edit category name</h3>
-                  
-                  <input
-                    type="text"
-                    value={newCategoryName}
-                    onChange={(e) => setNewCategoryName(e.target.value)}
-                    className="w-full px-4 py-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
-                    placeholder="Enter category name"
-                  />
-                </div>
+                {renderImageUploadSection()}
+                {renderCategoryInput("Edit category name")}
               </div>
-
-              {/* Action Buttons */}
-              <div className="flex justify-center gap-4 mt-12">
-                <button
-                  onClick={handleSaveEdit}
-                  className="bg-black hover:bg-gray-800 text-white font-medium py-3 px-12 rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
-                >
-                  save
-                </button>
-                <button
-                  onClick={handleCloseEdit}
-                  className="text-gray-600 hover:text-gray-800 font-medium py-3 px-12 transition-colors focus:outline-none"
-                >
-                  go back
-                </button>
-              </div>
+              {renderModalActions(
+                handleSaveEdit,
+                () => handleCloseWithReset('edit')
+              )}
             </div>
           </div>
         </div>
       )}
 
       {/* Success Modal */}
-      {isSuccessModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full mx-4 overflow-hidden">
-            
-            {/* Modal Content */}
-            <div className="p-8 text-center">
-              
-              {/* Success Icon */}
-              <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
-                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path>
-                </svg>
-              </div>
-
-              {/* Success Message */}
-              <div className="mb-8">
-                <h2 className="text-lg font-semibold text-gray-900 leading-tight">
-                  category updated<br />successfully!
-                </h2>
-              </div>
-
-              {/* Done Button */}
-              <button
-                onClick={handleCloseSuccess}
-                className="w-full bg-black hover:bg-gray-800 text-white font-medium py-3 px-6 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
-              >
-                Done
-              </button>
-            </div>
-          </div>
-        </div>
+      {modals.success && renderSuccessModal(
+        "category updated\nsuccessfully!",
+        () => handleCloseWithReset('success')
       )}
 
       {/* Delete Confirmation Modal */}
-      {isDeleteModalOpen && deletingCategory && (
+      {modals.delete && deletingCategory && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full mx-4 overflow-hidden">
             
@@ -527,7 +468,10 @@ const UploadCategory = () => {
                   yes
                 </button>
                 <button
-                  onClick={handleCancelDelete}
+                  onClick={() => {
+                    closeModal('delete');
+                    setDeletingCategory(null);
+                  }}
                   className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 px-6 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2"
                 >
                   Cancel
@@ -539,37 +483,9 @@ const UploadCategory = () => {
       )}
 
       {/* Delete Success Modal */}
-      {isDeleteSuccessModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full mx-4 overflow-hidden">
-            
-            {/* Modal Content */}
-            <div className="p-8 text-center">
-              
-              {/* Success Icon */}
-              <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
-                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path>
-                </svg>
-              </div>
-
-              {/* Delete Success Message */}
-              <div className="mb-8">
-                <h2 className="text-lg font-semibold text-gray-900 leading-tight">
-                  Category deleted<br />successfully!
-                </h2>
-              </div>
-
-              {/* Done Button */}
-              <button
-                onClick={handleCloseDeleteSuccess}
-                className="w-full bg-black hover:bg-gray-800 text-white font-medium py-3 px-6 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
-              >
-                Done
-              </button>
-            </div>
-          </div>
-        </div>
+      {modals.deleteSuccess && renderSuccessModal(
+        "Category deleted\nsuccessfully!",
+        () => handleCloseWithReset('deleteSuccess')
       )}
     </div>
   );
