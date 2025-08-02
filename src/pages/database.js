@@ -286,6 +286,11 @@ const Database = () => {
             onClick={() => handleTabChange('sync')}
             label="Marketplace Sync"
           />
+          <TabButton 
+            active={activeTab === 'analytics'} 
+            onClick={() => handleTabChange('analytics')}
+            label="Analytics Reports"
+          />
         </div>
       </div>
 
@@ -323,6 +328,10 @@ const Database = () => {
             searchTerm={searchTerm}
             onSearchChange={handleSearchChange}
           />
+        )}
+        
+        {activeTab === 'analytics' && (
+          <AnalyticsTab />
         )}
       </div>
     </div>
@@ -477,6 +486,178 @@ const SyncTab = memo(({ productSyncData, marketplaces, syncLogs, searchTerm, onS
 ));
 
 SyncTab.displayName = 'SyncTab';
+
+// Analytics Tab Component
+const AnalyticsTab = memo(() => (
+  <div className="space-y-6">
+    {/* Analytics Header */}
+    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div>
+        <h2 className="text-2xl font-bold text-gray-900">Analytics Reports</h2>
+        <p className="text-gray-600 mt-1">Track your business performance and insights</p>
+      </div>
+      
+      <div className="flex items-center space-x-3">
+        {/* Period Selector */}
+        <select className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
+          <option value="7d">Last 7 days</option>
+          <option value="30d">Last 30 days</option>
+          <option value="90d">Last 3 months</option>
+          <option value="1y">Last year</option>
+        </select>
+        
+        {/* Action Buttons */}
+        <button className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+          <RefreshCw className="h-4 w-4" />
+          <span>Refresh</span>
+        </button>
+        
+        <button className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+          <Download className="h-4 w-4" />
+          <span>Export</span>
+        </button>
+      </div>
+    </div>
+
+    {/* Analytics Overview Stats */}
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="p-2 bg-blue-50 rounded-lg">
+              <DollarSign className="h-6 w-6 text-blue-600" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-600">Total Revenue</p>
+              <p className="text-2xl font-bold text-gray-900">₹45,230</p>
+            </div>
+          </div>
+          <div className="flex items-center space-x-1 text-green-600">
+            <TrendingUp className="h-4 w-4" />
+            <span className="text-sm font-medium">12.5%</span>
+          </div>
+        </div>
+      </div>
+      
+      <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="p-2 bg-green-50 rounded-lg">
+              <ShoppingCart className="h-6 w-6 text-green-600" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-600">Total Orders</p>
+              <p className="text-2xl font-bold text-gray-900">1,324</p>
+            </div>
+          </div>
+          <div className="flex items-center space-x-1 text-red-600">
+            <TrendingDown className="h-4 w-4" />
+            <span className="text-sm font-medium">2.1%</span>
+          </div>
+        </div>
+      </div>
+      
+      <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="p-2 bg-purple-50 rounded-lg">
+              <Users className="h-6 w-6 text-purple-600" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-600">Total Users</p>
+              <p className="text-2xl font-bold text-gray-900">8,942</p>
+            </div>
+          </div>
+          <div className="flex items-center space-x-1 text-green-600">
+            <TrendingUp className="h-4 w-4" />
+            <span className="text-sm font-medium">8.7%</span>
+          </div>
+        </div>
+      </div>
+      
+      <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="p-2 bg-yellow-50 rounded-lg">
+              <Package className="h-6 w-6 text-yellow-600" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-600">Avg. Order Value</p>
+              <p className="text-2xl font-bold text-gray-900">₹156.80</p>
+            </div>
+          </div>
+          <div className="flex items-center space-x-1 text-green-600">
+            <TrendingUp className="h-4 w-4" />
+            <span className="text-sm font-medium">4.2%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {/* Charts Section */}
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Revenue This Week</h3>
+        <div className="h-64 bg-gray-100 rounded-lg flex items-center justify-center">
+          <div className="text-center">
+            <BarChart3 className="h-16 w-16 text-gray-400 mx-auto mb-2" />
+            <p className="text-gray-500 text-sm">Revenue chart visualization</p>
+          </div>
+        </div>
+      </div>
+      
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Top Performing Products</h3>
+        <div className="space-y-3">
+          {[
+            { name: 'T-shirt', sales: 245, revenue: 12250 },
+            { name: 'Jeans', sales: 189, revenue: 15120 },
+            { name: 'Sneakers', sales: 156, revenue: 18720 },
+            { name: 'Jacket', sales: 134, revenue: 20100 },
+            { name: 'Dress', sales: 98, revenue: 9800 }
+          ].map((item, index) => (
+            <div key={index} className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                <span className="text-sm font-medium text-gray-700">{item.name}</span>
+              </div>
+              <div className="text-right">
+                <p className="text-sm font-semibold text-gray-900">₹{item.revenue.toLocaleString()}</p>
+                <p className="text-xs text-gray-500">{item.sales} sales</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+
+    {/* Additional Insights */}
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+      <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Insights</h3>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="p-4 bg-green-50 rounded-lg">
+          <p className="text-sm font-medium text-green-600">Best Performing Day</p>
+          <p className="text-lg font-bold text-green-900">Saturday</p>
+          <p className="text-xs text-green-600">₹9,100 revenue</p>
+        </div>
+        
+        <div className="p-4 bg-blue-50 rounded-lg">
+          <p className="text-sm font-medium text-blue-600">Growth Trend</p>
+          <p className="text-lg font-bold text-blue-900">+12.5%</p>
+          <p className="text-xs text-blue-600">vs last period</p>
+        </div>
+        
+        <div className="p-4 bg-purple-50 rounded-lg">
+          <p className="text-sm font-medium text-purple-600">Top Category</p>
+          <p className="text-lg font-bold text-purple-900">Footwear</p>
+          <p className="text-xs text-purple-600">156 units sold</p>
+        </div>
+      </div>
+    </div>
+  </div>
+));
+
+AnalyticsTab.displayName = 'AnalyticsTab';
 
 // Custom hooks for data management (same as before but organized)
 const useDashboardData = () => {

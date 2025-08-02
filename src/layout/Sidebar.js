@@ -79,14 +79,6 @@ const Sidebar = React.memo(({ sidebarOpen, setSidebarOpen, sidebarHidden, onTogg
       ]
     },
     {
-      title: 'Analytics & Data base',
-      titleSize: 'text-xl',
-      items: [
-        { name: 'analytics reports', path: '/analytics' },
-        { name: 'Data base', path: '/database' }
-      ]
-    },
-    {
       title: 'Settings',
       titleSize: 'text-xl',
       items: [
