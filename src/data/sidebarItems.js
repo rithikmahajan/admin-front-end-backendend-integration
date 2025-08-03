@@ -7,7 +7,6 @@ const sidebarItems = [
     title: "App order area",
     items: [
       "orders",
-      "return and exchange requests",
       "support messages",
       "vendor msg and in app notifications",
     ],

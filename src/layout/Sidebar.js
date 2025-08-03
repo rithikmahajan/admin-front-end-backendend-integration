@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft } from 'lucide-react';
 
 /**
  * Sidebar Component
@@ -33,11 +33,9 @@ const Sidebar = React.memo(({ sidebarOpen, setSidebarOpen, sidebarHidden, onTogg
       title: 'App order area',
       titleSize: 'text-xl',
       items: [
-        { name: 'return requests', path: '/return-orders' },
-        { name: 'orders', path: '/orders' },
-        { name: 'Inbox', path: '/messages' },
-        { name: 'vendor messages', path: '/messages' },
-        { name: 'Users', path: '/users' }
+        { name: 'Orders', path: '/orders' },
+        { name: 'Users', path: '/users' },
+        { name: 'Block User', path: '/block-user' }
       ]
     },
     {
@@ -54,28 +52,27 @@ const Sidebar = React.memo(({ sidebarOpen, setSidebarOpen, sidebarHidden, onTogg
       titleSize: 'text-xl',
       items: [
         { name: 'Filters', path: '/filters' },
-        { name: 'Promocode', path: '/promo-code-management' },
+        { name: 'Promo Code', path: '/promo-code-management' },
         { name: 'Points', path: '/points' },
         { name: 'FAQ Management', path: '/faq-management' },
-        { name: 'Manage banners on rewards', path: '/manage-banners-rewards' },
-        { name: 'join us control screen', path: '/join-control' },
-        { name: 'Invite a friend', path: '/invite' },
-        { name: 'new partner', path: '/new-partner' },
-        { name: 'block user', path: '/block-user' },
-        { name: 'Arrangement control', path: '/arrangement' },
-        { name: 'product bundling', path: '/bundling' }
+        { name: 'Manage Banners on Rewards', path: '/manage-banners-rewards' },
+        { name: 'Join Us Control Screen', path: '/join-control' },
+        { name: 'Invite a Friend', path: '/invite' },
+        { name: 'New Partner', path: '/new-partner' },
+        { name: 'Arrangement Control', path: '/arrangement' },
+        { name: 'Product Bundling', path: '/bundling' }
       ]
     },
     {
       title: 'App promotional area',
       titleSize: 'text-xl',
       items: [
-        { name: 'Cart abandonment recovery', path: '/cart-recovery' },
-        { name: 'send promo notification', path: '/send-promo-notification' },
-        { name: 'send notification in app', path: '/send-notification-in-app' },
-        { name: 'push notification', path: '/pushnotification' },
+        { name: 'Cart Abandonment Recovery', path: '/cart-recovery' },
+        { name: 'Send Promo Notification', path: '/send-promo-notification' },
+        { name: 'Send Notification In App', path: '/send-notification-in-app' },
+        { name: 'Push Notification', path: '/pushnotification' },
         { name: 'Manage Reviews', path: '/manage-reviews' },
-        { name: 'Invite a friend with promo code', path: '/invite' }
+        { name: 'Invite a Friend with Promo Code', path: '/invite' }
       ]
     },
     {

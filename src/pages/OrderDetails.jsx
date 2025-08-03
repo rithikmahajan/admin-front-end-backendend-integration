@@ -179,11 +179,21 @@ const OrderDetails = () => {
     navigate('/orders');
   }, [navigate]);
 
+  const handleSave = useCallback(() => {
+    // Save order changes (status, notes, etc.)
+    console.log('Saving order changes:', {
+      orderId: orderData.id,
+      status: orderStatus,
+      notes: notes
+    });
+    alert('Order saved successfully!');
+  }, [orderData.id, orderStatus, notes]);
+
   return (
     <div className="bg-gray-50 min-h-screen p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-6">
+        <div className="mb-8">
           <button
             onClick={handleBack}
             className="flex items-center space-x-2 text-gray-600 hover:text-gray-800 mb-4"
@@ -191,7 +201,8 @@ const OrderDetails = () => {
             <ArrowLeft className="h-4 w-4" />
             <span>Back to Orders</span>
           </button>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Order Details</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">order details</h1>
+          <h2 className="text-2xl font-bold text-gray-800">order</h2>
         </div>
 
         {/* Order Details Container */}
@@ -200,8 +211,8 @@ const OrderDetails = () => {
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-6">
-                <span className="text-gray-800 font-medium">Orders ID: #{orderData.id}</span>
-                <div className={`px-3 py-1 rounded-lg text-sm font-semibold ${getStatusColor(orderStatus)}`}>
+                <span className="text-sm font-medium text-gray-900">Orders ID: #{orderData.id}</span>
+                <div className={`px-3 py-2 rounded-lg text-xs font-semibold ${getStatusColor(orderStatus)}`}>
                   {orderStatus}
                 </div>
               </div>
@@ -209,23 +220,23 @@ const OrderDetails = () => {
             
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
-                <Calendar className="h-5 w-5 text-gray-400" />
-                <span className="text-gray-900 font-semibold">{orderData.dateRange}</span>
+                <Calendar className="h-6 w-6 text-gray-400" />
+                <span className="text-base font-semibold text-black">{orderData.dateRange}</span>
               </div>
               
-              <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-5">
                 {/* Status Change Dropdown */}
                 <div className="relative">
                   <button
                     onClick={() => setShowStatusDropdown(!showStatusDropdown)}
-                    className="bg-gray-100 px-4 py-2 rounded-lg flex items-center justify-between w-48 text-sm font-semibold text-gray-800 hover:bg-gray-200"
+                    className="bg-gray-100 px-4 py-3 rounded-lg flex items-center justify-between w-56"
                   >
-                    <span>Change Status</span>
-                    <ChevronDown className="h-4 w-4" />
+                    <span className="text-sm font-semibold text-gray-900">Change Status</span>
+                    <ChevronDown className="h-5 w-5 text-gray-400" />
                   </button>
                   
                   {showStatusDropdown && (
-                    <div className="absolute top-full right-0 mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+                    <div className="absolute top-full right-0 mt-2 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50 w-56">
                       {statusOptions.map((status) => (
                         <button
                           key={status}
@@ -239,39 +250,26 @@ const OrderDetails = () => {
                   )}
                 </div>
                 
-                {/* Action Buttons */}
+                {/* Print Button */}
                 <button
                   onClick={handlePrint}
-                  className="bg-gray-100 p-2 rounded-lg hover:bg-gray-200"
-                  title="Print Order"
+                  className="bg-gray-100 px-4 py-3 rounded-lg flex items-center justify-center"
                 >
-                  <Printer className="h-5 w-5 text-gray-600" />
+                  <Printer className="h-6 w-6 text-gray-600" />
                 </button>
                 
+                {/* Save Button */}
                 <button
-                  onClick={handleDownload}
-                  className="bg-gray-100 p-2 rounded-lg hover:bg-gray-200"
-                  title="Download Order"
+                  onClick={handleSave}
+                  className="bg-gray-100 px-4 py-3 rounded-lg"
                 >
-                  <Download className="h-5 w-5 text-gray-600" />
-                </button>
-                
-                <button
-                  onClick={handleShare}
-                  className="bg-gray-100 p-2 rounded-lg hover:bg-gray-200"
-                  title="Share Order"
-                >
-                  <Share2 className="h-5 w-5 text-gray-600" />
-                </button>
-                
-                <button className="bg-gray-100 px-4 py-2 rounded-lg text-sm font-semibold text-gray-800 hover:bg-gray-200">
-                  Save
+                  <span className="text-sm font-semibold text-gray-900">Save</span>
                 </button>
               </div>
             </div>
           </div>
 
-          {/* Main Content Grid */}
+          {/* Information Cards Row */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Customer Info */}
             <div className="bg-white border border-gray-200 rounded-2xl p-6">
@@ -281,10 +279,10 @@ const OrderDetails = () => {
                 </div>
                 <div className="flex-1">
                   <h3 className="text-xl font-bold text-gray-900 mb-2">Customer</h3>
-                  <div className="space-y-2 text-gray-600">
-                    <p><span className="font-medium">Full Name:</span> {orderData.customer.name}</p>
-                    <p><span className="font-medium">Email:</span> {orderData.customer.email}</p>
-                    <p><span className="font-medium">Phone:</span> {orderData.customer.phone}</p>
+                  <div className="space-y-2 text-base text-gray-600">
+                    <p>Full Name: {orderData.customer.name}</p>
+                    <p>Email: {orderData.customer.email}</p>
+                    <p>Phone: {orderData.customer.phone}</p>
                   </div>
                 </div>
               </div>
@@ -301,10 +299,10 @@ const OrderDetails = () => {
                 </div>
                 <div className="flex-1">
                   <h3 className="text-xl font-bold text-gray-900 mb-2">Order Info</h3>
-                  <div className="space-y-2 text-gray-600 font-semibold">
-                    <p><span className="font-medium">Shipping:</span> {orderData.orderInfo.shipping}</p>
-                    <p><span className="font-medium">Payment Method:</span> {orderData.orderInfo.paymentMethod}</p>
-                    <p><span className="font-medium">Status:</span> {orderData.orderInfo.status}</p>
+                  <div className="space-y-2 text-base text-gray-600 font-semibold">
+                    <p>Shipping: {orderData.orderInfo.shipping}</p>
+                    <p>Payment Method: {orderData.orderInfo.paymentMethod}</p>
+                    <p>Status: {orderData.orderInfo.status}</p>
                   </div>
                 </div>
               </div>
@@ -324,8 +322,8 @@ const OrderDetails = () => {
                 </div>
                 <div className="flex-1">
                   <h3 className="text-xl font-bold text-gray-900 mb-2">Deliver to</h3>
-                  <div className="text-gray-600 font-semibold">
-                    <p><span className="font-medium">Address:</span> {orderData.deliveryAddress}</p>
+                  <div className="text-base text-gray-600 font-semibold">
+                    <p>Address: {orderData.deliveryAddress}</p>
                   </div>
                 </div>
               </div>
@@ -336,50 +334,52 @@ const OrderDetails = () => {
           </div>
 
           {/* Payment Info and Notes Row */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Payment Info */}
             <div className="bg-white border border-gray-200 rounded-2xl p-4">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">Payment info</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">payment info</h3>
               <div className="space-y-2">
                 <div className="flex items-center space-x-2">
-                  <div className="w-9 h-5 bg-red-500 rounded flex items-center justify-center text-white text-xs font-bold">
-                    M
+                  <div className="w-9 h-5 bg-red-600 rounded flex items-center justify-center">
+                    <span className="text-xs text-white font-bold">M</span>
                   </div>
-                  <span className="text-gray-700 font-semibold">{orderData.paymentInfo.cardNumber}</span>
+                  <span className="text-base font-semibold text-gray-700">
+                    {orderData.paymentInfo.cardNumber}
+                  </span>
                 </div>
-                <p className="text-gray-700 font-semibold">
-                  <span className="font-medium">Business name:</span> {orderData.paymentInfo.businessName}
+                <p className="text-base font-semibold text-gray-700">
+                  Business name: {orderData.paymentInfo.businessName}
                 </p>
-                <p className="text-gray-700 font-semibold">
-                  <span className="font-medium">Phone:</span> {orderData.paymentInfo.phone}
+                <p className="text-base font-semibold text-gray-700">
+                  Phone: {orderData.paymentInfo.phone}
                 </p>
               </div>
             </div>
 
-            {/* Notes */}
-            <div className="space-y-2">
-              <h3 className="text-xl font-medium text-gray-900">Note</h3>
-              <div className="bg-white border border-gray-200 rounded-2xl p-4 h-32">
+            {/* Note */}
+            <div className="md:col-span-2">
+              <h3 className="text-xl font-medium text-gray-900 mb-2">Note</h3>
+              <div className="bg-white border border-gray-200 rounded-2xl p-4">
                 <textarea
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="Type some notes"
-                  className="w-full h-full resize-none border-none outline-none text-gray-700"
+                  className="w-full h-20 text-base text-gray-700 placeholder-gray-500 border-none outline-none resize-none"
                 />
               </div>
             </div>
           </div>
 
-          {/* Documents Info */}
+          {/* Documents Info - Positioned separately as in Figma */}
           <div className="bg-white border border-gray-200 rounded-2xl p-6 w-80">
             <div className="flex items-start space-x-4 mb-4">
               <div className="bg-gray-900 p-4 rounded-lg">
                 <FileText className="h-6 w-6 text-white" />
               </div>
               <div className="flex-1">
-                <h3 className="text-xl font-bold text-gray-900 mb-2">Documents submitted</h3>
-                <div className="text-gray-600 font-semibold">
-                  <p className="text-sm text-gray-500 mb-1">Document name</p>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">documents submitted</h3>
+                <div className="text-base text-gray-600 font-semibold">
+                  <p>document name</p>
                   <p>{orderData.documents.name}</p>
                 </div>
               </div>
@@ -392,108 +392,102 @@ const OrderDetails = () => {
 
         {/* Order Items Table */}
         <div className="bg-white rounded-2xl shadow-sm mt-6">
-          <div className="p-6 border-b border-gray-200">
-            <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-gray-900">Order</h2>
+          {/* Table Header */}
+          <div className="px-6 py-4 border-b border-gray-200">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-3xl font-bold text-gray-900">order</h2>
               <div className="flex items-center space-x-2">
                 <button
                   onClick={handlePrint}
                   className="bg-gray-100 p-2 rounded-lg hover:bg-gray-200"
-                  title="Print"
                 >
-                  <Printer className="h-5 w-5 text-gray-600" />
+                  <Printer className="h-6 w-6 text-gray-600" />
                 </button>
-                <button
-                  onClick={handleShare}
-                  className="p-2 hover:bg-gray-100 rounded"
-                  title="Share"
-                >
-                  <Share2 className="h-5 w-5 text-gray-600" />
+                <button className="p-2 hover:bg-gray-100 rounded">
+                  <Share2 className="h-6 w-6 text-gray-600" />
                 </button>
                 <button
                   onClick={handleDownload}
                   className="p-2 hover:bg-gray-100 rounded"
-                  title="Download"
                 >
-                  <Download className="h-5 w-5 text-gray-600" />
+                  <Download className="h-6 w-6 text-gray-600" />
                 </button>
               </div>
             </div>
+            
+            {/* Table Column Headers */}
+            <div className="grid grid-cols-10 gap-4 text-sm font-medium text-gray-600">
+              <div>Image</div>
+              <div>order id</div>
+              <div>date</div>
+              <div>customer name</div>
+              <div>size</div>
+              <div>quantity</div>
+              <div>SKU</div>
+              <div>barcode no.</div>
+              <div>Price</div>
+              <div>sale price</div>
+            </div>
           </div>
 
-          {/* Table */}
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Image</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order ID</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer Name</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Size</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">SKU</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Barcode No.</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sale Price</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {orderData.items.map((item, index) => (
-                  <tr key={index} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="w-16 h-20 bg-gray-200 rounded overflow-hidden">
-                        <img 
-                          src={item.image} 
-                          alt="Product" 
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="text-blue-600 underline font-medium">{item.id}</span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-gray-900 font-medium">{item.date}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-gray-900 font-medium">{item.customerName}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-gray-900 font-medium">{item.size}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-gray-900 font-medium">{item.quantity}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-gray-900 font-medium">{item.sku}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-gray-900 font-medium">{item.barcode}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-gray-900 font-medium">₹{item.price}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-gray-900 font-medium">₹{item.salePrice}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          {/* Table Body */}
+          <div className="p-6">
+            {orderData.items.map((item, index) => (
+              <div key={index} className="grid grid-cols-10 gap-4 items-center py-4 border-b border-gray-100 last:border-b-0">
+                <div>
+                  <img 
+                    src={item.image} 
+                    alt="Product" 
+                    className="w-32 h-36 object-cover rounded-lg bg-gray-100"
+                  />
+                </div>
+                <div>
+                  <span className="text-xl font-medium text-blue-600 underline cursor-pointer">
+                    {item.id}
+                  </span>
+                </div>
+                <div className="text-xl font-medium text-gray-900">{item.date}</div>
+                <div className="text-xl font-medium text-gray-900">{item.customerName}</div>
+                <div className="text-xl font-medium text-gray-900">{item.size}</div>
+                <div className="text-xl font-medium text-gray-900">{item.quantity}</div>
+                <div className="text-xl font-medium text-gray-900">{item.sku}</div>
+                <div className="text-xl font-medium text-gray-900">{item.barcode}</div>
+                <div className="text-xl font-medium text-gray-900">{item.price}</div>
+                <div className="text-xl font-medium text-gray-900">{item.salePrice}</div>
+              </div>
+            ))}
           </div>
 
           {/* Order Summary */}
-          <div className="p-6 border-t border-gray-200">
-            <div className="flex justify-end">
-              <div className="w-64 space-y-2">
-                <div className="flex justify-between text-gray-600 font-bold">
-                  <span>Sub Total</span>
-                  <span>₹{orderData.summary.subTotal}</span>
-                </div>
-                <div className="flex justify-between text-gray-600 font-bold">
-                  <span>Shipping Rate</span>
-                  <span>₹{orderData.summary.shippingRate}</span>
-                </div>
-                <div className="flex justify-between text-gray-600 font-bold">
-                  <span>Promo</span>
-                  <span>₹{orderData.summary.promo}</span>
-                </div>
-                <div className="flex justify-between text-gray-600 font-bold">
-                  <span>Points</span>
-                  <span>₹{orderData.summary.points}</span>
-                </div>
-                <div className="flex justify-between text-gray-900 font-bold text-lg border-t pt-2">
-                  <span>Total</span>
-                  <span>₹{orderData.summary.total}</span>
-                </div>
+          <div className="px-6 pb-6 flex justify-end">
+            <div className="space-y-4">
+              <div className="flex justify-between text-xl font-bold text-gray-600 min-w-[200px]">
+                <span>Sub Total</span>
+                <span className="text-gray-900">{orderData.summary.subTotal}</span>
+              </div>
+              <div className="flex justify-between text-xl font-bold text-gray-600">
+                <span>Shipping Rate</span>
+                <span className="text-gray-900">{orderData.summary.shippingRate}</span>
+              </div>
+              <div className="flex justify-between text-xl font-bold text-gray-600">
+                <span>Promo</span>
+                <span className="text-gray-900">{orderData.summary.promo}</span>
+              </div>
+              <div className="flex justify-between text-xl font-bold text-gray-600">
+                <span>Points</span>
+                <span className="text-gray-900">{orderData.summary.points}</span>
+              </div>
+              <div className="flex justify-between text-xl font-bold text-gray-600 pt-2 border-t border-gray-200">
+                <span>Total</span>
+                <span className="text-gray-900">{orderData.summary.total}</span>
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Footer */}
+        <div className="text-center mt-16 text-sm text-white bg-gray-800 py-4 rounded-lg">
+          © 2025 YORA. All rights reserved.
         </div>
       </div>
     </div>
