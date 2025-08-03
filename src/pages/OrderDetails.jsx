@@ -11,6 +11,7 @@ import {
   FileText,
   ArrowLeft
 } from 'lucide-react';
+import InvoiceTemplate from '../components/InvoiceTemplate';
 
 /**
  * OrderDetails Component
@@ -23,7 +24,7 @@ import {
  * - Customer information display
  * - Order items listing
  * - Payment and delivery information
- * - Action buttons (print, download, share)
+ * - Action buttons (print, download, share) with invoice format
  */
 const OrderDetails = () => {
   const { orderId } = useParams();
@@ -33,6 +34,7 @@ const OrderDetails = () => {
   const [orderStatus, setOrderStatus] = useState('Pending');
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
   const [notes, setNotes] = useState('');
+  const [showInvoice, setShowInvoice] = useState(false);
 
   // Mock order data - in real app, this would be fetched based on orderId
   const orderData = {
@@ -131,49 +133,71 @@ const OrderDetails = () => {
   }, []);
 
   const handleDownload = useCallback(() => {
-    // Generate and download order details as PDF
-    const orderInfo = {
-      orderId: orderData.id,
-      customer: orderData.customer,
-      orderInfo: orderData.orderInfo,
-      deliveryAddress: orderData.deliveryAddress,
-      paymentInfo: orderData.paymentInfo,
-      items: orderData.items,
-      summary: orderData.summary,
-      status: orderStatus,
-      dateRange: orderData.dateRange
-    };
-    
-    // Create a downloadable JSON file (in production, you'd generate a PDF)
-    const jsonData = JSON.stringify(orderInfo, null, 2);
-    const blob = new Blob([jsonData], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `order-${orderData.id}-details.json`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-    
-    console.log('Downloaded order details for:', orderId);
-  }, [orderId, orderData, orderStatus]);
+    // Show invoice template for download
+    setShowInvoice(true);
+  }, []);
 
   const handleShare = useCallback(() => {
-    // Share order details
+    // Generate invoice-formatted share text
+    const invoiceText = `
+🧾 INVOICE - Order #${orderData.id}
+
+📅 Invoice Date: ${new Date().toLocaleDateString('en-GB')}
+📅 Expected Date: ${new Date(Date.now() + 14*24*60*60*1000).toLocaleDateString('en-GB')}
+
+👤 CUSTOMER DETAILS:
+• Full Name: ${orderData.customer.name}
+• Email: ${orderData.customer.email}
+• Phone: ${orderData.customer.phone}
+
+📦 ORDER INFORMATION:
+• Shipping: ${orderData.orderInfo.shipping}
+• Payment Method: ${orderData.orderInfo.paymentMethod}
+• Status: ${orderStatus}
+• Order Date Range: ${orderData.dateRange}
+
+🏠 DELIVERY ADDRESS:
+${orderData.deliveryAddress}
+
+📄 DOCUMENTS SUBMITTED:
+${orderData.documents.name}
+
+🛍️ ORDER ITEMS:
+${orderData.items.map(item => `
+• Order ID: ${item.id}
+  Date: ${item.date}
+  Customer: ${item.customerName}
+  Size: ${item.size}
+  Quantity: ${item.quantity}
+  SKU: ${item.sku}
+  Barcode: ${item.barcode}
+  Price: ₹${item.price}
+  Sale Price: ₹${item.salePrice}
+`).join('')}
+
+💰 ORDER SUMMARY:
+• Sub Total: ₹${orderData.summary.subTotal}
+• Shipping Rate: ₹${orderData.summary.shippingRate}
+• Promo: ₹${orderData.summary.promo}
+• Points: ₹${orderData.summary.points}
+• TOTAL: ₹${orderData.summary.total}
+
+© 2025 YORAA. All rights reserved.
+Thank you for your business!
+    `.trim();
+    
     if (navigator.share) {
       navigator.share({
-        title: `Order #${orderData.id}`,
-        text: `Order details for #${orderData.id}`,
+        title: `Invoice - Order #${orderData.id}`,
+        text: invoiceText,
         url: window.location.href,
-      });
+      }).catch(console.error);
     } else {
-      // Fallback - copy to clipboard
-      navigator.clipboard.writeText(window.location.href);
-      alert('Order link copied to clipboard!');
+      navigator.clipboard.writeText(invoiceText)
+        .then(() => alert('Invoice details copied to clipboard!'))
+        .catch(() => alert('Unable to copy invoice details.'));
     }
-  }, [orderData.id]);
+  }, [orderData, orderStatus]);
 
   const handleBack = useCallback(() => {
     navigate('/orders');
@@ -188,6 +212,17 @@ const OrderDetails = () => {
     });
     alert('Order saved successfully!');
   }, [orderData.id, orderStatus, notes]);
+
+  // Show invoice template when download is clicked
+  if (showInvoice) {
+    return (
+      <InvoiceTemplate 
+        orderData={orderData}
+        orderStatus={orderStatus}
+        onClose={() => setShowInvoice(false)}
+      />
+    );
+  }
 
   return (
     <div className="bg-gray-50 min-h-screen p-6">

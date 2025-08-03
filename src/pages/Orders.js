@@ -22,6 +22,275 @@ import {
 } from 'lucide-react';
 
 /**
+ * InvoiceTemplate Component
+ * 
+ * A professional invoice template based on the Figma design
+ * Used for PDF generation and printing
+ */
+const InvoiceTemplate = React.memo(({ orderData, orderStatus }) => {
+  const currentDate = new Date().toLocaleDateString('en-GB', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric'
+  });
+
+  const expectedDate = new Date();
+  expectedDate.setDate(expectedDate.getDate() + 14);
+  const expectedDateStr = expectedDate.toLocaleDateString('en-GB', {
+    day: '2-digit',
+    month: 'short', 
+    year: 'numeric'
+  });
+
+  return (
+    <div className="bg-white w-full max-w-4xl mx-auto p-8 print:p-6 print:shadow-none shadow-lg font-montserrat">
+      {/* Header Section */}
+      <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center space-x-4">
+          <button className="print:hidden flex items-center space-x-2 text-gray-600 hover:text-gray-800">
+            <ArrowLeft className="h-5 w-5" />
+          </button>
+          <h1 className="text-2xl font-normal text-gray-700">Invoice</h1>
+        </div>
+        
+        <div className="flex items-center space-x-4 print:hidden">
+          <button className="bg-gray-100 p-3 rounded-lg hover:bg-gray-200">
+            <Printer className="h-6 w-6 text-gray-600" />
+          </button>
+          <button className="p-3 hover:bg-gray-100 rounded-lg">
+            <Share2 className="h-6 w-6 text-gray-600" />  
+          </button>
+          <button className="p-3 hover:bg-gray-100 rounded-lg">
+            <Download className="h-6 w-6 text-gray-600" />
+          </button>
+        </div>
+      </div>
+
+      {/* Invoice Details Header */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+        {/* Left Side - Invoice From & To */}
+        <div className="space-y-6">
+          {/* Invoice From */}
+          <div>
+            <h3 className="text-base font-semibold text-gray-700 mb-2">Invoice From :</h3>
+            <div className="space-y-1">
+              <p className="text-base font-bold text-gray-700">Virginia Walker</p>
+              <p className="text-sm font-semibold text-gray-600">9694 Krajcik Locks Suite 635</p>
+            </div>
+          </div>
+
+          {/* Invoice To */}
+          <div>
+            <h3 className="text-base font-semibold text-gray-700 mb-2">Invoice To :</h3>
+          </div>
+        </div>
+
+        {/* Right Side - Dates */}
+        <div className="text-right space-y-2">
+          <p className="text-base font-semibold text-gray-700">Invoice Date : {currentDate}</p>
+          <p className="text-base font-semibold text-gray-700">expected Date : {expectedDateStr}</p>
+        </div>
+      </div>
+
+      {/* Customer Information Section */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8 pb-6 border-b border-gray-200">
+        {/* Billed To */}
+        <div>
+          <h4 className="text-lg font-bold text-gray-800 mb-3">billed to</h4>
+          <div className="space-y-1 text-base text-gray-600">
+            <p>Full Name: {orderData.customer.name}</p>
+            <p>Email: {orderData.customer.email}</p>
+            <p>Phone: {orderData.customer.phone}</p>
+          </div>
+        </div>
+
+        {/* Deliver To */}
+        <div>
+          <h4 className="text-lg font-bold text-gray-800 mb-3">Deliver to</h4>
+          <div className="text-base font-semibold text-gray-600">
+            <p>Address: {orderData.deliveryAddress}</p>
+          </div>
+        </div>
+
+        {/* Order Info */}
+        <div>
+          <h4 className="text-lg font-bold text-gray-800 mb-3">Order Info</h4>
+          <div className="space-y-1 text-base font-semibold text-gray-600">
+            <p>Shipping: {orderData.orderInfo.shipping}</p>
+            <p>Payment Method: {orderData.orderInfo.paymentMethod}</p>
+            <p>Status: {orderStatus}</p>
+          </div>
+        </div>
+
+        {/* Documents Submitted */}
+        <div>
+          <h4 className="text-lg font-bold text-gray-800 mb-3">documents submitted</h4>
+          <div className="space-y-1 text-base text-gray-600">
+            <p>document name</p>
+            <p>{orderData.documents.name}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Order Items Table */}
+      <div className="mb-8">
+        {/* Table Header */}
+        <div className="grid grid-cols-9 gap-4 py-4 border-b border-gray-200 text-sm font-bold text-gray-800">
+          <div>order id</div>
+          <div>date</div>
+          <div className="text-center">customer name</div>
+          <div>size</div>
+          <div>quantity</div>
+          <div>SKU</div>
+          <div>barcode no.</div>
+          <div>Price</div>
+          <div>sale price</div>
+        </div>
+
+        {/* Table Rows */}
+        {orderData.items.map((item, index) => (
+          <div key={index} className="grid grid-cols-9 gap-4 py-4 border-b border-gray-100 text-lg font-medium">
+            <div className="text-blue-600 underline">{item.id}</div>
+            <div className="text-gray-900">{item.date}</div>
+            <div className="text-gray-900 text-center">{item.customerName}</div>
+            <div className="text-gray-900">{item.size}</div>
+            <div className="text-gray-900">{item.quantity}</div>
+            <div className="text-gray-900">{item.sku}</div>
+            <div className="text-gray-900">{item.barcode}</div>
+            <div className="text-gray-900">{item.price}</div>
+            <div className="text-gray-900">{item.salePrice}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Order Summary */}
+      <div className="flex justify-end mb-8">
+        <div className="space-y-3">
+          <div className="flex justify-between text-lg font-bold text-gray-600 min-w-[300px]">
+            <span>Sub Total</span>
+            <span className="text-gray-900">{orderData.summary.subTotal}</span>
+          </div>
+          <div className="flex justify-between text-lg font-bold text-gray-600">
+            <span>Shipping Rate</span>
+            <span className="text-gray-900">{orderData.summary.shippingRate}</span>
+          </div>
+          <div className="flex justify-between text-lg font-bold text-gray-600">
+            <span>Promo</span>
+            <span className="text-gray-900">{orderData.summary.promo}</span>
+          </div>
+          <div className="flex justify-between text-lg font-bold text-gray-600">
+            <span>Points</span>
+            <span className="text-gray-900">{orderData.summary.points}</span>
+          </div>
+          <div className="flex justify-between text-lg font-bold text-gray-600 pt-3 border-t border-gray-200">
+            <span>Total</span>
+            <span className="text-gray-900">{orderData.summary.total}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Footer */}
+      <div className="text-center text-sm text-gray-500 mt-8 pt-6 border-t border-gray-200">
+        <p>© 2025 YORAA. All rights reserved.</p>
+        <p className="mt-1">Thank you for your business!</p>
+      </div>
+    </div>
+  );
+});
+
+/**
+ * DocumentViewer Component
+ * 
+ * Displays uploaded documents (front and reverse side of ID) based on the Figma design.
+ * Shows document viewer screen with upload status and document images.
+ */
+const DocumentViewer = React.memo(({ orderId, onBack }) => {
+  return (
+    <div className="bg-white min-h-screen">
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-6 py-12">
+        {/* Back Button */}
+        <div className="mb-8">
+          <button
+            onClick={onBack}
+            className="flex items-center space-x-2 text-gray-600 hover:text-gray-800 transition-colors"
+          >
+            <ArrowLeft className="h-5 w-5" />
+            <span>Back to Order Details</span>
+          </button>
+        </div>
+
+        {/* Document Title with Info Icon */}
+        <div className="text-center mb-12">
+          <div className="inline-flex items-center justify-center w-6 h-6 bg-gray-800 text-white rounded-full text-xs font-bold mb-3">
+            i
+          </div>
+          <h2 className="text-sm font-medium text-gray-900">Uploaded Indian Resident ID</h2>
+        </div>
+
+        {/* Upload Status Indicators */}
+        <div className="flex justify-between items-start mb-8 max-w-5xl mx-auto px-4">
+          {/* Front Side Upload Status */}
+          <div className="flex flex-col items-start space-y-2">
+            <div className="bg-white border border-gray-300 rounded-full px-4 py-2 shadow-sm">
+              <span className="text-sm text-gray-600 font-normal">Uploaded front side</span>
+            </div>
+            <p className="text-xs text-gray-500 pl-4">Only .jpg and .jpeg files are allowed.</p>
+          </div>
+
+          {/* Reverse Side Upload Status */}
+          <div className="flex flex-col items-start space-y-2">
+            <div className="bg-white border border-gray-300 rounded-full px-4 py-2 shadow-sm">
+              <span className="text-sm text-gray-600 font-normal">Uploaded reverse side</span>
+            </div>
+            <p className="text-xs text-gray-500 pl-4">Only .jpg and .jpeg files are allowed.</p>
+          </div>
+        </div>
+
+        {/* Document Images Container - Main dashed border container */}
+        <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 max-w-6xl mx-auto min-h-[400px]">
+          <div className="grid grid-cols-2 gap-12 h-full">
+            {/* Front Side Document Placeholder */}
+            <div className="flex items-center justify-center">
+              <div className="text-center">
+                <div className="w-20 h-20 mx-auto mb-6 border-4 border-blue-800 rounded-lg flex items-center justify-center bg-white">
+                  {/* Document icon similar to Figma design */}
+                  <div className="relative">
+                    <div className="w-8 h-10 border-2 border-blue-800 rounded-sm bg-white relative">
+                      <div className="absolute top-2 left-1 right-1 h-0.5 bg-blue-800 rounded"></div>
+                      <div className="absolute top-4 left-1 right-1 h-0.5 bg-blue-800 rounded"></div>
+                      <div className="absolute top-6 left-1 right-1 h-0.5 bg-blue-800 rounded"></div>
+                      <div className="absolute bottom-2 left-2 w-1 h-1 bg-blue-800 rounded-full"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Reverse Side Document Placeholder */}
+            <div className="flex items-center justify-center">
+              <div className="text-center">
+                <div className="w-20 h-20 mx-auto mb-6 border-4 border-blue-800 rounded-lg flex items-center justify-center bg-white">
+                  {/* Document icon similar to Figma design */}
+                  <div className="relative">
+                    <div className="w-8 h-10 border-2 border-blue-800 rounded-sm bg-white relative">
+                      <div className="absolute top-2 left-1 right-1 h-0.5 bg-blue-800 rounded"></div>
+                      <div className="absolute top-4 left-1 right-1 h-0.5 bg-blue-800 rounded"></div>
+                      <div className="absolute top-6 left-1 right-1 h-0.5 bg-blue-800 rounded"></div>
+                      <div className="absolute bottom-2 left-2 w-1 h-1 bg-blue-800 rounded-full"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+});
+
+/**
  * OrderDetails Component
  * 
  * Displays comprehensive order information including customer details,
@@ -39,6 +308,7 @@ const OrderDetails = React.memo(({ orderId, onBack }) => {
   const [orderStatus, setOrderStatus] = useState('Pending');
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
   const [notes, setNotes] = useState('');
+  const [showDocumentViewer, setShowDocumentViewer] = useState(false);
 
   // Mock order data - in real app, this would be fetched based on orderId
   const orderData = {
@@ -137,49 +407,269 @@ const OrderDetails = React.memo(({ orderId, onBack }) => {
   }, []);
 
   const handleDownload = useCallback(() => {
-    // Generate and download order details as PDF
-    const orderInfo = {
-      orderId: orderData.id,
-      customer: orderData.customer,
-      orderInfo: orderData.orderInfo,
-      deliveryAddress: orderData.deliveryAddress,
-      paymentInfo: orderData.paymentInfo,
-      items: orderData.items,
-      summary: orderData.summary,
-      status: orderStatus,
-      dateRange: orderData.dateRange
-    };
-    
-    // Create a downloadable JSON file (in production, you'd generate a PDF)
-    const jsonData = JSON.stringify(orderInfo, null, 2);
-    const blob = new Blob([jsonData], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `order-${orderData.id}-details.json`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-    
-    console.log('Downloaded order details for:', orderId);
+    try {
+      // Generate invoice data for PDF
+      const invoiceData = {
+        customer: {
+          name: orderData.customer.name,
+          email: orderData.customer.email,
+          phone: orderData.customer.phone
+        },
+        deliveryAddress: orderData.deliveryAddress || "123 Main Street, City, State 12345",
+        orderInfo: {
+          shipping: orderData.orderInfo.shipping,
+          paymentMethod: orderData.orderInfo.paymentMethod,
+        },
+        documents: {
+          name: orderData.documents.name
+        },
+        items: orderData.items.map(item => ({
+          id: item.id,
+          date: item.date,
+          customerName: item.customerName,
+          size: item.size,
+          quantity: item.quantity,
+          sku: item.sku,
+          barcode: item.barcode,
+          price: `₹${item.price}`,
+          salePrice: `₹${item.salePrice}`
+        })),
+        summary: {
+          subTotal: `₹${orderData.summary.subTotal}`,
+          shippingRate: `₹${orderData.summary.shippingRate}`,
+          promo: `₹${orderData.summary.promo}`,
+          points: `₹${orderData.summary.points}`,
+          total: `₹${orderData.summary.total}`
+        }
+      };
+      
+      // Create a temporary container for the invoice
+      const tempDiv = document.createElement('div');
+      tempDiv.style.position = 'absolute';
+      tempDiv.style.left = '-9999px';
+      tempDiv.style.top = '-9999px';
+      tempDiv.style.width = '210mm'; // A4 width
+      tempDiv.style.height = '297mm'; // A4 height
+      tempDiv.style.backgroundColor = 'white';
+      
+      // Render the invoice component (simplified version for PDF)
+      tempDiv.innerHTML = `
+        <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 40px; color: #374151;">
+          <h1 style="font-size: 24px; margin-bottom: 32px; color: #374151;">Invoice</h1>
+          
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-bottom: 32px;">
+            <div>
+              <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 8px;">Invoice From:</h3>
+              <p style="font-weight: bold; margin: 0;">Virginia Walker</p>
+              <p style="font-size: 14px; color: #6B7280; margin: 0;">9694 Krajcik Locks Suite 635</p>
+            </div>
+            <div style="text-align: right;">
+              <p style="font-weight: 600; margin: 4px 0;">Invoice Date: ${new Date().toLocaleDateString('en-GB')}</p>
+              <p style="font-weight: 600; margin: 4px 0;">Expected Date: ${new Date(Date.now() + 14*24*60*60*1000).toLocaleDateString('en-GB')}</p>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin-bottom: 32px; padding-bottom: 24px; border-bottom: 1px solid #E5E7EB;">
+            <div>
+              <h4 style="font-size: 18px; font-weight: bold; margin-bottom: 12px;">Billed To</h4>
+              <p style="margin: 4px 0;">Full Name: ${invoiceData.customer.name}</p>
+              <p style="margin: 4px 0;">Email: ${invoiceData.customer.email}</p>
+              <p style="margin: 4px 0;">Phone: ${invoiceData.customer.phone}</p>
+            </div>
+            <div>
+              <h4 style="font-size: 18px; font-weight: bold; margin-bottom: 12px;">Deliver To</h4>
+              <p style="margin: 4px 0;">Address: ${invoiceData.deliveryAddress}</p>
+            </div>
+            <div>
+              <h4 style="font-size: 18px; font-weight: bold; margin-bottom: 12px;">Order Info</h4>
+              <p style="margin: 4px 0;">Shipping: ${invoiceData.orderInfo.shipping}</p>
+              <p style="margin: 4px 0;">Payment: ${invoiceData.orderInfo.paymentMethod}</p>
+              <p style="margin: 4px 0;">Status: ${orderStatus}</p>
+            </div>
+            <div>
+              <h4 style="font-size: 18px; font-weight: bold; margin-bottom: 12px;">Documents</h4>
+              <p style="margin: 4px 0;">${invoiceData.documents.name}</p>
+            </div>
+          </div>
+
+          <table style="width: 100%; border-collapse: collapse; margin-bottom: 32px;">
+            <thead>
+              <tr style="border-bottom: 1px solid #E5E7EB;">
+                <th style="padding: 16px 8px; text-align: left; font-size: 14px; font-weight: bold;">Order ID</th>
+                <th style="padding: 16px 8px; text-align: left; font-size: 14px; font-weight: bold;">Date</th>
+                <th style="padding: 16px 8px; text-align: left; font-size: 14px; font-weight: bold;">Customer</th>
+                <th style="padding: 16px 8px; text-align: left; font-size: 14px; font-weight: bold;">Size</th>
+                <th style="padding: 16px 8px; text-align: left; font-size: 14px; font-weight: bold;">Quantity</th>
+                <th style="padding: 16px 8px; text-align: left; font-size: 14px; font-weight: bold;">SKU</th>
+                <th style="padding: 16px 8px; text-align: left; font-size: 14px; font-weight: bold;">Barcode</th>
+                <th style="padding: 16px 8px; text-align: left; font-size: 14px; font-weight: bold;">Price</th>
+                <th style="padding: 16px 8px; text-align: left; font-size: 14px; font-weight: bold;">Sale Price</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${invoiceData.items.map(item => `
+                <tr style="border-bottom: 1px solid #F3F4F6;">
+                  <td style="padding: 16px 8px; color: #2563EB; text-decoration: underline;">${item.id}</td>
+                  <td style="padding: 16px 8px;">${item.date}</td>
+                  <td style="padding: 16px 8px;">${item.customerName}</td>
+                  <td style="padding: 16px 8px;">${item.size}</td>
+                  <td style="padding: 16px 8px;">${item.quantity}</td>
+                  <td style="padding: 16px 8px;">${item.sku}</td>
+                  <td style="padding: 16px 8px;">${item.barcode}</td>
+                  <td style="padding: 16px 8px;">${item.price}</td>
+                  <td style="padding: 16px 8px;">${item.salePrice}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+
+          <div style="text-align: right; margin-bottom: 32px;">
+            <div style="display: inline-block; text-align: left;">
+              <div style="display: flex; justify-content: space-between; margin-bottom: 12px; min-width: 300px;">
+                <span style="font-weight: bold;">Sub Total</span>
+                <span>${invoiceData.summary.subTotal}</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                <span style="font-weight: bold;">Shipping Rate</span>
+                <span>${invoiceData.summary.shippingRate}</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                <span style="font-weight: bold;">Promo</span>
+                <span>${invoiceData.summary.promo}</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                <span style="font-weight: bold;">Points</span>
+                <span>${invoiceData.summary.points}</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; padding-top: 12px; border-top: 1px solid #E5E7EB;">
+                <span style="font-weight: bold;">Total</span>
+                <span style="font-weight: bold;">${invoiceData.summary.total}</span>
+              </div>
+            </div>
+          </div>
+
+          <div style="text-align: center; font-size: 12px; color: #6B7280; margin-top: 32px; padding-top: 24px; border-top: 1px solid #E5E7EB;">
+            <p>© 2025 YORAA. All rights reserved.</p>
+            <p style="margin-top: 4px;">Thank you for your business!</p>
+          </div>
+        </div>
+      `;
+      
+      document.body.appendChild(tempDiv);
+      
+      // Use browser's print functionality to save as PDF
+      const originalContents = document.body.innerHTML;
+      document.body.innerHTML = tempDiv.innerHTML;
+      
+      // Add print styles
+      const printStyles = document.createElement('style');
+      printStyles.textContent = `
+        @media print {
+          @page { size: A4; margin: 0.5in; }
+          body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important; }
+          * { -webkit-print-color-adjust: exact !important; color-adjust: exact !important; }
+        }
+      `;
+      document.head.appendChild(printStyles);
+      
+      window.print();
+      
+      // Restore original content
+      document.body.innerHTML = originalContents;
+      document.head.removeChild(printStyles);
+      
+    } catch (error) {
+      console.error('Error generating invoice:', error);
+      // Fallback to JSON download
+      const orderInfo = {
+        orderId: orderData.id,
+        customer: orderData.customer,
+        orderInfo: orderData.orderInfo,
+        deliveryAddress: orderData.deliveryAddress,
+        paymentInfo: orderData.paymentInfo,
+        items: orderData.items,
+        summary: orderData.summary,
+        status: orderStatus,
+        dateRange: orderData.dateRange
+      };
+      
+      const jsonData = JSON.stringify(orderInfo, null, 2);
+      const blob = new Blob([jsonData], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `order-${orderData.id}-details.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }
   }, [orderId, orderData, orderStatus]);
 
   const handleShare = useCallback(() => {
-    // Share order details
+    // Generate invoice-formatted share text
+    const invoiceText = `
+🧾 INVOICE - Order #${orderData.id}
+
+📅 Invoice Date: ${new Date().toLocaleDateString('en-GB')}
+📅 Expected Date: ${new Date(Date.now() + 14*24*60*60*1000).toLocaleDateString('en-GB')}
+
+👤 CUSTOMER DETAILS:
+• Full Name: ${orderData.customer.name}
+• Email: ${orderData.customer.email}
+• Phone: ${orderData.customer.phone}
+
+📦 ORDER INFORMATION:
+• Shipping: ${orderData.orderInfo.shipping}
+• Payment Method: ${orderData.orderInfo.paymentMethod}
+• Status: ${orderStatus}
+• Order Date Range: ${orderData.dateRange}
+
+🏠 DELIVERY ADDRESS:
+${orderData.deliveryAddress}
+
+📄 DOCUMENTS SUBMITTED:
+${orderData.documents.name}
+
+🛍️ ORDER ITEMS:
+${orderData.items.map(item => `
+• Order ID: ${item.id}
+  Date: ${item.date}
+  Customer: ${item.customerName}
+  Size: ${item.size}
+  Quantity: ${item.quantity}
+  SKU: ${item.sku}
+  Barcode: ${item.barcode}
+  Price: ₹${item.price}
+  Sale Price: ₹${item.salePrice}
+`).join('')}
+
+💰 ORDER SUMMARY:
+• Sub Total: ₹${orderData.summary.subTotal}
+• Shipping Rate: ₹${orderData.summary.shippingRate}
+• Promo: ₹${orderData.summary.promo}
+• Points: ₹${orderData.summary.points}
+• TOTAL: ₹${orderData.summary.total}
+
+© 2025 YORAA. All rights reserved.
+Thank you for your business!
+    `.trim();
+    
+    // Share order invoice details
     if (navigator.share) {
       navigator.share({
-        title: `Order #${orderData.id}`,
-        text: `Order details for #${orderData.id}`,
+        title: `Invoice - Order #${orderData.id}`,
+        text: invoiceText,
         url: window.location.href,
-      });
+      }).catch(console.error);
     } else {
       // Fallback - copy to clipboard
-      navigator.clipboard.writeText(window.location.href);
-      alert('Order link copied to clipboard!');
+      navigator.clipboard.writeText(invoiceText)
+        .then(() => alert('Invoice details copied to clipboard!'))
+        .catch(() => alert('Unable to copy invoice details.'));
     }
-  }, [orderData.id]);
+  }, [orderData, orderStatus]);
 
   const handleSave = useCallback(() => {
     // Save order changes (status, notes, etc.)
@@ -190,6 +680,20 @@ const OrderDetails = React.memo(({ orderId, onBack }) => {
     });
     alert('Order saved successfully!');
   }, [orderData.id, orderStatus, notes]);
+
+  const handleViewDocuments = useCallback(() => {
+    setShowDocumentViewer(true);
+  }, []);
+
+  // If showing document viewer, render the DocumentViewer component
+  if (showDocumentViewer) {
+    return (
+      <DocumentViewer 
+        orderId={orderId}
+        onBack={() => setShowDocumentViewer(false)}
+      />
+    );
+  }
 
   return (
     <div className="bg-gray-50 min-h-screen p-4">
@@ -272,7 +776,7 @@ const OrderDetails = React.memo(({ orderId, onBack }) => {
           </div>
 
           {/* Information Cards Row */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             {/* Customer Info */}
             <div className="bg-white border border-gray-200 rounded-2xl p-6">
               <div className="flex items-start space-x-4 mb-4">
@@ -333,6 +837,28 @@ const OrderDetails = React.memo(({ orderId, onBack }) => {
                 View profile
               </button>
             </div>
+
+            {/* Documents Info */}
+            <div className="bg-white border border-gray-200 rounded-2xl p-6">
+              <div className="flex items-start space-x-4 mb-4">
+                <div className="bg-gray-900 p-4 rounded-lg">
+                  <FileText className="h-6 w-6 text-white" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">documents submitted</h3>
+                  <div className="text-base text-gray-600 font-semibold">
+                    <p>document name</p>
+                    <p>{orderData.documents.name}</p>
+                  </div>
+                </div>
+              </div>
+              <button 
+                onClick={handleViewDocuments}
+                className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg text-sm font-medium hover:bg-blue-700"
+              >
+                View documents
+              </button>
+            </div>
           </div>
 
           {/* Payment Info and Notes Row */}
@@ -370,25 +896,6 @@ const OrderDetails = React.memo(({ orderId, onBack }) => {
                 />
               </div>
             </div>
-          </div>
-
-          {/* Documents Info - Positioned separately as in Figma */}
-          <div className="bg-white border border-gray-200 rounded-2xl p-6 w-80">
-            <div className="flex items-start space-x-4 mb-4">
-              <div className="bg-gray-900 p-4 rounded-lg">
-                <FileText className="h-6 w-6 text-white" />
-              </div>
-              <div className="flex-1">
-                <h3 className="text-xl font-bold text-gray-900 mb-2">documents submitted</h3>
-                <div className="text-base text-gray-600 font-semibold">
-                  <p>document name</p>
-                  <p>{orderData.documents.name}</p>
-                </div>
-              </div>
-            </div>
-            <button className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg text-sm font-medium hover:bg-blue-700">
-              View documents
-            </button>
           </div>
         </div>
 
@@ -488,11 +995,6 @@ const OrderDetails = React.memo(({ orderId, onBack }) => {
               </div>
             </div>
           </div>
-        </div>
-
-        {/* Footer */}
-        <div className="text-center mt-16 text-sm text-white bg-gray-800 py-4 rounded-lg">
-          © 2025 YORA. All rights reserved.
         </div>
       </div>
     </div>
@@ -891,17 +1393,8 @@ const Orders = React.memo(() => {
   // New state for tab management
   const [activeTab, setActiveTab] = useState('orders');
 
-  // Tab handler
-  const handleTabChange = useCallback((tab) => {
-    setActiveTab(tab);
-  }, []);
-
-  /**
-   * Enhanced sample order data with additional fields for vendor allotment,
-   * courier management, and delivery status tracking
-   * Memoized to prevent unnecessary re-creation on each render
-   */
-  const orders = useMemo(() => [
+  // State for managing orders data
+  const [orders, setOrders] = useState(() => [
     {
       orderId: '1234567892220',
       paymentStatus: 'Pending',
@@ -1037,7 +1530,12 @@ const Orders = React.memo(() => {
       deliveryStatus: 'Out for Delivery',
       lastUpdated: new Date().toISOString()
     }
-  ], []); // Empty dependency array since this is static data
+  ]); // Initial state data for orders
+
+  // Tab handler
+  const handleTabChange = useCallback((tab) => {
+    setActiveTab(tab);
+  }, []);
 
   /**
    * Sample return requests data
@@ -1261,6 +1759,45 @@ const Orders = React.memo(() => {
     setSelectedReturnId(returnId);
     setShowReturnWindow(true);
   }, []);
+
+  /**
+   * Order status handlers for accept/reject functionality
+   */
+  const handleAcceptOrder = useCallback((orderId) => {
+    // Update order status to 'processing' when accepted
+    console.log(`Accepting order ${orderId}`);
+    
+    setOrders(prevOrders => 
+      prevOrders.map(order => 
+        order.orderId === orderId 
+          ? { ...order, status: 'processing' }
+          : order
+      )
+    );
+    
+    alert(`Order ${orderId} has been accepted and status changed to Processing`);
+  }, []);
+
+  const handleRejectOrder = useCallback((orderId) => {
+    // Update order status to 'rejected' when rejected
+    console.log(`Rejecting order ${orderId}`);
+    
+    // Show confirmation dialog
+    const confirmReject = window.confirm(`Are you sure you want to reject order ${orderId}?`);
+    
+    if (confirmReject) {
+      setOrders(prevOrders => 
+        prevOrders.map(order => 
+          order.orderId === orderId 
+            ? { ...order, status: 'rejected' }
+            : order
+        )
+      );
+      
+      alert(`Order ${orderId} has been rejected`);
+    }
+  }, []);
+
   /**
    * Date range handlers
    */
@@ -1414,6 +1951,93 @@ const Orders = React.memo(() => {
     });
   }, [orders, returnRequests, activeTab, orderStatus, orderType, filterBy]);
 
+  /**
+   * Print handler for order list - defined after filteredOrders to avoid initialization error
+   */
+  const handlePrintOrderList = useCallback(() => {
+    // Create a formatted table for printing
+    const currentData = activeTab === 'orders' ? filteredOrders : filteredOrders;
+    const title = activeTab === 'orders' ? 'Orders List' : 'Return Requests';
+    
+    const printContent = `
+      <html>
+        <head>
+          <title>${title}</title>
+          <style>
+            body { font-family: Arial, sans-serif; margin: 20px; }
+            .header { text-align: center; margin-bottom: 30px; }
+            .header h1 { color: #333; margin-bottom: 10px; }
+            .date-range { color: #666; font-size: 14px; }
+            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+            th, td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 12px; }
+            th { background-color: #f5f5f5; font-weight: bold; }
+            .status { padding: 4px 8px; border-radius: 12px; font-size: 10px; font-weight: bold; }
+            .status-accepted { background-color: #dcfce7; color: #166534; }
+            .status-processing { background-color: #dbeafe; color: #1e40af; }
+            .status-rejected { background-color: #fee2e2; color: #dc2626; }
+            .status-pending { background-color: #fef3c7; color: #d97706; }
+            @media print {
+              body { margin: 0; }
+              .no-print { display: none; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>${title}</h1>
+            <div class="date-range">Date Range: ${selectedStartDate} - ${selectedEndDate}</div>
+            <div class="date-range">Generated on: ${new Date().toLocaleDateString()}</div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>${activeTab === 'returns' ? 'Return ID' : 'Order ID'}</th>
+                <th>Product Name</th>
+                <th>Customer</th>
+                <th>Date</th>
+                <th>Quantity</th>
+                <th>Price</th>
+                <th>Sale Price</th>
+                <th>Status</th>
+                <th>Payment Status</th>
+                <th>Delivery Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${currentData.map(order => `
+                <tr>
+                  <td>${order.orderId}</td>
+                  <td>${order.productName}</td>
+                  <td>${order.name}</td>
+                  <td>${order.date}</td>
+                  <td>${order.quantity}</td>
+                  <td>₹${order.price}</td>
+                  <td>₹${order.salePrice}</td>
+                  <td><span class="status status-${order.status.toLowerCase().replace(/\s+/g, '-')}">${order.status}</span></td>
+                  <td>${order.paymentStatus}</td>
+                  <td>${order.deliveryStatus}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </body>
+      </html>
+    `;
+
+    // Open new window for printing
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(printContent);
+      printWindow.document.close();
+      printWindow.focus();
+      printWindow.print();
+      printWindow.close();
+    } else {
+      // Fallback - show alert if popup blocked
+      alert('Please allow popups to print the order list');
+    }
+  }, [activeTab, filteredOrders, selectedStartDate, selectedEndDate]);
+
   // If showing order details, render the OrderDetails component
   if (showOrderDetails && selectedOrderId) {
     return <OrderDetails orderId={selectedOrderId} onBack={() => setShowOrderDetails(false)} />;
@@ -1454,9 +2078,7 @@ const Orders = React.memo(() => {
       {/* Header Section - Title and date in one line */}
       <div className="flex justify-between items-center mb-6">
         <div className="flex items-center space-x-3">
-          <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded">
-            <Printer className="h-4 w-4" />
-          </button>
+          {/* Removed print icon from here - moved to filter section */}
         </div>
         <div className="relative">
           <button 
@@ -1680,6 +2302,16 @@ const Orders = React.memo(() => {
               </div>
             )}
           </div>
+
+          {/* Print Button - Next to Order Status */}
+          <button
+            onClick={handlePrintOrderList}
+            className="p-2 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-lg border border-gray-300 bg-white transition-colors"
+            aria-label="Print order list"
+            title="Print Order List"
+          >
+            <Printer className="h-4 w-4" />
+          </button>
         </div>
 
         {/* Reset Filter Button */}
@@ -1740,6 +2372,8 @@ const Orders = React.memo(() => {
                 onVendorSelection={handleVendorSelection}
                 onCourierAllotment={handleCourierAllotment}
                 onBarcodeScanning={handleBarcodeScanning}
+                onAcceptOrder={handleAcceptOrder}
+                onRejectOrder={handleRejectOrder}
                 showVendorDropdown={showVendorDropdown}
                 setShowVendorDropdown={setShowVendorDropdown}
                 selectedVendors={selectedVendors}
@@ -1752,18 +2386,6 @@ const Orders = React.memo(() => {
             ))}
           </tbody>
         </table>
-      </div>
-
-      {/* Footer Status */}
-      <div className="mt-8 flex justify-center">
-        <span className="inline-block px-6 py-2 bg-red-100 text-red-700 text-sm font-medium rounded-md">
-          Rejected
-        </span>
-      </div>
-
-      {/* Footer Date */}
-      <div className="mt-6 text-center text-sm text-gray-500">
-        Deal on 10/JUN/2020
       </div>
       </div>
     </div>
@@ -1800,6 +2422,8 @@ const OrderRow = React.memo(({
   onVendorSelection,
   onCourierAllotment,
   onBarcodeScanning,
+  onAcceptOrder,
+  onRejectOrder,
   showVendorDropdown,
   setShowVendorDropdown,
   selectedVendors,
@@ -1881,6 +2505,14 @@ const OrderRow = React.memo(({
   const handleCourierAllot = useCallback((allot) => {
     onCourierAllotment(order.orderId, allot);
   }, [order.orderId, onCourierAllotment]);
+
+  const handleAccept = useCallback(() => {
+    onAcceptOrder(order.orderId);
+  }, [order.orderId, onAcceptOrder]);
+
+  const handleReject = useCallback(() => {
+    onRejectOrder(order.orderId);
+  }, [order.orderId, onRejectOrder]);
 
   // Get current states
   const isVendorAllotted = selectedVendors[order.orderId];
@@ -1972,9 +2604,26 @@ const OrderRow = React.memo(({
 
       {/* Status */}
       <td className="py-4 px-2">
-        <span className={`inline-block px-3 py-1 text-xs font-medium rounded-full ${getStatusColor(order.status)}`}>
-          {order.status}
-        </span>
+        {order.status.toLowerCase() === 'pending' ? (
+          <div className="flex flex-col space-y-2">
+            <button
+              onClick={handleAccept}
+              className="px-3 py-1 text-xs font-medium rounded-full bg-green-500 text-white hover:bg-green-600 transition-colors"
+            >
+              Accept
+            </button>
+            <button
+              onClick={handleReject}
+              className="px-3 py-1 text-xs font-medium rounded-full bg-red-500 text-white hover:bg-red-600 transition-colors"
+            >
+              Reject
+            </button>
+          </div>
+        ) : (
+          <span className={`inline-block px-3 py-1 text-xs font-medium rounded-full ${getStatusColor(order.status)}`}>
+            {order.status}
+          </span>
+        )}
       </td>
 
       {/* Vendor Allotment or Return to Vendor */}
@@ -2154,6 +2803,7 @@ const OrderRow = React.memo(({
 });
 
 // Set display names for debugging
+DocumentViewer.displayName = 'DocumentViewer';
 ReturnWindowScreen.displayName = 'ReturnWindowScreen';
 OrderDetails.displayName = 'OrderDetails';
 Orders.displayName = 'Orders';
