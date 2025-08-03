@@ -4,33 +4,64 @@ import { useNavigate } from 'react-router-dom';
 import { DEFAULT_VARIANT, DEFAULT_PRODUCT_DATA, validateImageFile } from '../constants';
 import UploadProgressLoader from '../components/UploadProgressLoader';
 
+// Constants for better maintainability
+const NOTIFICATION_TYPES = {
+  WARNING: 'warning',
+  INFO: 'info',
+  ERROR: 'error',
+  SUCCESS: 'success'
+};
+
+const STOCK_SIZE_OPTIONS = {
+  NO_SIZE: 'noSize',
+  SIZES: 'sizes',
+  IMPORT: 'import'
+};
+
+const UPLOAD_CONSTANTS = {
+  MAX_FILE_SIZE_MB: 100,
+  MAX_IMAGE_SIZE_MB: 10,
+  INITIAL_IMAGE_SLOTS: 5,
+  MIN_IMAGES_BEFORE_SLOT_ADD: 4,
+  UPLOAD_SIMULATION_INTERVAL: 200,
+  UPLOAD_SIMULATION_DURATION: 2500,
+  FAILURE_SIMULATION_RATE: 0.1
+};
+
 /**
  * SingleProductUpload Component
  * 
  * Comprehensive product upload form providing:
- * - Multi-variant product creation
- * - Image upload for products and variants
- * - Size chart management
+ * - Multi-variant product creation with nested options
+ * - Image/video upload with progress tracking
+ * - Size chart management (common and variant-specific)
  * - Category and subcategory selection
  * - Price and inventory management
- * - SEO metadata fields
- * - Confirmation modal for publishing
+ * - Dynamic "Also Show In" options with permanent storage
+ * - Excel import functionality
+ * - Real-time validation and notifications
  * 
  * Performance Optimizations:
  * - useCallback for all event handlers to prevent re-renders
  * - useMemo for computed values
  * - Efficient state management with proper updates
  * - Lazy loading for images
- * - Debounced input handling (TODO: implement for search)
+ * - Optimized file validation and upload simulation
  */
 
 const SingleProductUpload = React.memo(() => {
   const navigate = useNavigate();
   
-  // Main product data state - core product information
+  // ==============================
+  // CORE PRODUCT DATA STATE
+  // ==============================
   const [productData, setProductData] = useState(DEFAULT_PRODUCT_DATA);
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [selectedSubCategory, setSelectedSubCategory] = useState('');
 
-  // Variants state - handles multiple product variations
+  // ==============================
+  // VARIANTS AND MEDIA STATE
+  // ==============================
   const [variants, setVariants] = useState([
     {
       ...DEFAULT_VARIANT,
@@ -38,22 +69,25 @@ const SingleProductUpload = React.memo(() => {
       name: 'Variant 1',
       images: [],
       videos: [],
-      maxImageSlots: 5,
+      maxImageSlots: UPLOAD_CONSTANTS.INITIAL_IMAGE_SLOTS,
       uploadStatus: {
         images: [], // Array of {id, status: 'uploading'|'success'|'failed', progress: 0-100}
         videos: []
       }
     }
   ]);
+  const [variantCount, setVariantCount] = useState(1);
+  const [nestingOptions, setNestingOptions] = useState({});
+  const [additionalSlotsEnabled, setAdditionalSlotsEnabled] = useState({});
 
-  // Size chart state - handles product sizing information
+  // ==============================
+  // SIZE CHART AND INVENTORY STATE
+  // ==============================
   const [sizeChart, setSizeChart] = useState({
     inchChart: null,
     cmChart: null,
     measurementImage: null
   });
-
-  // Common size charts for all variants
   const [commonSizeChart, setCommonSizeChart] = useState({
     cmChart: null,
     inchChart: null,
@@ -64,14 +98,13 @@ const SingleProductUpload = React.memo(() => {
       measurementGuide: null
     }
   });
-
-  // UI state management
-  const [selectedCategory, setSelectedCategory] = useState('');
-  const [selectedSubCategory, setSelectedSubCategory] = useState('');
-  
-  // New state for additional functionality
-  const [stockSizeOption, setStockSizeOption] = useState('sizes'); // 'noSize', 'sizes', 'import' - Default to 'sizes'
+  const [stockSizeOption, setStockSizeOption] = useState(STOCK_SIZE_OPTIONS.SIZES);
   const [customSizes, setCustomSizes] = useState([]);
+  const [excelFile, setExcelFile] = useState(null);
+
+  // ==============================
+  // ALSO SHOW IN OPTIONS STATE
+  // ==============================
   const [alsoShowInOptions, setAlsoShowInOptions] = useState({
     youMightAlsoLike: { value: 'no' },
     similarItems: { value: 'no' },
@@ -82,11 +115,10 @@ const SingleProductUpload = React.memo(() => {
     { id: 'similarItems', label: 'Similar Items', value: 'no' },
     { id: 'othersAlsoBought', label: 'Others Also Bought', value: 'no' }
   ]);
-  const [variantCount, setVariantCount] = useState(1); // Track number of variants
-  const [nestingOptions, setNestingOptions] = useState({}); // Track nesting options for each variant
-  const [excelFile, setExcelFile] = useState(null); // Track uploaded Excel file
 
-  // State for permanent options feature
+  // ==============================
+  // PERMANENT OPTIONS STATE
+  // ==============================
   const [permanentOptions, setPermanentOptions] = useState([]);
   const [showPermanentConfirmModal, setShowPermanentConfirmModal] = useState(false);
   const [showPermanentSuccessModal, setShowPermanentSuccessModal] = useState(false);
@@ -96,19 +128,25 @@ const SingleProductUpload = React.memo(() => {
   const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
   const [deletingPermanentOption, setDeletingPermanentOption] = useState(null);
 
-  // State for recheck details dropdown
+  // ==============================
+  // UI STATE AND MODALS
+  // ==============================
   const [isRecheckDropdownOpen, setIsRecheckDropdownOpen] = useState(false);
   const [showDetailedReviewModal, setShowDetailedReviewModal] = useState(false);
   const [selectedRecheckOption, setSelectedRecheckOption] = useState('All DETAILS');
-  const recheckDropdownRef = useRef(null);
-  
-  // State for additional slots tracking
-  const [additionalSlotsEnabled, setAdditionalSlotsEnabled] = useState({});
-  
-  // State for notifications
   const [notification, setNotification] = useState(null);
+  
+  // ==============================
+  // REFS
+  // ==============================
+  const recheckDropdownRef = useRef(null);
 
-  // Auto-dismiss notifications
+  
+  // ==============================
+  // EFFECTS AND LIFECYCLE
+  // ==============================
+  
+  // Notification auto-dismiss effect
   useEffect(() => {
     if (notification && notification.duration) {
       const timer = setTimeout(() => {
@@ -119,7 +157,7 @@ const SingleProductUpload = React.memo(() => {
     }
   }, [notification]);
 
-  // Load permanent options from localStorage on component mount
+  // Permanent options localStorage management
   useEffect(() => {
     const savedPermanentOptions = localStorage.getItem('yoraa_permanent_options');
     if (savedPermanentOptions) {
@@ -150,7 +188,7 @@ const SingleProductUpload = React.memo(() => {
     }
   }, []);
 
-  // Save permanent options to localStorage whenever they change
+  // Save permanent options to localStorage
   useEffect(() => {
     if (permanentOptions.length > 0) {
       localStorage.setItem('yoraa_permanent_options', JSON.stringify(permanentOptions));
@@ -171,7 +209,88 @@ const SingleProductUpload = React.memo(() => {
     }
   }, [isRecheckDropdownOpen]);
 
-  // Memoized handlers to prevent unnecessary re-renders
+  // ==============================
+  // UTILITY FUNCTIONS
+  // ==============================
+  
+  // Notification helper
+  const showNotification = useCallback((message, type = NOTIFICATION_TYPES.INFO, duration = 3000) => {
+    setNotification({ message, type, duration });
+  }, []);
+
+  // File validation helpers
+  const validateVideoFile = useCallback((file) => {
+    const allowedVideoTypes = [
+      'video/mp4', 'video/mov', 'video/avi', 'video/wmv', 'video/flv', 
+      'video/webm', 'video/mkv', 'video/m4v', 'video/3gp', 'video/ogv',
+      'application/octet-stream' // For .blend files
+    ];
+    const allowedExtensions = ['.mp4', '.mov', '.avi', '.wmv', '.flv', '.webm', '.mkv', '.m4v', '.3gp', '.ogv', '.blend'];
+    
+    const fileExtension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
+    const isValidType = allowedVideoTypes.includes(file.type) || allowedExtensions.includes(fileExtension);
+    const isValidSize = file.size <= UPLOAD_CONSTANTS.MAX_FILE_SIZE_MB * 1024 * 1024;
+    
+    return { valid: isValidType && isValidSize, error: !isValidType ? 'Invalid file type' : 'File too large' };
+  }, []);
+
+  // Upload simulation helper
+  const simulateUpload = useCallback((fileData, variantId, type) => {
+    const interval = setInterval(() => {
+      setVariants(prev => prev.map(variant => {
+        if (variant.id === variantId) {
+          const updatedStatus = variant.uploadStatus[type].map(status => {
+            if (status.id === fileData.id && status.progress < 100) {
+              const newProgress = Math.min(status.progress + Math.random() * 25, 100);
+              return {
+                ...status,
+                progress: newProgress,
+                status: newProgress >= 100 ? 'success' : 'uploading'
+              };
+            }
+            return status;
+          });
+
+          return {
+            ...variant,
+            uploadStatus: {
+              ...variant.uploadStatus,
+              [type]: updatedStatus
+            }
+          };
+        }
+        return variant;
+      }));
+    }, UPLOAD_CONSTANTS.UPLOAD_SIMULATION_INTERVAL);
+    
+    // Clear interval and potentially simulate failure
+    setTimeout(() => {
+      clearInterval(interval);
+      // Randomly simulate upload failures
+      if (Math.random() < UPLOAD_CONSTANTS.FAILURE_SIMULATION_RATE) {
+        setVariants(prev => prev.map(variant => {
+          if (variant.id === variantId) {
+            const updatedStatus = variant.uploadStatus[type].map(status => 
+              status.id === fileData.id 
+                ? { ...status, status: 'failed', progress: 0 }
+                : status
+            );
+            return {
+              ...variant,
+              uploadStatus: { ...variant.uploadStatus, [type]: updatedStatus }
+            };
+          }
+          return variant;
+        }));
+      }
+    }, UPLOAD_CONSTANTS.UPLOAD_SIMULATION_DURATION);
+  }, []);
+
+  
+  // ==============================
+  // CORE DATA HANDLERS
+  // ==============================
+  
   const handleProductDataChange = useCallback((field, value) => {
     setProductData(prev => ({
       ...prev,
@@ -195,7 +314,7 @@ const SingleProductUpload = React.memo(() => {
       name: `Variant ${newVariantCount}`,
       images: [],
       videos: [],
-      maxImageSlots: 5,
+      maxImageSlots: UPLOAD_CONSTANTS.INITIAL_IMAGE_SLOTS,
       uploadStatus: {
         images: [],
         videos: []
@@ -204,6 +323,10 @@ const SingleProductUpload = React.memo(() => {
     setVariants(prev => [...prev, newVariant]);
     setVariantCount(newVariantCount);
   }, [variantCount]);
+
+  // ==============================
+  // FILE UPLOAD HANDLERS
+  // ==============================
 
   const handleImageUpload = useCallback((variantId, files, type = 'images') => {
     // Find the current variant to check slot limits
@@ -389,7 +512,6 @@ const SingleProductUpload = React.memo(() => {
 
   // Handle common size chart uploads with status tracking
   const handleCommonSizeChartUpload = useCallback((type, file) => {
-    // Set the file
     setCommonSizeChart(prev => ({
       ...prev,
       [type]: file,
@@ -400,42 +522,49 @@ const SingleProductUpload = React.memo(() => {
     }));
 
     // Simulate upload progress
-    const interval = setInterval(() => {
-      setCommonSizeChart(prev => {
-        const currentStatus = prev.uploadStatus[type];
-        if (currentStatus && currentStatus.progress < 100) {
-          const newProgress = Math.min(currentStatus.progress + Math.random() * 25, 100);
-          return {
+    const simulateProgress = () => {
+      const interval = setInterval(() => {
+        setCommonSizeChart(prev => {
+          const currentStatus = prev.uploadStatus[type];
+          if (currentStatus && currentStatus.progress < 100) {
+            const newProgress = Math.min(currentStatus.progress + Math.random() * 25, 100);
+            return {
+              ...prev,
+              uploadStatus: {
+                ...prev.uploadStatus,
+                [type]: {
+                  status: newProgress >= 100 ? 'success' : 'uploading',
+                  progress: newProgress
+                }
+              }
+            };
+          }
+          return prev;
+        });
+      }, UPLOAD_CONSTANTS.UPLOAD_SIMULATION_INTERVAL);
+
+      // Clear interval and potentially simulate failure
+      setTimeout(() => {
+        clearInterval(interval);
+        if (Math.random() < 0.05) { // 5% chance of failure
+          setCommonSizeChart(prev => ({
             ...prev,
             uploadStatus: {
               ...prev.uploadStatus,
-              [type]: {
-                status: newProgress >= 100 ? 'success' : 'uploading',
-                progress: newProgress
-              }
+              [type]: { status: 'failed', progress: 0 }
             }
-          };
+          }));
         }
-        return prev;
-      });
-    }, 200);
+      }, 2000);
+    };
 
-    // Clear interval and potentially simulate failure
-    setTimeout(() => {
-      clearInterval(interval);
-      // 5% chance of failure
-      if (Math.random() < 0.05) {
-        setCommonSizeChart(prev => ({
-          ...prev,
-          uploadStatus: {
-            ...prev.uploadStatus,
-            [type]: { status: 'failed', progress: 0 }
-          }
-        }));
-      }
-    }, 2000);
+    simulateProgress();
   }, []);
 
+  // ==============================
+  // FILE MANAGEMENT HANDLERS
+  // ==============================
+  
   // Remove file from variant
   const removeFile = useCallback((variantId, fileId, type = 'images') => {
     setVariants(prev => prev.map(variant => {
@@ -472,6 +601,47 @@ const SingleProductUpload = React.memo(() => {
       return variant;
     }));
   }, []);
+
+  // Add more image slots for a variant (controlled access)
+  const addMoreImageSlots = useCallback((variantId) => {
+    const currentVariant = variants.find(v => v.id === variantId);
+    if (!currentVariant) return;
+
+    const currentImageCount = currentVariant.images?.length || 0;
+    const currentMaxSlots = currentVariant.maxImageSlots || UPLOAD_CONSTANTS.INITIAL_IMAGE_SLOTS;
+
+    // Only allow adding slots if current slots are being used
+    if (currentMaxSlots === UPLOAD_CONSTANTS.INITIAL_IMAGE_SLOTS && 
+        currentImageCount < UPLOAD_CONSTANTS.MIN_IMAGES_BEFORE_SLOT_ADD) {
+      showNotification(
+        'Please upload at least 4 images before adding more slots',
+        NOTIFICATION_TYPES.INFO
+      );
+      return;
+    }
+
+    setVariants(prev => prev.map(variant => {
+      if (variant.id === variantId) {
+        return {
+          ...variant,
+          maxImageSlots: (variant.maxImageSlots || UPLOAD_CONSTANTS.INITIAL_IMAGE_SLOTS) + 1
+        };
+      }
+      return variant;
+    }));
+
+    // Track that additional slots have been enabled for this variant
+    setAdditionalSlotsEnabled(prev => ({
+      ...prev,
+      [variantId]: true
+    }));
+
+    showNotification(
+      'Additional image slot added successfully!',
+      NOTIFICATION_TYPES.SUCCESS,
+      2000
+    );
+  }, [variants, showNotification]);
 
   // Helper function to get combined media (images + videos) for a variant
   const getCombinedMedia = useCallback((variantId) => {
@@ -526,50 +696,10 @@ const SingleProductUpload = React.memo(() => {
     }));
   }, []);
 
-  // Add more image slots for a variant (controlled access)
-  const addMoreImageSlots = useCallback((variantId) => {
-    const currentVariant = variants.find(v => v.id === variantId);
-    if (!currentVariant) return;
-
-    const currentImageCount = currentVariant.images?.length || 0;
-    const currentMaxSlots = currentVariant.maxImageSlots || 5;
-
-    // Only allow adding slots if current slots are being used (at least 4 out of 5 initial slots used)
-    if (currentMaxSlots === 5 && currentImageCount < 4) {
-      console.warn('Please upload at least 4 images before adding more slots');
-      setNotification({
-        type: 'info',
-        message: 'Please upload at least 4 images before adding more slots',
-        duration: 3000
-      });
-      return;
-    }
-
-    setVariants(prev => prev.map(variant => {
-      if (variant.id === variantId) {
-        return {
-          ...variant,
-          maxImageSlots: (variant.maxImageSlots || 5) + 1
-        };
-      }
-      return variant;
-    }));
-
-    // Track that additional slots have been enabled for this variant
-    setAdditionalSlotsEnabled(prev => ({
-      ...prev,
-      [variantId]: true
-    }));
-
-    // Show success notification
-    setNotification({
-      type: 'success',
-      message: 'Additional image slot added successfully!',
-      duration: 2000
-    });
-  }, [variants]);
-
-  // New handlers for additional functionality
+  // ==============================
+  // SIZE AND INVENTORY HANDLERS
+  // ==============================
+  
   const handleStockSizeOptionChange = useCallback((option) => {
     setStockSizeOption(option);
   }, []);
@@ -598,6 +728,10 @@ const SingleProductUpload = React.memo(() => {
     ));
   }, []);
 
+  // ==============================
+  // ALSO SHOW IN OPTIONS HANDLERS
+  // ==============================
+  
   const handleAlsoShowInChange = useCallback((option, field, value) => {
     setAlsoShowInOptions(prev => ({
       ...prev,
@@ -648,6 +782,10 @@ const SingleProductUpload = React.memo(() => {
     );
   }, []);
 
+  // ==============================
+  // PERMANENT OPTIONS HANDLERS
+  // ==============================
+  
   // Handle making an option permanent
   const handleMakePermanent = useCallback((option) => {
     setSelectedOptionForPermanent(option);
@@ -680,7 +818,7 @@ const SingleProductUpload = React.memo(() => {
     setShowPermanentSuccessModal(true);
     setSelectedOptionForPermanent(null);
   }, [selectedOptionForPermanent]);
-
+  
   // Cancel making option permanent
   const cancelMakePermanent = useCallback(() => {
     setShowPermanentConfirmModal(false);
@@ -775,6 +913,10 @@ const SingleProductUpload = React.memo(() => {
     setDeletingPermanentOption(null);
   }, []);
 
+  // ==============================
+  // EXCEL IMPORT HANDLERS
+  // ==============================
+  
   const handleImportExcel = useCallback((type) => {
     // Create a hidden file input element
     const input = document.createElement('input');
@@ -784,67 +926,45 @@ const SingleProductUpload = React.memo(() => {
       const file = e.target.files[0];
       if (file) {
         console.log(`Importing ${type} from Excel:`, file.name);
-        
-        if (type === 'sizes') {
-          // TODO: Parse Excel file and populate size data
-          // This would typically involve reading the Excel file and extracting size information
-          // For now, we'll simulate importing some sample data
-          const sampleSizes = [
-            {
-              size: 'S',
-              quantity: '10',
-              hsn: '61091000',
-              sku: 'SKU001',
-              barcode: '1234567890123',
-              prices: {
-                amazon: '599',
-                flipkart: '579',
-                myntra: '589',
-                nykaa: '599',
-                yoraa: '549'
-              }
-            },
-            {
-              size: 'M',
-              quantity: '15',
-              hsn: '61091000',
-              sku: 'SKU002',
-              barcode: '1234567890124',
-              prices: {
-                amazon: '599',
-                flipkart: '579',
-                myntra: '589',
-                nykaa: '599',
-                yoraa: '549'
-              }
-            },
-            {
-              size: 'L',
-              quantity: '12',
-              hsn: '61091000',
-              sku: 'SKU003',
-              barcode: '1234567890125',
-              prices: {
-                amazon: '599',
-                flipkart: '579',
-                myntra: '589',
-                nykaa: '599',
-                yoraa: '549'
-              }
-            }
-          ];
-          
-          setCustomSizes(sampleSizes);
-          setStockSizeOption('sizes');
-          alert(`Excel file "${file.name}" imported successfully! ${sampleSizes.length} sizes added.`);
-        }
-        
-        setExcelFile(file);
+        handleExcelFileUpload(file);
+        showNotification(
+          `Excel file "${file.name}" uploaded successfully!`,
+          NOTIFICATION_TYPES.SUCCESS
+        );
       }
     };
     input.click();
   }, []);
 
+  // Excel file upload handler
+  const handleExcelFileUpload = useCallback((file) => {
+    setExcelFile(file);
+    console.log('Excel file uploaded:', file.name);
+    // TODO: Implement Excel parsing logic using libraries like SheetJS (xlsx)
+  }, []);
+
+  // Handle returnable import excel functionality
+  const handleReturnableImportExcel = useCallback(() => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.xlsx,.xls,.csv';
+    input.onchange = (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        console.log('Importing returnable data from Excel:', file.name);
+        showNotification(
+          `Returnable data imported from "${file.name}"`,
+          NOTIFICATION_TYPES.SUCCESS
+        );
+      }
+    };
+    input.click();
+  }, [showNotification]);
+
+  // ==============================
+  // NESTING OPTIONS HANDLERS
+  // ==============================
+  
   // Nesting options handlers
   const handleNestingOptionChange = useCallback((variantId, option) => {
     if (option === 'sameAsArticle1') {
@@ -948,6 +1068,11 @@ const SingleProductUpload = React.memo(() => {
     });
   }, [variants, handleVariantChange, customSizes]);
 
+  
+  // ==============================
+  // VARIANT-SPECIFIC HANDLERS
+  // ==============================
+  
   // Variant-specific stock size handlers
   const handleVariantStockSizeOption = useCallback((variantId, option) => {
     setVariants(prev => prev.map(variant => 
@@ -997,7 +1122,6 @@ const SingleProductUpload = React.memo(() => {
   }, []);
 
   const handleVariantImportExcel = useCallback((variantId, type) => {
-    // Create a hidden file input element
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = '.xlsx,.xls,.csv';
@@ -1007,7 +1131,7 @@ const SingleProductUpload = React.memo(() => {
         console.log(`Importing ${type} from Excel for variant ${variantId}:`, file.name);
         
         if (type === 'sizes') {
-          // Sample sizes for this variant
+          // Sample data simulation
           const sampleSizes = [
             {
               size: 'XS',
@@ -1022,20 +1146,6 @@ const SingleProductUpload = React.memo(() => {
                 nykaa: '599',
                 yoraa: '549'
               }
-            },
-            {
-              size: 'S',
-              quantity: '10',
-              hsn: '61091000',
-              sku: `SKU${variantId}02`,
-              barcode: `123456789${variantId}24`,
-              prices: {
-                amazon: '599',
-                flipkart: '579',
-                myntra: '589',
-                nykaa: '599',
-                yoraa: '549'
-              }
             }
           ];
           
@@ -1043,52 +1153,32 @@ const SingleProductUpload = React.memo(() => {
             variant.id === variantId 
               ? { 
                   ...variant, 
-                  stockSizeOption: 'sizes',
+                  stockSizeOption: STOCK_SIZE_OPTIONS.SIZES,
                   customSizes: sampleSizes
                 }
               : variant
           ));
           
-          alert(`Excel file "${file.name}" imported successfully for variant! ${sampleSizes.length} sizes added.`);
+          showNotification(
+            `Excel file "${file.name}" imported successfully for variant! ${sampleSizes.length} sizes added.`,
+            NOTIFICATION_TYPES.SUCCESS
+          );
         }
       }
     };
     input.click();
-  }, []);
+  }, [showNotification]);
 
-  // Excel file upload handler
-  const handleExcelFileUpload = useCallback((file) => {
-    setExcelFile(file);
-    console.log('Excel file uploaded:', file.name);
-    // TODO: Implement Excel parsing logic
-    // You can use libraries like SheetJS (xlsx) to parse Excel files
-  }, []);
-
-  // Handle returnable import excel functionality
-  const handleReturnableImportExcel = useCallback(() => {
-    // Create a hidden file input element
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.xlsx,.xls,.csv';
-    input.onchange = (e) => {
-      const file = e.target.files[0];
-      if (file) {
-        console.log('Importing returnable data from Excel:', file.name);
-        // TODO: Parse Excel file and populate returnable data
-        // This would typically involve reading the Excel file and extracting returnable information
-        setExcelFile(file);
-        alert(`Excel file "${file.name}" uploaded successfully for returnable data import!`);
-      }
-    };
-    input.click();
-  }, []);
-
+  // ==============================
+  // FORM SUBMISSION HANDLERS
+  // ==============================
+  
   const handleSaveAsDraft = useCallback(() => {
     console.log('Saving as draft:', { productData, variants, sizeChart });
     
     // Create draft item data
     const draftItem = {
-      id: Date.now(), // Simple ID generation for demo
+      id: Date.now(),
       image: variants[0]?.images?.[0]?.url || '/api/placeholder/120/116',
       productName: productData.productName || 'Untitled Product',
       category: selectedCategory || 'Uncategorized',
@@ -1099,13 +1189,13 @@ const SingleProductUpload = React.memo(() => {
       price: variants[0]?.regularPrice || productData.regularPrice || 0,
       salePrice: variants[0]?.salePrice || productData.salePrice || 0,
       platforms: {
-        yoraa: { enabled: true, price: variants[0]?.regularPrice || productData.regularPrice || 0 }, // Yoraa enabled by default
+        yoraa: { enabled: true, price: variants[0]?.regularPrice || productData.regularPrice || 0 },
         myntra: { enabled: true, price: variants[0]?.regularPrice || productData.regularPrice || 0 },
         amazon: { enabled: true, price: variants[0]?.regularPrice || productData.regularPrice || 0 },
         flipkart: { enabled: true, price: variants[0]?.regularPrice || productData.regularPrice || 0 },
         nykaa: { enabled: true, price: variants[0]?.regularPrice || productData.regularPrice || 0 }
       },
-      skus: variants[0]?.customSizes?.reduce((acc, size, idx) => {
+      skus: variants[0]?.customSizes?.reduce((acc, size) => {
         acc[size.size] = `draft/${size.size}/${Date.now()}`;
         return acc;
       }, {}) || {
@@ -1132,28 +1222,27 @@ const SingleProductUpload = React.memo(() => {
     const updatedDrafts = [...existingDrafts, draftItem];
     localStorage.setItem('yoraa_draft_items', JSON.stringify(updatedDrafts));
     
-    // Show success notification
-    setNotification({
-      type: 'success',
-      message: 'Product saved as draft successfully!'
-    });
+    showNotification('Product saved as draft successfully!', NOTIFICATION_TYPES.SUCCESS);
     
     // Navigate to ManageItems page after a short delay
     setTimeout(() => {
       navigate('/manage-items');
     }, 1500);
-  }, [productData, variants, sizeChart, selectedCategory, selectedSubCategory, alsoShowInOptions, navigate, setNotification]);
+  }, [productData, variants, sizeChart, selectedCategory, selectedSubCategory, alsoShowInOptions, navigate, showNotification]);
 
+  // ==============================
+  // VALIDATION AND REVIEW HANDLERS
+  // ==============================
+  
   const handleRecheckDetails = useCallback((option = 'All DETAILS') => {
     console.log('Rechecking details:', option);
     setSelectedRecheckOption(option);
     setIsRecheckDropdownOpen(false);
     
-    // TODO: Implement specific validation highlighting based on selected option
+    // Implement specific validation highlighting based on selected option
     switch (option) {
       case 'All DETAILS':
         console.log('Validating all product details');
-        // Show detailed review modal or navigate to review page
         setShowDetailedReviewModal(true);
         break;
       case 'All text':
@@ -1170,6 +1259,10 @@ const SingleProductUpload = React.memo(() => {
     }
   }, []);
 
+  // ==============================
+  // UI INTERACTION HANDLERS
+  // ==============================
+  
   // Handle recheck dropdown toggle
   const toggleRecheckDropdown = useCallback(() => {
     setIsRecheckDropdownOpen(prev => !prev);
@@ -1177,6 +1270,7 @@ const SingleProductUpload = React.memo(() => {
 
   // Handle recheck option selection
   const handleRecheckOptionSelect = useCallback((option) => {
+    setSelectedRecheckOption(option);
     handleRecheckDetails(option);
   }, [handleRecheckDetails]);
 
@@ -1185,6 +1279,10 @@ const SingleProductUpload = React.memo(() => {
     setShowDetailedReviewModal(false);
   }, []);
 
+  // ==============================
+  // DRAG AND DROP HANDLERS
+  // ==============================
+  
   // File upload handlers
   const handleFileUpload = useCallback((files, type = 'images', variantId = 1) => {
     handleImageUpload(variantId, files, type);
@@ -1216,7 +1314,11 @@ const SingleProductUpload = React.memo(() => {
     }
   }, [handleFileUpload]);
 
-  // Memoized computed values
+  // ==============================
+  // COMPUTED VALUES
+  // ==============================
+  
+  // Memoized computed values for performance
   const isFormValid = useMemo(() => {
     // Check minimum conditions for publish:
     // 1. Variant 1 has product name and at least one image
@@ -1227,6 +1329,10 @@ const SingleProductUpload = React.memo(() => {
     
     return hasProductName && hasImage && variants.length > 0;
   }, [productData.productName, variants]);
+
+  // ==============================
+  // RENDER COMPONENT
+  // ==============================
 
   return (
     <div className="bg-white min-h-screen">
@@ -3671,7 +3777,7 @@ const SingleProductUpload = React.memo(() => {
       )}
     </div>
   );
-});
+}); // End of SingleProductUpload component
 
 // Set display name for debugging
 SingleProductUpload.displayName = 'SingleProductUpload';
