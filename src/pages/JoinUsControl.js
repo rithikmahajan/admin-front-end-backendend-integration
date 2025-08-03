@@ -1,5 +1,44 @@
-import React, { useState, useCallback, useMemo, memo } from 'react';
+import React, { useState, useCallback, useMemo, memo, useEffect } from 'react';
 import { Plus, Edit2, Trash2, Upload, Image as ImageIcon, X, ChevronLeft, ChevronRight } from 'lucide-react';
+
+// Constants
+const SECTIONS = {
+  HEAD: 'head',
+  POSTING: 'posting',
+  BOTTOM: 'bottom'
+};
+
+const DEFAULT_TEXT_POSITION = { x: 20, y: 20 };
+const PREVIEW_IMAGE_URL = "https://images.unsplash.com/photo-1441986300917-64674bd600d8?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80";
+
+const DEFAULT_POST_CONTENT = [
+  {
+    title: 'Welcome reward',
+    description: 'Enjoy a welcome reward to spend in your first month.'
+  },
+  {
+    title: 'Birthday reward',
+    description: 'Celebrate your birthday month with a special discount'
+  },
+  {
+    title: 'Private members\' sale',
+    description: 'Unlocked after your first order'
+  }
+];
+
+// Utility functions
+const createImageUrl = (file) => {
+  return file ? URL.createObjectURL(file) : null;
+};
+
+const revokeImageUrl = (url) => {
+  if (url) URL.revokeObjectURL(url);
+};
+
+const constrainPosition = (position, maxX, maxY) => ({
+  x: Math.max(0, Math.min(position.x, maxX)),
+  y: Math.max(0, Math.min(position.y, maxY))
+});
 
 /**
  * Memoized PostItem Component - Enhanced for different sections
@@ -134,25 +173,329 @@ const PostItem = memo(({ post, index, onEdit, onDelete, onPriorityUpdate, sectio
   );
 });
 
-PostItem.displayName = 'PostItem';
+/**
+ * Reusable Text Content Component
+ */
+const TextContent = memo(({ content = DEFAULT_POST_CONTENT, customText }) => {
+  if (customText) {
+    return (
+      <div className="space-y-1">
+        {customText.split('\n').map((line, index) => (
+          <div 
+            key={index} 
+            className="font-semibold text-black"
+            style={{
+              textShadow: '1px 1px 2px rgba(255, 255, 255, 0.8), -1px -1px 2px rgba(255, 255, 255, 0.8)'
+            }}
+          >
+            {line}
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-1">
+      {content.map((item, index) => (
+        <div key={index}>
+          <h4 className="font-semibold text-black mb-1" style={{
+            textShadow: '1px 1px 2px rgba(255, 255, 255, 0.8), -1px -1px 2px rgba(255, 255, 255, 0.8)'
+          }}>
+            {item.title}
+          </h4>
+          <p className="text-gray-700 leading-tight" style={{
+            textShadow: '1px 1px 2px rgba(255, 255, 255, 0.8)'
+          }}>
+            {item.description}
+          </p>
+        </div>
+      ))}
+    </div>
+  );
+});
+
+TextContent.displayName = 'TextContent';
 
 /**
- * JoinUsControl Component - Complete Header and Footer Implementation
+ * Reusable Image Upload Component
  */
-const JoinUsControl = memo(() => {
-  // Header form state
-  const [headerFormState, setHeaderFormState] = useState({
-    detail: '',
-    selectedImage: null
-  });
+const ImageUploadSection = memo(({ 
+  title, 
+  selectedImage, 
+  onImageUpload, 
+  onImageRemove, 
+  uploadId,
+  ariaLabel 
+}) => (
+  <div className="space-y-4">
+    <div className="text-center">
+      <h3 className="text-sm font-bold text-black mb-4">{title}</h3>
+      
+      <div className="border-2 border-dashed border-gray-400 rounded-lg p-8 text-center h-48 flex flex-col items-center justify-center">
+        {selectedImage ? (
+          <div className="space-y-3">
+            <img 
+              src={selectedImage} 
+              alt={`${title} preview`}
+              className="max-w-full max-h-32 object-contain mx-auto rounded-lg"
+              loading="lazy"
+            />
+            <button
+              onClick={onImageRemove}
+              className="text-red-500 hover:text-red-700 transition-colors text-xs"
+              type="button"
+            >
+              Remove Image
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <div className="w-16 h-16 mx-auto border-2 border-gray-400 rounded-lg flex items-center justify-center">
+              <ImageIcon className="w-8 h-8 text-gray-400" />
+            </div>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={onImageUpload}
+              className="hidden"
+              id={uploadId}
+              aria-label={ariaLabel}
+            />
+            <label
+              htmlFor={uploadId}
+              className="bg-blue-600 text-white px-6 py-2 rounded-md cursor-pointer hover:bg-blue-700 inline-flex items-center gap-2 transition-colors text-sm font-medium"
+            >
+              <Plus className="w-4 h-4" />
+              upload image
+            </label>
+          </div>
+        )}
+      </div>
+    </div>
+  </div>
+));
 
-  // Bottom form state
-  const [bottomFormState, setBottomFormState] = useState({
-    detail: '',
-    selectedImage: null
-  });
+ImageUploadSection.displayName = 'ImageUploadSection';
 
-  // Modal states
+/**
+ * Reusable Preview Section with Drag and Drop
+ */
+const PreviewSection = memo(({ 
+  selectedImage, 
+  textPosition, 
+  customText,
+  isDragging,
+  onMouseDown,
+  onMouseMove,
+  onMouseUp,
+  onMouseLeave 
+}) => (
+  <div className="space-y-4">
+    <div>
+      <div className="flex items-center gap-2 mb-4">
+        <h3 className="text-sm font-bold text-black">Preview and arrange</h3>
+        <div className="w-4 h-4 bg-gray-800 rounded-full flex items-center justify-center">
+          <span className="text-white text-[10px]">i</span>
+        </div>
+      </div>
+      
+      <div 
+        className="bg-gray-100 rounded-lg h-48 mb-4 flex items-center justify-center overflow-hidden relative cursor-move"
+        onMouseDown={onMouseDown}
+        onMouseMove={onMouseMove}
+        onMouseUp={onMouseUp}
+        onMouseLeave={onMouseLeave}
+      >
+        {/* Background Image */}
+        <img 
+          src={selectedImage || PREVIEW_IMAGE_URL}
+          alt="Preview background" 
+          className="w-full h-full object-cover rounded-lg absolute inset-0"
+          loading="lazy"
+        />
+
+        {/* Draggable Text Overlay */}
+        <div
+          className="absolute cursor-move select-none max-w-xs z-10"
+          style={{
+            left: textPosition.x,
+            top: textPosition.y,
+            transform: isDragging ? 'scale(1.02)' : 'scale(1)',
+            transition: isDragging ? 'none' : 'transform 0.2s ease'
+          }}
+          onMouseDown={onMouseDown}
+        >
+          <div className="text-xs space-y-1">
+            <TextContent customText={customText} />
+          </div>
+        </div>
+
+        {/* Helper text when no content */}
+        {!selectedImage && !customText && (
+          <div className="absolute inset-0 flex items-center justify-center text-gray-400 text-sm">
+            <p>Drag text to arrange position</p>
+          </div>
+        )}
+      </div>
+    </div>
+  </div>
+));
+
+PreviewSection.displayName = 'PreviewSection';
+
+/**
+ * Reusable Form Section Component
+ */
+const FormSection = memo(({ 
+  title,
+  formState,
+  onDetailChange,
+  onImageUpload,
+  onImageRemove,
+  onCreatePost,
+  onScreenViewOpen,
+  textPosition,
+  isDragging,
+  dragHandlers,
+  uploadId,
+  buttonText 
+}) => (
+  <div className="mb-16">
+    <h2 className="text-lg font-bold text-black mb-8 text-center">{title}</h2>
+    
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <ImageUploadSection
+        title="Add image"
+        selectedImage={formState.selectedImage}
+        onImageUpload={onImageUpload}
+        onImageRemove={onImageRemove}
+        uploadId={uploadId}
+        ariaLabel={`Upload ${title.toLowerCase()} image file`}
+      />
+
+      {/* Create Detail Section */}
+      <div className="space-y-4">
+        <div>
+          <h3 className="text-sm font-bold text-black mb-4">Create detail</h3>
+          <textarea
+            value={formState.detail}
+            onChange={onDetailChange}
+            rows={10}
+            className="w-full px-4 py-4 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 resize-none transition-colors text-sm"
+            placeholder=""
+            aria-label={`${title} post details`}
+          />
+        </div>
+      </div>
+
+      <PreviewSection
+        selectedImage={formState.selectedImage}
+        textPosition={textPosition}
+        customText={formState.detail}
+        isDragging={isDragging}
+        {...dragHandlers}
+      />
+    </div>
+
+    {/* Action Buttons */}
+    <div className="mt-8 flex justify-center gap-4">
+      <button
+        onClick={onCreatePost}
+        className="bg-black text-white px-12 py-3 rounded-full hover:bg-gray-800 transition-colors text-sm font-medium"
+        disabled={!formState.detail}
+        type="button"
+      >
+        {buttonText}
+      </button>
+      <button 
+        onClick={onScreenViewOpen}
+        className="bg-red-500 text-white px-8 py-3 rounded-full hover:bg-red-600 transition-colors text-sm font-medium"
+        type="button"
+      >
+        screen view
+      </button>
+    </div>
+  </div>
+));
+
+FormSection.displayName = 'FormSection';
+
+/**
+ * Posts Section Component
+ */
+const PostsSection = memo(({ title, posts, onEdit, onDelete, onPriorityUpdate, sectionType }) => (
+  <div>
+    <div className="flex items-center justify-between mb-6">
+      <h3 className="text-xl font-bold text-black">{title}</h3>
+    </div>
+
+    {posts.map((post, index) => (
+      <PostItem
+        key={post.id}
+        post={post}
+        index={index}
+        onEdit={onEdit}
+        onDelete={onDelete}
+        onPriorityUpdate={onPriorityUpdate}
+        sectionType={sectionType}
+      />
+    ))}
+
+    {posts.length === 0 && (
+      <div className="border-b border-gray-200 pb-6 mb-6">
+        <p className="text-gray-500 text-sm text-center py-8">
+          No {title.toLowerCase()} posts yet. {title === 'Head' || title === 'Bottom' ? 'Create one using the form above.' : ''}
+        </p>
+      </div>
+    )}
+  </div>
+));
+
+PostsSection.displayName = 'PostsSection';
+
+/**
+ * Custom Hooks for State Management
+ */
+const useFormState = (initialState = { detail: '', selectedImage: null }) => {
+  const [state, setState] = useState(initialState);
+
+  const updateDetail = useCallback((detail) => {
+    setState(prev => ({ ...prev, detail }));
+  }, []);
+
+  const updateImage = useCallback((file) => {
+    if (state.selectedImage) {
+      revokeImageUrl(state.selectedImage);
+    }
+    const imageUrl = createImageUrl(file);
+    setState(prev => ({ ...prev, selectedImage: imageUrl }));
+  }, [state.selectedImage]);
+
+  const removeImage = useCallback(() => {
+    if (state.selectedImage) {
+      revokeImageUrl(state.selectedImage);
+    }
+    setState(prev => ({ ...prev, selectedImage: null }));
+  }, [state.selectedImage]);
+
+  const resetForm = useCallback(() => {
+    if (state.selectedImage) {
+      revokeImageUrl(state.selectedImage);
+    }
+    setState(initialState);
+  }, [state.selectedImage, initialState]);
+
+  return {
+    state,
+    updateDetail,
+    updateImage,
+    removeImage,
+    resetForm
+  };
+};
+
+const useModalState = () => {
   const [modalStates, setModalStates] = useState({
     isEditModalOpen: false,
     isSuccessModalOpen: false,
@@ -160,22 +503,91 @@ const JoinUsControl = memo(() => {
     isScreenViewOpen: false
   });
 
+  const openModal = useCallback((modalName) => {
+    setModalStates(prev => ({ ...prev, [modalName]: true }));
+  }, []);
+
+  const closeModal = useCallback((modalName) => {
+    setModalStates(prev => ({ ...prev, [modalName]: false }));
+  }, []);
+
+  return {
+    modalStates,
+    openModal,
+    closeModal
+  };
+};
+
+const useDragAndDrop = (initialPosition = DEFAULT_TEXT_POSITION) => {
+  const [position, setPosition] = useState(initialPosition);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+
+  const handleMouseDown = useCallback((e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    setIsDragging(true);
+    setDragOffset({
+      x: e.clientX - rect.left - position.x,
+      y: e.clientY - rect.top - position.y
+    });
+  }, [position]);
+
+  const handleMouseMove = useCallback((e) => {
+    if (!isDragging) return;
+    
+    const rect = e.currentTarget.getBoundingClientRect();
+    const newX = e.clientX - rect.left - dragOffset.x;
+    const newY = e.clientY - rect.top - dragOffset.y;
+    
+    const maxX = rect.width - 200;
+    const maxY = rect.height - 100;
+    
+    setPosition(constrainPosition({ x: newX, y: newY }, maxX, maxY));
+  }, [isDragging, dragOffset]);
+
+  const handleMouseUp = useCallback(() => {
+    setIsDragging(false);
+  }, []);
+
+  const resetPosition = useCallback(() => {
+    setPosition(initialPosition);
+  }, [initialPosition]);
+
+  return {
+    position,
+    isDragging,
+    dragHandlers: {
+      onMouseDown: handleMouseDown,
+      onMouseMove: handleMouseMove,
+      onMouseUp: handleMouseUp,
+      onMouseLeave: handleMouseUp
+    },
+    resetPosition
+  };
+};
+/**
+ * JoinUsControl Component - Complete Header and Footer Implementation
+ */
+const JoinUsControl = memo(() => {
+  // Form states using custom hooks
+  const headerForm = useFormState();
+  const bottomForm = useFormState();
+  
+  // Modal state management
+  const { modalStates, openModal, closeModal } = useModalState();
+  
+  // Drag and drop for text positioning
+  const headerDrag = useDragAndDrop();
+  const bottomDrag = useDragAndDrop();
+
   // Edit form state
   const [editState, setEditState] = useState({
     editingPost: null,
     editTitle: '',
     editDetail: '',
     editPriority: 1,
-    editSection: 'posting'
+    editSection: SECTIONS.POSTING
   });
-
-  // Text positioning states for preview and arrange functionality
-  const [headerTextPosition, setHeaderTextPosition] = useState({ x: 20, y: 20 });
-  const [bottomTextPosition, setBottomTextPosition] = useState({ x: 20, y: 20 });
-  const [isDraggingHeader, setIsDraggingHeader] = useState(false);
-  const [isDraggingBottom, setIsDraggingBottom] = useState(false);
-  const [headerDragOffset, setHeaderDragOffset] = useState({ x: 0, y: 0 });
-  const [bottomDragOffset, setBottomDragOffset] = useState({ x: 0, y: 0 });
 
   // Posts data with sections
   const [posts, setPosts] = useState(() => [
@@ -184,133 +596,76 @@ const JoinUsControl = memo(() => {
       title: 'Welcome reward',
       detail: 'Enjoy a welcome reward to spend in your first month.',
       priority: 1,
-      section: 'head',
+      section: SECTIONS.HEAD,
       image: null,
-      textPosition: { x: 20, y: 20 }
+      textPosition: DEFAULT_TEXT_POSITION
     },
     {
       id: 2,
       title: 'Birthday reward', 
       detail: 'Celebrate your birthday month with a special discount',
       priority: 1,
-      section: 'posting',
+      section: SECTIONS.POSTING,
       image: null,
-      textPosition: { x: 20, y: 20 }
+      textPosition: DEFAULT_TEXT_POSITION
     },
     {
       id: 3,
       title: 'Private members sale', 
       detail: 'Unlocked after your first order',
       priority: 2,
-      section: 'posting',
+      section: SECTIONS.POSTING,
       image: null,
-      textPosition: { x: 20, y: 20 }
+      textPosition: DEFAULT_TEXT_POSITION
     },
     {
       id: 4,
       title: 'Bottom reward',
       detail: 'Special bottom section promotional content',
       priority: 1,
-      section: 'bottom',
+      section: SECTIONS.BOTTOM,
       image: null,
-      textPosition: { x: 20, y: 20 }
+      textPosition: DEFAULT_TEXT_POSITION
     }
   ]);
 
   /**
-   * Header image upload handler
+   * Post creation handlers
    */
-  const handleHeaderImageUpload = useCallback((event) => {
-    const file = event.target.files[0];
-    if (file) {
-      if (headerFormState.selectedImage) {
-        URL.revokeObjectURL(headerFormState.selectedImage);
-      }
-      const imageUrl = URL.createObjectURL(file);
-      setHeaderFormState(prev => ({
-        ...prev,
-        selectedImage: imageUrl
-      }));
-    }
-  }, [headerFormState.selectedImage]);
+  const createPost = useCallback((formState, section, textPosition, resetForm, resetPosition) => {
+    if (!formState.detail) return;
 
-  /**
-   * Bottom image upload handler
-   */
-  const handleBottomImageUpload = useCallback((event) => {
-    const file = event.target.files[0];
-    if (file) {
-      if (bottomFormState.selectedImage) {
-        URL.revokeObjectURL(bottomFormState.selectedImage);
-      }
-      const imageUrl = URL.createObjectURL(file);
-      setBottomFormState(prev => ({
-        ...prev,
-        selectedImage: imageUrl
-      }));
-    }
-  }, [bottomFormState.selectedImage]);
+    const newPost = {
+      id: Date.now() + Math.random(),
+      title: `${section.charAt(0).toUpperCase() + section.slice(1)} Post`,
+      detail: formState.detail,
+      priority: 1,
+      section,
+      image: formState.selectedImage,
+      textPosition: { ...textPosition }
+    };
+    
+    setPosts(prevPosts => [...prevPosts, newPost]);
+    resetForm();
+    resetPosition();
+  }, []);
 
-  /**
-   * Header post creation handler
-   */
   const handleCreateHeaderPost = useCallback(() => {
-    const { detail } = headerFormState;
-    
-    if (detail) {
-      const newPost = {
-        id: Date.now(),
-        title: 'Header Post',
-        detail,
-        priority: 1,
-        section: 'head',
-        image: headerFormState.selectedImage,
-        textPosition: { ...headerTextPosition }
-      };
-      
-      setPosts(prevPosts => [...prevPosts, newPost]);
-      setHeaderFormState({ detail: '', selectedImage: null });
-      setHeaderTextPosition({ x: 20, y: 20 }); // Reset text position
-    }
-  }, [headerFormState, headerTextPosition]);
+    createPost(headerForm.state, SECTIONS.HEAD, headerDrag.position, headerForm.resetForm, headerDrag.resetPosition);
+  }, [headerForm.state, headerDrag.position, headerForm.resetForm, headerDrag.resetPosition, createPost]);
 
-  /**
-   * Bottom post creation handler
-   */
   const handleCreateBottomPost = useCallback(() => {
-    const { detail } = bottomFormState;
-    
-    if (detail) {
-      const newPost = {
-        id: Date.now() + 1,
-        title: 'Bottom Post',
-        detail,
-        priority: 1,
-        section: 'bottom',
-        image: bottomFormState.selectedImage,
-        textPosition: { ...bottomTextPosition }
-      };
-      
-      setPosts(prevPosts => [...prevPosts, newPost]);
-      setBottomFormState({ detail: '', selectedImage: null });
-      setBottomTextPosition({ x: 20, y: 20 }); // Reset text position
-    }
-  }, [bottomFormState, bottomTextPosition]);
+    createPost(bottomForm.state, SECTIONS.BOTTOM, bottomDrag.position, bottomForm.resetForm, bottomDrag.resetPosition);
+  }, [bottomForm.state, bottomDrag.position, bottomForm.resetForm, bottomDrag.resetPosition, createPost]);
 
   /**
-   * Post deletion handler
+   * Post management handlers
    */
   const handleDeletePost = useCallback((id) => {
     setPosts(prevPosts => prevPosts.filter(post => post.id !== id));
-    setModalStates(prev => ({
-      ...prev,
-      isDeleteSuccessModalOpen: true
-    }));
-  }, []);
+    openModal('isDeleteSuccessModalOpen');
+  }, [openModal]);
 
-  /**
-   * Priority update handler
-   */
   const handlePriorityUpdate = useCallback((id, newPriority) => {
     setPosts(prevPosts => 
       prevPosts.map(post => 
@@ -330,11 +685,8 @@ const JoinUsControl = memo(() => {
       editPriority: post.priority,
       editSection: post.section
     });
-    setModalStates(prev => ({
-      ...prev,
-      isEditModalOpen: true
-    }));
-  }, []);
+    openModal('isEditModalOpen');
+  }, [openModal]);
 
   const handleSaveEdit = useCallback(() => {
     const { editingPost, editTitle, editDetail, editPriority } = editState;
@@ -348,62 +700,50 @@ const JoinUsControl = memo(() => {
         )
       );
       
-      setModalStates(prev => ({
-        ...prev,
-        isEditModalOpen: false,
-        isSuccessModalOpen: true
-      }));
+      closeModal('isEditModalOpen');
+      openModal('isSuccessModalOpen');
       
       setEditState({
         editingPost: null,
         editTitle: '',
         editDetail: '',
         editPriority: 1,
-        editSection: 'posting'
+        editSection: SECTIONS.POSTING
       });
     }
-  }, [editState]);
-
-  /**
-   * Modal handlers
-   */
-  const handleSuccessModalClose = useCallback(() => {
-    setModalStates(prev => ({ ...prev, isSuccessModalOpen: false }));
-  }, []);
-
-  const handleDeleteSuccessModalClose = useCallback(() => {
-    setModalStates(prev => ({ ...prev, isDeleteSuccessModalOpen: false }));
-  }, []);
-
-  const handleScreenViewOpen = useCallback(() => {
-    setModalStates(prev => ({ ...prev, isScreenViewOpen: true }));
-  }, []);
-
-  const handleScreenViewClose = useCallback(() => {
-    setModalStates(prev => ({ ...prev, isScreenViewOpen: false }));
-  }, []);
+  }, [editState, closeModal, openModal]);
 
   const handleCancelEdit = useCallback(() => {
-    setModalStates(prev => ({ ...prev, isEditModalOpen: false }));
+    closeModal('isEditModalOpen');
     setEditState({
       editingPost: null,
       editTitle: '',
       editDetail: '',
       editPriority: 1,
-      editSection: 'posting'
+      editSection: SECTIONS.POSTING
     });
-  }, []);
+  }, [closeModal]);
 
   /**
    * Form input handlers
    */
   const handleHeaderDetailChange = useCallback((e) => {
-    setHeaderFormState(prev => ({ ...prev, detail: e.target.value }));
-  }, []);
+    headerForm.updateDetail(e.target.value);
+  }, [headerForm.updateDetail]);
 
   const handleBottomDetailChange = useCallback((e) => {
-    setBottomFormState(prev => ({ ...prev, detail: e.target.value }));
-  }, []);
+    bottomForm.updateDetail(e.target.value);
+  }, [bottomForm.updateDetail]);
+
+  const handleHeaderImageUpload = useCallback((event) => {
+    const file = event.target.files[0];
+    if (file) headerForm.updateImage(file);
+  }, [headerForm.updateImage]);
+
+  const handleBottomImageUpload = useCallback((event) => {
+    const file = event.target.files[0];
+    if (file) bottomForm.updateImage(file);
+  }, [bottomForm.updateImage]);
 
   const handleEditTitleChange = useCallback((e) => {
     setEditState(prev => ({ ...prev, editTitle: e.target.value }));
@@ -418,117 +758,29 @@ const JoinUsControl = memo(() => {
   }, []);
 
   /**
-   * Image removal handlers
+   * Modal handlers
    */
-  const handleRemoveHeaderImage = useCallback(() => {
-    if (headerFormState.selectedImage) {
-      URL.revokeObjectURL(headerFormState.selectedImage);
-    }
-    setHeaderFormState(prev => ({ ...prev, selectedImage: null }));
-  }, [headerFormState.selectedImage]);
-
-  const handleRemoveBottomImage = useCallback(() => {
-    if (bottomFormState.selectedImage) {
-      URL.revokeObjectURL(bottomFormState.selectedImage);
-    }
-    setBottomFormState(prev => ({ ...prev, selectedImage: null }));
-  }, [bottomFormState.selectedImage]);
-
-  /**
-   * Drag and drop functionality for text positioning - Header
-   */
-  const handleHeaderMouseDown = useCallback((e) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    setIsDraggingHeader(true);
-    setHeaderDragOffset({
-      x: e.clientX - rect.left - headerTextPosition.x,
-      y: e.clientY - rect.top - headerTextPosition.y
-    });
-  }, [headerTextPosition]);
-
-  const handleHeaderMouseMove = useCallback((e) => {
-    if (!isDraggingHeader) return;
-    
-    const rect = e.currentTarget.getBoundingClientRect();
-    const newX = e.clientX - rect.left - headerDragOffset.x;
-    const newY = e.clientY - rect.top - headerDragOffset.y;
-    
-    // Constrain within preview area bounds
-    const maxX = rect.width - 200; // Approximate text width
-    const maxY = rect.height - 100; // Approximate text height
-    
-    setHeaderTextPosition({
-      x: Math.max(0, Math.min(newX, maxX)),
-      y: Math.max(0, Math.min(newY, maxY))
-    });
-  }, [isDraggingHeader, headerDragOffset]);
-
-  const handleHeaderMouseUp = useCallback(() => {
-    setIsDraggingHeader(false);
-  }, []);
-
-  /**
-   * Drag and drop functionality for text positioning - Bottom
-   */
-  const handleBottomMouseDown = useCallback((e) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    setIsDraggingBottom(true);
-    setBottomDragOffset({
-      x: e.clientX - rect.left - bottomTextPosition.x,
-      y: e.clientY - rect.top - bottomTextPosition.y
-    });
-  }, [bottomTextPosition]);
-
-  const handleBottomMouseMove = useCallback((e) => {
-    if (!isDraggingBottom) return;
-    
-    const rect = e.currentTarget.getBoundingClientRect();
-    const newX = e.clientX - rect.left - bottomDragOffset.x;
-    const newY = e.clientY - rect.top - bottomDragOffset.y;
-    
-    // Constrain within preview area bounds
-    const maxX = rect.width - 200; // Approximate text width
-    const maxY = rect.height - 100; // Approximate text height
-    
-    setBottomTextPosition({
-      x: Math.max(0, Math.min(newX, maxX)),
-      y: Math.max(0, Math.min(newY, maxY))
-    });
-  }, [isDraggingBottom, bottomDragOffset]);
-
-  const handleBottomMouseUp = useCallback(() => {
-    setIsDraggingBottom(false);
-  }, []);
+  const handleScreenViewOpen = useCallback(() => openModal('isScreenViewOpen'), [openModal]);
+  const handleSuccessModalClose = useCallback(() => closeModal('isSuccessModalOpen'), [closeModal]);
+  const handleDeleteSuccessModalClose = useCallback(() => closeModal('isDeleteSuccessModalOpen'), [closeModal]);
+  const handleScreenViewClose = useCallback(() => closeModal('isScreenViewOpen'), [closeModal]);
 
   /**
    * Computed values
    */
-  const headPosts = useMemo(() => 
-    posts.filter(post => post.section === 'head').sort((a, b) => a.priority - b.priority), 
-    [posts]
-  );
-
-  const postingPosts = useMemo(() => 
-    posts.filter(post => post.section === 'posting').sort((a, b) => a.priority - b.priority), 
-    [posts]
-  );
-
-  const bottomPosts = useMemo(() => 
-    posts.filter(post => post.section === 'bottom').sort((a, b) => a.priority - b.priority), 
-    [posts]
-  );
+  const sectionPosts = useMemo(() => ({
+    head: posts.filter(post => post.section === SECTIONS.HEAD).sort((a, b) => a.priority - b.priority),
+    posting: posts.filter(post => post.section === SECTIONS.POSTING).sort((a, b) => a.priority - b.priority),
+    bottom: posts.filter(post => post.section === SECTIONS.BOTTOM).sort((a, b) => a.priority - b.priority)
+  }), [posts]);
 
   // Cleanup effect
-  React.useEffect(() => {
+  useEffect(() => {
     return () => {
-      if (headerFormState.selectedImage) {
-        URL.revokeObjectURL(headerFormState.selectedImage);
-      }
-      if (bottomFormState.selectedImage) {
-        URL.revokeObjectURL(bottomFormState.selectedImage);
-      }
+      revokeImageUrl(headerForm.state.selectedImage);
+      revokeImageUrl(bottomForm.state.selectedImage);
     };
-  }, [headerFormState.selectedImage, bottomFormState.selectedImage]);
+  }, [headerForm.state.selectedImage, bottomForm.state.selectedImage]);
 
   return (
     <div className="min-h-screen">
@@ -540,464 +792,65 @@ const JoinUsControl = memo(() => {
         </div>
 
         {/* Add Header Details Section */}
-        <div className="mb-16">
-          <h2 className="text-lg font-bold text-black mb-8 text-center">Add header details</h2>
-          
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            
-            {/* Header - Add Image Section */}
-            <div className="space-y-4">
-              <div className="text-center">
-                <h3 className="text-sm font-bold text-black mb-4">Add image</h3>
-                
-                <div className="border-2 border-dashed border-gray-400 rounded-lg p-8 text-center h-48 flex flex-col items-center justify-center">
-                  {headerFormState.selectedImage ? (
-                    <div className="space-y-3">
-                      <img 
-                        src={headerFormState.selectedImage} 
-                        alt="Header uploaded preview" 
-                        className="max-w-full max-h-32 object-contain mx-auto rounded-lg"
-                        loading="lazy"
-                      />
-                      <button
-                        onClick={handleRemoveHeaderImage}
-                        className="text-red-500 hover:text-red-700 transition-colors text-xs"
-                        type="button"
-                      >
-                        Remove Image
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      <div className="w-16 h-16 mx-auto border-2 border-gray-400 rounded-lg flex items-center justify-center">
-                        <ImageIcon className="w-8 h-8 text-gray-400" />
-                      </div>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleHeaderImageUpload}
-                        className="hidden"
-                        id="header-image-upload"
-                        aria-label="Upload header image file"
-                      />
-                      <label
-                        htmlFor="header-image-upload"
-                        className="bg-blue-600 text-white px-6 py-2 rounded-md cursor-pointer hover:bg-blue-700 inline-flex items-center gap-2 transition-colors text-sm font-medium"
-                      >
-                        <Plus className="w-4 h-4" />
-                        upload image
-                      </label>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Header - Create Detail Section */}
-            <div className="space-y-4">
-              <div>
-                <h3 className="text-sm font-bold text-black mb-4">Create detail</h3>
-                <textarea
-                  value={headerFormState.detail}
-                  onChange={handleHeaderDetailChange}
-                  rows={10}
-                  className="w-full px-4 py-4 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 resize-none transition-colors text-sm"
-                  placeholder=""
-                  aria-label="Header post details"
-                />
-              </div>
-            </div>
-
-            {/* Header - Preview Section */}
-            <div className="space-y-4">
-              <div>
-                <div className="flex items-center gap-2 mb-4">
-                  <h3 className="text-sm font-bold text-black">Preview and arrange</h3>
-                  <div className="w-4 h-4 bg-gray-800 rounded-full flex items-center justify-center">
-                    <span className="text-white text-[10px]">i</span>
-                  </div>
-                </div>
-                
-                <div 
-                  className="bg-gray-100 rounded-lg h-48 mb-4 flex items-center justify-center overflow-hidden relative cursor-move"
-                  onMouseDown={handleHeaderMouseDown}
-                  onMouseMove={handleHeaderMouseMove}
-                  onMouseUp={handleHeaderMouseUp}
-                  onMouseLeave={handleHeaderMouseUp}
-                >
-                  {/* Background Image */}
-                  {headerFormState.selectedImage ? (
-                    <img 
-                      src={headerFormState.selectedImage} 
-                      alt="Header preview" 
-                      className="w-full h-full object-cover rounded-lg absolute inset-0"
-                      loading="lazy"
-                    />
-                  ) : (
-                    <img 
-                      src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80" 
-                      alt="Default header preview" 
-                      className="w-full h-full object-cover rounded-lg absolute inset-0"
-                      loading="lazy"
-                    />
-                  )}
-
-                  {/* Draggable Text Overlay */}
-                  <div
-                    className="absolute cursor-move select-none max-w-xs z-10"
-                    style={{
-                      left: headerTextPosition.x,
-                      top: headerTextPosition.y,
-                      transform: isDraggingHeader ? 'scale(1.02)' : 'scale(1)',
-                      transition: isDraggingHeader ? 'none' : 'transform 0.2s ease'
-                    }}
-                    onMouseDown={handleHeaderMouseDown}
-                  >
-                    <div className="text-xs space-y-1">
-                      {headerFormState.detail ? (
-                        <div className="space-y-1">
-                          {headerFormState.detail.split('\n').map((line, index) => (
-                            <div 
-                              key={index} 
-                              className="font-semibold text-black"
-                              style={{
-                                textShadow: '1px 1px 2px rgba(255, 255, 255, 0.8), -1px -1px 2px rgba(255, 255, 255, 0.8)'
-                              }}
-                            >
-                              {line}
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="space-y-1">
-                          <div>
-                            <h4 className="font-semibold text-black mb-1" style={{
-                              textShadow: '1px 1px 2px rgba(255, 255, 255, 0.8), -1px -1px 2px rgba(255, 255, 255, 0.8)'
-                            }}>Welcome reward</h4>
-                            <p className="text-gray-700 leading-tight" style={{
-                              textShadow: '1px 1px 2px rgba(255, 255, 255, 0.8)'
-                            }}>Enjoy a welcome reward to spend in your first month.</p>
-                          </div>
-                          <div>
-                            <h4 className="font-semibold text-black mb-1" style={{
-                              textShadow: '1px 1px 2px rgba(255, 255, 255, 0.8), -1px -1px 2px rgba(255, 255, 255, 0.8)'
-                            }}>Birthday reward</h4>
-                            <p className="text-gray-700 leading-tight" style={{
-                              textShadow: '1px 1px 2px rgba(255, 255, 255, 0.8)'
-                            }}>Celebrate your birthday month with a special discount</p>
-                          </div>
-                          <div>
-                            <h4 className="font-semibold text-black mb-1" style={{
-                              textShadow: '1px 1px 2px rgba(255, 255, 255, 0.8), -1px -1px 2px rgba(255, 255, 255, 0.8)'
-                            }}>Private members' sale</h4>
-                            <p className="text-gray-700 leading-tight" style={{
-                              textShadow: '1px 1px 2px rgba(255, 255, 255, 0.8)'
-                            }}>Unlocked after your first order</p>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Helper text when dragging is available */}
-                  {!headerFormState.selectedImage && !headerFormState.detail && (
-                    <div className="absolute inset-0 flex items-center justify-center text-gray-400 text-sm">
-                      <p>Drag text to arrange position</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Header Action Buttons */}
-          <div className="mt-8 flex justify-center gap-4">
-            <button
-              onClick={handleCreateHeaderPost}
-              className="bg-black text-white px-12 py-3 rounded-full hover:bg-gray-800 transition-colors text-sm font-medium"
-              disabled={!headerFormState.detail}
-              type="button"
-            >
-              Post to head
-            </button>
-            <button 
-              onClick={handleScreenViewOpen}
-              className="bg-red-500 text-white px-8 py-3 rounded-full hover:bg-red-600 transition-colors text-sm font-medium"
-              type="button"
-            >
-              screen view
-            </button>
-          </div>
-        </div>
+        <FormSection
+          title="Add header details"
+          formState={headerForm.state}
+          onDetailChange={handleHeaderDetailChange}
+          onImageUpload={handleHeaderImageUpload}
+          onImageRemove={headerForm.removeImage}
+          onCreatePost={handleCreateHeaderPost}
+          onScreenViewOpen={handleScreenViewOpen}
+          textPosition={headerDrag.position}
+          isDragging={headerDrag.isDragging}
+          dragHandlers={headerDrag.dragHandlers}
+          uploadId="header-image-upload"
+          buttonText="Post to head"
+        />
 
         {/* Add Bottom Details Section */}
-        <div className="mb-16">
-          <h2 className="text-lg font-bold text-black mb-8 text-center">Add bottom details</h2>
-          
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            
-            {/* Bottom - Add Image Section */}
-            <div className="space-y-4">
-              <div className="text-center">
-                <h3 className="text-sm font-bold text-black mb-4">Add image</h3>
-                
-                <div className="border-2 border-dashed border-gray-400 rounded-lg p-8 text-center h-48 flex flex-col items-center justify-center">
-                  {bottomFormState.selectedImage ? (
-                    <div className="space-y-3">
-                      <img 
-                        src={bottomFormState.selectedImage} 
-                        alt="Bottom uploaded preview" 
-                        className="max-w-full max-h-32 object-contain mx-auto rounded-lg"
-                        loading="lazy"
-                      />
-                      <button
-                        onClick={handleRemoveBottomImage}
-                        className="text-red-500 hover:text-red-700 transition-colors text-xs"
-                        type="button"
-                      >
-                        Remove Image
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      <div className="w-16 h-16 mx-auto border-2 border-gray-400 rounded-lg flex items-center justify-center">
-                        <ImageIcon className="w-8 h-8 text-gray-400" />
-                      </div>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleBottomImageUpload}
-                        className="hidden"
-                        id="bottom-image-upload"
-                        aria-label="Upload bottom image file"
-                      />
-                      <label
-                        htmlFor="bottom-image-upload"
-                        className="bg-blue-600 text-white px-6 py-2 rounded-md cursor-pointer hover:bg-blue-700 inline-flex items-center gap-2 transition-colors text-sm font-medium"
-                      >
-                        <Plus className="w-4 h-4" />
-                        upload image
-                      </label>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Bottom - Create Detail Section */}
-            <div className="space-y-4">
-              <div>
-                <h3 className="text-sm font-bold text-black mb-4">Create detail</h3>
-                <textarea
-                  value={bottomFormState.detail}
-                  onChange={handleBottomDetailChange}
-                  rows={10}
-                  className="w-full px-4 py-4 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 resize-none transition-colors text-sm"
-                  placeholder=""
-                  aria-label="Bottom post details"
-                />
-              </div>
-            </div>
-
-            {/* Bottom - Preview Section */}
-            <div className="space-y-4">
-              <div>
-                <div className="flex items-center gap-2 mb-4">
-                  <h3 className="text-sm font-bold text-black">Preview and arrange</h3>
-                  <div className="w-4 h-4 bg-gray-800 rounded-full flex items-center justify-center">
-                    <span className="text-white text-[10px]">i</span>
-                  </div>
-                </div>
-                
-                <div 
-                  className="bg-gray-100 rounded-lg h-48 mb-4 flex items-center justify-center overflow-hidden relative cursor-move"
-                  onMouseDown={handleBottomMouseDown}
-                  onMouseMove={handleBottomMouseMove}
-                  onMouseUp={handleBottomMouseUp}
-                  onMouseLeave={handleBottomMouseUp}
-                >
-                  {/* Background Image */}
-                  {bottomFormState.selectedImage ? (
-                    <img 
-                      src={bottomFormState.selectedImage} 
-                      alt="Bottom preview" 
-                      className="w-full h-full object-cover rounded-lg absolute inset-0"
-                      loading="lazy"
-                    />
-                  ) : (
-                    <img 
-                      src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80" 
-                      alt="Default bottom preview" 
-                      className="w-full h-full object-cover rounded-lg absolute inset-0"
-                      loading="lazy"
-                    />
-                  )}
-
-                  {/* Draggable Text Overlay */}
-                  <div
-                    className="absolute cursor-move select-none max-w-xs z-10"
-                    style={{
-                      left: bottomTextPosition.x,
-                      top: bottomTextPosition.y,
-                      transform: isDraggingBottom ? 'scale(1.02)' : 'scale(1)',
-                      transition: isDraggingBottom ? 'none' : 'transform 0.2s ease'
-                    }}
-                    onMouseDown={handleBottomMouseDown}
-                  >
-                    <div className="text-xs space-y-1">
-                      {bottomFormState.detail ? (
-                        <div className="space-y-1">
-                          {bottomFormState.detail.split('\n').map((line, index) => (
-                            <div 
-                              key={index} 
-                              className="font-semibold text-black"
-                              style={{
-                                textShadow: '1px 1px 2px rgba(255, 255, 255, 0.8), -1px -1px 2px rgba(255, 255, 255, 0.8)'
-                              }}
-                            >
-                              {line}
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="space-y-1">
-                          <div>
-                            <h4 className="font-semibold text-black mb-1" style={{
-                              textShadow: '1px 1px 2px rgba(255, 255, 255, 0.8), -1px -1px 2px rgba(255, 255, 255, 0.8)'
-                            }}>Welcome reward</h4>
-                            <p className="text-gray-700 leading-tight" style={{
-                              textShadow: '1px 1px 2px rgba(255, 255, 255, 0.8)'
-                            }}>Enjoy a welcome reward to spend in your first month.</p>
-                          </div>
-                          <div>
-                            <h4 className="font-semibold text-black mb-1" style={{
-                              textShadow: '1px 1px 2px rgba(255, 255, 255, 0.8), -1px -1px 2px rgba(255, 255, 255, 0.8)'
-                            }}>Birthday reward</h4>
-                            <p className="text-gray-700 leading-tight" style={{
-                              textShadow: '1px 1px 2px rgba(255, 255, 255, 0.8)'
-                            }}>Celebrate your birthday month with a special discount</p>
-                          </div>
-                          <div>
-                            <h4 className="font-semibold text-black mb-1" style={{
-                              textShadow: '1px 1px 2px rgba(255, 255, 255, 0.8), -1px -1px 2px rgba(255, 255, 255, 0.8)'
-                            }}>Private members' sale</h4>
-                            <p className="text-gray-700 leading-tight" style={{
-                              textShadow: '1px 1px 2px rgba(255, 255, 255, 0.8)'
-                            }}>Unlocked after your first order</p>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Helper text when dragging is available */}
-                  {!bottomFormState.selectedImage && !bottomFormState.detail && (
-                    <div className="absolute inset-0 flex items-center justify-center text-gray-400 text-sm">
-                      <p>Drag text to arrange position</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Bottom Action Buttons */}
-          <div className="mt-8 flex justify-center gap-4">
-            <button
-              onClick={handleCreateBottomPost}
-              className="bg-black text-white px-12 py-3 rounded-full hover:bg-gray-800 transition-colors text-sm font-medium"
-              disabled={!bottomFormState.detail}
-              type="button"
-            >
-              Post to bottom
-            </button>
-            <button 
-              onClick={handleScreenViewOpen}
-              className="bg-red-500 text-white px-8 py-3 rounded-full hover:bg-red-600 transition-colors text-sm font-medium"
-              type="button"
-            >
-              screen view
-            </button>
-          </div>
-        </div>
+        <FormSection
+          title="Add bottom details"
+          formState={bottomForm.state}
+          onDetailChange={handleBottomDetailChange}
+          onImageUpload={handleBottomImageUpload}
+          onImageRemove={bottomForm.removeImage}
+          onCreatePost={handleCreateBottomPost}
+          onScreenViewOpen={handleScreenViewOpen}
+          textPosition={bottomDrag.position}
+          isDragging={bottomDrag.isDragging}
+          dragHandlers={bottomDrag.dragHandlers}
+          uploadId="bottom-image-upload"
+          buttonText="Post to bottom"
+        />
 
         {/* Posts Management Section with CRUD */}
         <div className="mt-12 space-y-12">
-          
-          {/* Head Section */}
-          <div>
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-bold text-black">Head</h3>
-            </div>
+          <PostsSection
+            title="Head"
+            posts={sectionPosts.head}
+            onEdit={handleEditClick}
+            onDelete={handleDeletePost}
+            onPriorityUpdate={handlePriorityUpdate}
+            sectionType="head posting"
+          />
 
-            {headPosts.map((post, index) => (
-              <PostItem
-                key={post.id}
-                post={post}
-                index={index}
-                onEdit={handleEditClick}
-                onDelete={handleDeletePost}
-                onPriorityUpdate={handlePriorityUpdate}
-                sectionType="head posting"
-              />
-            ))}
+          <PostsSection
+            title="All posting"
+            posts={sectionPosts.posting}
+            onEdit={handleEditClick}
+            onDelete={handleDeletePost}
+            onPriorityUpdate={handlePriorityUpdate}
+            sectionType="posting"
+          />
 
-            {headPosts.length === 0 && (
-              <div className="border-b border-gray-200 pb-6 mb-6">
-                <p className="text-gray-500 text-sm text-center py-8">No head posts yet. Create one using the form above.</p>
-              </div>
-            )}
-          </div>
-
-          {/* All Posting Section */}
-          <div>
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-bold text-black">All posting</h3>
-            </div>
-
-            {postingPosts.map((post, index) => (
-              <PostItem
-                key={post.id}
-                post={post}
-                index={index}
-                onEdit={handleEditClick}
-                onDelete={handleDeletePost}
-                onPriorityUpdate={handlePriorityUpdate}
-                sectionType="posting"
-              />
-            ))}
-
-            {postingPosts.length === 0 && (
-              <div className="border-b border-gray-200 pb-6 mb-6">
-                <p className="text-gray-500 text-sm text-center py-8">No posting posts yet.</p>
-              </div>
-            )}
-          </div>
-
-          {/* Bottom Section */}
-          <div>
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-bold text-black">Bottom</h3>
-            </div>
-
-            {bottomPosts.map((post, index) => (
-              <PostItem
-                key={post.id}
-                post={post}
-                index={index}
-                onEdit={handleEditClick}
-                onDelete={handleDeletePost}
-                onPriorityUpdate={handlePriorityUpdate}
-                sectionType="bottom posting"
-              />
-            ))}
-
-            {bottomPosts.length === 0 && (
-              <div className="border-b border-gray-200 pb-6 mb-6">
-                <p className="text-gray-500 text-sm text-center py-8">No bottom posts yet. Create one using the form above.</p>
-              </div>
-            )}
-          </div>
+          <PostsSection
+            title="Bottom"
+            posts={sectionPosts.bottom}
+            onEdit={handleEditClick}
+            onDelete={handleDeletePost}
+            onPriorityUpdate={handlePriorityUpdate}
+            sectionType="bottom posting"
+          />
         </div>
       </div>
 
@@ -1229,7 +1082,7 @@ const JoinUsControl = memo(() => {
                           <p className="text-sm font-bold text-center mb-4">YORAA Concert Giveaways</p>
                           <div className="absolute inset-3 flex items-center justify-center">
                             <img 
-                              src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80" 
+                              src={PREVIEW_IMAGE_URL}
                               alt={`Promotional content ${i}`}
                               className="w-full h-full object-cover rounded"
                             />
