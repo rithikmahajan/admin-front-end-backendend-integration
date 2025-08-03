@@ -500,6 +500,343 @@ const OrderDetails = React.memo(({ orderId, onBack }) => {
 });
 
 /**
+ * ReturnWindowScreen Component
+ * 
+ * A dedicated screen for managing return requests with options to:
+ * - View return reason and product images
+ * - Accept or reject the return
+ * - Allot vendor and courier if accepted
+ * - Provide explanation for rejection
+ */
+const ReturnWindowScreen = React.memo(({ returnId, onBack }) => {
+  const [returnStatus, setReturnStatus] = useState('pending');
+  const [selectedReason, setSelectedReason] = useState('');
+  const [vendorAllotted, setVendorAllotted] = useState(false);
+  const [courierAllotted, setCourierAllotted] = useState(false);
+  const [explanation, setExplanation] = useState('');
+  const [showVendorOptions, setShowVendorOptions] = useState(false);
+  const [showCourierOptions, setShowCourierOptions] = useState(false);
+  const [showVendorSelection, setShowVendorSelection] = useState(false);
+  const [selectedVendor, setSelectedVendor] = useState('');
+
+  // Sample return reasons
+  const returnReasons = [
+    'Size/fit issue (For Exchanging the product)',
+    'Product not as expected',
+    'Wrong item received',
+    'Damaged/defective product',
+    'Late delivery',
+    'Quality not as expected'
+  ];
+
+  // Handle status change
+  const handleStatusChange = useCallback((status) => {
+    setReturnStatus(status);
+    if (status === 'accepted') {
+      setShowVendorOptions(true);
+    } else {
+      setShowVendorOptions(false);
+      setShowCourierOptions(false);
+      setVendorAllotted(false);
+      setCourierAllotted(false);
+    }
+  }, []);
+
+  // Handle vendor allotment
+  const handleVendorAllotment = useCallback((allot) => {
+    setVendorAllotted(allot);
+    if (allot) {
+      setShowCourierOptions(true);
+      setShowVendorSelection(true);
+    } else {
+      setShowCourierOptions(false);
+      setCourierAllotted(false);
+      setShowVendorSelection(false);
+      setSelectedVendor('');
+    }
+  }, []);
+
+  // Handle vendor selection
+  const handleVendorSelection = useCallback((vendor) => {
+    setSelectedVendor(vendor);
+  }, []);
+
+  // Handle vendor confirmation
+  const handleVendorConfirm = useCallback(() => {
+    if (selectedVendor) {
+      setShowVendorSelection(false);
+      console.log(`Vendor ${selectedVendor} confirmed for return ${returnId}`);
+      alert(`Vendor "${selectedVendor}" has been successfully assigned to return ${returnId}`);
+    }
+  }, [selectedVendor, returnId]);
+
+  // Handle courier allotment
+  const handleCourierAllotment = useCallback((allot) => {
+    setCourierAllotted(allot);
+  }, []);
+
+  // Handle send response
+  const handleSendResponse = useCallback(() => {
+    const response = {
+      returnId,
+      status: returnStatus,
+      vendorAllotted,
+      courierAllotted,
+      explanation,
+      timestamp: new Date().toISOString()
+    };
+    
+    console.log('Return response:', response);
+    alert(`Return ${returnStatus} successfully!\nVendor: ${vendorAllotted ? 'Allotted' : 'Not allotted'}\nCourier: ${courierAllotted ? 'Allotted' : 'Not allotted'}`);
+    
+    // In a real app, this would make an API call
+    onBack();
+  }, [returnId, returnStatus, vendorAllotted, courierAllotted, explanation, onBack]);
+
+  return (
+    <div className="bg-gray-50 min-h-screen p-4">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center space-x-4">
+            <button
+              onClick={onBack}
+              className="flex items-center space-x-2 text-gray-600 hover:text-gray-800"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+              <span>Back to Returns</span>
+            </button>
+          </div>
+          <h1 className="text-2xl font-bold text-gray-900">Return Window Screen</h1>
+        </div>
+
+        {/* Main Content */}
+        <div className="bg-white rounded-lg shadow-lg p-6">
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+            
+            {/* Image Preview Section */}
+            <div className="lg:col-span-1">
+              <h3 className="text-lg font-bold text-gray-900 mb-4">Image Preview</h3>
+              <div className="space-y-4">
+                {/* Main Product Image */}
+                <div className="w-full h-64 bg-gray-100 rounded-lg overflow-hidden">
+                  <div className="w-full h-full bg-blue-200 rounded flex items-center justify-center">
+                    <div className="w-32 h-32 bg-blue-400 rounded" aria-label="Product image"></div>
+                  </div>
+                </div>
+                
+                {/* Thumbnail Images */}
+                <div className="grid grid-cols-2 gap-2">
+                  {[1, 2, 3, 4].map((_, index) => (
+                    <div key={index} className="w-full h-20 bg-gray-100 rounded overflow-hidden">
+                      <div className="w-full h-full bg-blue-200 rounded flex items-center justify-center">
+                        <div className="w-8 h-8 bg-blue-400 rounded" aria-label={`Thumbnail ${index + 1}`}></div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Reason of Return Section */}
+            <div className="lg:col-span-1">
+              <h3 className="text-lg font-bold text-gray-900 mb-4">Reason of return</h3>
+              <div className="space-y-1">
+                {returnReasons.map((reason, index) => (
+                  <div
+                    key={index}
+                    className={`p-3 border-b border-gray-200 cursor-pointer hover:bg-gray-50 ${
+                      selectedReason === reason ? 'bg-blue-50 border-blue-200' : ''
+                    }`}
+                    onClick={() => setSelectedReason(reason)}
+                  >
+                    <p className="text-sm text-gray-700">{reason}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Status Section */}
+            <div className="lg:col-span-1">
+              <h3 className="text-lg font-bold text-gray-900 mb-4">Status</h3>
+              <div className="space-y-4">
+                <button
+                  onClick={() => handleStatusChange('accepted')}
+                  className={`w-full px-4 py-2 rounded-lg font-medium ${
+                    returnStatus === 'accepted'
+                      ? 'bg-green-500 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  Accepted
+                </button>
+                <button
+                  onClick={() => handleStatusChange('rejected')}
+                  className={`w-full px-4 py-2 rounded-lg font-medium ${
+                    returnStatus === 'rejected'
+                      ? 'bg-red-500 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  Rejected
+                </button>
+              </div>
+
+              {/* Vendor and Courier Allotment (only show if accepted) */}
+              {showVendorOptions && (
+                <div className="mt-6 space-y-4">
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-700 mb-2">Allot Vendor</h4>
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => handleVendorAllotment(false)}
+                        className={`px-4 py-2 rounded-full text-sm font-medium ${
+                          vendorAllotted === false
+                            ? 'bg-gray-200 text-gray-700'
+                            : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-50'
+                        }`}
+                      >
+                        No
+                      </button>
+                      <button
+                        onClick={() => handleVendorAllotment(true)}
+                        className={`px-4 py-2 rounded-full text-sm font-medium ${
+                          vendorAllotted === true
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-50'
+                        }`}
+                      >
+                        Yes
+                      </button>
+                    </div>
+
+                    {/* Display selected vendor name */}
+                    {vendorAllotted && selectedVendor && !showVendorSelection && (
+                      <div className="mt-4">
+                        <div className="text-sm font-medium text-gray-700 mb-2">Assigned Vendor:</div>
+                        <span className="inline-block px-3 py-1 bg-blue-100 text-blue-800 font-medium rounded-full text-sm">
+                          {selectedVendor}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Vendor Selection Dropdown */}
+                    {showVendorSelection && (
+                      <div className="mt-4">
+                        <div className="bg-white border border-gray-200 rounded-xl shadow-lg p-4 max-w-[220px]">
+                          <div className="text-sm font-medium text-gray-400 mb-3">vendor name</div>
+                          <div className="space-y-0">
+                            {['ven 1', 'ven 2', 'ven 3'].map((vendor, index) => (
+                              <div key={vendor}>
+                                <label className="flex items-center justify-between py-2 px-2 hover:bg-gray-50 rounded cursor-pointer">
+                                  <span className="text-sm font-medium text-gray-900">{vendor}</span>
+                                  <div className="relative">
+                                    <input
+                                      type="radio"
+                                      name="vendor-selection"
+                                      value={vendor}
+                                      checked={selectedVendor === vendor}
+                                      onChange={() => handleVendorSelection(vendor)}
+                                      className="sr-only"
+                                    />
+                                    <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
+                                      selectedVendor === vendor 
+                                        ? 'border-blue-500 bg-blue-50' 
+                                        : 'border-gray-300 bg-white'
+                                    }`}>
+                                      {selectedVendor === vendor && (
+                                        <Check className="w-3 h-3 text-blue-500" />
+                                      )}
+                                    </div>
+                                  </div>
+                                </label>
+                                {index < 2 && <hr className="border-gray-200" />}
+                              </div>
+                            ))}
+                          </div>
+                          <button
+                            onClick={handleVendorConfirm}
+                            disabled={!selectedVendor}
+                            className={`w-full mt-4 px-4 py-2 rounded-lg text-sm font-medium flex items-center justify-center space-x-2 ${
+                              selectedVendor
+                                ? 'bg-blue-600 text-white hover:bg-blue-700'
+                                : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                            }`}
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                            </svg>
+                            <span>confirm</span>
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {showCourierOptions && (
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-700 mb-2">Courier Allotted</h4>
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={() => handleCourierAllotment(false)}
+                          className={`px-4 py-2 rounded-full text-sm font-medium ${
+                            courierAllotted === false
+                              ? 'bg-gray-200 text-gray-700'
+                              : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-50'
+                          }`}
+                        >
+                          No
+                        </button>
+                        <button
+                          onClick={() => handleCourierAllotment(true)}
+                          className={`px-4 py-2 rounded-full text-sm font-medium ${
+                            courierAllotted === true
+                              ? 'bg-blue-600 text-white'
+                              : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-50'
+                          }`}
+                        >
+                          Yes
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Give Reason/Explanation Section */}
+            <div className="lg:col-span-2">
+              <h3 className="text-lg font-bold text-gray-900 mb-4">Give Explanation</h3>
+              <div className="space-y-4">
+                <textarea
+                  value={explanation}
+                  onChange={(e) => setExplanation(e.target.value)}
+                  placeholder={returnStatus === 'rejected' ? 'Provide reason for rejection...' : 'Add any additional notes...'}
+                  className="w-full h-32 p-3 border-2 border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  rows={6}
+                />
+                
+                {/* Send Response Button */}
+                <div className="flex justify-center pt-4">
+                  <button
+                    onClick={handleSendResponse}
+                    className="bg-black text-white px-8 py-3 rounded-full font-semibold hover:bg-gray-800 transition-colors"
+                  >
+                    Send Response
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+});
+
+/**
  * Orders Component
  * 
  * A comprehensive orders management interface that displays order data in a table format
@@ -538,12 +875,18 @@ const Orders = React.memo(() => {
   const [showDateRangePicker, setShowDateRangePicker] = useState(false);
   const [showVendorDropdown, setShowVendorDropdown] = useState({});
   const [selectedVendors, setSelectedVendors] = useState({});
+  const [selectedVendorNames, setSelectedVendorNames] = useState({});
+  const [allottedVendorNames, setAllottedVendorNames] = useState({});
   const [courierAllotments, setCourierAllotments] = useState({});
   const [deliveryStatuses, setDeliveryStatuses] = useState({});
   
   // New state for order details view
   const [showOrderDetails, setShowOrderDetails] = useState(false);
   const [selectedOrderId, setSelectedOrderId] = useState(null);
+  
+  // New state for return window screen
+  const [showReturnWindow, setShowReturnWindow] = useState(false);
+  const [selectedReturnId, setSelectedReturnId] = useState(null);
   
   // New state for tab management
   const [activeTab, setActiveTab] = useState('orders');
@@ -581,6 +924,7 @@ const Orders = React.memo(() => {
       delivered: 'NO',
       actions: 'Pending',
       vendorAllotted: false,
+      allottedVendorName: null,
       courierTrackingId: null,
       deliveryStatus: 'Order Placed',
       lastUpdated: new Date().toISOString()
@@ -607,6 +951,7 @@ const Orders = React.memo(() => {
       delivered: 'NO',
       actions: 'Processing',
       vendorAllotted: true,
+      allottedVendorName: 'ven 1',
       courierTrackingId: 'SP123456789',
       deliveryStatus: 'In Transit',
       lastUpdated: new Date().toISOString()
@@ -633,6 +978,7 @@ const Orders = React.memo(() => {
       delivered: 'YES',
       actions: 'Delivered',
       vendorAllotted: true,
+      allottedVendorName: 'ven 2',
       courierTrackingId: 'SP123456790',
       deliveryStatus: 'Delivered',
       lastUpdated: new Date().toISOString()
@@ -659,6 +1005,7 @@ const Orders = React.memo(() => {
       delivered: 'NO',
       actions: 'Rejected',
       vendorAllotted: false,
+      allottedVendorName: null,
       courierTrackingId: null,
       deliveryStatus: 'Cancelled',
       lastUpdated: new Date().toISOString()
@@ -685,6 +1032,7 @@ const Orders = React.memo(() => {
       delivered: 'NO',
       actions: 'On way',
       vendorAllotted: true,
+      allottedVendorName: 'ven 3',
       courierTrackingId: 'SP123456791',
       deliveryStatus: 'Out for Delivery',
       lastUpdated: new Date().toISOString()
@@ -718,10 +1066,12 @@ const Orders = React.memo(() => {
       delivered: 'YES',
       actions: 'Return Pending',
       vendorAllotted: true,
+      allottedVendorName: 'ven 1',
       courierTrackingId: 'SP123456792',
       deliveryStatus: 'Return Requested',
       lastUpdated: new Date().toISOString(),
-      returnReason: 'Defective product'
+      returnReason: 'Size/fit issue (For Exchanging the product)',
+      returnStatus: 'pending'
     },
     {
       orderId: '1234567892226',
@@ -745,10 +1095,12 @@ const Orders = React.memo(() => {
       delivered: 'YES',
       actions: 'Return Approved',
       vendorAllotted: true,
+      allottedVendorName: 'ven 2',
       courierTrackingId: 'SP123456793',
       deliveryStatus: 'Return Approved',
       lastUpdated: new Date().toISOString(),
-      returnReason: 'Size mismatch'
+      returnReason: 'Product not as expected',
+      returnStatus: 'accepted'
     },
     {
       orderId: '1234567892227',
@@ -772,12 +1124,33 @@ const Orders = React.memo(() => {
       delivered: 'YES',
       actions: 'Return Rejected',
       vendorAllotted: false,
+      allottedVendorName: null,
       courierTrackingId: null,
       deliveryStatus: 'Return Rejected',
       lastUpdated: new Date().toISOString(),
-      returnReason: 'Invalid return request'
+      returnReason: 'Damaged/defective product',
+      returnStatus: 'rejected'
     }
   ], []); // Empty dependency array since this is static data
+
+  // Initialize allotted vendor names from existing order data
+  useEffect(() => {
+    const initialAllottedVendors = {};
+    const initialSelectedVendors = {};
+    const allData = [...orders, ...returnRequests];
+    
+    allData.forEach(order => {
+      if (order.allottedVendorName) {
+        initialAllottedVendors[order.orderId] = order.allottedVendorName;
+        initialSelectedVendors[order.orderId] = true;
+      } else if (order.vendorAllotted) {
+        initialSelectedVendors[order.orderId] = true;
+      }
+    });
+    
+    setAllottedVendorNames(initialAllottedVendors);
+    setSelectedVendors(prev => ({...prev, ...initialSelectedVendors}));
+  }, [orders, returnRequests]);
 
   /**
    * Optimized filter handler using useCallback to prevent unnecessary re-renders
@@ -800,19 +1173,54 @@ const Orders = React.memo(() => {
       ...prev,
       [orderId]: allot
     }));
-    // In a real app, this would make an API call
+    
+    if (allot) {
+      setShowVendorDropdown(prev => ({
+        ...prev,
+        [orderId]: true
+      }));
+    } else {
+      setShowVendorDropdown(prev => ({
+        ...prev,
+        [orderId]: false
+      }));
+      setSelectedVendorNames(prev => ({
+        ...prev,
+        [orderId]: ''
+      }));
+      setAllottedVendorNames(prev => ({
+        ...prev,
+        [orderId]: null
+      }));
+    }
+    
     console.log(`${allot ? 'Allotting' : 'Not allotting'} vendor for order ${orderId}`);
   }, []);
 
   const handleVendorSelection = useCallback((orderId, vendorName) => {
-    // Confirm vendor selection
-    setShowVendorDropdown(prev => ({
-      ...prev,
-      [orderId]: false
-    }));
-    // In a real app, this would make an API call to assign vendor
-    console.log(`Vendor ${vendorName} assigned to order ${orderId}`);
-  }, []);
+    if (vendorName === 'Confirmed') {
+      // Close dropdown after confirmation and store the allotted vendor
+      setShowVendorDropdown(prev => ({
+        ...prev,
+        [orderId]: false
+      }));
+      const selectedVendor = selectedVendorNames[orderId];
+      if (selectedVendor) {
+        setAllottedVendorNames(prev => ({
+          ...prev,
+          [orderId]: selectedVendor
+        }));
+        console.log(`Vendor ${selectedVendor} confirmed for order ${orderId}`);
+        alert(`Vendor "${selectedVendor}" has been successfully assigned to order ${orderId}`);
+      }
+    } else {
+      // Set selected vendor
+      setSelectedVendorNames(prev => ({
+        ...prev,
+        [orderId]: vendorName
+      }));
+    }
+  }, [selectedVendorNames]);
 
   const handleCourierAllotment = useCallback((orderId, allot) => {
     setCourierAllotments(prev => ({
@@ -846,6 +1254,12 @@ const Orders = React.memo(() => {
     // Show order details inline instead of navigating
     setSelectedOrderId(orderId);
     setShowOrderDetails(true);
+  }, []);
+
+  const handleReturnIdClick = useCallback((returnId) => {
+    // Show return window screen
+    setSelectedReturnId(returnId);
+    setShowReturnWindow(true);
   }, []);
   /**
    * Date range handlers
@@ -1003,6 +1417,11 @@ const Orders = React.memo(() => {
   // If showing order details, render the OrderDetails component
   if (showOrderDetails && selectedOrderId) {
     return <OrderDetails orderId={selectedOrderId} onBack={() => setShowOrderDetails(false)} />;
+  }
+
+  // If showing return window screen, render the ReturnWindowScreen component
+  if (showReturnWindow && selectedReturnId) {
+    return <ReturnWindowScreen returnId={selectedReturnId} onBack={() => setShowReturnWindow(false)} />;
   }
 
   return (
@@ -1280,7 +1699,9 @@ const Orders = React.memo(() => {
           {/* Table Header */}
           <thead className="bg-gray-50">
             <tr className="border-b border-gray-200">
-              <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">order id</th>
+              <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                {activeTab === 'returns' ? 'return id' : 'order id'}
+              </th>
               <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Image</th>
               <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Product Name</th>
               <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">name</th>
@@ -1293,7 +1714,11 @@ const Orders = React.memo(() => {
               <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">SKU</th>
               <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">barcode no.</th>
               <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">status</th>
-              <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">vendor allotment</th>
+              {activeTab === 'returns' ? (
+                <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">return to vendor</th>
+              ) : (
+                <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">vendor allotment</th>
+              )}
               <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">courier alloted</th>
               <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">delivery status</th>
               <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">actions</th>
@@ -1310,6 +1735,7 @@ const Orders = React.memo(() => {
                 getPaymentStatusColor={getPaymentStatusColor}
                 getDeliveryStatusColor={getDeliveryStatusColor}
                 onOrderIdClick={handleOrderIdClick}
+                onReturnIdClick={handleReturnIdClick}
                 onVendorAllotment={handleVendorAllotment}
                 onVendorSelection={handleVendorSelection}
                 onCourierAllotment={handleCourierAllotment}
@@ -1317,8 +1743,11 @@ const Orders = React.memo(() => {
                 showVendorDropdown={showVendorDropdown}
                 setShowVendorDropdown={setShowVendorDropdown}
                 selectedVendors={selectedVendors}
+                selectedVendorNames={selectedVendorNames}
+                allottedVendorNames={allottedVendorNames}
                 courierAllotments={courierAllotments}
                 deliveryStatuses={deliveryStatuses}
+                activeTab={activeTab}
               />
             ))}
           </tbody>
@@ -1366,6 +1795,7 @@ const OrderRow = React.memo(({
   getPaymentStatusColor, 
   getDeliveryStatusColor,
   onOrderIdClick,
+  onReturnIdClick,
   onVendorAllotment,
   onVendorSelection,
   onCourierAllotment,
@@ -1373,18 +1803,25 @@ const OrderRow = React.memo(({
   showVendorDropdown,
   setShowVendorDropdown,
   selectedVendors,
+  selectedVendorNames,
+  allottedVendorNames,
   courierAllotments,
-  deliveryStatuses
+  deliveryStatuses,
+  activeTab
 }) => {
   // Available vendors for allotment
-  const availableVendors = ['Vendor 1', 'Vendor 2', 'Vendor 3'];
+  const availableVendors = ['ven 1', 'ven 2', 'ven 3'];
 
   /**
    * Action button handlers - memoized to prevent unnecessary re-renders
    */
   const handleView = useCallback(() => {
-    onOrderIdClick(order.orderId);
-  }, [order.orderId, onOrderIdClick]);
+    if (activeTab === 'returns') {
+      onReturnIdClick(order.orderId);
+    } else {
+      onOrderIdClick(order.orderId);
+    }
+  }, [order.orderId, onOrderIdClick, onReturnIdClick, activeTab]);
 
   const handleEdit = useCallback(() => {
     console.log('Edit order:', order.orderId);
@@ -1427,23 +1864,19 @@ const OrderRow = React.memo(({
     onBarcodeScanning(order.orderId);
   }, [order.orderId, onBarcodeScanning]);
 
-  const toggleVendorDropdown = useCallback(() => {
-    setShowVendorDropdown(prev => ({
-      ...prev,
-      [order.orderId]: !prev[order.orderId]
-    }));
-  }, [order.orderId, setShowVendorDropdown]);
-
   const handleVendorAllot = useCallback((allot) => {
     onVendorAllotment(order.orderId, allot);
-    if (allot) {
-      toggleVendorDropdown();
-    }
-  }, [order.orderId, onVendorAllotment, toggleVendorDropdown]);
+  }, [order.orderId, onVendorAllotment]);
 
   const handleVendorSelect = useCallback((vendorName) => {
     onVendorSelection(order.orderId, vendorName);
   }, [order.orderId, onVendorSelection]);
+
+  const handleVendorConfirm = useCallback(() => {
+    if (selectedVendorNames[order.orderId]) {
+      onVendorSelection(order.orderId, 'Confirmed');
+    }
+  }, [order.orderId, onVendorSelection, selectedVendorNames]);
 
   const handleCourierAllot = useCallback((allot) => {
     onCourierAllotment(order.orderId, allot);
@@ -1466,7 +1899,7 @@ const OrderRow = React.memo(({
             {order.orderId}
           </button>
           <div className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-            PAYMENT STATUS
+            {activeTab === 'returns' ? 'RETURN STATUS' : 'PAYMENT STATUS'}
           </div>
           <span className={`inline-block px-2 py-1 text-xs font-medium rounded ${getPaymentStatusColor(order.paymentStatus)}`}>
             {order.paymentStatus}
@@ -1544,11 +1977,11 @@ const OrderRow = React.memo(({
         </span>
       </td>
 
-      {/* Vendor Allotment */}
+      {/* Vendor Allotment or Return to Vendor */}
       <td className="py-4 px-2">
         <div className="space-y-2">
           <div className="text-xs text-gray-600 font-medium text-center">
-            allot vendor
+            {activeTab === 'returns' ? 'return to vendor' : 'allot vendor'}
           </div>
           <div className="flex items-center space-x-2">
             <button
@@ -1565,7 +1998,7 @@ const OrderRow = React.memo(({
               onClick={() => handleVendorAllot(true)}
               className={`px-3 py-1 text-xs font-medium rounded-full ${
                 isVendorAllotted === true 
-                  ? 'bg-red-500 text-white' 
+                  ? (activeTab === 'returns' ? 'bg-blue-600 text-white' : 'bg-red-500 text-white')
                   : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-50'
               }`}
             >
@@ -1573,29 +2006,62 @@ const OrderRow = React.memo(({
             </button>
           </div>
           
+          {/* Display allotted vendor name */}
+          {(isVendorAllotted || order.allottedVendorName || allottedVendorNames[order.orderId]) && (
+            <div className="text-xs text-center mt-2">
+              <span className="inline-block px-2 py-1 bg-blue-100 text-blue-800 font-medium rounded-full">
+                {allottedVendorNames[order.orderId] || order.allottedVendorName || 'Vendor Assigned'}
+              </span>
+            </div>
+          )}
+          
           {/* Vendor Selection Dropdown */}
-          {isVendorAllotted && (
+          {isVendorAllotted && showVendorDropdown[order.orderId] && (
             <div className="relative">
-              <div className="mt-2 bg-white border border-gray-200 rounded-lg shadow-lg p-2 z-50 min-w-[150px]">
-                <div className="text-xs text-gray-500 mb-2">vendor name</div>
-                {availableVendors.map((vendor, index) => (
-                  <div key={vendor} className="space-y-1">
-                    <button
-                      onClick={() => handleVendorSelect(vendor)}
-                      className="w-full text-left px-2 py-1 text-sm text-gray-700 hover:bg-gray-50 rounded"
-                    >
-                      {vendor.toLowerCase()}
-                    </button>
-                    {index < availableVendors.length - 1 && (
-                      <hr className="border-gray-200" />
-                    )}
-                  </div>
-                ))}
+              <div className="mt-2 bg-white border border-gray-200 rounded-xl shadow-lg p-4 z-50 min-w-[220px]">
+                <div className="text-sm font-medium text-gray-400 mb-3">vendor name</div>
+                <div className="space-y-0">
+                  {availableVendors.map((vendor, index) => (
+                    <div key={vendor}>
+                      <label className="flex items-center justify-between py-2 px-2 hover:bg-gray-50 rounded cursor-pointer">
+                        <span className="text-sm font-medium text-gray-900">{vendor}</span>
+                        <div className="relative">
+                          <input
+                            type="radio"
+                            name={`vendor-selection-${order.orderId}`}
+                            value={vendor}
+                            checked={selectedVendorNames[order.orderId] === vendor}
+                            onChange={() => handleVendorSelect(vendor)}
+                            className="sr-only"
+                          />
+                          <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
+                            selectedVendorNames[order.orderId] === vendor 
+                              ? 'border-blue-500 bg-blue-50' 
+                              : 'border-gray-300 bg-white'
+                          }`}>
+                            {selectedVendorNames[order.orderId] === vendor && (
+                              <Check className="w-3 h-3 text-blue-500" />
+                            )}
+                          </div>
+                        </div>
+                      </label>
+                      {index < availableVendors.length - 1 && <hr className="border-gray-200" />}
+                    </div>
+                  ))}
+                </div>
                 <button
-                  onClick={() => handleVendorSelect('Confirmed')}
-                  className="w-full mt-2 bg-blue-600 text-white px-3 py-1 rounded text-sm font-medium hover:bg-blue-700"
+                  onClick={handleVendorConfirm}
+                  disabled={!selectedVendorNames[order.orderId]}
+                  className={`w-full mt-4 px-4 py-2 rounded-lg text-sm font-medium flex items-center justify-center space-x-2 ${
+                    selectedVendorNames[order.orderId]
+                      ? 'bg-blue-600 text-white hover:bg-blue-700'
+                      : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                  }`}
                 >
-                  confirm
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                  <span>confirm</span>
                 </button>
               </div>
             </div>
@@ -1688,6 +2154,7 @@ const OrderRow = React.memo(({
 });
 
 // Set display names for debugging
+ReturnWindowScreen.displayName = 'ReturnWindowScreen';
 OrderDetails.displayName = 'OrderDetails';
 Orders.displayName = 'Orders';
 OrderRow.displayName = 'OrderRow';
