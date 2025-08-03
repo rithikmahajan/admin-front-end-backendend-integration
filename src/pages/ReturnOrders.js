@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo, memo } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { Info, Send } from 'lucide-react';
 
 // Constants and Configuration
@@ -88,7 +88,7 @@ const INITIAL_FORM_STATE = {
  * - Efficient state updates with functional patterns
  * - Optimized rendering of list items
  */
-const ReturnOrders = memo(() => {
+const ReturnOrders = React.memo(() => {
   // State Management - Form Data
   const [selectedReason, setSelectedReason] = useState(INITIAL_FORM_STATE.selectedReason);
   const [status, setStatus] = useState(INITIAL_FORM_STATE.status);

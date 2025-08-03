@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useRef } from 'react';
 
 /**
  * Settings Component - Comprehensive settings management for the application
@@ -398,6 +398,33 @@ const Settings = () => {
   // Remove item by ID utility
   const removeItemById = useCallback((items, id) => 
     items.filter(item => item.id !== id), []);
+
+  // ==============================
+  // COMPUTED VALUES
+  // ==============================
+  
+  // Check if there are any unsaved changes
+  const hasUnsavedChanges = useMemo(() => {
+    return editingCondition !== null || 
+           editingShippingCharge !== null || 
+           editingHsnCode !== null || 
+           editingCountry !== null || 
+           editingLanguage !== null || 
+           editingCurrency !== null || 
+           editingNotificationCondition !== null || 
+           editingDynamicPricingCondition !== null || 
+           editingWebhook !== null;
+  }, [
+    editingCondition, 
+    editingShippingCharge, 
+    editingHsnCode, 
+    editingCountry, 
+    editingLanguage, 
+    editingCurrency, 
+    editingNotificationCondition, 
+    editingDynamicPricingCondition, 
+    editingWebhook
+  ]);
 
   // ==============================
   // DISCOUNT MODAL HANDLERS
@@ -2933,10 +2960,14 @@ const Settings = () => {
     }
   }), [errorHandling]);
 
+  // Component health monitoring refs (must be outside useMemo)
+  const renderCountRef = useRef(0);
+  const lastRenderTimeRef = useRef(Date.now());
+
   // Component health monitoring
   const healthMetrics = useMemo(() => ({
-    renderCount: React.useRef(0),
-    lastRenderTime: React.useRef(Date.now()),
+    renderCount: renderCountRef,
+    lastRenderTime: lastRenderTimeRef,
     performanceScore: Math.round(
       ((enhancedSettingsCounts.totalDiscountConditions + 
         enhancedSettingsCounts.totalShippingCharges + 
@@ -2944,13 +2975,13 @@ const Settings = () => {
     ),
     
     trackRender: () => {
-      healthMetrics.renderCount.current += 1;
-      healthMetrics.lastRenderTime.current = Date.now();
+      renderCountRef.current += 1;
+      lastRenderTimeRef.current = Date.now();
     },
 
     getHealthStatus: () => ({
-      totalRenders: healthMetrics.renderCount.current,
-      lastRender: new Date(healthMetrics.lastRenderTime.current).toISOString(),
+      totalRenders: renderCountRef.current,
+      lastRender: new Date(lastRenderTimeRef.current).toISOString(),
       performanceScore: healthMetrics.performanceScore,
       memoryUsage: performance.memory ? {
         used: Math.round(performance.memory.usedJSHeapSize / 1024 / 1024),
