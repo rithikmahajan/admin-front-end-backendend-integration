@@ -1,4 +1,6 @@
 import React, { useState, useCallback, useMemo, useRef } from 'react';
+import CollectCommunicationPreferences from './Collect communication preferences';
+import GetAutoInvoiceMailing from './get auto invoice mailing';
 
 /**
  * Settings Component - Comprehensive settings management for the application
@@ -9,6 +11,7 @@ import React, { useState, useCallback, useMemo, useRef } from 'react';
  * - Shipping charges configuration
  * - HSN code management
  * - Location settings (countries, languages, currencies)
+ * - Location data collection toggle (integrates with collectlocationdata.js)
  * - Auto notification setup
  * - Dynamic pricing configuration
  * - Webhook management
@@ -47,16 +50,14 @@ const MODAL_TYPES = {
 
 const SETTINGS_KEYS = {
   PROFILE_VISIBILITY: 'profileVisibility',
-  COMMUNICATION_PREFS: 'communicationPrefs',
-  AUTO_INVOICING: 'autoInvoicing',
-  HUGGING_FACE_API: 'huggingFaceAPI'
+  HUGGING_FACE_API: 'huggingFaceAPI',
+  COLLECT_DATA: 'collectData'
 };
 
 const DEFAULT_SETTINGS = {
   profileVisibility: true,
-  communicationPrefs: true,
-  autoInvoicing: true,
   huggingFaceAPI: true,
+  collectData: true,
   onlineDiscount: 5,
   userLimit: 100
 };
@@ -153,26 +154,6 @@ const Settings = () => {
     profileVisibilityFinalSuccessOn: false,
     profileVisibilityFinalSuccessOff: false,
     
-    // Communication preferences modals
-    communicationPrefsConfirmOn: false,
-    communicationPrefsConfirmOff: false,
-    communicationPrefs2FAOn: false,
-    communicationPrefs2FAOff: false,
-    communicationPrefsSuccessOn: false,
-    communicationPrefsSuccessOff: false,
-    communicationPrefsFinalSuccessOn: false,
-    communicationPrefsFinalSuccessOff: false,
-    
-    // Auto invoicing modals
-    autoInvoicingConfirmOn: false,
-    autoInvoicingConfirmOff: false,
-    autoInvoicing2FAOn: false,
-    autoInvoicing2FAOff: false,
-    autoInvoicingSuccessOn: false,
-    autoInvoicingSuccessOff: false,
-    autoInvoicingFinalSuccessOn: false,
-    autoInvoicingFinalSuccessOff: false,
-    
     // Hugging Face API modals
     huggingFaceAPIConfirmOn: false,
     huggingFaceAPIConfirmOff: false,
@@ -182,6 +163,16 @@ const Settings = () => {
     huggingFaceAPISuccessOff: false,
     huggingFaceAPIFinalSuccessOn: false,
     huggingFaceAPIFinalSuccessOff: false,
+
+    // Collect Data modals
+    collectDataConfirmOn: false,
+    collectDataConfirmOff: false,
+    collectData2FAOn: false,
+    collectData2FAOff: false,
+    collectDataSuccessOn: false,
+    collectDataSuccessOff: false,
+    collectDataFinalSuccessOn: false,
+    collectDataFinalSuccessOff: false,
   });
 
   // ==============================
@@ -192,6 +183,12 @@ const Settings = () => {
   const [defaultPassword, setDefaultPassword] = useState('');
   const [showVerificationPassword, setShowVerificationPassword] = useState(false);
   const [showDefaultPassword, setShowDefaultPassword] = useState(false);
+
+  // ==============================
+  // COMPONENT VISIBILITY STATE
+  // ==============================
+  const [showCommunicationPreferences, setShowCommunicationPreferences] = useState(false);
+  const [showAutoInvoiceMailing, setShowAutoInvoiceMailing] = useState(false);
 
   // ==============================
   // FORM DATA STATE
@@ -2597,9 +2594,7 @@ const Settings = () => {
       (Object.values(settings).filter(Boolean).length / Object.keys(settings).length) * 100
     ),
     criticalSettings: [
-      { key: 'autoOrderManagement', enabled: settings.autoOrderManagement, label: 'Auto Order Management' },
-      { key: 'autoInvoicing', enabled: settings.autoInvoicing, label: 'Auto Invoicing' },
-      { key: 'communicationPrefs', enabled: settings.communicationPrefs, label: 'Communication Preferences' }
+      { key: 'autoOrderManagement', enabled: settings.autoOrderManagement, label: 'Auto Order Management' }
     ]
   }), [settings]);
 
@@ -3050,25 +3045,25 @@ const Settings = () => {
   // REUSABLE COMPONENT DEFINITIONS (useCallback optimized)
   // ==============================
   
-  const ToggleSwitch = useCallback(({ enabled, onToggle, label, settingKey }) => (
+  const ToggleSwitch = useCallback(({ enabled, onToggle, label, settingKey, onClick }) => (
     <div className="flex items-center justify-between py-4">
       <span className="font-bold text-[#010101] text-[20px] font-montserrat">{label}</span>
       <div className="flex items-center space-x-2">
         <button
-          onClick={() => handleToggleSetting(settingKey, 'on')}
+          onClick={() => onClick ? onClick('on') : handleToggleSetting(settingKey, 'on')}
           className={`px-4 py-2 rounded-full text-[16px] font-medium transition-colors min-w-[69px] ${
             enabled 
-              ? 'bg-[#000aff] text-white border border-black' 
+              ? 'bg-[#ff4444] text-white border border-[#ff4444]' 
               : 'bg-transparent text-black border border-[#e4e4e4]'
           }`}
         >
           On
         </button>
         <button
-          onClick={() => handleToggleSetting(settingKey, 'off')}
+          onClick={() => onClick ? onClick('off') : handleToggleSetting(settingKey, 'off')}
           className={`px-4 py-2 rounded-full text-[16px] font-medium transition-colors min-w-[76px] ${
             !enabled 
-              ? 'bg-[#000aff] text-white border border-black' 
+              ? 'bg-[#ff4444] text-white border border-[#ff4444]' 
               : 'bg-transparent text-black border border-[#e4e4e4]'
           }`}
         >
@@ -3328,14 +3323,21 @@ const Settings = () => {
           settingKey="profileVisibility"
         />
         <ToggleSwitch 
-          enabled={settings.communicationPrefs}
-          label="Collect communication preferences"
-          settingKey="communicationPrefs"
+          enabled={settings.collectData}
+          label="collect Location data"
+          settingKey="collectData"
         />
         <ToggleSwitch 
-          enabled={settings.autoInvoicing}
+          enabled={showCommunicationPreferences}
+          label="Collect communication preferences"
+          settingKey="communicationPreferences"
+          onClick={() => setShowCommunicationPreferences(!showCommunicationPreferences)}
+        />
+        <ToggleSwitch 
+          enabled={showAutoInvoiceMailing}
           label="get auto invoice mailing"
-          settingKey="autoInvoicing"
+          settingKey="autoInvoiceMailing"
+          onClick={() => setShowAutoInvoiceMailing(!showAutoInvoiceMailing)}
         />
         <ToggleSwitch 
           enabled={settings.huggingFaceAPI}
@@ -4298,8 +4300,7 @@ const Settings = () => {
       )}
 
       {renderModalsForSetting('profileVisibility', 'Profile Visibility Data Collection')}
-      {renderModalsForSetting('communicationPrefs', 'Communication Preferences Collection')}
-      {renderModalsForSetting('autoInvoicing', 'Auto Invoice Mailing')}
+      {renderModalsForSetting('collectData', 'Location Data Collection')}
       {renderModalsForSetting('huggingFaceAPI', 'Hugging Face API')}
 
       {/* Discount Condition Created Success Modal */}
@@ -6120,6 +6121,10 @@ const Settings = () => {
           </div>
         </div>
       )}
+
+      {/* Conditional Component Rendering */}
+      {showCommunicationPreferences && <CollectCommunicationPreferences />}
+      {showAutoInvoiceMailing && <GetAutoInvoiceMailing />}
     </div>
   );
 };
