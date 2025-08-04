@@ -47,7 +47,6 @@ const MODAL_TYPES = {
 
 const SETTINGS_KEYS = {
   PROFILE_VISIBILITY: 'profileVisibility',
-  LOCATION_DATA: 'locationData',
   COMMUNICATION_PREFS: 'communicationPrefs',
   AUTO_INVOICING: 'autoInvoicing',
   HUGGING_FACE_API: 'huggingFaceAPI'
@@ -55,7 +54,6 @@ const SETTINGS_KEYS = {
 
 const DEFAULT_SETTINGS = {
   profileVisibility: true,
-  locationData: true,
   communicationPrefs: true,
   autoInvoicing: true,
   huggingFaceAPI: true,
@@ -154,16 +152,6 @@ const Settings = () => {
     profileVisibilitySuccessOff: false,
     profileVisibilityFinalSuccessOn: false,
     profileVisibilityFinalSuccessOff: false,
-    
-    // Location data modals
-    locationDataConfirmOn: false,
-    locationDataConfirmOff: false,
-    locationData2FAOn: false,
-    locationData2FAOff: false,
-    locationDataSuccessOn: false,
-    locationDataSuccessOff: false,
-    locationDataFinalSuccessOn: false,
-    locationDataFinalSuccessOff: false,
     
     // Communication preferences modals
     communicationPrefsConfirmOn: false,
@@ -3340,11 +3328,6 @@ const Settings = () => {
           settingKey="profileVisibility"
         />
         <ToggleSwitch 
-          enabled={settings.locationData}
-          label="collect Location data"
-          settingKey="locationData"
-        />
-        <ToggleSwitch 
           enabled={settings.communicationPrefs}
           label="Collect communication preferences"
           settingKey="communicationPrefs"
@@ -4315,7 +4298,6 @@ const Settings = () => {
       )}
 
       {renderModalsForSetting('profileVisibility', 'Profile Visibility Data Collection')}
-      {renderModalsForSetting('locationData', 'Location Data Collection')}
       {renderModalsForSetting('communicationPrefs', 'Communication Preferences Collection')}
       {renderModalsForSetting('autoInvoicing', 'Auto Invoice Mailing')}
       {renderModalsForSetting('huggingFaceAPI', 'Hugging Face API')}
