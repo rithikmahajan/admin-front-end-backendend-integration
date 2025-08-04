@@ -2,7 +2,6 @@ import React, { useState, useCallback } from 'react';
 import { Outlet } from 'react-router-dom';
 import { ChevronRight } from 'lucide-react';
 import Sidebar from './Sidebar';
-import Header from './Header';
 
 const AdminLayout = React.memo(() => {
   const [sidebarOpen, setSidebarOpen] = useState(false);

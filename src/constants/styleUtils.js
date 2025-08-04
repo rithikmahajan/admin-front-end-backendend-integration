@@ -218,7 +218,7 @@ export const getTailwindClasses = {
   }
 };
 
-export default {
+const styleUtils = {
   getButtonStyles,
   getInputStyles,
   getLabelStyles,
@@ -226,3 +226,5 @@ export default {
   getCardStyles,
   getTailwindClasses
 };
+
+export default styleUtils;

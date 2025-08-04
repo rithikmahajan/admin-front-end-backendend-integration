@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { Search, MessageSquare, Bell, User, Menu, X } from 'lucide-react';
+import { Search, MessageSquare, User, Menu, X } from 'lucide-react';
 
 /**
  * Header Component
@@ -29,11 +29,6 @@ const Header = React.memo(({ setSidebarOpen, onToggleSidebarVisibility, sidebarH
   const handleMessageClick = useCallback(() => {
     console.log('Opening messages');
     // TODO: Navigate to messages or open message modal
-  }, []);
-
-  const handleNotificationClick = useCallback(() => {
-    console.log('Opening notifications');
-    // TODO: Show notifications dropdown or modal
   }, []);
 
   const handleProfileClick = useCallback(() => {

@@ -32,16 +32,6 @@ const INITIAL_USER_DATA = {
 
 const INITIAL_OTP_STATE = ['', '', '', ''];
 
-const INITIAL_EDIT_STATE = {
-  editUserName: '',
-  editUserId: '',
-  editPhoneNo: '',
-  editEmailId: '',
-  editTotalPointsAlloted: '',
-  editTotalPointsRedeemed: '',
-  editBalance: ''
-};
-
 const Points = () => {
   /**
    * REFACTORING IMPROVEMENTS APPLIED:
@@ -92,7 +82,6 @@ const Points = () => {
   const [showDeleteSuccessModal, setShowDeleteSuccessModal] = useState(false);
 
   // Form States
-  const [toggleAction, setToggleAction] = useState('');
   const [otpCode, setOtpCode] = useState(INITIAL_OTP_STATE);
   const [verificationPassword, setVerificationPassword] = useState('');
   const [defaultPassword, setDefaultPassword] = useState('');
@@ -100,7 +89,6 @@ const Points = () => {
   const [showDefaultPassword, setShowDefaultPassword] = useState(false);
 
   // User Management States
-  const [editingUser, setEditingUser] = useState(null);
   const [deletingUserId, setDeletingUserId] = useState(null);
   const [editUserName, setEditUserName] = useState('');
   const [editUserId, setEditUserId] = useState('');
@@ -165,10 +153,9 @@ const Points = () => {
     if (user) {
       handleEditUser(user);
     }
-  }, [users]);
+  }, [users, handleEditUser]);
 
   const handleTogglePointsSystem = useCallback((status) => {
-    setToggleAction(status);
     if (status === 'on') {
       setShowConfirmationModal(true);
     } else if (status === 'off') {

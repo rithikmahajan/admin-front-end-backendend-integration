@@ -2,7 +2,6 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Upload, Mail, Edit, Trash2, Info } from "lucide-react";
 import ConfirmationDialogue from "../components/confirmationDialogue";
-import NotificationItem from "../components/NotificationItem";
 import EditNotificationModal from "../components/EditNotificationModal";
 
 // Constants

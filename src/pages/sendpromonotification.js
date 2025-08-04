@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useMemo, memo } from 'react';
-import { Filter, Download, Mail, Eye, Trash2, Users } from 'lucide-react';
+import { Filter, Download, Mail, Eye, Trash2 } from 'lucide-react';
 
 // Constants and Configuration
 const FILTER_OPTIONS = {
@@ -157,11 +157,6 @@ const SendPromoNotification = memo(() => {
 
   const selectedUsersCount = useMemo(() => 
     users.filter(user => user.isSelected).length,
-    [users]
-  );
-
-  const selectedUsers = useMemo(() => 
-    users.filter(user => user.isSelected),
     [users]
   );
 
