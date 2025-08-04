@@ -90,6 +90,8 @@ const Points = () => {
 
   // User Management States
   const [deletingUserId, setDeletingUserId] = useState(null);
+  // eslint-disable-next-line no-unused-vars
+  const [editingUser, setEditingUser] = useState(null);
   const [editUserName, setEditUserName] = useState('');
   const [editUserId, setEditUserId] = useState('');
   const [editPhoneNo, setEditPhoneNo] = useState('');
@@ -148,6 +150,18 @@ const Points = () => {
   }, [users, searchTerm]);
 
   // Event Handlers - User Management
+  const handleEditUser = useCallback((user) => {
+    setEditingUser(user);
+    setEditUserName(user.name);
+    setEditUserId(user.userId);
+    setEditPhoneNo(user.phone);
+    setEditEmailId(user.email);
+    setEditTotalPointsAlloted(user.totalPointsAlloted.toString());
+    setEditTotalPointsRedeemed(user.totalPointsRedeemed.toString());
+    setEditBalance(user.balance.toString());
+    setShowEditModal(true);
+  }, []);
+
   const handleAllotNow = useCallback((userId) => {
     const user = users.find(u => u.id === userId);
     if (user) {
@@ -282,18 +296,6 @@ const Points = () => {
   }, [otpCode, showOff2FAModal, showEdit2FAModal]);
 
   // Event Handlers - User Edit Operations
-  const handleEditUser = useCallback((user) => {
-    setEditingUser(user);
-    setEditUserName(user.name);
-    setEditUserId(user.userId);
-    setEditPhoneNo(user.phone);
-    setEditEmailId(user.email);
-    setEditTotalPointsAlloted(user.totalPointsAlloted.toString());
-    setEditTotalPointsRedeemed(user.totalPointsRedeemed.toString());
-    setEditBalance(user.balance.toString());
-    setShowEditModal(true);
-  }, []);
-
   const handleSaveEditedUser = useCallback(() => {
     if (validateEditForm()) {
       setShowEditModal(false);
