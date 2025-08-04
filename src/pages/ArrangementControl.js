@@ -220,7 +220,7 @@ const ArrangementControl = () => {
     }
   ], []);
 
-  // Use custom drag and drop hook
+  // Use custom drag and drop hook for main arrangement
   const {
     items: arrangementItems,
     setItems: setArrangementItems,
@@ -234,6 +234,56 @@ const ArrangementControl = () => {
     handleDrop,
     resetItems: resetArrangement
   } = useDragAndDrop(initialArrangementItems);
+
+  // Create a separate drag and drop instance for preview products
+  const initialPreviewProducts = useMemo(() => [
+    {
+      id: 1,
+      name: 'Nike Everyday Plus Cushioned',
+      description: 'Training Crew Socks (3 Pairs)',
+      price: 'US$22',
+      image: 'https://images.unsplash.com/photo-1544966503-7cc5ac882d5f?w=300&h=300&fit=crop&crop=center',
+      colors: ['#8B4513', '#CD853F', '#F4A460']
+    },
+    {
+      id: 2,
+      name: 'Nike Everyday Plus Cushioned',
+      description: 'Training Crew Socks (6 Pairs)',
+      price: 'US$28',
+      image: 'https://images.unsplash.com/photo-1584464491033-06628f3a6b7b?w=300&h=300&fit=crop&crop=center',
+      colors: ['#F5F5DC', '#DEB887', '#D2B48C', '#BC8F8F', '#A0522D', '#8B4513']
+    },
+    {
+      id: 3,
+      name: 'Nike Elite Crew',
+      description: 'Basketball Socks',
+      price: 'US$16',
+      image: 'https://images.unsplash.com/photo-1556906781-9a412961c28c?w=300&h=300&fit=crop&crop=center',
+      colors: ['#FFFFFF', '#000000']
+    },
+    {
+      id: 4,
+      name: 'Nike Everyday Plus Cushioned',
+      description: 'Training Ankle Socks (6 Pairs)',
+      price: 'US$28',
+      image: 'https://images.unsplash.com/photo-1586350977771-b3b0abd50c82?w=300&h=300&fit=crop&crop=center',
+      colors: ['#FFFFFF', '#F5F5F5', '#E8E8E8', '#CCCCCC', '#999999', '#666666']
+    }
+  ], []);
+
+  const {
+    items: previewProducts,
+    setItems: setPreviewProducts,
+    draggedItem: previewDraggedItem,
+    dragOverIndex: previewDragOverIndex,
+    handleDragStart: previewHandleDragStart,
+    handleDragEnd: previewHandleDragEnd,
+    handleDragOver: previewHandleDragOver,
+    handleDragEnter: previewHandleDragEnter,
+    handleDragLeave: previewHandleDragLeave,
+    handleDrop: previewHandleDrop,
+    resetItems: resetPreviewArrangement
+  } = useDragAndDrop(initialPreviewProducts);
 
   // Sample data - moved to useMemo for performance
   const categories = useMemo(() => [
@@ -388,9 +438,10 @@ const ArrangementControl = () => {
 
   const saveArrangement = useCallback(() => {
     // Handle save logic here
-    console.log('Saving arrangement:', arrangementItems);
-    alert('Arrangement saved successfully!');
-  }, [arrangementItems]);
+    console.log('Saving main arrangement:', arrangementItems);
+    console.log('Saving preview arrangement:', previewProducts);
+    alert('Arrangement saved successfully! Both main grid and preview order have been saved.');
+  }, [arrangementItems, previewProducts]);
 
   // Get content based on active tab and selected subcategory
   const getTabContent = useCallback(() => {
@@ -429,31 +480,9 @@ const ArrangementControl = () => {
 
   // Map arrangement items to preview products (this makes the preview reactive to arrangements)
   const getPreviewProducts = useCallback(() => {
-    const tabProducts = tabContent.products;
-    
-    // If we have arrangement items, use their order to arrange the preview products
-    if (arrangementItems.length > 0) {
-      // Create a map of subcategories from arrangement items
-      const arrangementOrder = {};
-      arrangementItems.forEach((item, index) => {
-        if (!arrangementOrder[item.subcategory]) {
-          arrangementOrder[item.subcategory] = [];
-        }
-        arrangementOrder[item.subcategory].push(index);
-      });
-
-      // Sort products based on arrangement order
-      const sortedProducts = [...tabProducts].sort((a, b) => {
-        const aOrder = arrangementOrder[a.subcategory]?.[0] ?? 999;
-        const bOrder = arrangementOrder[b.subcategory]?.[0] ?? 999;
-        return aOrder - bOrder;
-      });
-
-      return sortedProducts;
-    }
-
-    return tabProducts;
-  }, [tabContent.products, arrangementItems]);
+    // Return the draggable preview products instead of computed ones
+    return previewProducts;
+  }, [previewProducts]);
 
   // Get subcategories for selected category
   const availableSubcategories = useMemo(() => {
@@ -616,6 +645,188 @@ const ArrangementControl = () => {
     onDrop: PropTypes.func.isRequired
   };
 
+  // Component: Draggable Preview Product Card
+  const DraggablePreviewProductCard = ({ 
+    product, 
+    index, 
+    draggedItem, 
+    dragOverIndex, 
+    onDragStart, 
+    onDragEnd, 
+    onDragOver, 
+    onDragEnter, 
+    onDragLeave, 
+    onDrop 
+  }) => (
+    <div
+      key={product.id}
+      draggable
+      onDragStart={(e) => onDragStart(e, product, index)}
+      onDragEnd={onDragEnd}
+      onDragOver={onDragOver}
+      onDragEnter={(e) => onDragEnter(e, index)}
+      onDragLeave={onDragLeave}
+      onDrop={(e) => onDrop(e, index)}
+      className={`
+        bg-white rounded-lg overflow-hidden cursor-move transition-all duration-200 relative
+        ${dragOverIndex === index && draggedItem?.index !== index 
+          ? 'scale-105 shadow-lg border-2 border-blue-500' 
+          : 'hover:shadow-md'
+        }
+        ${draggedItem?.index === index ? 'opacity-50 scale-95' : ''}
+      `}
+    >
+      <div className="relative bg-white p-4">
+        <div className="aspect-square flex items-center justify-center">
+          <img 
+            src={product.image} 
+            alt={product.name} 
+            className="w-full h-full object-contain"
+            draggable={false}
+          />
+        </div>
+        <button className="absolute top-3 right-3 w-7 h-7 flex items-center justify-center">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M8 14C8 14 14 10 14 6C14 3.79086 12.2091 2 10 2C9.0815 2 8.2451 2.37764 7.6 3C6.95493 2.37764 6.1185 2 5.2 2C2.99086 2 1.2 3.79086 1.2 6C1.2 10 8 14 8 14Z" stroke="black" strokeWidth="1.2" fill="none"/>
+          </svg>
+        </button>
+        {/* Drag indicator */}
+        <div className="absolute top-3 left-3 opacity-60">
+          <GripVertical className="h-4 w-4 text-gray-500" />
+        </div>
+      </div>
+      <div className="px-4 pb-4">
+        <div className="flex items-start justify-between mb-3">
+          {/* Color swatches */}
+          <div className="flex space-x-1">
+            {product.colors.map((color, colorIndex) => (
+              <div 
+                key={colorIndex}
+                className="w-4 h-4 rounded-full" 
+                style={{ backgroundColor: color, border: color === '#FFFFFF' ? '1px solid #E5E5E5' : 'none' }}
+              ></div>
+            ))}
+          </div>
+          {/* Shopping bag icon */}
+          <button className="w-6 h-6 flex items-center justify-center">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M3 5h10l-1 6H4L3 5ZM3 5L2 3H1M6 8h4" stroke="black" strokeWidth="1.2" fill="none"/>
+              <path d="M6 5V4a2 2 0 0 1 2-2v0a2 2 0 0 1 2 2v1" stroke="black" strokeWidth="1.2" fill="none"/>
+            </svg>
+          </button>
+        </div>
+        <h4 className="text-sm font-semibold text-black leading-tight mb-1">{product.name}</h4>
+        <p className="text-xs text-gray-500 mb-2">{product.description}</p>
+        <p className="text-sm font-bold text-black">{product.price}</p>
+      </div>
+      
+      {/* Drop indicator */}
+      {dragOverIndex === index && draggedItem?.index !== index && (
+        <div className="absolute inset-0 border-2 border-dashed border-blue-400 rounded-lg bg-blue-100 bg-opacity-50 flex items-center justify-center">
+          <span className="text-blue-600 font-semibold text-xs">Drop here</span>
+        </div>
+      )}
+    </div>
+  );
+
+  DraggablePreviewProductCard.propTypes = {
+    product: PropTypes.shape({
+      id: PropTypes.number.isRequired,
+      name: PropTypes.string.isRequired,
+      description: PropTypes.string.isRequired,
+      price: PropTypes.string.isRequired,
+      image: PropTypes.string.isRequired,
+      colors: PropTypes.arrayOf(PropTypes.string).isRequired
+    }).isRequired,
+    index: PropTypes.number.isRequired,
+    draggedItem: PropTypes.object,
+    dragOverIndex: PropTypes.number,
+    onDragStart: PropTypes.func.isRequired,
+    onDragEnd: PropTypes.func.isRequired,
+    onDragOver: PropTypes.func.isRequired,
+    onDragEnter: PropTypes.func.isRequired,
+    onDragLeave: PropTypes.func.isRequired,
+    onDrop: PropTypes.func.isRequired
+  };
+
+  // Component: Simple Draggable Grid Item (for Views 2 and 3)
+  const DraggableGridItem = ({ 
+    product, 
+    index, 
+    draggedItem, 
+    dragOverIndex, 
+    onDragStart, 
+    onDragEnd, 
+    onDragOver, 
+    onDragEnter, 
+    onDragLeave, 
+    onDrop,
+    className = "",
+    showHeartIcon = false
+  }) => (
+    <div
+      key={product.id}
+      draggable
+      onDragStart={(e) => onDragStart(e, product, index)}
+      onDragEnd={onDragEnd}
+      onDragOver={onDragOver}
+      onDragEnter={(e) => onDragEnter(e, index)}
+      onDragLeave={onDragLeave}
+      onDrop={(e) => onDrop(e, index)}
+      className={`
+        bg-white rounded-lg overflow-hidden shadow-sm cursor-move transition-all duration-200 relative
+        ${dragOverIndex === index && draggedItem?.index !== index 
+          ? 'scale-105 shadow-lg border-2 border-blue-500' 
+          : 'hover:shadow-md'
+        }
+        ${draggedItem?.index === index ? 'opacity-50 scale-95' : ''}
+        ${className}
+      `}
+    >
+      <div className="relative bg-gray-100">
+        <img 
+          src={product.image || '/api/placeholder/120/160'} 
+          alt="Fashion item" 
+          className="w-full h-full object-cover"
+          draggable={false}
+        />
+        {showHeartIcon && index === 0 && (
+          <button className="absolute top-2 left-2 w-6 h-6 bg-white rounded-full flex items-center justify-center shadow-sm">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <path d="M6 10C6 10 10 7.5 10 4.5C10 2.84315 8.65685 1.5 7 1.5C6.3111 1.5 5.68375 1.78323 5.25 2.25C4.81625 1.78323 4.1889 1.5 3.5 1.5C1.84315 1.5 0.5 2.84315 0.5 4.5C0.5 7.5 6 10 6 10Z" stroke="black" strokeWidth="1"/>
+            </svg>
+          </button>
+        )}
+        {/* Drag indicator */}
+        <div className="absolute top-1 right-1 opacity-60 bg-white bg-opacity-75 rounded p-1">
+          <GripVertical className="h-3 w-3 text-gray-500" />
+        </div>
+      </div>
+      
+      {/* Drop indicator */}
+      {dragOverIndex === index && draggedItem?.index !== index && (
+        <div className="absolute inset-0 border-2 border-dashed border-blue-400 rounded-lg bg-blue-100 bg-opacity-50 flex items-center justify-center">
+          <span className="text-blue-600 font-semibold text-xs">Drop here</span>
+        </div>
+      )}
+    </div>
+  );
+
+  DraggableGridItem.propTypes = {
+    product: PropTypes.object.isRequired,
+    index: PropTypes.number.isRequired,
+    draggedItem: PropTypes.object,
+    dragOverIndex: PropTypes.number,
+    onDragStart: PropTypes.func.isRequired,
+    onDragEnd: PropTypes.func.isRequired,
+    onDragOver: PropTypes.func.isRequired,
+    onDragEnter: PropTypes.func.isRequired,
+    onDragLeave: PropTypes.func.isRequired,
+    onDrop: PropTypes.func.isRequired,
+    className: PropTypes.string,
+    showHeartIcon: PropTypes.bool
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 font-montserrat">
       <style jsx>{`
@@ -680,6 +891,28 @@ const ArrangementControl = () => {
         .product-card:hover {
           transform: translateY(-4px);
           box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+        /* Preview drag and drop styles */
+        .preview-drag-active {
+          cursor: grabbing !important;
+        }
+        .preview-dragging * {
+          pointer-events: none;
+        }
+        .preview-drag-over {
+          background: linear-gradient(45deg, #e3f2fd, #bbdefb);
+          border: 2px dashed #2196f3;
+        }
+        /* Phone preview drag indicators */
+        .phone-preview .dragging {
+          opacity: 0.5;
+          transform: rotate(2deg) scale(0.95);
+          z-index: 1000;
+        }
+        .phone-preview .drag-over {
+          background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+          border: 2px dashed #2196f3 !important;
+          transform: scale(1.02);
         }
       `}</style>
       {/* Header - No Background */}
@@ -787,6 +1020,17 @@ const ArrangementControl = () => {
                 <p className="text-sm text-gray-600 mt-1">Live preview updates when you rearrange items above</p>
               </div>
               <div className="flex items-center space-x-4">
+                {/* Preview Control Buttons */}
+                <div className="flex space-x-2">
+                  <button
+                    onClick={resetPreviewArrangement}
+                    className="flex items-center space-x-2 px-3 py-2 bg-gray-200 text-black rounded-lg hover:bg-gray-300 transition-colors duration-200 text-sm"
+                  >
+                    <RotateCcw className="h-3 w-3" />
+                    <span>Reset Preview</span>
+                  </button>
+                </div>
+                
                 {/* View Selection Buttons */}
                 <div className="flex space-x-2">
                   <button
@@ -824,7 +1068,7 @@ const ArrangementControl = () => {
             </div>
             
             {/* Phone Preview Container */}
-            <div className="max-w-[375px] mx-auto bg-white rounded-[25px] shadow-2xl overflow-hidden border-4 border-gray-800" style={{ height: '812px' }}>
+            <div className="max-w-[375px] mx-auto bg-white rounded-[25px] shadow-2xl overflow-hidden border-4 border-gray-800 phone-preview" style={{ height: '812px' }}>
               {/* Phone Status Bar */}
               <div className="bg-black text-white px-4 py-2 flex justify-between items-center text-sm font-medium">
                 <span>9:41</span>
@@ -1006,165 +1250,31 @@ const ArrangementControl = () => {
                 {/* View 1 - 2x2 Product Grid */}
                 {currentView === VIEWS.VIEW_1 && (
                   <div className="p-4 bg-gray-50">
-                    {/* Product Grid - Exactly matching Figma */}
+                    {/* Product Grid - Now with Drag & Drop */}
                     <div className="grid grid-cols-2 gap-4">
-                      {/* Product 1 - Nike Everyday Plus Cushioned (Brown/Orange) */}
-                      <div className="bg-white rounded-lg overflow-hidden">
-                        <div className="relative bg-white p-4">
-                          <div className="aspect-square flex items-center justify-center">
-                            <img 
-                              src="https://images.unsplash.com/photo-1544966503-7cc5ac882d5f?w=300&h=300&fit=crop&crop=center" 
-                              alt="Nike Everyday Plus Cushioned Training Crew Socks" 
-                              className="w-full h-full object-contain"
-                            />
-                          </div>
-                          <button className="absolute top-3 right-3 w-7 h-7 flex items-center justify-center">
-                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                              <path d="M8 14C8 14 14 10 14 6C14 3.79086 12.2091 2 10 2C9.0815 2 8.2451 2.37764 7.6 3C6.95493 2.37764 6.1185 2 5.2 2C2.99086 2 1.2 3.79086 1.2 6C1.2 10 8 14 8 14Z" stroke="black" strokeWidth="1.2" fill="none"/>
-                            </svg>
-                          </button>
-                        </div>
-                        <div className="px-4 pb-4">
-                          <div className="flex items-start justify-between mb-3">
-                            {/* Color swatches */}
-                            <div className="flex space-x-1">
-                              <div className="w-4 h-4 rounded-full" style={{ backgroundColor: '#8B4513' }}></div>
-                              <div className="w-4 h-4 rounded-full" style={{ backgroundColor: '#CD853F' }}></div>
-                              <div className="w-4 h-4 rounded-full" style={{ backgroundColor: '#F4A460' }}></div>
-                            </div>
-                            {/* Shopping bag icon */}
-                            <button className="w-6 h-6 flex items-center justify-center">
-                              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                <path d="M3 5h10l-1 6H4L3 5ZM3 5L2 3H1M6 8h4" stroke="black" strokeWidth="1.2" fill="none"/>
-                                <path d="M6 5V4a2 2 0 0 1 2-2v0a2 2 0 0 1 2 2v1" stroke="black" strokeWidth="1.2" fill="none"/>
-                              </svg>
-                            </button>
-                          </div>
-                          <h4 className="text-sm font-semibold text-black leading-tight mb-1">Nike Everyday Plus Cushioned</h4>
-                          <p className="text-xs text-gray-500 mb-2">Training Crew Socks (3 Pairs)</p>
-                          <p className="text-sm font-bold text-black">US$22</p>
-                        </div>
-                      </div>
-
-                      {/* Product 2 - Nike Everyday Plus Cushioned (Beige) */}
-                      <div className="bg-white rounded-lg overflow-hidden">
-                        <div className="relative bg-white p-4">
-                          <div className="aspect-square flex items-center justify-center">
-                            <img 
-                              src="https://images.unsplash.com/photo-1584464491033-06628f3a6b7b?w=300&h=300&fit=crop&crop=center" 
-                              alt="Nike Everyday Plus Cushioned Training Crew Socks" 
-                              className="w-full h-full object-contain"
-                            />
-                          </div>
-                          <button className="absolute top-3 right-3 w-7 h-7 flex items-center justify-center">
-                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                              <path d="M8 14C8 14 14 10 14 6C14 3.79086 12.2091 2 10 2C9.0815 2 8.2451 2.37764 7.6 3C6.95493 2.37764 6.1185 2 5.2 2C2.99086 2 1.2 3.79086 1.2 6C1.2 10 8 14 8 14Z" stroke="black" strokeWidth="1.2" fill="none"/>
-                            </svg>
-                          </button>
-                        </div>
-                        <div className="px-4 pb-4">
-                          <div className="flex items-start justify-between mb-3">
-                            {/* Color swatches */}
-                            <div className="flex space-x-1">
-                              <div className="w-4 h-4 rounded-full" style={{ backgroundColor: '#F5F5DC' }}></div>
-                              <div className="w-4 h-4 rounded-full" style={{ backgroundColor: '#DEB887' }}></div>
-                              <div className="w-4 h-4 rounded-full" style={{ backgroundColor: '#D2B48C' }}></div>
-                              <div className="w-4 h-4 rounded-full" style={{ backgroundColor: '#BC8F8F' }}></div>
-                              <div className="w-4 h-4 rounded-full" style={{ backgroundColor: '#A0522D' }}></div>
-                              <div className="w-4 h-4 rounded-full" style={{ backgroundColor: '#8B4513' }}></div>
-                            </div>
-                            {/* Shopping bag icon */}
-                            <button className="w-6 h-6 flex items-center justify-center">
-                              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                <path d="M3 5h10l-1 6H4L3 5ZM3 5L2 3H1M6 8h4" stroke="black" strokeWidth="1.2" fill="none"/>
-                                <path d="M6 5V4a2 2 0 0 1 2-2v0a2 2 0 0 1 2 2v1" stroke="black" strokeWidth="1.2" fill="none"/>
-                              </svg>
-                            </button>
-                          </div>
-                          <h4 className="text-sm font-semibold text-black leading-tight mb-1">Nike Everyday Plus Cushioned</h4>
-                          <p className="text-xs text-gray-500 mb-2">Training Crew Socks (6 Pairs)</p>
-                          <p className="text-sm font-bold text-black">US$28</p>
-                        </div>
-                      </div>
-
-                      {/* Product 3 - Nike Elite Crew Basketball Socks */}
-                      <div className="bg-white rounded-lg overflow-hidden">
-                        <div className="relative bg-white p-4">
-                          <div className="aspect-square flex items-center justify-center">
-                            <img 
-                              src="https://images.unsplash.com/photo-1556906781-9a412961c28c?w=300&h=300&fit=crop&crop=center" 
-                              alt="Nike Elite Crew Basketball Socks" 
-                              className="w-full h-full object-contain"
-                            />
-                          </div>
-                          <button className="absolute top-3 right-3 w-7 h-7 flex items-center justify-center">
-                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                              <path d="M8 14C8 14 14 10 14 6C14 3.79086 12.2091 2 10 2C9.0815 2 8.2451 2.37764 7.6 3C6.95493 2.37764 6.1185 2 5.2 2C2.99086 2 1.2 3.79086 1.2 6C1.2 10 8 14 8 14Z" stroke="black" strokeWidth="1.2" fill="none"/>
-                            </svg>
-                          </button>
-                        </div>
-                        <div className="px-4 pb-4">
-                          <div className="flex items-start justify-between mb-3">
-                            {/* Color swatches */}
-                            <div className="flex space-x-1">
-                              <div className="w-4 h-4 rounded-full" style={{ backgroundColor: '#FFFFFF', border: '1px solid #E5E5E5' }}></div>
-                              <div className="w-4 h-4 rounded-full" style={{ backgroundColor: '#000000' }}></div>
-                            </div>
-                            {/* Shopping bag icon */}
-                            <button className="w-6 h-6 flex items-center justify-center">
-                              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                <path d="M3 5h10l-1 6H4L3 5ZM3 5L2 3H1M6 8h4" stroke="black" strokeWidth="1.2" fill="none"/>
-                                <path d="M6 5V4a2 2 0 0 1 2-2v0a2 2 0 0 1 2 2v1" stroke="black" strokeWidth="1.2" fill="none"/>
-                              </svg>
-                            </button>
-                          </div>
-                          <h4 className="text-sm font-semibold text-black leading-tight mb-1">Nike Elite Crew</h4>
-                          <p className="text-xs text-gray-500 mb-2">Basketball Socks</p>
-                          <p className="text-sm font-bold text-black">US$16</p>
-                        </div>
-                      </div>
-
-                      {/* Product 4 - Nike Everyday Plus Cushioned Ankle Socks */}
-                      <div className="bg-white rounded-lg overflow-hidden">
-                        <div className="relative bg-white p-4">
-                          <div className="aspect-square flex items-center justify-center">
-                            <img 
-                              src="https://images.unsplash.com/photo-1586350977771-b3b0abd50c82?w=300&h=300&fit=crop&crop=center" 
-                              alt="Nike Everyday Plus Cushioned Training Ankle Socks" 
-                              className="w-full h-full object-contain"
-                            />
-                          </div>
-                          <button className="absolute top-3 right-3 w-7 h-7 flex items-center justify-center">
-                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                              <path d="M8 14C8 14 14 10 14 6C14 3.79086 12.2091 2 10 2C9.0815 2 8.2451 2.37764 7.6 3C6.95493 2.37764 6.1185 2 5.2 2C2.99086 2 1.2 3.79086 1.2 6C1.2 10 8 14 8 14Z" stroke="black" strokeWidth="1.2" fill="none"/>
-                            </svg>
-                          </button>
-                        </div>
-                        <div className="px-4 pb-4">
-                          <div className="flex items-start justify-between mb-3">
-                            {/* Color swatches */}
-                            <div className="flex space-x-1">
-                              <div className="w-4 h-4 rounded-full" style={{ backgroundColor: '#FFFFFF', border: '1px solid #E5E5E5' }}></div>
-                              <div className="w-4 h-4 rounded-full" style={{ backgroundColor: '#F5F5F5' }}></div>
-                              <div className="w-4 h-4 rounded-full" style={{ backgroundColor: '#E8E8E8' }}></div>
-                              <div className="w-4 h-4 rounded-full" style={{ backgroundColor: '#CCCCCC' }}></div>
-                              <div className="w-4 h-4 rounded-full" style={{ backgroundColor: '#999999' }}></div>
-                              <div className="w-4 h-4 rounded-full" style={{ backgroundColor: '#666666' }}></div>
-                            </div>
-                            {/* Shopping bag icon */}
-                            <button className="w-6 h-6 flex items-center justify-center">
-                              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                <path d="M3 5h10l-1 6H4L3 5ZM3 5L2 3H1M6 8h4" stroke="black" strokeWidth="1.2" fill="none"/>
-                                <path d="M6 5V4a2 2 0 0 1 2-2v0a2 2 0 0 1 2 2v1" stroke="black" strokeWidth="1.2" fill="none"/>
-                              </svg>
-                            </button>
-                          </div>
-                          <h4 className="text-sm font-semibold text-black leading-tight mb-1">Nike Everyday Plus Cushioned</h4>
-                          <p className="text-xs text-gray-500 mb-2">Training Ankle Socks (6 Pairs)</p>
-                          <p className="text-sm font-bold text-black">US$28</p>
-                        </div>
-                      </div>
+                      {previewProducts.map((product, index) => (
+                        <DraggablePreviewProductCard
+                          key={product.id}
+                          product={product}
+                          index={index}
+                          draggedItem={previewDraggedItem}
+                          dragOverIndex={previewDragOverIndex}
+                          onDragStart={previewHandleDragStart}
+                          onDragEnd={previewHandleDragEnd}
+                          onDragOver={previewHandleDragOver}
+                          onDragEnter={previewHandleDragEnter}
+                          onDragLeave={previewHandleDragLeave}
+                          onDrop={previewHandleDrop}
+                        />
+                      ))}
                     </div>
+                    
+                    {/* Drag indicator for preview */}
+                    {previewDraggedItem && (
+                      <div className="text-center text-blue-600 font-semibold mt-4 text-xs">
+                        Drag to rearrange preview products
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -1194,26 +1304,36 @@ const ArrangementControl = () => {
                       </div>
                     </div>
 
-                    {/* Fashion Grid */}
+                    {/* Fashion Grid - Now with Drag & Drop */}
                     <div className="grid grid-cols-3 gap-2">
                       {Array.from({ length: 12 }, (_, index) => {
                         const product = getPreviewProducts()[index % getPreviewProducts().length];
                         return (
-                          <div key={index} className="bg-white rounded-lg overflow-hidden shadow-sm">
-                            <div className="relative aspect-[3/4] bg-gray-100">
-                              <img src={product?.image || '/api/placeholder/120/160'} alt="Fashion item" className="w-full h-full object-cover" />
-                              {index === 0 && (
-                                <button className="absolute top-2 left-2 w-6 h-6 bg-white rounded-full flex items-center justify-center shadow-sm">
-                                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                                    <path d="M6 10C6 10 10 7.5 10 4.5C10 2.84315 8.65685 1.5 7 1.5C6.3111 1.5 5.68375 1.78323 5.25 2.25C4.81625 1.78323 4.1889 1.5 3.5 1.5C1.84315 1.5 0.5 2.84315 0.5 4.5C0.5 7.5 6 10 6 10Z" stroke="black" strokeWidth="1"/>
-                                  </svg>
-                                </button>
-                              )}
-                            </div>
-                          </div>
+                          <DraggableGridItem
+                            key={`view2-${index}`}
+                            product={product}
+                            index={index}
+                            draggedItem={previewDraggedItem}
+                            dragOverIndex={previewDragOverIndex}
+                            onDragStart={previewHandleDragStart}
+                            onDragEnd={previewHandleDragEnd}
+                            onDragOver={previewHandleDragOver}
+                            onDragEnter={previewHandleDragEnter}
+                            onDragLeave={previewHandleDragLeave}
+                            onDrop={previewHandleDrop}
+                            className="aspect-[3/4]"
+                            showHeartIcon={true}
+                          />
                         );
                       })}
                     </div>
+                    
+                    {/* Drag indicator for view 2 */}
+                    {previewDraggedItem && (
+                      <div className="text-center text-blue-600 font-semibold mt-4 text-xs">
+                        Drag to rearrange grid items
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -1241,51 +1361,102 @@ const ArrangementControl = () => {
                       </div>
                     </div>
 
-                    {/* Masonry Grid */}
+                    {/* Masonry Grid - Now with Drag & Drop */}
                     <div className="grid grid-cols-2 gap-3">
                       {/* Left Column */}
                       <div className="space-y-3">
-                        <div className="bg-white rounded-lg overflow-hidden shadow-sm">
-                          <div className="relative aspect-[3/4] bg-gray-100">
-                            <img src={getPreviewProducts()[0]?.image || '/api/placeholder/160/200'} alt="Fashion item" className="w-full h-full object-cover" />
-                            <button className="absolute top-2 left-2 w-6 h-6 bg-white rounded-full flex items-center justify-center shadow-sm">
-                              <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                                <path d="M6 10C6 10 10 7.5 10 4.5C10 2.84315 8.65685 1.5 7 1.5C6.3111 1.5 5.68375 1.78323 5.25 2.25C4.81625 1.78323 4.1889 1.5 3.5 1.5C1.84315 1.5 0.5 2.84315 0.5 4.5C0.5 7.5 6 10 6 10Z" stroke="black" strokeWidth="1"/>
-                              </svg>
-                            </button>
-                          </div>
-                        </div>
-                        <div className="bg-white rounded-lg overflow-hidden shadow-sm">
-                          <div className="aspect-square bg-gray-100">
-                            <img src={getPreviewProducts()[1]?.image || '/api/placeholder/160/160'} alt="Fashion item" className="w-full h-full object-cover" />
-                          </div>
-                        </div>
-                        <div className="bg-white rounded-lg overflow-hidden shadow-sm">
-                          <div className="aspect-[3/4] bg-gray-100">
-                            <img src={getPreviewProducts()[2]?.image || '/api/placeholder/160/200'} alt="Fashion item" className="w-full h-full object-cover" />
-                          </div>
-                        </div>
+                        <DraggableGridItem
+                          product={getPreviewProducts()[0]}
+                          index={0}
+                          draggedItem={previewDraggedItem}
+                          dragOverIndex={previewDragOverIndex}
+                          onDragStart={previewHandleDragStart}
+                          onDragEnd={previewHandleDragEnd}
+                          onDragOver={previewHandleDragOver}
+                          onDragEnter={previewHandleDragEnter}
+                          onDragLeave={previewHandleDragLeave}
+                          onDrop={previewHandleDrop}
+                          className="aspect-[3/4]"
+                          showHeartIcon={true}
+                        />
+                        <DraggableGridItem
+                          product={getPreviewProducts()[1]}
+                          index={1}
+                          draggedItem={previewDraggedItem}
+                          dragOverIndex={previewDragOverIndex}
+                          onDragStart={previewHandleDragStart}
+                          onDragEnd={previewHandleDragEnd}
+                          onDragOver={previewHandleDragOver}
+                          onDragEnter={previewHandleDragEnter}
+                          onDragLeave={previewHandleDragLeave}
+                          onDrop={previewHandleDrop}
+                          className="aspect-square"
+                        />
+                        <DraggableGridItem
+                          product={getPreviewProducts()[2]}
+                          index={2}
+                          draggedItem={previewDraggedItem}
+                          dragOverIndex={previewDragOverIndex}
+                          onDragStart={previewHandleDragStart}
+                          onDragEnd={previewHandleDragEnd}
+                          onDragOver={previewHandleDragOver}
+                          onDragEnter={previewHandleDragEnter}
+                          onDragLeave={previewHandleDragLeave}
+                          onDrop={previewHandleDrop}
+                          className="aspect-[3/4]"
+                        />
                       </div>
 
                       {/* Right Column */}
                       <div className="space-y-3">
-                        <div className="bg-white rounded-lg overflow-hidden shadow-sm">
-                          <div className="aspect-square bg-gray-100">
-                            <img src={getPreviewProducts()[3]?.image || '/api/placeholder/160/160'} alt="Fashion item" className="w-full h-full object-cover" />
-                          </div>
-                        </div>
-                        <div className="bg-white rounded-lg overflow-hidden shadow-sm">
-                          <div className="aspect-[4/5] bg-gray-100">
-                            <img src={getPreviewProducts()[4]?.image || '/api/placeholder/160/200'} alt="Fashion item" className="w-full h-full object-cover" />
-                          </div>
-                        </div>
-                        <div className="bg-white rounded-lg overflow-hidden shadow-sm">
-                          <div className="aspect-square bg-gray-100">
-                            <img src={getPreviewProducts()[5]?.image || '/api/placeholder/160/160'} alt="Fashion item" className="w-full h-full object-cover" />
-                          </div>
-                        </div>
+                        <DraggableGridItem
+                          product={getPreviewProducts()[3]}
+                          index={3}
+                          draggedItem={previewDraggedItem}
+                          dragOverIndex={previewDragOverIndex}
+                          onDragStart={previewHandleDragStart}
+                          onDragEnd={previewHandleDragEnd}
+                          onDragOver={previewHandleDragOver}
+                          onDragEnter={previewHandleDragEnter}
+                          onDragLeave={previewHandleDragLeave}
+                          onDrop={previewHandleDrop}
+                          className="aspect-square"
+                        />
+                        <DraggableGridItem
+                          product={getPreviewProducts()[0]}
+                          index={4}
+                          draggedItem={previewDraggedItem}
+                          dragOverIndex={previewDragOverIndex}
+                          onDragStart={previewHandleDragStart}
+                          onDragEnd={previewHandleDragEnd}
+                          onDragOver={previewHandleDragOver}
+                          onDragEnter={previewHandleDragEnter}
+                          onDragLeave={previewHandleDragLeave}
+                          onDrop={previewHandleDrop}
+                          className="aspect-[4/5]"
+                        />
+                        <DraggableGridItem
+                          product={getPreviewProducts()[1]}
+                          index={5}
+                          draggedItem={previewDraggedItem}
+                          dragOverIndex={previewDragOverIndex}
+                          onDragStart={previewHandleDragStart}
+                          onDragEnd={previewHandleDragEnd}
+                          onDragOver={previewHandleDragOver}
+                          onDragEnter={previewHandleDragEnter}
+                          onDragLeave={previewHandleDragLeave}
+                          onDrop={previewHandleDrop}
+                          className="aspect-square"
+                        />
                       </div>
                     </div>
+                    
+                    {/* Drag indicator for view 3 */}
+                    {previewDraggedItem && (
+                      <div className="text-center text-blue-600 font-semibold mt-4 text-xs">
+                        Drag to rearrange masonry items
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
