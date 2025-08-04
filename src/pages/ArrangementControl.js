@@ -25,7 +25,7 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import PropTypes from 'prop-types';
-import { ChevronDown, Move, GripVertical, Eye, RotateCcw } from 'lucide-react';
+import { ChevronDown, Move, GripVertical, Eye, RotateCcw, ChevronRight } from 'lucide-react';
 
 // Constants
 const VIEW_MODES = {
@@ -34,13 +34,29 @@ const VIEW_MODES = {
   TILE: 'tile'
 };
 
-const TABS = ['My', 'Men', 'Women', 'Kids'];
+const TABS = ['Men', 'Women', 'Kids'];
 
 const VIEWS = {
-  VIEW_1: 'View 1',
-  VIEW_2: 'View 2',
-  VIEW_3: 'View 3'
+  VIEW_1: 'view1',
+  VIEW_2: 'view2',
+  VIEW_3: 'view3'
 };
+
+const SPORTS_CATEGORIES = [
+  { id: 'lifestyle', name: 'Lifestyle', icon: '👕' },
+  { id: 'running', name: 'Running', icon: '🏃' },
+  { id: 'soccer', name: 'Soccer', icon: '⚽' },
+  { id: 'tennis', name: 'Tennis', icon: '🎾' },
+  { id: 'golf', name: 'Golf', icon: '⛳' }
+];
+
+const CLOTHING_SUBCATEGORIES = [
+  { id: 'jacket', name: 'Jacket', icon: '🧥' },
+  { id: 'lower', name: 'Lower', icon: '👖' },
+  { id: 'tshirt', name: 'T-Shirt', icon: '👕' },
+  { id: 'shoes', name: 'Shoes', icon: '👟' },
+  { id: 'accessories', name: 'Accessories', icon: '🎒' }
+];
 
 // Custom hook for drag and drop functionality
 const useDragAndDrop = (initialItems) => {
@@ -119,86 +135,87 @@ const useDragAndDrop = (initialItems) => {
 const ArrangementControl = () => {
   // Selection state
   const [selectedCategory, setSelectedCategory] = useState('');
-  const [selectedSubcategory, setSelectedSubcategory] = useState('');
   const [selectedItem, setSelectedItem] = useState('');
   
   // Display state
   const [viewMode, setViewMode] = useState(VIEW_MODES.GRID);
   const [activeTab, setActiveTab] = useState(TABS[0]);
-  const [currentView, setCurrentView] = useState(VIEWS.VIEW_1);
+  const [currentView, setCurrentView] = useState('landing');
+  const [selectedSportCategory, setSelectedSportCategory] = useState(null);
+  const [selectedSubcategory, setSelectedSubcategory] = useState('jacket');
 
   // Initial arrangement items data
   const initialArrangementItems = useMemo(() => [
     {
       id: 1,
-      title: 'Manage account and services linked to your Yoraa account',
+      title: 'T-Shirts and Casual Tops Collection',
       image: '/api/placeholder/65/65',
-      category: 'Sports',
-      subcategory: 'Running',
+      category: 'Clothing',
+      subcategory: 'tshirt',
       order: 1
     },
     {
       id: 2,
-      title: 'Manage account and services linked to your Yoraa account',
+      title: 'Jackets and Outerwear Collection',
       image: '/api/placeholder/65/65',
-      category: 'Sports',
-      subcategory: 'Soccer',
+      category: 'Clothing',
+      subcategory: 'jacket',
       order: 2
     },
     {
       id: 3,
-      title: 'Manage account and services linked to your Yoraa account',
+      title: 'Pants and Lower Wear Collection',
       image: '/api/placeholder/65/65',
-      category: 'Sports',
-      subcategory: 'Tennis',
+      category: 'Clothing',
+      subcategory: 'lower',
       order: 3
     },
     {
       id: 4,
-      title: 'Manage account and services linked to your Yoraa account',
+      title: 'Footwear and Shoes Collection',
       image: '/api/placeholder/65/65',
-      category: 'Sports',
-      subcategory: 'Golf',
+      category: 'Clothing',
+      subcategory: 'shoes',
       order: 4
     },
     {
       id: 5,
-      title: 'Manage account and services linked to your Yoraa account',
+      title: 'Accessories and Add-ons Collection',
       image: '/api/placeholder/65/65',
-      category: 'Sports',
-      subcategory: 'Running',
+      category: 'Clothing',
+      subcategory: 'accessories',
       order: 5
     },
     {
       id: 6,
-      title: 'Manage account and services linked to your Yoraa account',
+      title: 'Premium T-Shirt Variants',
       image: '/api/placeholder/65/65',
-      category: 'Sports',
-      subcategory: 'Soccer',
+      category: 'Clothing',
+      subcategory: 'tshirt',
       order: 6
     },
     {
       id: 7,
-      title: 'Manage account and services linked to your Yoraa account',
+      title: 'Winter Jacket Collection',
       image: '/api/placeholder/65/65',
-      category: 'Sports',
-      subcategory: 'Tennis',
+      category: 'Clothing',
+      subcategory: 'jacket',
       order: 7
     },
     {
       id: 8,
-      title: 'Manage account and services linked to your Yoraa account',
+      title: 'Designer Footwear Range',
       image: '/api/placeholder/65/65',
-      category: 'Sports',
-      subcategory: 'Golf',
+      category: 'Clothing',
+      subcategory: 'shoes',
       order: 8
     },
     {
       id: 9,
-      title: 'Manage account and services linked to your Yoraa account',
+      title: 'Trendy Lower Wear Options',
       image: '/api/placeholder/65/65',
-      category: 'Sports',
-      subcategory: 'Running',
+      category: 'Clothing',
+      subcategory: 'lower',
       order: 9
     }
   ], []);
@@ -220,59 +237,153 @@ const ArrangementControl = () => {
 
   // Sample data - moved to useMemo for performance
   const categories = useMemo(() => [
-    { id: 1, name: 'Category', subcategories: ['sub category', 'Sports Apparel', 'Footwear'] },
+    { id: 1, name: 'Clothing', subcategories: ['T-Shirt', 'Jacket', 'Lower', 'Shoes', 'Accessories'] },
     { id: 2, name: 'Sports', subcategories: ['Running', 'Soccer', 'Tennis', 'Golf'] },
     { id: 3, name: 'Accessories', subcategories: ['Bags', 'Watches', 'Equipment'] }
   ], []);
 
-  const sportCategories = useMemo(() => [
-    { id: 'running', name: 'Running', image: '/api/placeholder/70/70' },
-    { id: 'soccer', name: 'Soccer', image: '/api/placeholder/70/70' },
-    { id: 'tennis', name: 'Tennis', image: '/api/placeholder/70/70' },
-    { id: 'golf', name: 'Golf', image: '/api/placeholder/70/70' }
-  ], []);
-
   const products = useMemo(() => [
+    // Men's Items
     {
       id: 1,
-      name: 'Nike Everyday Plus Cushioned',
-      description: 'Training Crew Socks (3 Pairs)',
-      price: 'US$22',
-      image: '/api/placeholder/184/184'
+      name: 'Premium Cotton T-Shirt',
+      description: 'Comfortable everyday wear',
+      price: 'US$25',
+      image: '/api/placeholder/184/184',
+      colors: ['#000000', '#FFFFFF', '#808080'],
+      category: 'Men',
+      subcategory: 'tshirt'
     },
     {
       id: 2,
-      name: 'Nike Everyday Plus Cushioned',
-      description: 'Training Crew Socks (6 Pairs)',
-      price: 'US$28',
-      image: '/api/placeholder/184/184'
+      name: 'Denim Jacket',
+      description: 'Classic blue denim',
+      price: 'US$89',
+      image: '/api/placeholder/184/184',
+      colors: ['#4169E1', '#000080', '#708090'],
+      category: 'Men',
+      subcategory: 'jacket'
+    },
+    {
+      id: 3,
+      name: 'Cargo Pants',
+      description: 'Utility style trousers',
+      price: 'US$55',
+      image: '/api/placeholder/184/184',
+      colors: ['#8B4513', '#556B2F', '#2F4F4F'],
+      category: 'Men',
+      subcategory: 'lower'
+    },
+    {
+      id: 4,
+      name: 'Running Sneakers',
+      description: 'Athletic footwear',
+      price: 'US$120',
+      image: '/api/placeholder/184/184',
+      colors: ['#FF6B6B', '#4ECDC4', '#45B7D1'],
+      category: 'Men',
+      subcategory: 'shoes'
+    },
+    // Women's Items
+    {
+      id: 5,
+      name: 'Floral Blouse',
+      description: 'Elegant summer top',
+      price: 'US$35',
+      image: '/api/placeholder/184/184',
+      colors: ['#FFB6C1', '#FFC0CB', '#FF69B4'],
+      category: 'Women',
+      subcategory: 'tshirt'
+    },
+    {
+      id: 6,
+      name: 'Blazer Jacket',
+      description: 'Professional wear',
+      price: 'US$95',
+      image: '/api/placeholder/184/184',
+      colors: ['#000000', '#8B4513', '#2F4F4F'],
+      category: 'Women',
+      subcategory: 'jacket'
+    },
+    {
+      id: 7,
+      name: 'High-Waist Jeans',
+      description: 'Trendy denim',
+      price: 'US$65',
+      image: '/api/placeholder/184/184',
+      colors: ['#4169E1', '#000080', '#1E90FF'],
+      category: 'Women',
+      subcategory: 'lower'
+    },
+    {
+      id: 8,
+      name: 'Ankle Boots',
+      description: 'Stylish footwear',
+      price: 'US$85',
+      image: '/api/placeholder/184/184',
+      colors: ['#8B4513', '#000000', '#A0522D'],
+      category: 'Women',
+      subcategory: 'shoes'
+    },
+    // Kids Items
+    {
+      id: 9,
+      name: 'Cartoon T-Shirt',
+      description: 'Fun kids wear',
+      price: 'US$18',
+      image: '/api/placeholder/184/184',
+      colors: ['#FF6347', '#32CD32', '#1E90FF'],
+      category: 'Kids',
+      subcategory: 'tshirt'
+    },
+    {
+      id: 10,
+      name: 'Kids Hoodie',
+      description: 'Warm and cozy',
+      price: 'US$32',
+      image: '/api/placeholder/184/184',
+      colors: ['#FF69B4', '#00CED1', '#9370DB'],
+      category: 'Kids',
+      subcategory: 'jacket'
+    },
+    {
+      id: 11,
+      name: 'Play Shorts',
+      description: 'Active wear for kids',
+      price: 'US$22',
+      image: '/api/placeholder/184/184',
+      colors: ['#FF4500', '#32CD32', '#4169E1'],
+      category: 'Kids',
+      subcategory: 'lower'
+    },
+    {
+      id: 12,
+      name: 'Kids Sneakers',
+      description: 'Comfortable play shoes',
+      price: 'US$45',
+      image: '/api/placeholder/184/184',
+      colors: ['#FF1493', '#00FF7F', '#FFD700'],
+      category: 'Kids',
+      subcategory: 'shoes'
     }
   ], []);
 
-  // Fashion grid images for View 2
+  // Fashion grid images for View 2 (3x2 grid from Figma)
   const fashionGridImages = useMemo(() => [
-    [
-      { id: 1, image: '/api/placeholder/125/158' },
-      { id: 2, image: '/api/placeholder/125/158' },
-      { id: 3, image: '/api/placeholder/125/158' }
-    ],
-    [
-      { id: 4, image: '/api/placeholder/125/158' },
-      { id: 5, image: '/api/placeholder/125/158' },
-      { id: 6, image: '/api/placeholder/125/158' }
-    ]
+    { id: 1, image: 'http://localhost:3845/assets/7bb3adcb5d542960aaa78b483bbaaac35bf12408.png' },
+    { id: 2, image: 'http://localhost:3845/assets/0cfd89e9f3d3700245de744dd79e955cdad698e1.png' },
+    { id: 3, image: 'http://localhost:3845/assets/a57c42d2d11a1f8dee2afddcccb99c7fe3015334.png' },
+    { id: 4, image: 'http://localhost:3845/assets/4ba347ff05fcfc35528103672a3a7362cde0052c.png' },
+    { id: 5, image: 'http://localhost:3845/assets/b11398ea07e6397fe82386dbe1860db1e7c767f4.png' },
+    { id: 6, image: 'http://localhost:3845/assets/d045b34d7ab501ee1199cf7d0675d20036c29a70.png' }
   ], []);
 
-  // Fashion grid images for View 3 (2x2 layout)
+  // Fashion grid images for View 3 (2x2 asymmetric layout from Figma)
   const view3GridImages = useMemo(() => [
-    [
-      { id: 1, image: '/api/placeholder/168/250' },
-      { id: 2, image: '/api/placeholder/154/228' }
-    ],
-    [
-      { id: 3, image: '/api/placeholder/162/244' },
-      { id: 4, image: '/api/placeholder/154/230' }
-    ]
+    { id: 1, image: 'http://localhost:3845/assets/3317fecc6eb2a922a46e1c26e4f6c06d241be6a4.png', width: 168, height: 250 },
+    { id: 2, image: 'http://localhost:3845/assets/07ec490f49087b339f28529fea26f28f06d36a7a.png', width: 154, height: 228 },
+    { id: 3, image: 'http://localhost:3845/assets/fe65047dd88bb2a3f8508eaf58a5a0ac146b0d73.png', width: 162, height: 244 },
+    { id: 4, image: 'http://localhost:3845/assets/1b81bcf92cffddcc68aca83f951ef9428a7e9606.png', width: 154, height: 230 }
   ], []);
 
   const saveArrangement = useCallback(() => {
@@ -280,6 +391,69 @@ const ArrangementControl = () => {
     console.log('Saving arrangement:', arrangementItems);
     alert('Arrangement saved successfully!');
   }, [arrangementItems]);
+
+  // Get content based on active tab and selected subcategory
+  const getTabContent = useCallback(() => {
+    const filteredProducts = products.filter(product => {
+      const matchesTab = product.category === activeTab;
+      const matchesSubcategory = !selectedSubcategory || product.subcategory === selectedSubcategory;
+      return matchesTab && matchesSubcategory;
+    });
+
+    return {
+      products: filteredProducts,
+      categories: CLOTHING_SUBCATEGORIES,
+      allProducts: products.filter(product => product.category === activeTab)
+    };
+  }, [activeTab, selectedSubcategory, products]);
+
+  const tabContent = useMemo(() => getTabContent(), [getTabContent]);
+
+  const handleSportCategorySelect = useCallback((categoryId) => {
+    setSelectedSportCategory(categoryId);
+    // Here you could trigger animations or load category-specific data
+    console.log('Selected sport category:', categoryId);
+  }, []);
+
+  const handleTabChange = useCallback((tab) => {
+    setActiveTab(tab);
+    setSelectedSportCategory(null); // Reset selected category when changing tabs
+    setSelectedSubcategory('jacket'); // Reset to default subcategory
+    console.log('Changed to tab:', tab);
+  }, []);
+
+  const handleSubcategoryChange = useCallback((subcategoryId) => {
+    setSelectedSubcategory(subcategoryId);
+    console.log('Selected subcategory:', subcategoryId);
+  }, []);
+
+  // Map arrangement items to preview products (this makes the preview reactive to arrangements)
+  const getPreviewProducts = useCallback(() => {
+    const tabProducts = tabContent.products;
+    
+    // If we have arrangement items, use their order to arrange the preview products
+    if (arrangementItems.length > 0) {
+      // Create a map of subcategories from arrangement items
+      const arrangementOrder = {};
+      arrangementItems.forEach((item, index) => {
+        if (!arrangementOrder[item.subcategory]) {
+          arrangementOrder[item.subcategory] = [];
+        }
+        arrangementOrder[item.subcategory].push(index);
+      });
+
+      // Sort products based on arrangement order
+      const sortedProducts = [...tabProducts].sort((a, b) => {
+        const aOrder = arrangementOrder[a.subcategory]?.[0] ?? 999;
+        const bOrder = arrangementOrder[b.subcategory]?.[0] ?? 999;
+        return aOrder - bOrder;
+      });
+
+      return sortedProducts;
+    }
+
+    return tabProducts;
+  }, [tabContent.products, arrangementItems]);
 
   // Get subcategories for selected category
   const availableSubcategories = useMemo(() => {
@@ -472,6 +646,41 @@ const ArrangementControl = () => {
           -webkit-box-orient: vertical;
           overflow: hidden;
         }
+        /* Custom scrollbar styles for better visibility */
+        .overflow-y-auto::-webkit-scrollbar {
+          width: 8px;
+        }
+        .overflow-y-auto::-webkit-scrollbar-track {
+          background: #f1f5f9;
+          border-radius: 4px;
+        }
+        .overflow-y-auto::-webkit-scrollbar-thumb {
+          background: #cbd5e1;
+          border-radius: 4px;
+        }
+        .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+          background: #94a3b8;
+        }
+        /* Smooth transition for category selection */
+        .category-item {
+          transition: all 0.2s ease-in-out;
+        }
+        .category-item:hover {
+          transform: translateX(4px);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        .category-item.selected {
+          background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+          border-color: #000;
+        }
+        /* Smooth product grid animations */
+        .product-card {
+          transition: all 0.3s ease-in-out;
+        }
+        .product-card:hover {
+          transform: translateY(-4px);
+          box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
       `}</style>
       {/* Header - No Background */}
       <div className="px-6 py-4">
@@ -558,6 +767,13 @@ const ArrangementControl = () => {
             >
               Save Arrangement
             </button>
+            <button
+              onClick={resetArrangement}
+              className="flex items-center space-x-2 px-6 py-2 bg-gray-200 text-black rounded-lg hover:bg-gray-300 transition-colors duration-200"
+            >
+              <RotateCcw className="h-4 w-4" />
+              <span>Reset</span>
+            </button>
           </div>
         </div>
 
@@ -566,75 +782,556 @@ const ArrangementControl = () => {
           <div className="space-y-6">
             {/* Preview Header */}
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-2xl font-bold text-black font-montserrat leading-[22px]">Preview</h3>
+              <div>
+                <h3 className="text-2xl font-bold text-black font-montserrat leading-[22px]">Phone Preview</h3>
+                <p className="text-sm text-gray-600 mt-1">Live preview updates when you rearrange items above</p>
+              </div>
               <div className="flex items-center space-x-4">
-                <span className="text-2xl font-bold text-black font-montserrat leading-[22px]">View 1</span>
-                <ViewModeToggle viewMode={viewMode} setViewMode={setViewMode} />
+                {/* View Selection Buttons */}
+                <div className="flex space-x-2">
+                  <button
+                    onClick={() => setCurrentView(VIEWS.VIEW_1)}
+                    className={`px-4 py-2 rounded-lg font-montserrat text-sm ${
+                      currentView === VIEWS.VIEW_1
+                        ? 'bg-black text-white'
+                        : 'bg-gray-200 text-black hover:bg-gray-300'
+                    }`}
+                  >
+                    Grid View
+                  </button>
+                  <button
+                    onClick={() => setCurrentView(VIEWS.VIEW_2)}
+                    className={`px-4 py-2 rounded-lg font-montserrat text-sm ${
+                      currentView === VIEWS.VIEW_2
+                        ? 'bg-black text-white'
+                        : 'bg-gray-200 text-black hover:bg-gray-300'
+                    }`}
+                  >
+                    List View
+                  </button>
+                  <button
+                    onClick={() => setCurrentView(VIEWS.VIEW_3)}
+                    className={`px-4 py-2 rounded-lg font-montserrat text-sm ${
+                      currentView === VIEWS.VIEW_3
+                        ? 'bg-black text-white'
+                        : 'bg-gray-200 text-black hover:bg-gray-300'
+                    }`}
+                  >
+                    Card View
+                  </button>
+                </div>
               </div>
             </div>
             
-            {/* Tab Navigation */}
-            <div className="border-b border-[#cdcdcd]">
-              <div className="flex space-x-8">
-                {TABS.map((tab) => (
-                  <button
-                    key={tab}
-                    onClick={() => setActiveTab(tab)}
-                    className={`py-3 px-1 border-b-2 font-medium text-[16px] font-montserrat tracking-[-0.4px] ${
-                      activeTab === tab
-                        ? 'border-black text-black'
-                        : 'border-transparent text-[#767676] hover:text-gray-700'
-                    }`}
+            {/* Phone Preview Container */}
+            <div className="max-w-[375px] mx-auto bg-white rounded-[25px] shadow-2xl overflow-hidden border-4 border-gray-800" style={{ height: '812px' }}>
+              {/* Phone Status Bar */}
+              <div className="bg-black text-white px-4 py-2 flex justify-between items-center text-sm font-medium">
+                <span>9:41</span>
+                <div className="flex items-center space-x-1">
+                  <div className="flex space-x-1">
+                    <div className="w-1 h-1 bg-white rounded-full"></div>
+                    <div className="w-1 h-1 bg-white rounded-full"></div>
+                    <div className="w-1 h-1 bg-white rounded-full"></div>
+                    <div className="w-1 h-1 bg-white rounded-full"></div>
+                  </div>
+                  <svg width="24" height="11" viewBox="0 0 24 11" fill="none">
+                    <rect opacity="0.35" x="0.5" y="0.5" width="21" height="10" rx="2.5" stroke="white"/>
+                    <path d="M23 4V7C23.8284 7 24.5 6.32843 24.5 5.5V5.5C24.5 4.67157 23.8284 4 23 4Z" fill="white"/>
+                    <rect x="2" y="2" width="18" height="7" rx="1" fill="white"/>
+                  </svg>
+                </div>
+              </div>
+
+              {/* App Header */}
+              <div className="bg-white px-4 py-3 flex justify-between items-center border-b border-gray-100">
+                <h1 className="text-xl font-bold text-black">Shop</h1>
+                <div className="flex items-center space-x-4">
+                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <path d="M9 17C13.4183 17 17 13.4183 17 9C17 4.58172 13.4183 1 9 1C4.58172 1 1 4.58172 1 9C1 13.4183 4.58172 17 9 17Z" stroke="black" strokeWidth="1.5"/>
+                    <path d="M20 20L16 16" stroke="black" strokeWidth="1.5"/>
+                  </svg>
+                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <path d="M2 10C2 5.58172 5.58172 2 10 2C14.4183 2 18 5.58172 18 10C18 14.4183 14.4183 18 10 18C5.58172 18 2 14.4183 2 10Z" stroke="black" strokeWidth="1.5"/>
+                    <path d="M10 6V14M6 10H14" stroke="black" strokeWidth="1.5"/>
+                  </svg>
+                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <path d="M5 7H18L17 12H6L5 7ZM5 7L4 4H2M16 16.5C16 17.3284 15.3284 18 14.5 18C13.6716 18 13 17.3284 13 16.5C13 15.6716 13.6716 15 14.5 15C15.3284 15 16 15.6716 16 16.5ZM9 16.5C9 17.3284 8.32843 18 7.5 18C6.67157 18 6 17.3284 6 16.5C6 15.6716 6.67157 15 7.5 15C8.32843 15 9 15.6716 9 16.5Z" stroke="black" strokeWidth="1.5"/>
+                  </svg>
+                </div>
+              </div>
+
+              {/* Tab Navigation - Horizontal */}
+              <div className="bg-white px-4 py-3 border-b border-gray-100">
+                <div className="flex space-x-6">
+                  {[activeTab, ...TABS.filter(tab => tab !== activeTab)].map((tab, index) => (
+                    <button
+                      key={tab}
+                      onClick={() => handleTabChange(tab)}
+                      className={`text-sm font-medium pb-2 border-b-2 transition-all duration-200 ${
+                        activeTab === tab
+                          ? 'text-black border-black'
+                          : 'text-gray-400 border-transparent hover:text-gray-600'
+                      }`}
+                    >
+                      {tab}
+                    </button>
+                  ))}
+                  <span className="text-sm text-gray-400 pb-2">FYP</span>
+                </div>
+              </div>
+
+              {/* Main Content */}
+              <div className="flex-1 overflow-y-auto bg-gray-50">
+                {/* Main View (Landing) */}
+                {currentView === 'landing' && (
+                  <div className="p-4 space-y-4">
+                    {/* Category Items */}
+                    {CLOTHING_SUBCATEGORIES.slice(0, 2).map((category, index) => (
+                      <div key={category.id} className="bg-white rounded-lg p-4 flex items-center justify-between shadow-sm">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                            <span className="text-lg">{category.icon}</span>
+                          </div>
+                          <div>
+                            <span className="text-sm font-medium text-black">{index === 0 ? 'Sale' : 'Browse all'}</span>
+                          </div>
+                        </div>
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                          <path d="M7.5 5L12.5 10L7.5 15" stroke="#9CA3AF" strokeWidth="1.5"/>
+                        </svg>
+                      </div>
+                    ))}
+
+                    {/* Sport Categories */}
+                    <div className="space-y-3">
+                      {SPORTS_CATEGORIES.map((sport) => (
+                        <div 
+                          key={sport.id} 
+                          className="bg-white rounded-lg p-4 flex items-center justify-between shadow-sm cursor-pointer"
+                          onClick={() => handleSportCategorySelect(sport.id)}
+                        >
+                          <div className="flex items-center space-x-3">
+                            <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                              <span className="text-lg">{sport.icon}</span>
+                            </div>
+                            <span className="text-sm font-medium text-black">{sport.name}</span>
+                          </div>
+                          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                            <path d="M7.5 5L12.5 10L12.5 15" stroke="#9CA3AF" strokeWidth="1.5"/>
+                          </svg>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Trending Now Section (Your View) */}
+                    <div className="mt-6">
+                      <h3 className="text-lg font-semibold text-black mb-3">Trending now</h3>
+                      <div className="flex space-x-3 overflow-x-auto">
+                        {getPreviewProducts().slice(0, 2).map((product) => (
+                          <div key={product.id} className="flex-shrink-0 w-32 bg-white rounded-lg shadow-sm">
+                            <div className="aspect-square bg-gray-100 rounded-t-lg">
+                              <img src={product.image} alt={product.name} className="w-full h-full object-cover rounded-t-lg" />
+                            </div>
+                            <div className="p-2">
+                              <p className="text-xs font-medium text-black line-clamp-2">{product.name}</p>
+                              <p className="text-xs text-gray-600 mt-1">{product.price}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Featured Section */}
+                    <div className="mt-6">
+                      <h3 className="text-lg font-semibold text-black mb-3">Featured</h3>
+                      <div className="flex space-x-3 overflow-x-auto">
+                        {getPreviewProducts().slice(2, 5).map((product) => (
+                          <div key={product.id} className="flex-shrink-0 w-24 bg-white rounded-lg shadow-sm">
+                            <div className="aspect-[3/4] bg-gray-100 rounded-t-lg">
+                              <img src={product.image} alt={product.name} className="w-full h-full object-cover rounded-t-lg" />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Service Information */}
+                    <div className="mt-8 space-y-6 bg-white p-4 rounded-lg">
+                      <div className="flex items-start space-x-3">
+                        <div className="w-8 h-8 flex-shrink-0">
+                          <svg viewBox="0 0 32 32" fill="none">
+                            <path d="M4 8L28 8L26 20L6 20L4 8ZM4 8L2 4L0 4" stroke="black" strokeWidth="1.5"/>
+                          </svg>
+                        </div>
+                        <div>
+                          <h4 className="text-sm font-semibold text-black">GLOBAL SHIPPING</h4>
+                          <p className="text-xs text-gray-600 mt-1">We offer fast and reliable free shipping options both within India, ensuring your order reaches you in a timely manner.</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-start space-x-3">
+                        <div className="w-8 h-8 flex-shrink-0">
+                          <svg viewBox="0 0 32 32" fill="none">
+                            <path d="M16 4L20 12L28 12L22 18L24 28L16 24L8 28L10 18L4 12L12 12L16 4Z" stroke="black" strokeWidth="1.5"/>
+                          </svg>
+                        </div>
+                        <div>
+                          <h4 className="text-sm font-semibold text-black">RISK-FREE PURCHASE</h4>
+                          <p className="text-xs text-gray-600 mt-1">We offer a 14-day to exchange or return your product, offering a seamless shopping experience for our valued customers.</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-start space-x-3">
+                        <div className="w-8 h-8 flex-shrink-0">
+                          <svg viewBox="0 0 32 32" fill="none">
+                            <circle cx="16" cy="12" r="4" stroke="black" strokeWidth="1.5"/>
+                            <path d="M8 28C8 22 11.5 18 16 18C20.5 18 24 22 24 28" stroke="black" strokeWidth="1.5"/>
+                          </svg>
+                        </div>
+                        <div>
+                          <h4 className="text-sm font-semibold text-black">ONLINE ASSISTANCE</h4>
+                          <p className="text-xs text-gray-600 mt-1">Our highly trained and knowledgeable customer support team is available to assist you with any queries.</p>
+                        </div>
+                      </div>
+
+                      <div className="text-center mt-8">
+                        <h2 className="text-xl font-bold text-black">YORAA</h2>
+                        <p className="text-sm text-gray-600 mt-1">Thanks for being with us.</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* View 1 - 2x2 Product Grid */}
+                {currentView === VIEWS.VIEW_1 && (
+                  <div className="p-4 bg-gray-50">
+                    {/* Product Grid - Exactly matching Figma */}
+                    <div className="grid grid-cols-2 gap-4">
+                      {/* Product 1 - Nike Everyday Plus Cushioned (Brown/Orange) */}
+                      <div className="bg-white rounded-lg overflow-hidden">
+                        <div className="relative bg-white p-4">
+                          <div className="aspect-square flex items-center justify-center">
+                            <img 
+                              src="https://images.unsplash.com/photo-1544966503-7cc5ac882d5f?w=300&h=300&fit=crop&crop=center" 
+                              alt="Nike Everyday Plus Cushioned Training Crew Socks" 
+                              className="w-full h-full object-contain"
+                            />
+                          </div>
+                          <button className="absolute top-3 right-3 w-7 h-7 flex items-center justify-center">
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                              <path d="M8 14C8 14 14 10 14 6C14 3.79086 12.2091 2 10 2C9.0815 2 8.2451 2.37764 7.6 3C6.95493 2.37764 6.1185 2 5.2 2C2.99086 2 1.2 3.79086 1.2 6C1.2 10 8 14 8 14Z" stroke="black" strokeWidth="1.2" fill="none"/>
+                            </svg>
+                          </button>
+                        </div>
+                        <div className="px-4 pb-4">
+                          <div className="flex items-start justify-between mb-3">
+                            {/* Color swatches */}
+                            <div className="flex space-x-1">
+                              <div className="w-4 h-4 rounded-full" style={{ backgroundColor: '#8B4513' }}></div>
+                              <div className="w-4 h-4 rounded-full" style={{ backgroundColor: '#CD853F' }}></div>
+                              <div className="w-4 h-4 rounded-full" style={{ backgroundColor: '#F4A460' }}></div>
+                            </div>
+                            {/* Shopping bag icon */}
+                            <button className="w-6 h-6 flex items-center justify-center">
+                              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                <path d="M3 5h10l-1 6H4L3 5ZM3 5L2 3H1M6 8h4" stroke="black" strokeWidth="1.2" fill="none"/>
+                                <path d="M6 5V4a2 2 0 0 1 2-2v0a2 2 0 0 1 2 2v1" stroke="black" strokeWidth="1.2" fill="none"/>
+                              </svg>
+                            </button>
+                          </div>
+                          <h4 className="text-sm font-semibold text-black leading-tight mb-1">Nike Everyday Plus Cushioned</h4>
+                          <p className="text-xs text-gray-500 mb-2">Training Crew Socks (3 Pairs)</p>
+                          <p className="text-sm font-bold text-black">US$22</p>
+                        </div>
+                      </div>
+
+                      {/* Product 2 - Nike Everyday Plus Cushioned (Beige) */}
+                      <div className="bg-white rounded-lg overflow-hidden">
+                        <div className="relative bg-white p-4">
+                          <div className="aspect-square flex items-center justify-center">
+                            <img 
+                              src="https://images.unsplash.com/photo-1584464491033-06628f3a6b7b?w=300&h=300&fit=crop&crop=center" 
+                              alt="Nike Everyday Plus Cushioned Training Crew Socks" 
+                              className="w-full h-full object-contain"
+                            />
+                          </div>
+                          <button className="absolute top-3 right-3 w-7 h-7 flex items-center justify-center">
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                              <path d="M8 14C8 14 14 10 14 6C14 3.79086 12.2091 2 10 2C9.0815 2 8.2451 2.37764 7.6 3C6.95493 2.37764 6.1185 2 5.2 2C2.99086 2 1.2 3.79086 1.2 6C1.2 10 8 14 8 14Z" stroke="black" strokeWidth="1.2" fill="none"/>
+                            </svg>
+                          </button>
+                        </div>
+                        <div className="px-4 pb-4">
+                          <div className="flex items-start justify-between mb-3">
+                            {/* Color swatches */}
+                            <div className="flex space-x-1">
+                              <div className="w-4 h-4 rounded-full" style={{ backgroundColor: '#F5F5DC' }}></div>
+                              <div className="w-4 h-4 rounded-full" style={{ backgroundColor: '#DEB887' }}></div>
+                              <div className="w-4 h-4 rounded-full" style={{ backgroundColor: '#D2B48C' }}></div>
+                              <div className="w-4 h-4 rounded-full" style={{ backgroundColor: '#BC8F8F' }}></div>
+                              <div className="w-4 h-4 rounded-full" style={{ backgroundColor: '#A0522D' }}></div>
+                              <div className="w-4 h-4 rounded-full" style={{ backgroundColor: '#8B4513' }}></div>
+                            </div>
+                            {/* Shopping bag icon */}
+                            <button className="w-6 h-6 flex items-center justify-center">
+                              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                <path d="M3 5h10l-1 6H4L3 5ZM3 5L2 3H1M6 8h4" stroke="black" strokeWidth="1.2" fill="none"/>
+                                <path d="M6 5V4a2 2 0 0 1 2-2v0a2 2 0 0 1 2 2v1" stroke="black" strokeWidth="1.2" fill="none"/>
+                              </svg>
+                            </button>
+                          </div>
+                          <h4 className="text-sm font-semibold text-black leading-tight mb-1">Nike Everyday Plus Cushioned</h4>
+                          <p className="text-xs text-gray-500 mb-2">Training Crew Socks (6 Pairs)</p>
+                          <p className="text-sm font-bold text-black">US$28</p>
+                        </div>
+                      </div>
+
+                      {/* Product 3 - Nike Elite Crew Basketball Socks */}
+                      <div className="bg-white rounded-lg overflow-hidden">
+                        <div className="relative bg-white p-4">
+                          <div className="aspect-square flex items-center justify-center">
+                            <img 
+                              src="https://images.unsplash.com/photo-1556906781-9a412961c28c?w=300&h=300&fit=crop&crop=center" 
+                              alt="Nike Elite Crew Basketball Socks" 
+                              className="w-full h-full object-contain"
+                            />
+                          </div>
+                          <button className="absolute top-3 right-3 w-7 h-7 flex items-center justify-center">
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                              <path d="M8 14C8 14 14 10 14 6C14 3.79086 12.2091 2 10 2C9.0815 2 8.2451 2.37764 7.6 3C6.95493 2.37764 6.1185 2 5.2 2C2.99086 2 1.2 3.79086 1.2 6C1.2 10 8 14 8 14Z" stroke="black" strokeWidth="1.2" fill="none"/>
+                            </svg>
+                          </button>
+                        </div>
+                        <div className="px-4 pb-4">
+                          <div className="flex items-start justify-between mb-3">
+                            {/* Color swatches */}
+                            <div className="flex space-x-1">
+                              <div className="w-4 h-4 rounded-full" style={{ backgroundColor: '#FFFFFF', border: '1px solid #E5E5E5' }}></div>
+                              <div className="w-4 h-4 rounded-full" style={{ backgroundColor: '#000000' }}></div>
+                            </div>
+                            {/* Shopping bag icon */}
+                            <button className="w-6 h-6 flex items-center justify-center">
+                              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                <path d="M3 5h10l-1 6H4L3 5ZM3 5L2 3H1M6 8h4" stroke="black" strokeWidth="1.2" fill="none"/>
+                                <path d="M6 5V4a2 2 0 0 1 2-2v0a2 2 0 0 1 2 2v1" stroke="black" strokeWidth="1.2" fill="none"/>
+                              </svg>
+                            </button>
+                          </div>
+                          <h4 className="text-sm font-semibold text-black leading-tight mb-1">Nike Elite Crew</h4>
+                          <p className="text-xs text-gray-500 mb-2">Basketball Socks</p>
+                          <p className="text-sm font-bold text-black">US$16</p>
+                        </div>
+                      </div>
+
+                      {/* Product 4 - Nike Everyday Plus Cushioned Ankle Socks */}
+                      <div className="bg-white rounded-lg overflow-hidden">
+                        <div className="relative bg-white p-4">
+                          <div className="aspect-square flex items-center justify-center">
+                            <img 
+                              src="https://images.unsplash.com/photo-1586350977771-b3b0abd50c82?w=300&h=300&fit=crop&crop=center" 
+                              alt="Nike Everyday Plus Cushioned Training Ankle Socks" 
+                              className="w-full h-full object-contain"
+                            />
+                          </div>
+                          <button className="absolute top-3 right-3 w-7 h-7 flex items-center justify-center">
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                              <path d="M8 14C8 14 14 10 14 6C14 3.79086 12.2091 2 10 2C9.0815 2 8.2451 2.37764 7.6 3C6.95493 2.37764 6.1185 2 5.2 2C2.99086 2 1.2 3.79086 1.2 6C1.2 10 8 14 8 14Z" stroke="black" strokeWidth="1.2" fill="none"/>
+                            </svg>
+                          </button>
+                        </div>
+                        <div className="px-4 pb-4">
+                          <div className="flex items-start justify-between mb-3">
+                            {/* Color swatches */}
+                            <div className="flex space-x-1">
+                              <div className="w-4 h-4 rounded-full" style={{ backgroundColor: '#FFFFFF', border: '1px solid #E5E5E5' }}></div>
+                              <div className="w-4 h-4 rounded-full" style={{ backgroundColor: '#F5F5F5' }}></div>
+                              <div className="w-4 h-4 rounded-full" style={{ backgroundColor: '#E8E8E8' }}></div>
+                              <div className="w-4 h-4 rounded-full" style={{ backgroundColor: '#CCCCCC' }}></div>
+                              <div className="w-4 h-4 rounded-full" style={{ backgroundColor: '#999999' }}></div>
+                              <div className="w-4 h-4 rounded-full" style={{ backgroundColor: '#666666' }}></div>
+                            </div>
+                            {/* Shopping bag icon */}
+                            <button className="w-6 h-6 flex items-center justify-center">
+                              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                <path d="M3 5h10l-1 6H4L3 5ZM3 5L2 3H1M6 8h4" stroke="black" strokeWidth="1.2" fill="none"/>
+                                <path d="M6 5V4a2 2 0 0 1 2-2v0a2 2 0 0 1 2 2v1" stroke="black" strokeWidth="1.2" fill="none"/>
+                              </svg>
+                            </button>
+                          </div>
+                          <h4 className="text-sm font-semibold text-black leading-tight mb-1">Nike Everyday Plus Cushioned</h4>
+                          <p className="text-xs text-gray-500 mb-2">Training Ankle Socks (6 Pairs)</p>
+                          <p className="text-sm font-bold text-black">US$28</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* View 2 - 3x4 Fashion Grid */}
+                {currentView === VIEWS.VIEW_2 && (
+                  <div className="p-4">
+                    {/* Top Action Bar */}
+                    <div className="flex justify-between items-center mb-4">
+                      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                        <path d="M15 5L5 15M5 5L15 15" stroke="black" strokeWidth="1.5"/>
+                      </svg>
+                      <div className="flex items-center space-x-3">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                          <path d="M9 17C13.4183 17 17 13.4183 17 9C17 4.58172 13.4183 1 9 1C4.58172 1 1 4.58172 1 9C1 13.4183 4.58172 17 9 17Z" stroke="black" strokeWidth="1.5"/>
+                        </svg>
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                          <rect x="2" y="2" width="4" height="4" stroke="black" strokeWidth="1.5"/>
+                          <rect x="8" y="2" width="4" height="4" stroke="black" strokeWidth="1.5"/>
+                          <rect x="14" y="2" width="4" height="4" stroke="black" strokeWidth="1.5"/>
+                          <rect x="2" y="8" width="4" height="4" stroke="black" strokeWidth="1.5"/>
+                          <rect x="8" y="8" width="4" height="4" stroke="black" strokeWidth="1.5"/>
+                          <rect x="14" y="8" width="4" height="4" stroke="black" strokeWidth="1.5"/>
+                        </svg>
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                          <path d="M3 6H17M3 12H17M3 18H17" stroke="black" strokeWidth="1.5"/>
+                        </svg>
+                      </div>
+                    </div>
+
+                    {/* Fashion Grid */}
+                    <div className="grid grid-cols-3 gap-2">
+                      {Array.from({ length: 12 }, (_, index) => {
+                        const product = getPreviewProducts()[index % getPreviewProducts().length];
+                        return (
+                          <div key={index} className="bg-white rounded-lg overflow-hidden shadow-sm">
+                            <div className="relative aspect-[3/4] bg-gray-100">
+                              <img src={product?.image || '/api/placeholder/120/160'} alt="Fashion item" className="w-full h-full object-cover" />
+                              {index === 0 && (
+                                <button className="absolute top-2 left-2 w-6 h-6 bg-white rounded-full flex items-center justify-center shadow-sm">
+                                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                                    <path d="M6 10C6 10 10 7.5 10 4.5C10 2.84315 8.65685 1.5 7 1.5C6.3111 1.5 5.68375 1.78323 5.25 2.25C4.81625 1.78323 4.1889 1.5 3.5 1.5C1.84315 1.5 0.5 2.84315 0.5 4.5C0.5 7.5 6 10 6 10Z" stroke="black" strokeWidth="1"/>
+                                  </svg>
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* View 3 - Masonry Style Layout */}
+                {currentView === VIEWS.VIEW_3 && (
+                  <div className="p-4">
+                    {/* Top Action Bar */}
+                    <div className="flex justify-between items-center mb-4">
+                      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                        <path d="M15 5L5 15M5 5L15 15" stroke="black" strokeWidth="1.5"/>
+                      </svg>
+                      <div className="flex items-center space-x-3">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                          <path d="M9 17C13.4183 17 17 13.4183 17 9C17 4.58172 13.4183 1 9 1C4.58172 1 1 4.58172 1 9C1 13.4183 4.58172 17 9 17Z" stroke="black" strokeWidth="1.5"/>
+                        </svg>
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                          <rect x="3" y="3" width="6" height="6" stroke="black" strokeWidth="1.5"/>
+                          <rect x="11" y="3" width="6" height="6" stroke="black" strokeWidth="1.5"/>
+                          <rect x="3" y="11" width="6" height="6" stroke="black" strokeWidth="1.5"/>
+                          <rect x="11" y="11" width="6" height="6" stroke="black" strokeWidth="1.5"/>
+                        </svg>
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                          <path d="M3 6H17M3 12H17M3 18H17" stroke="black" strokeWidth="1.5"/>
+                        </svg>
+                      </div>
+                    </div>
+
+                    {/* Masonry Grid */}
+                    <div className="grid grid-cols-2 gap-3">
+                      {/* Left Column */}
+                      <div className="space-y-3">
+                        <div className="bg-white rounded-lg overflow-hidden shadow-sm">
+                          <div className="relative aspect-[3/4] bg-gray-100">
+                            <img src={getPreviewProducts()[0]?.image || '/api/placeholder/160/200'} alt="Fashion item" className="w-full h-full object-cover" />
+                            <button className="absolute top-2 left-2 w-6 h-6 bg-white rounded-full flex items-center justify-center shadow-sm">
+                              <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                                <path d="M6 10C6 10 10 7.5 10 4.5C10 2.84315 8.65685 1.5 7 1.5C6.3111 1.5 5.68375 1.78323 5.25 2.25C4.81625 1.78323 4.1889 1.5 3.5 1.5C1.84315 1.5 0.5 2.84315 0.5 4.5C0.5 7.5 6 10 6 10Z" stroke="black" strokeWidth="1"/>
+                              </svg>
+                            </button>
+                          </div>
+                        </div>
+                        <div className="bg-white rounded-lg overflow-hidden shadow-sm">
+                          <div className="aspect-square bg-gray-100">
+                            <img src={getPreviewProducts()[1]?.image || '/api/placeholder/160/160'} alt="Fashion item" className="w-full h-full object-cover" />
+                          </div>
+                        </div>
+                        <div className="bg-white rounded-lg overflow-hidden shadow-sm">
+                          <div className="aspect-[3/4] bg-gray-100">
+                            <img src={getPreviewProducts()[2]?.image || '/api/placeholder/160/200'} alt="Fashion item" className="w-full h-full object-cover" />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Right Column */}
+                      <div className="space-y-3">
+                        <div className="bg-white rounded-lg overflow-hidden shadow-sm">
+                          <div className="aspect-square bg-gray-100">
+                            <img src={getPreviewProducts()[3]?.image || '/api/placeholder/160/160'} alt="Fashion item" className="w-full h-full object-cover" />
+                          </div>
+                        </div>
+                        <div className="bg-white rounded-lg overflow-hidden shadow-sm">
+                          <div className="aspect-[4/5] bg-gray-100">
+                            <img src={getPreviewProducts()[4]?.image || '/api/placeholder/160/200'} alt="Fashion item" className="w-full h-full object-cover" />
+                          </div>
+                        </div>
+                        <div className="bg-white rounded-lg overflow-hidden shadow-sm">
+                          <div className="aspect-square bg-gray-100">
+                            <img src={getPreviewProducts()[5]?.image || '/api/placeholder/160/160'} alt="Fashion item" className="w-full h-full object-cover" />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Bottom Navigation */}
+              <div className="bg-white border-t border-gray-200 px-4 py-2">
+                <div className="flex justify-around items-center">
+                  <button 
+                    onClick={() => setCurrentView('landing')}
+                    className={`flex flex-col items-center space-y-1 py-2 ${currentView === 'landing' ? 'text-black' : 'text-gray-400'}`}
                   >
-                    {tab}
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                      <path d="M10 2L3 7V18H7V13H13V18H17V7L10 2Z" stroke="currentColor" strokeWidth="1.5"/>
+                    </svg>
+                    <span className="text-xs">Home</span>
                   </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Content Grid */}
-            <div className="grid grid-cols-2 gap-8">
-              {/* Left Column - Sport Categories */}
-              <div className="space-y-4">
-                {sportCategories.map((sport) => (
-                  <div key={sport.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                    <div className="flex items-center space-x-4">
-                      <img
-                        src={sport.image}
-                        alt={sport.name}
-                        className="w-16 h-16 rounded-lg object-cover"
-                      />
-                      <span className="text-sm font-medium text-gray-900">{sport.name}</span>
-                    </div>
-                    <ChevronDown className="h-5 w-5 text-gray-400 rotate-270" />
-                  </div>
-                ))}
-              </div>
-
-              {/* Right Column - Product Grid */}
-              <div className="grid grid-cols-2 gap-4">
-                {products.map((product) => (
-                  <div key={product.id} className="space-y-3">
-                    <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
-                      <img
-                        src={product.image}
-                        alt={product.name}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <h4 className="text-sm font-medium text-gray-900 line-clamp-2">
-                        {product.name}
-                      </h4>
-                      <p className="text-xs text-gray-600 line-clamp-1">
-                        {product.description}
-                      </p>
-                      <p className="text-sm font-medium text-gray-900">
-                        {product.price}
-                      </p>
-                    </div>
-                  </div>
-                ))}
+                  <button 
+                    onClick={() => setCurrentView(VIEWS.VIEW_1)}
+                    className={`flex flex-col items-center space-y-1 py-2 ${currentView === VIEWS.VIEW_1 ? 'text-black' : 'text-gray-400'}`}
+                  >
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                      <path d="M9 17C13.4183 17 17 13.4183 17 9C17 4.58172 13.4183 1 9 1C4.58172 1 1 4.58172 1 9C1 13.4183 4.58172 17 9 17Z" stroke="currentColor" strokeWidth="1.5"/>
+                    </svg>
+                    <span className="text-xs">Shop</span>
+                  </button>
+                  <button className="flex flex-col items-center space-y-1 py-2 text-gray-400">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                      <path d="M10 2L3 7V18H7V13H13V18H17V7L10 2Z" stroke="currentColor" strokeWidth="1.5"/>
+                    </svg>
+                    <span className="text-xs">Collection</span>
+                  </button>
+                  <button className="flex flex-col items-center space-y-1 py-2 text-gray-400">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                      <path d="M10 2L3 7V18H7V13H13V18H17V7L10 2Z" stroke="currentColor" strokeWidth="1.5"/>
+                    </svg>
+                    <span className="text-xs">Rewards</span>
+                  </button>
+                  <button className="flex flex-col items-center space-y-1 py-2 text-gray-400">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                      <circle cx="10" cy="7" r="3" stroke="currentColor" strokeWidth="1.5"/>
+                      <path d="M4 18C4 14 6.5 11 10 11C13.5 11 16 14 16 18" stroke="currentColor" strokeWidth="1.5"/>
+                    </svg>
+                    <span className="text-xs">Profile</span>
+                  </button>
+                </div>
+                <div className="w-32 h-1 bg-black rounded-full mx-auto mt-2"></div>
               </div>
             </div>
           </div>

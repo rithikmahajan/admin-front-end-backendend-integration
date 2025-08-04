@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Search, ChevronDown, Star, Edit2, Trash2, X } from 'lucide-react';
+import { Search, ChevronDown, Star, X } from 'lucide-react';
+import ReviewDetails from './ReviewDetails';
 
 const ManageReviews = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -7,6 +8,8 @@ const ManageReviews = () => {
   const [selectedSubcategory, setSelectedSubcategory] = useState('sub categories');
   const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false);
   const [subcategoryDropdownOpen, setSubcategoryDropdownOpen] = useState(false);
+  const [showReviewDetails, setShowReviewDetails] = useState(false);
+  const [selectedProductForReview, setSelectedProductForReview] = useState(null);
   
   // Modal states for confirmation dialogitgs
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -38,8 +41,8 @@ const ManageReviews = () => {
       sizeRating: 3, // 1-5 scale (too small to too big)
       comfortRating: 4,
       durabilityRating: 4,
-      category: 'clothing',
-      subcategory: 'tshirts',
+      category: 'men',
+      subcategory: 't-shirt',
       reviewsEnabled: true
     },
     {
@@ -50,14 +53,14 @@ const ManageReviews = () => {
       sizeRating: 3,
       comfortRating: 3,
       durabilityRating: 4,
-      category: 'clothing',
-      subcategory: 'tshirts',
+      category: 'Women',
+      subcategory: 'jacket',
       reviewsEnabled: true
     }
   ]);
 
-  const categories = ['All categories', 'clothing', 'accessories', 'footwear'];
-  const subcategories = ['sub categories', 'tshirts', 'pants', 'shoes'];
+  const categories = ['All categories', 'men', 'Women', 'kids'];
+  const subcategories = ['sub categories', 'jacket', 't-shirt', 'lower'];
 
   // Handler functions for CRUD operations
   const handleEditProduct = (product) => {
@@ -77,6 +80,16 @@ const ManageReviews = () => {
     setToggleProductId(productId);
     setToggleAction(currentState ? 'off' : 'on');
     setShowToggleModal(true);
+  };
+
+  const handleViewReviews = (product) => {
+    setSelectedProductForReview(product);
+    setShowReviewDetails(true);
+  };
+
+  const handleGoBackFromReviews = () => {
+    setShowReviewDetails(false);
+    setSelectedProductForReview(null);
   };
 
   const confirmEdit = () => {
@@ -185,7 +198,14 @@ const ManageReviews = () => {
   });
 
   return (
-    <div className="bg-white min-h-screen p-6">
+    <>
+      {showReviewDetails ? (
+        <ReviewDetails 
+          productName={selectedProductForReview?.name || "Review Details"}
+          onGoBack={handleGoBackFromReviews}
+        />
+      ) : (
+        <div className="bg-white min-h-screen p-6">
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900 mb-6">Manage reviews</h1>
@@ -322,22 +342,11 @@ const ManageReviews = () => {
                 {/* Action Button */}
                 <div className="col-span-2">
                   <div className="flex space-x-2">
-                    <button className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+                    <button 
+                      onClick={() => handleViewReviews(product)}
+                      className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
                       view reviews
-                    </button>
-                    <button
-                      onClick={() => handleEditProduct(product)}
-                      className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                      title="Edit product"
-                    >
-                      <Edit2 className="w-4 h-4 text-gray-600" />
-                    </button>
-                    <button
-                      onClick={() => handleDeleteProduct(product.id)}
-                      className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                      title="Delete product"
-                    >
-                      <Trash2 className="w-4 h-4 text-red-600" />
                     </button>
                   </div>
                 </div>
@@ -561,7 +570,9 @@ const ManageReviews = () => {
           </div>
         </div>
       )}
-    </div>
+        </div>
+      )}
+    </>
   );
 };
 
