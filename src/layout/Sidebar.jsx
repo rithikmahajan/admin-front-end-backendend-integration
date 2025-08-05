@@ -26,7 +26,8 @@ const Sidebar = React.memo(({ sidebarOpen, setSidebarOpen, sidebarHidden, onTogg
       title: 'Dashboard',
       titleSize: 'text-2xl',
       items: [
-        { name: 'Dashboard', path: '/' }
+        { name: 'Dashboard', path: '/' },
+        { name: 'Database Dashboard', path: '/database' }
       ]
     },
     {

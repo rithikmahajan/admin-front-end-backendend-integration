@@ -16,7 +16,8 @@ const Layout = () => {
   const getRouteForItem = (item) => {
     const routeMap = {
       "Dashboard": "/",
-      "Data base": "/database",
+      "Database Dashboard": "/database",
+      "Test Page": "/test",
       "orders": "/orders",
       "return and exchange requests": "/return-orders",
       "support messages": "/messages",

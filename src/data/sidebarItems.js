@@ -1,7 +1,7 @@
 const sidebarItems = [
   {
     title: "Dashboard",
-    items: ["Dashboard"],
+    items: ["Dashboard", "Database Dashboard", "Test Page"],
   },
   {
     title: "App order area",
