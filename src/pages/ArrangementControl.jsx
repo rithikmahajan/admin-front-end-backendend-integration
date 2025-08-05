@@ -26,6 +26,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import { ChevronDown, Move, GripVertical, Eye, RotateCcw, ChevronRight } from 'lucide-react';
+import { SaveArrangementModal, SaveSuccessModal } from '../components';
 
 // Constants
 const VIEW_MODES = {
@@ -143,6 +144,10 @@ const ArrangementControl = () => {
   const [currentView, setCurrentView] = useState('landing');
   const [selectedSportCategory, setSelectedSportCategory] = useState(null);
   const [selectedSubcategory, setSelectedSubcategory] = useState('jacket');
+
+  // Modal state
+  const [showSaveConfirmModal, setShowSaveConfirmModal] = useState(false);
+  const [showSaveSuccessModal, setShowSaveSuccessModal] = useState(false);
 
   // Initial arrangement items data
   const initialArrangementItems = useMemo(() => [
@@ -437,11 +442,26 @@ const ArrangementControl = () => {
   ], []);
 
   const saveArrangement = useCallback(() => {
+    // Show confirmation modal instead of saving directly
+    setShowSaveConfirmModal(true);
+  }, []);
+
+  // Handle save confirmation
+  const handleSaveConfirm = useCallback(() => {
     // Handle save logic here
     console.log('Saving main arrangement:', arrangementItems);
     console.log('Saving preview arrangement:', previewProducts);
-    alert('Arrangement saved successfully! Both main grid and preview order have been saved.');
+    
+    // Close confirmation modal and show success modal
+    setShowSaveConfirmModal(false);
+    setShowSaveSuccessModal(true);
   }, [arrangementItems, previewProducts]);
+
+  // Handle modal close
+  const handleModalClose = useCallback(() => {
+    setShowSaveConfirmModal(false);
+    setShowSaveSuccessModal(false);
+  }, []);
 
   // Get content based on active tab and selected subcategory
   const getTabContent = useCallback(() => {
@@ -1508,6 +1528,18 @@ const ArrangementControl = () => {
           </div>
         </div>
       </div>
+
+      {/* Save Arrangement Modals */}
+      <SaveArrangementModal
+        isOpen={showSaveConfirmModal}
+        onClose={handleModalClose}
+        onConfirm={handleSaveConfirm}
+      />
+      
+      <SaveSuccessModal
+        isOpen={showSaveSuccessModal}
+        onClose={handleModalClose}
+      />
     </div>
   );
 };
