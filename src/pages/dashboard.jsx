@@ -89,24 +89,43 @@ if (typeof document !== 'undefined') {
 // Constants moved outside component to prevent recreation
 const FILTER_OPTIONS = {
   categories: ["Profile", "inventory list", "Order statistics"],
-  subcategories: [
-    "Name",
-    "EMAIL",
-    "PHONE",
-    "Date of Birth",
-    "ADDRESS",
-    "delete account record",
-    "user details",
-    "app reviews",
-    "GENDER",
-    "password details",
-    "points",
-    "PG rent receipt – Duly stamped",
+  subcategories: {
+    "Profile": [
+      "Name",
+      "EMAIL", 
+      "PHONE",
+      "Date of Birth",
+      "ADDRESS",
+      "delete account record",
+      "user details",
+      "app reviews",
+      "GENDER",
+      "password details",
+      "points",
+      "PG rent receipt – Duly stamped",
+    ],
+    "inventory list": [
+      "SKU id",
+      "bar code id", 
+      "item stock",
+    ],
+    "Order statistics": [
+      "cancel order",
+      "return order",
+      "exchange order", 
+      "invoice details",
+    ],
+  },
+  sortOptions: [
+    { label: "Name (A-Z)", value: "name_asc" },
+    { label: "Name (Z-A)", value: "name_desc" },
+    { label: "Price (Low to High)", value: "price_asc" },
+    { label: "Price (High to Low)", value: "price_desc" },
+    { label: "Date Added (Newest)", value: "date_desc" },
+    { label: "Date Added (Oldest)", value: "date_asc" },
+    { label: "Quantity (Low to High)", value: "quantity_asc" },
+    { label: "Quantity (High to Low)", value: "quantity_desc" },
   ],
-  filterBy: ["category", "status"],
-  sortBy: ["Name", "Price", "Date Added", "Category", "SKU", "Quantity"],
-  sortOrder: ["Ascending", "Descending"],
-  dates: ["today", "week"],
 };
 
 // Date Range Options
@@ -279,7 +298,7 @@ ProductImage.displayName = "ProductImage";
 const SizeData = memo(({ sizes, dataType }) => (
   <div className="space-y-1">
     {sizes.map((size) => (
-      <div key={`${size.size}-${dataType}`} className="text-xs text-gray-900">
+      <div key={`${size.size}-${dataType}`} className="text-sm text-gray-900 font-medium">
         {dataType === "size" ? size.size : size[dataType]}
       </div>
     ))}
@@ -504,10 +523,8 @@ const Database = () => {
   const [filters, setFilters] = useState({
     category: "",
     subcategory: "",
-    date: "",
-    filterBy: "",
     sortBy: "",
-    sortOrder: "",
+    isApplied: false,
   });
 
   // Data hooks - Centralized data management
@@ -565,10 +582,24 @@ const Database = () => {
     setFilters({
       category: "",
       subcategory: "",
-      date: "",
-      filterBy: "",
       sortBy: "",
-      sortOrder: "",
+      isApplied: false,
+    });
+    setSearchTerm("");
+  }, []);
+
+  // Apply filters handler
+  const handleApplyFilters = useCallback(() => {
+    setFilters(prev => ({ ...prev, isApplied: true }));
+  }, []);
+
+  // Reset applied filters handler
+  const handleResetAppliedFilters = useCallback(() => {
+    setFilters({
+      category: "",
+      subcategory: "",
+      sortBy: "",
+      isApplied: false,
     });
     setSearchTerm("");
   }, []);
@@ -880,9 +911,157 @@ const Database = () => {
   }, []);
 
   const handleDownload = useCallback((productId) => {
-    console.log("Download product:", productId);
-    // Add download functionality here
-  }, []);
+    try {
+      // Find the product in the inventory
+      const product = filteredInventoryProducts.find(p => p.id === productId);
+      
+      if (!product) {
+        alert('Product not found!');
+        return;
+      }
+
+      const doc = new jsPDF();
+      
+      // Header
+      doc.setFontSize(24);
+      doc.setFont(undefined, 'bold');
+      doc.text('YORAA - Product Details', 20, 30);
+      
+      // Product basic info
+      doc.setFontSize(16);
+      doc.setFont(undefined, 'bold');
+      doc.text('Product Information', 20, 55);
+      
+      doc.setFontSize(12);
+      doc.setFont(undefined, 'normal');
+      const basicInfo = [
+        ['Product Name', product.productName],
+        ['Category', product.category],
+        ['Subcategory', product.subcategory],
+        ['SKU', product.sku],
+        ['Barcode', product.barcode],
+        ['Status', product.status],
+        ['Returnable', product.returnable || 'N/A'],
+        ['Shipping & Returns', product.shippingReturns || 'N/A']
+      ];
+      
+      doc.autoTable({
+        startY: 65,
+        head: [['Field', 'Value']],
+        body: basicInfo,
+        theme: 'grid',
+        styles: { fontSize: 10, cellPadding: 5 },
+        headStyles: { fillColor: [59, 130, 246], textColor: [255, 255, 255] },
+        columnStyles: { 0: { fontStyle: 'bold', fillColor: [245, 247, 250] } }
+      });
+
+      // Size and pricing information
+      let currentY = doc.lastAutoTable.finalY + 20;
+      doc.setFontSize(16);
+      doc.setFont(undefined, 'bold');
+      doc.text('Size & Pricing Details', 20, currentY);
+      
+      if (product.sizes && product.sizes.length > 0) {
+        const sizeData = product.sizes.map(size => [
+          size.size,
+          size.quantity.toString(),
+          `₹${size.salePrice}`,
+          `₹${size.actualPrice}`,
+          `₹${size.myntraPrice || 'N/A'}`,
+          `₹${size.amazonPrice || 'N/A'}`,
+          `₹${size.flipkartPrice || 'N/A'}`,
+          `₹${size.nykaPrice || 'N/A'}`
+        ]);
+        
+        doc.autoTable({
+          startY: currentY + 10,
+          head: [['Size', 'Quantity', 'Sale Price', 'Actual Price', 'Myntra', 'Amazon', 'Flipkart', 'Nykaa']],
+          body: sizeData,
+          theme: 'grid',
+          styles: { fontSize: 9, cellPadding: 4 },
+          headStyles: { fillColor: [34, 197, 94], textColor: [255, 255, 255] }
+        });
+        currentY = doc.lastAutoTable.finalY + 20;
+      }
+
+      // Product description and details
+      if (currentY > 250) {
+        doc.addPage();
+        currentY = 30;
+      }
+      
+      doc.setFontSize(16);
+      doc.setFont(undefined, 'bold');
+      doc.text('Product Details', 20, currentY);
+      
+      doc.setFontSize(12);
+      doc.setFont(undefined, 'normal');
+      currentY += 15;
+      
+      const details = [
+        ['Description', product.description || 'N/A'],
+        ['Manufacturing Details', product.manufacturingDetails || 'N/A'],
+        ['Meta Title', product.metaTitle || 'N/A'],
+        ['Meta Description', product.metaDescription || 'N/A'],
+        ['Slug URL', product.slugUrl || 'N/A']
+      ];
+      
+      doc.autoTable({
+        startY: currentY,
+        head: [['Field', 'Details']],
+        body: details,
+        theme: 'grid',
+        styles: { fontSize: 10, cellPadding: 5 },
+        headStyles: { fillColor: [168, 85, 247], textColor: [255, 255, 255] },
+        columnStyles: { 
+          0: { fontStyle: 'bold', fillColor: [245, 247, 250], cellWidth: 50 },
+          1: { cellWidth: 130 }
+        }
+      });
+
+      // Availability status
+      currentY = doc.lastAutoTable.finalY + 20;
+      doc.setFontSize(16);
+      doc.setFont(undefined, 'bold');
+      doc.text('Asset Availability', 20, currentY);
+      
+      const availability = [
+        ['Photos Available', product.photos ? 'Yes ✓' : 'No ✗'],
+        ['Size Chart Available', product.sizeChart ? 'Yes ✓' : 'No ✗']
+      ];
+      
+      doc.autoTable({
+        startY: currentY + 10,
+        head: [['Asset Type', 'Status']],
+        body: availability,
+        theme: 'grid',
+        styles: { fontSize: 10, cellPadding: 5 },
+        headStyles: { fillColor: [245, 158, 11], textColor: [255, 255, 255] },
+        columnStyles: { 0: { fontStyle: 'bold', fillColor: [245, 247, 250] } }
+      });
+
+      // Footer
+      currentY = doc.lastAutoTable.finalY + 30;
+      if (currentY > 250) {
+        doc.addPage();
+        currentY = 30;
+      }
+      
+      doc.setFontSize(10);
+      doc.setFont(undefined, 'italic');
+      doc.text(`Generated on: ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}`, 20, currentY);
+      doc.text('© 2025 YORAA. All rights reserved.', 20, currentY + 10);
+
+      // Save the PDF
+      const fileName = `product-${product.sku.replace(/[/\\]/g, '-')}-${new Date().toISOString().split('T')[0]}.pdf`;
+      doc.save(fileName);
+      
+      console.log(`Product PDF downloaded: ${fileName}`);
+    } catch (error) {
+      console.error('Error generating product PDF:', error);
+      alert('Error generating PDF. Please try again.');
+    }
+  }, [filteredInventoryProducts]);
 
   // Export handlers for Views Report section
   const handleExportPDF = useCallback(() => {
@@ -1048,6 +1227,225 @@ const Database = () => {
     }
   }, [analyticsData, selectedDateRange, dateRange, marketplaces, syncLogs, productSyncData]);
 
+  // Inventory-specific PDF export function
+  const handleInventoryExportPDF = useCallback(() => {
+    try {
+      const doc = new jsPDF();
+      
+      // Header
+      doc.setFontSize(24);
+      doc.setFont(undefined, 'bold');
+      doc.text('YORAA - Inventory Report', 20, 30);
+      
+      doc.setFontSize(12);
+      doc.setFont(undefined, 'normal');
+      doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 20, 45);
+      doc.text(`Total Products: ${filteredInventoryProducts.length}`, 20, 55);
+      
+      // Summary section
+      doc.setFontSize(16);
+      doc.setFont(undefined, 'bold');
+      doc.text('Inventory Summary', 20, 75);
+      
+      // Calculate summary statistics
+      const totalProducts = filteredInventoryProducts.length;
+      const totalStock = filteredInventoryProducts.reduce((total, product) => {
+        return total + (product.sizes?.reduce((sizeTotal, size) => sizeTotal + size.quantity, 0) || 0);
+      }, 0);
+      
+      const categories = [...new Set(filteredInventoryProducts.map(p => p.category))];
+      const avgPrice = filteredInventoryProducts.length > 0 
+        ? (filteredInventoryProducts.reduce((total, product) => {
+            const avgProductPrice = product.sizes?.length > 0 
+              ? product.sizes.reduce((sum, size) => sum + size.salePrice, 0) / product.sizes.length
+              : 0;
+            return total + avgProductPrice;
+          }, 0) / filteredInventoryProducts.length).toFixed(2)
+        : 0;
+
+      const summaryData = [
+        ['Total Products', totalProducts.toString()],
+        ['Total Stock Units', totalStock.toString()],
+        ['Total Categories', categories.length.toString()],
+        ['Average Sale Price', `₹${avgPrice}`],
+        ['Categories', categories.join(', ')]
+      ];
+      
+      doc.autoTable({
+        startY: 85,
+        head: [['Metric', 'Value']],
+        body: summaryData,
+        theme: 'grid',
+        styles: { fontSize: 10, cellPadding: 5 },
+        headStyles: { fillColor: [59, 130, 246], textColor: [255, 255, 255] },
+        columnStyles: { 0: { fontStyle: 'bold', fillColor: [245, 247, 250] } }
+      });
+
+      // Products table (first 20 products to avoid PDF size issues)
+      const currentY = doc.lastAutoTable.finalY + 20;
+      doc.setFontSize(16);
+      doc.setFont(undefined, 'bold');
+      doc.text('Product Details', 20, currentY);
+      
+      const productsToShow = filteredInventoryProducts.slice(0, 20);
+      const productData = productsToShow.map(product => {
+        const totalStock = product.sizes?.reduce((total, size) => total + size.quantity, 0) || 0;
+        const avgPrice = product.sizes?.length > 0 
+          ? (product.sizes.reduce((sum, size) => sum + size.salePrice, 0) / product.sizes.length).toFixed(0)
+          : 'N/A';
+        
+        return [
+          product.productName,
+          product.category,
+          product.sku,
+          totalStock.toString(),
+          `₹${avgPrice}`,
+          product.status
+        ];
+      });
+      
+      doc.autoTable({
+        startY: currentY + 10,
+        head: [['Product Name', 'Category', 'SKU', 'Total Stock', 'Avg Price', 'Status']],
+        body: productData,
+        theme: 'grid',
+        styles: { fontSize: 8, cellPadding: 3 },
+        headStyles: { fillColor: [34, 197, 94], textColor: [255, 255, 255] },
+        columnStyles: {
+          0: { cellWidth: 40 },
+          1: { cellWidth: 25 },
+          2: { cellWidth: 30 },
+          3: { cellWidth: 20 },
+          4: { cellWidth: 25 },
+          5: { cellWidth: 30 }
+        }
+      });
+
+      // If there are more than 20 products, add a note
+      if (filteredInventoryProducts.length > 20) {
+        const noteY = doc.lastAutoTable.finalY + 10;
+        doc.setFontSize(10);
+        doc.setFont(undefined, 'italic');
+        doc.text(`Note: Showing first 20 products out of ${filteredInventoryProducts.length} total products.`, 20, noteY);
+        doc.text('For complete inventory data, use the Excel export option.', 20, noteY + 10);
+      }
+
+      // Footer
+      let footerY = doc.lastAutoTable.finalY + 30;
+      if (footerY > 250) {
+        doc.addPage();
+        footerY = 30;
+      }
+      
+      doc.setFontSize(10);
+      doc.setFont(undefined, 'italic');
+      doc.text(`Generated on: ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}`, 20, footerY);
+      doc.text('© 2025 YORAA. All rights reserved.', 20, footerY + 10);
+
+      // Save the PDF
+      const fileName = `inventory-report-${new Date().toISOString().split('T')[0]}.pdf`;
+      doc.save(fileName);
+      
+      console.log('Inventory PDF exported successfully');
+    } catch (error) {
+      console.error('Error exporting inventory PDF:', error);
+      alert('Error generating inventory PDF report. Please try again.');
+    }
+  }, [filteredInventoryProducts]);
+
+  // Inventory-specific Excel export function
+  const handleInventoryExportExcel = useCallback(() => {
+    try {
+      const wb = XLSX.utils.book_new();
+      
+      // Main inventory data
+      const inventoryData = filteredInventoryProducts.map(product => {
+        const totalStock = product.sizes?.reduce((total, size) => total + size.quantity, 0) || 0;
+        const avgPrice = product.sizes?.length > 0 
+          ? (product.sizes.reduce((sum, size) => sum + size.salePrice, 0) / product.sizes.length).toFixed(2)
+          : 0;
+        
+        return {
+          'Product ID': product.id,
+          'Product Name': product.productName,
+          'Category': product.category,
+          'Subcategory': product.subcategory,
+          'SKU': product.sku,
+          'Barcode': product.barcode,
+          'Status': product.status,
+          'Total Stock': totalStock,
+          'Average Sale Price': `₹${avgPrice}`,
+          'Description': product.description || '',
+          'Manufacturing Details': product.manufacturingDetails || '',
+          'Shipping & Returns': product.shippingReturns || '',
+          'Meta Title': product.metaTitle || '',
+          'Meta Description': product.metaDescription || '',
+          'Slug URL': product.slugUrl || '',
+          'Photos Available': product.photos ? 'Yes' : 'No',
+          'Size Chart Available': product.sizeChart ? 'Yes' : 'No',
+          'Returnable': product.returnable || 'N/A'
+        };
+      });
+      
+      // Size-wise detailed data
+      const detailedSizeData = [];
+      filteredInventoryProducts.forEach(product => {
+        if (product.sizes && product.sizes.length > 0) {
+          product.sizes.forEach(size => {
+            detailedSizeData.push({
+              'Product ID': product.id,
+              'Product Name': product.productName,
+              'SKU': product.sku,
+              'Size': size.size,
+              'Quantity': size.quantity,
+              'Sale Price': `₹${size.salePrice}`,
+              'Actual Price': `₹${size.actualPrice}`,
+              'Myntra Price': size.myntraPrice ? `₹${size.myntraPrice}` : 'N/A',
+              'Amazon Price': size.amazonPrice ? `₹${size.amazonPrice}` : 'N/A',
+              'Flipkart Price': size.flipkartPrice ? `₹${size.flipkartPrice}` : 'N/A',
+              'Nykaa Price': size.nykaPrice ? `₹${size.nykaPrice}` : 'N/A'
+            });
+          });
+        }
+      });
+      
+      // Summary statistics
+      const totalProducts = filteredInventoryProducts.length;
+      const totalStock = filteredInventoryProducts.reduce((total, product) => {
+        return total + (product.sizes?.reduce((sizeTotal, size) => sizeTotal + size.quantity, 0) || 0);
+      }, 0);
+      const categories = [...new Set(filteredInventoryProducts.map(p => p.category))];
+      
+      const summaryData = [
+        { 'Metric': 'Total Products', 'Value': totalProducts },
+        { 'Metric': 'Total Stock Units', 'Value': totalStock },
+        { 'Metric': 'Total Categories', 'Value': categories.length },
+        { 'Metric': 'Categories List', 'Value': categories.join(', ') },
+        { 'Metric': 'Report Generated On', 'Value': new Date().toLocaleDateString() },
+        { 'Metric': 'Report Generated At', 'Value': new Date().toLocaleTimeString() }
+      ];
+
+      // Create worksheets
+      const inventoryWS = XLSX.utils.json_to_sheet(inventoryData);
+      const sizesWS = XLSX.utils.json_to_sheet(detailedSizeData);
+      const summaryWS = XLSX.utils.json_to_sheet(summaryData);
+      
+      // Add worksheets to workbook
+      XLSX.utils.book_append_sheet(wb, inventoryWS, 'Inventory Overview');
+      XLSX.utils.book_append_sheet(wb, sizesWS, 'Size-wise Details');
+      XLSX.utils.book_append_sheet(wb, summaryWS, 'Summary');
+      
+      // Generate filename and save
+      const fileName = `inventory-data-${new Date().toISOString().split('T')[0]}.xlsx`;
+      XLSX.writeFile(wb, fileName);
+      
+      console.log('Inventory Excel exported successfully');
+    } catch (error) {
+      console.error('Error exporting inventory Excel:', error);
+      alert('Error generating inventory Excel report. Please try again.');
+    }
+  }, [filteredInventoryProducts]);
+
   return (
     <div className="bg-gray-50 min-h-screen">
       {/* Header with Tab Navigation */}
@@ -1113,12 +1511,16 @@ const Database = () => {
             onSearchChange={handleSearchChange}
             onFilterChange={handleFilterChange}
             onResetFilters={resetFilters}
+            onApplyFilters={handleApplyFilters}
+            onResetAppliedFilters={handleResetAppliedFilters}
             onEdit={handleEdit}
             onDelete={handleDelete}
             onDownload={handleDownload}
             selectedInventoryDateRange={selectedInventoryDateRange}
             onInventoryDateRangeChange={handleInventoryDateRangeChange}
             inventoryDateRange={inventoryDateRange}
+            onExportPDF={handleInventoryExportPDF}
+            onExportExcel={handleInventoryExportExcel}
           />
         )}
 
@@ -1207,19 +1609,88 @@ const InventoryTab = memo(
     onSearchChange,
     onFilterChange,
     onResetFilters,
+    onApplyFilters,
+    onResetAppliedFilters,
     onEdit,
     onDelete,
     onDownload,
     selectedInventoryDateRange,
     onInventoryDateRangeChange,
     inventoryDateRange,
-  }) => (
-    <div className="space-y-6">
-      {/* Header with Search and Filters */}
-      <div className="bg-white rounded-lg p-6 shadow-sm">
-        <div className="flex flex-col space-y-4">
+    onExportPDF,
+    onExportExcel,
+  }) => {
+    const [filterDropdownOpen, setFilterDropdownOpen] = useState(false);
+    const [exportDropdownOpen, setExportDropdownOpen] = useState(false);
+    const filterDropdownRef = useRef(null);
+    const exportDropdownRef = useRef(null);
+
+    // Close dropdowns when clicking outside
+    useEffect(() => {
+      const handleClickOutside = (event) => {
+        if (filterDropdownRef.current && !filterDropdownRef.current.contains(event.target)) {
+          setFilterDropdownOpen(false);
+        }
+        if (exportDropdownRef.current && !exportDropdownRef.current.contains(event.target)) {
+          setExportDropdownOpen(false);
+        }
+      };
+
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
+    // Get available subcategories based on selected category
+    const getSubcategories = () => {
+      if (!filters.category) return [];
+      return FILTER_OPTIONS.subcategories[filters.category] || [];
+    };
+
+    // Handle export functionality
+    const handleExport = (type) => {
+      setExportDropdownOpen(false);
+      switch (type) {
+        case 'pdf':
+          onExportPDF();
+          break;
+        case 'excel':
+          onExportExcel();
+          break;
+        case 'share':
+          if (navigator.share) {
+            navigator.share({
+              title: 'Inventory Data',
+              text: `Inventory Data for ${inventoryDateRange}`,
+              url: window.location.href,
+            });
+          } else {
+            navigator.clipboard.writeText(window.location.href);
+            alert('Link copied to clipboard!');
+          }
+          break;
+        case 'download':
+          // Implement CSV download
+          const csvContent = products.map(product => 
+            Object.values(product).join(',')
+          ).join('\n');
+          const blob = new Blob([csvContent], { type: 'text/csv' });
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `inventory-data-${new Date().toISOString().split('T')[0]}.csv`;
+          a.click();
+          break;
+        default:
+          break;
+      }
+    };
+
+    return (
+      <div className="space-y-6">
+        {/* Header with Search and Controls */}
+        <div className="bg-white rounded-lg p-6 shadow-sm">
           {/* Top row with Search and Date Range */}
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
             {/* Search Bar */}
             <div className="relative flex-1 max-w-md">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -1240,62 +1711,56 @@ const InventoryTab = memo(
             />
           </div>
 
-          {/* Filter Row */}
-          <div className="flex items-center gap-4 flex-wrap">
-            <div className="flex items-center gap-2">
-              <Filter className="h-4 w-4 text-gray-600" />
-              <span className="text-sm font-medium text-gray-700">Filters:</span>
+          {/* Filter Controls Row */}
+          <div className="flex flex-wrap items-center gap-4">
+            {/* Filter Button with Dropdown */}
+            <div className="relative" ref={filterDropdownRef}>
+              <button
+                onClick={() => setFilterDropdownOpen(!filterDropdownOpen)}
+                className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              >
+                <Filter className="h-4 w-4" />
+                <span>Filter</span>
+                <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${filterDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {filterDropdownOpen && (
+                <div className="absolute left-0 top-full mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-50 min-w-[200px]">
+                  <div className="p-3">
+                    <h4 className="text-sm font-medium text-gray-900 mb-3">Sort By</h4>
+                    <div className="space-y-2">
+                      {FILTER_OPTIONS.sortOptions.map((option) => (
+                        <button
+                          key={option.value}
+                          onClick={() => {
+                            onFilterChange("sortBy", option.value);
+                            setFilterDropdownOpen(false);
+                          }}
+                          className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors duration-150 ${
+                            filters.sortBy === option.value 
+                              ? 'bg-blue-50 text-blue-700 font-medium' 
+                              : 'text-gray-700 hover:bg-gray-50'
+                          }`}
+                        >
+                          {option.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
-
-            {/* Filter By Dropdown */}
-            <select
-              value={filters.filterBy}
-              onChange={(e) => onFilterChange("filterBy", e.target.value)}
-              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white hover:bg-gray-50 transition-colors duration-200"
-            >
-              <option value="">Filter By</option>
-              {FILTER_OPTIONS.filterBy.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
-
-            {/* Sort By Dropdown */}
-            <select
-              value={filters.sortBy}
-              onChange={(e) => onFilterChange("sortBy", e.target.value)}
-              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white hover:bg-gray-50 transition-colors duration-200"
-            >
-              <option value="">Sort By</option>
-              {FILTER_OPTIONS.sortBy.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
-
-            {/* Sort Order Dropdown */}
-            <select
-              value={filters.sortOrder}
-              onChange={(e) => onFilterChange("sortOrder", e.target.value)}
-              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white hover:bg-gray-50 transition-colors duration-200"
-            >
-              <option value="">Order</option>
-              {FILTER_OPTIONS.sortOrder.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
 
             {/* Category Dropdown */}
             <select
               value={filters.category}
-              onChange={(e) => onFilterChange("category", e.target.value)}
-              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white hover:bg-gray-50 transition-colors duration-200"
+              onChange={(e) => {
+                onFilterChange("category", e.target.value);
+                onFilterChange("subcategory", ""); // Reset subcategory when category changes
+              }}
+              className="border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white hover:bg-gray-50 transition-colors duration-200"
             >
-              <option value="">Choose Category</option>
+              <option value="">Choose DB Category</option>
               {FILTER_OPTIONS.categories.map((option) => (
                 <option key={option} value={option}>
                   {option}
@@ -1303,50 +1768,95 @@ const InventoryTab = memo(
               ))}
             </select>
 
-            {/* Subcategory Dropdown */}
-            <select
-              value={filters.subcategory}
-              onChange={(e) => onFilterChange("subcategory", e.target.value)}
-              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white hover:bg-gray-50 transition-colors duration-200"
-            >
-              <option value="">Choose Subcategory</option>
-              {FILTER_OPTIONS.subcategories.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
+            {/* Subcategory Dropdown - Only show when category is selected */}
+            {filters.category && (
+              <select
+                value={filters.subcategory}
+                onChange={(e) => onFilterChange("subcategory", e.target.value)}
+                className="border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white hover:bg-gray-50 transition-colors duration-200"
+              >
+                <option value="">Choose Sub Category</option>
+                {getSubcategories().map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+            )}
 
-            {/* Reset Filter Button */}
-            <button
-              onClick={onResetFilters}
-              className="text-red-500 hover:text-red-600 text-sm font-medium flex items-center gap-1.5 px-3 py-2 rounded-lg hover:bg-red-50 transition-all duration-200"
-            >
-              <RotateCcw className="h-4 w-4" />
-              Reset Filter
-            </button>
-          </div>
-        </div>
-      </div>
+            {/* Apply/Reset Button */}
+            {!filters.isApplied ? (
+              <button
+                onClick={onApplyFilters}
+                disabled={!filters.category && !filters.subcategory && !filters.sortBy}
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              >
+                Apply
+              </button>
+            ) : (
+              <button
+                onClick={onResetAppliedFilters}
+                className="bg-red-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+              >
+                Reset Filter
+              </button>
+            )}
 
-      {/* Inventory Results */}
-      <div className="bg-white rounded-lg shadow-sm">
-        <div className="p-6 border-b">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div>
-              <h2 className="text-xl font-semibold text-gray-900">
-                Showing Inventory Data
-              </h2>
-              <p className="text-sm text-gray-600 mt-1">
-                {products.length} items found for {inventoryDateRange}
-              </p>
+            {/* Export Dropdown */}
+            <div className="relative" ref={exportDropdownRef}>
+              <button 
+                onClick={() => setExportDropdownOpen(!exportDropdownOpen)}
+                className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              >
+                <Download className="h-4 w-4" />
+                <span>Export</span>
+                <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${exportDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {exportDropdownOpen && (
+                <div className="absolute right-0 top-full mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-50 min-w-[160px]">
+                  <div className="p-1">
+                    <button
+                      onClick={() => handleExport('excel')}
+                      className="w-full text-left px-3 py-2 rounded-md text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-150 flex items-center space-x-2"
+                    >
+                      <FileSpreadsheet className="h-4 w-4 text-green-600" />
+                      <span>Excel</span>
+                    </button>
+                    <button
+                      onClick={() => handleExport('pdf')}
+                      className="w-full text-left px-3 py-2 rounded-md text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-150 flex items-center space-x-2"
+                    >
+                      <Download className="h-4 w-4 text-red-600" />
+                      <span>PDF</span>
+                    </button>
+                    <button
+                      onClick={() => handleExport('download')}
+                      className="w-full text-left px-3 py-2 rounded-md text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-150 flex items-center space-x-2"
+                    >
+                      <Download className="h-4 w-4 text-blue-600" />
+                      <span>Download CSV</span>
+                    </button>
+                    <button
+                      onClick={() => handleExport('share')}
+                      className="w-full text-left px-3 py-2 rounded-md text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-150 flex items-center space-x-2"
+                    >
+                      <Share className="h-4 w-4 text-blue-600" />
+                      <span>Share</span>
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
-            
-            {/* Additional filter tags if any are active */}
-            <div className="flex flex-wrap gap-2">
+          </div>
+
+          {/* Active Filter Tags */}
+          {filters.isApplied && (
+            <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-gray-200">
+              <span className="text-sm font-medium text-gray-600">Active Filters:</span>
               {filters.sortBy && (
                 <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">
-                  Sort: {filters.sortBy} ({filters.sortOrder || 'Default'})
+                  Sort: {FILTER_OPTIONS.sortOptions.find(opt => opt.value === filters.sortBy)?.label}
                 </span>
               )}
               {filters.category && (
@@ -1360,39 +1870,56 @@ const InventoryTab = memo(
                 </span>
               )}
             </div>
-          </div>
+          )}
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="min-w-full">
-            <thead className="bg-gray-50 border-b">
-              <tr>
-                {INVENTORY_HEADERS.map((header) => (
-                  <th
-                    key={header}
-                    className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider"
-                  >
-                    {header}
-                  </th>
+        {/* Inventory Results */}
+        <div className="bg-white rounded-lg shadow-sm">
+          <div className="p-6 border-b">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900">
+                  Showing Inventory Data
+                </h2>
+                <p className="text-sm text-gray-600 mt-1">
+                  {products.length} items found for {inventoryDateRange}
+                  {filters.isApplied && " (filtered)"}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="min-w-full">
+              <thead className="bg-white border-b border-gray-200">
+                <tr>
+                  {INVENTORY_HEADERS.map((header) => (
+                    <th
+                      key={header}
+                      className="px-4 py-3 text-left text-sm font-medium text-gray-900"
+                    >
+                      {header}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="bg-white">
+                {products.map((product) => (
+                  <InventoryProductRow
+                    key={product.id}
+                    product={product}
+                    onEdit={onEdit}
+                    onDelete={onDelete}
+                    onDownload={onDownload}
+                  />
                 ))}
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {products.map((product) => (
-                <InventoryProductRow
-                  key={product.id}
-                  product={product}
-                  onEdit={onEdit}
-                  onDelete={onDelete}
-                  onDownload={onDownload}
-                />
-              ))}
-            </tbody>
-          </table>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
-    </div>
-  )
+    );
+  }
 );
 
 InventoryTab.displayName = "InventoryTab";
@@ -2413,107 +2940,89 @@ SalesAnalyticsSection.displayName = "SalesAnalyticsSection";
 // Inventory Product Row Component
 const InventoryProductRow = memo(
   ({ product, onEdit, onDelete, onDownload }) => (
-    <tr className="hover:bg-gray-50/70 transition-colors duration-200 group border-b border-gray-100/60">
-      <td className="px-6 py-5">
+    <tr className="hover:bg-gray-50 transition-colors duration-200 border-b border-gray-200">
+      <td className="px-4 py-4">
         <ProductImage image={product.image} productName={product.productName} />
       </td>
-      <td className="px-6 py-5">
-        <div className="font-semibold text-gray-900 text-sm group-hover:text-gray-800 transition-colors duration-200">
+      <td className="px-4 py-4">
+        <div className="text-sm font-medium text-gray-900">
           {product.productName}
         </div>
-        <div className="flex items-center gap-1.5 mt-2">
-          <span className="w-2.5 h-2.5 bg-gray-800 rounded-full"></span>
-          <span className="w-2.5 h-2.5 bg-gray-400 rounded-full"></span>
-        </div>
       </td>
-      <td className="px-6 py-5">
-        <span className="text-sm text-gray-800 font-medium bg-gray-50/80 px-3 py-1.5 rounded-lg group-hover:bg-gray-100/80 transition-colors duration-200">
+      <td className="px-4 py-4">
+        <span className="text-sm text-gray-900 font-medium">
           {product.category}
         </span>
       </td>
-      <td className="px-6 py-5">
-        <span className="text-sm text-gray-800 font-medium">
+      <td className="px-4 py-4">
+        <span className="text-sm text-gray-900 font-medium">
           {product.subcategory}
         </span>
-        <div className="text-xs text-gray-500 mt-1.5 bg-blue-50/60 px-2 py-1 rounded-md">
-          {product.returnable}
+      </td>
+      <td className="px-4 py-4">
+        <div className="text-sm text-gray-900 font-medium">
+          ₹{product.sizes && product.sizes.length > 0 ? product.sizes[0].salePrice : 'N/A'}
         </div>
       </td>
-      <td className="px-6 py-5">
-        <div className="space-y-1.5">
-          <div className="text-xs text-gray-600 bg-purple-50/60 px-2 py-1 rounded-md font-medium">
-            myntra
-          </div>
-          <div className="text-xs text-gray-600 bg-orange-50/60 px-2 py-1 rounded-md font-medium">
-            amazon
-          </div>
-          <div className="text-xs text-gray-600 bg-blue-50/60 px-2 py-1 rounded-md font-medium">
-            flipkart
-          </div>
-          <div className="text-xs text-gray-600 bg-pink-50/60 px-2 py-1 rounded-md font-medium">
-            nykaa
-          </div>
-        </div>
-      </td>
-      <td className="px-6 py-5">
+      <td className="px-4 py-4">
         <SizeData sizes={product.sizes} dataType="size" />
       </td>
-      <td className="px-6 py-5">
+      <td className="px-4 py-4">
         <SizeData sizes={product.sizes} dataType="quantity" />
       </td>
-      <td className="px-6 py-5">
+      <td className="px-4 py-4">
         <SizeData sizes={product.sizes} dataType="salePrice" />
       </td>
-      <td className="px-6 py-5">
+      <td className="px-4 py-4">
         <SizeData sizes={product.sizes} dataType="actualPrice" />
       </td>
-      <td className="px-6 py-5">
-        <span className="text-xs text-gray-600 font-mono bg-gray-50/80 px-2 py-1 rounded-md">
+      <td className="px-4 py-4">
+        <span className="text-sm text-gray-900 font-mono">
           {product.sku}
         </span>
       </td>
-      <td className="px-6 py-5">
-        <span className="text-xs text-gray-600 font-mono bg-gray-50/80 px-2 py-1 rounded-md">
+      <td className="px-4 py-4">
+        <span className="text-sm text-gray-900 font-mono">
           {product.barcode}
         </span>
       </td>
-      <td className="px-6 py-5">
-        <span className="text-xs text-gray-700 truncate max-w-xs block bg-gray-50/50 px-2 py-1.5 rounded-md">
+      <td className="px-4 py-4">
+        <span className="text-sm text-gray-900 max-w-xs truncate">
           {product.description}
         </span>
       </td>
-      <td className="px-6 py-5">
-        <span className="text-xs text-gray-700 truncate max-w-xs block bg-gray-50/50 px-2 py-1.5 rounded-md">
+      <td className="px-4 py-4">
+        <span className="text-sm text-gray-900 max-w-xs truncate">
           {product.manufacturingDetails}
         </span>
       </td>
-      <td className="px-6 py-5">
-        <span className="text-xs text-gray-700 bg-green-50/60 px-2 py-1.5 rounded-md font-medium">
+      <td className="px-4 py-4">
+        <span className="text-sm text-gray-900">
           {product.shippingReturns}
         </span>
       </td>
-      <td className="px-6 py-5">
-        <span className="text-xs text-gray-700 truncate max-w-xs block bg-indigo-50/50 px-2 py-1.5 rounded-md">
+      <td className="px-4 py-4">
+        <span className="text-sm text-gray-900 max-w-xs truncate">
           {product.metaTitle}
         </span>
       </td>
-      <td className="px-6 py-5">
-        <span className="text-xs text-gray-700 truncate max-w-xs block bg-indigo-50/50 px-2 py-1.5 rounded-md">
+      <td className="px-4 py-4">
+        <span className="text-sm text-gray-900 max-w-xs truncate">
           {product.metaDescription}
         </span>
       </td>
-      <td className="px-6 py-5">
-        <span className="text-xs text-gray-700 truncate max-w-xs block bg-slate-50/80 px-2 py-1.5 rounded-md font-mono">
+      <td className="px-4 py-4">
+        <span className="text-sm text-gray-900 max-w-xs truncate font-mono">
           {product.slugUrl}
         </span>
       </td>
-      <td className="px-6 py-5">
+      <td className="px-4 py-4">
         <AvailabilityButton available={product.photos} label="Photos" />
       </td>
-      <td className="px-6 py-5">
+      <td className="px-4 py-4">
         <AvailabilityButton available={product.sizeChart} label="Size chart" />
       </td>
-      <td className="px-6 py-5">
+      <td className="px-4 py-4">
         <div className="flex flex-col items-center gap-3">
           <StatusBadge status={product.status} />
           <ActionButtons
