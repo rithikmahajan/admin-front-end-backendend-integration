@@ -19,7 +19,6 @@ const sidebarItems = [
       "Filters",
       "join us control screen",
       "Manage banners rewards",
-      "manage product and category",
       "product bundling",
       "Arrangement control",
       "new admin partner",

@@ -25,7 +25,6 @@ const Layout = () => {
       "Filters": "/filters",
       "join us control screen": "/join-control",
       "Manage banners rewards": "/manage-banners-rewards",
-      "manage product and category": "/manage-items",
       "product bundling": "/bundling",
       "Arrangement control": "/arrangement",
       "new admin partner": "/new-partner",
