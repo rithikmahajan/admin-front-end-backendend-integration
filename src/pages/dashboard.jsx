@@ -1,13 +1,29 @@
-import React, { useState, useMemo, useCallback, memo } from 'react';
-import { 
-  Search, Filter, RotateCcw, Calendar, Edit2, Trash2, Download, Check, X,
-  Users, Package, ShoppingCart, DollarSign, TrendingUp, TrendingDown, 
-  Plus, BarChart3, RefreshCw, Info
-} from 'lucide-react';
+import React, { useState, useMemo, useCallback, memo } from "react";
+import {
+  Search,
+  Filter,
+  RotateCcw,
+  Calendar,
+  Edit2,
+  Trash2,
+  Download,
+  Check,
+  X,
+  Users,
+  Package,
+  ShoppingCart,
+  DollarSign,
+  TrendingUp,
+  TrendingDown,
+  // Plus,
+  BarChart3,
+  RefreshCw,
+  // Info,
+} from "lucide-react";
 
 /**
- * Unified Dashboard & Database Component - Performance Optimized
- * 
+ * Unified Database & Dashboard Component - Performance Optimized
+ *
  * A comprehensive admin interface that combines:
  * - Dashboard analytics with real-time statistics
  * - Database inventory management with advanced filtering
@@ -16,7 +32,7 @@ import {
  * - Product sync management across marketplaces
  * - Marketplace connection status monitoring
  * - Sync logs and error tracking with audit trail
- * 
+ *
  * Performance Optimizations:
  * - Memoized components to prevent unnecessary re-renders
  * - useCallback for stable function references
@@ -29,128 +45,141 @@ import {
 
 // Constants moved outside component to prevent recreation
 const FILTER_OPTIONS = {
-  categories: ['Profile', 'inventory list', 'Order statistics'],
+  categories: ["Profile", "inventory list", "Order statistics"],
   subcategories: [
-    'Name', 'EMAIL', 'PHONE', 'Date of Birth', 'ADDRESS', 
-    'delete account record', 'user details', 'app reviews', 
-    'GENDER', 'password details', 'points', 'PG rent receipt – Duly stamped'
+    "Name",
+    "EMAIL",
+    "PHONE",
+    "Date of Birth",
+    "ADDRESS",
+    "delete account record",
+    "user details",
+    "app reviews",
+    "GENDER",
+    "password details",
+    "points",
+    "PG rent receipt – Duly stamped",
   ],
-  filterBy: ['category', 'status'],
-  dates: ['today', 'week']
+  filterBy: ["category", "status"],
+  dates: ["today", "week"],
 };
 
-const TIME_PERIODS = ['07 Days', '30 Days', '6 Months', '7 Days'];
-const MONTHS = ['October', 'November', 'December'];
+const TIME_PERIODS = ["07 Days", "30 Days", "6 Months", "7 Days"];
+const MONTHS = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
 
 // Table Headers
 const PRODUCT_SYNC_HEADERS = [
-  'Image', 'product name', 'Price', 'SKU', 
-  'barcode no.', 'synced', 'marketplace', 'error', 'action'
+  "Image",
+  "product name",
+  "Price",
+  "SKU",
+  "barcode no.",
+  "synced",
+  "marketplace",
+  "error",
+  "action",
 ];
 
 const INVENTORY_HEADERS = [
-  'Image', 'Product Name', 'Category', 'sub categories', 'Price', 'size', 'quantity', 
-  'sale price', 'actual price', 'SKU', 'barcode no.', 'Description', 'Manufacturing details',
-  'Shipping returns and exchange', 'meta title', 'meta description', 'slug URL', 'photos', 
-  'size chart', 'Action'
+  "Image",
+  "Product Name",
+  "Category",
+  "sub categories",
+  "Price",
+  "size",
+  "quantity",
+  "sale price",
+  "actual price",
+  "SKU",
+  "barcode no.",
+  "Description",
+  "Manufacturing details",
+  "Shipping returns and exchange",
+  "meta title",
+  "meta description",
+  "slug URL",
+  "photos",
+  "size chart",
+  "Action",
 ];
 
 const SYNC_LOG_HEADERS = [
-  'date', 'operation', 'market place', 'status', 'error message'
+  "date",
+  "operation",
+  "market place",
+  "status",
+  "error message",
 ];
 
-// Status Colors Configuration - Updated to match Figma exactly
+// Status Colors Configuration
 const STATUS_COLORS = {
-  success: 'bg-[#00b69b] text-black',
-  error: 'bg-[#ef3826] text-black',
-  warning: 'bg-yellow-500 text-white',
-  info: 'bg-[#5088ff] text-black',
-  Yes: 'bg-[#00b69b] text-black',
-  no: 'bg-[#ef3826] text-black',
-  sync: 'bg-[#ef3826] text-black',
-  fail: 'bg-[#ef3826] text-black',
-  connected: 'bg-[#00b69b] hover:bg-[#00a085] text-black',
-  'not connected': 'bg-[#ef3826] hover:bg-[#d63021] text-black',
-  'good to go': 'bg-green-100 text-green-600',
-  'low': 'bg-purple-100 text-purple-600',
-  'finished': 'bg-red-100 text-red-600'
+  success: "bg-[#00B69B] text-white",
+  error: "bg-[#EF3826] text-white",
+  warning: "bg-yellow-500 text-white",
+  info: "bg-[#5088FF] text-white",
+  Yes: "bg-[#00B69B] text-white",
+  no: "bg-[#5088FF] text-white",
+  sync: "bg-[#EF3826] text-white",
+  fail: "bg-[#EF3826] text-white",
+  connected: "bg-[#00B69B] hover:bg-green-600 text-white",
+  "not connected": "bg-[#EF3826] hover:bg-red-600 text-white",
+  "good to go": "bg-green-100 text-green-600",
+  low: "bg-purple-100 text-purple-600",
+  finished: "bg-red-100 text-red-600",
 };
 
-// Figma-style Button Component
-const FigmaButton = memo(({ status, children, onClick, className = "", ...props }) => {
-  const getButtonStyles = useCallback((status) => {
-    const baseClasses = "relative box-border flex flex-row gap-2 items-center justify-center overflow-clip px-4 py-2.5 rounded-lg font-['Montserrat:Regular',_sans-serif] text-[14px] font-normal leading-[20px] text-black text-nowrap transition-all duration-200 hover:opacity-90 min-h-[40px]";
-    
-    const statusStyles = {
-      'success': 'bg-[#00b69b]',
-      'connected': 'bg-[#00b69b]',
-      'yes': 'bg-[#00b69b]',
-      'Yes': 'bg-[#00b69b]',
-      'not connected': 'bg-[#ef3826]',
-      'fail': 'bg-[#ef3826]',
-      'no': 'bg-[#ef3826]',
-      'sync': 'bg-[#ef3826]',
-      'connection timeout': 'bg-[#ef3826]',
-      'sync now': 'bg-[#5088ff]',
-    };
-
-    return `${baseClasses} ${statusStyles[status?.toLowerCase()] || 'bg-gray-500'}`;
-  }, []);
-
-  return (
-    <button 
-      className={`${getButtonStyles(status)} ${className}`}
-      onClick={onClick}
-      {...props}
-    >
-      <div className="font-['Montserrat:Regular',_sans-serif] leading-[0] not-italic relative shrink-0 text-[#000000] text-[14px] text-left text-nowrap">
-        <p className="block leading-[20px] whitespace-pre">{children || status}</p>
-      </div>
-      <div
-        aria-hidden="true"
-        className="absolute border border-[#d0d5dd] border-solid inset-0 pointer-events-none rounded-lg shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)]"
-      />
-    </button>
-  );
-});
-
-FigmaButton.displayName = 'FigmaButton';
-
-// Memoized Status Badge Component (updated to match Figma sizing)
-const StatusBadge = memo(({ status, type = 'status' }) => {
+// Memoized Status Badge Component
+const StatusBadge = memo(({ status, type = "status" }) => {
   const getStatusColor = useCallback((status, type) => {
-    if (type === 'error') return STATUS_COLORS.error;
+    if (type === "error") return STATUS_COLORS.error;
     return STATUS_COLORS[status] || STATUS_COLORS.error;
   }, []);
 
-  // For status badges, use consistent sizing with FigmaButton
   return (
-    <span className={`px-4 py-2.5 rounded-lg text-[14px] font-normal leading-[20px] font-['Montserrat:Regular',_sans-serif] text-nowrap ${getStatusColor(status, type)}`}>
+    <span
+      className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
+        status,
+        type
+      )}`}
+    >
       {status}
     </span>
   );
 });
 
-StatusBadge.displayName = 'StatusBadge';
+StatusBadge.displayName = "StatusBadge";
 
 // Memoized Action Buttons Component
 const ActionButtons = memo(({ productId, onEdit, onDelete, onDownload }) => (
   <div className="flex gap-1">
-    <button 
+    <button
       className="p-1.5 bg-gray-100 rounded hover:bg-gray-200"
       onClick={() => onEdit(productId)}
       aria-label="Edit product"
     >
       <Edit2 className="h-3 w-3 text-gray-600" />
     </button>
-    <button 
+    <button
       className="p-1.5 bg-gray-100 rounded hover:bg-gray-200"
       onClick={() => onDelete(productId)}
       aria-label="Delete product"
     >
       <Trash2 className="h-3 w-3 text-gray-600" />
     </button>
-    <button 
+    <button
       className="p-1.5 bg-gray-100 rounded hover:bg-gray-200"
       onClick={() => onDownload(productId)}
       aria-label="Download product data"
@@ -160,14 +189,16 @@ const ActionButtons = memo(({ productId, onEdit, onDelete, onDownload }) => (
   </div>
 ));
 
-ActionButtons.displayName = 'ActionButtons';
+ActionButtons.displayName = "ActionButtons";
 
 // Memoized Availability Button Component
 const AvailabilityButton = memo(({ available, label }) => (
   <div className="flex items-center justify-center">
-    <button 
+    <button
       className={`w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold ${
-        available ? 'bg-green-500 hover:bg-green-600' : 'bg-red-500 hover:bg-red-600'
+        available
+          ? "bg-green-500 hover:bg-green-600"
+          : "bg-red-500 hover:bg-red-600"
       } transition-colors cursor-pointer`}
       title={available ? `${label} available` : `No ${label.toLowerCase()}`}
     >
@@ -176,7 +207,7 @@ const AvailabilityButton = memo(({ available, label }) => (
   </div>
 ));
 
-AvailabilityButton.displayName = 'AvailabilityButton';
+AvailabilityButton.displayName = "AvailabilityButton";
 
 // Memoized Product Image Component
 const ProductImage = memo(({ image, productName }) => (
@@ -197,32 +228,63 @@ const ProductImage = memo(({ image, productName }) => (
   </div>
 ));
 
-ProductImage.displayName = 'ProductImage';
+ProductImage.displayName = "ProductImage";
 
 // Memoized Size Data Component
 const SizeData = memo(({ sizes, dataType }) => (
   <div className="space-y-1">
     {sizes.map((size) => (
       <div key={`${size.size}-${dataType}`} className="text-xs text-gray-900">
-        {dataType === 'size' ? size.size : size[dataType]}
+        {dataType === "size" ? size.size : size[dataType]}
       </div>
     ))}
   </div>
 ));
 
-SizeData.displayName = 'SizeData';
+SizeData.displayName = "SizeData";
 
-// Main Dashboard Component
-const Dashboard = () => {
+const SettingButton = ({ isOn, onToggle, label }) => (
+  <div className="flex justify-between items-center">
+    <span className="text-gray-700">{label}</span>
+    <button
+      onClick={onToggle}
+      className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${
+        isOn
+          ? "bg-green-100 text-green-700 hover:bg-green-200"
+          : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+      }`}
+    >
+      {isOn ? "On" : "Off"}
+    </button>
+  </div>
+);
+
+const HourDropdown = ({ value, onChange, label }) => (
+  <div className="flex justify-between items-center">
+    <span className="text-gray-700">{label}</span>
+    <select
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      className="bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+    >
+      <option value="1hr">1 hour</option>
+      <option value="3hr">3 hours</option>
+      <option value="6hr">6 hours</option>
+    </select>
+  </div>
+);
+
+// Main Database Component
+const Database = () => {
   // State management for UI interactions
-  const [activeTab, setActiveTab] = useState('dashboard');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedTimeRange, setSelectedTimeRange] = useState('07 Days');
+  const [activeTab, setActiveTab] = useState("dashboard");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedTimeRange, setSelectedTimeRange] = useState("07 Days");
   const [filters, setFilters] = useState({
-    category: '',
-    subcategory: '',
-    date: '',
-    filterBy: ''
+    category: "",
+    subcategory: "",
+    date: "",
+    filterBy: "",
   });
 
   // Data hooks - Centralized data management
@@ -233,23 +295,27 @@ const Dashboard = () => {
   // Filtered data based on search
   const filteredSyncProducts = useMemo(() => {
     if (!searchTerm) return productSyncData;
-    return productSyncData.filter(product => 
-      product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.marketplace.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.sku.toLowerCase().includes(searchTerm.toLowerCase())
+    return productSyncData.filter(
+      (product) =>
+        product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        product.marketplace.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        product.sku.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [productSyncData, searchTerm]);
 
   const filteredInventoryProducts = useMemo(() => {
-    return inventoryProducts.filter(product => {
-      const matchesSearch = !searchTerm || 
+    return inventoryProducts.filter((product) => {
+      const matchesSearch =
+        !searchTerm ||
         product.productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         product.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
         product.sku.toLowerCase().includes(searchTerm.toLowerCase());
-      
-      const matchesCategory = !filters.category || product.category === filters.category;
-      const matchesSubcategory = !filters.subcategory || product.subcategory === filters.subcategory;
-      
+
+      const matchesCategory =
+        !filters.category || product.category === filters.category;
+      const matchesSubcategory =
+        !filters.subcategory || product.subcategory === filters.subcategory;
+
       return matchesSearch && matchesCategory && matchesSubcategory;
     });
   }, [inventoryProducts, searchTerm, filters.category, filters.subcategory]);
@@ -257,7 +323,7 @@ const Dashboard = () => {
   // Event handlers
   const handleTabChange = useCallback((tab) => {
     setActiveTab(tab);
-    setSearchTerm(''); // Reset search when switching tabs
+    setSearchTerm(""); // Reset search when switching tabs
   }, []);
 
   const handleTimeRangeChange = useCallback((period) => {
@@ -269,32 +335,32 @@ const Dashboard = () => {
   }, []);
 
   const handleFilterChange = useCallback((key, value) => {
-    setFilters(prev => ({ ...prev, [key]: value }));
+    setFilters((prev) => ({ ...prev, [key]: value }));
   }, []);
 
   const resetFilters = useCallback(() => {
     setFilters({
-      category: '',
-      subcategory: '',
-      date: '',
-      filterBy: ''
+      category: "",
+      subcategory: "",
+      date: "",
+      filterBy: "",
     });
-    setSearchTerm('');
+    setSearchTerm("");
   }, []);
 
   // Action handlers with useCallback for performance
   const handleEdit = useCallback((productId) => {
-    console.log('Edit product:', productId);
+    console.log("Edit product:", productId);
     // Add edit functionality here
   }, []);
 
   const handleDelete = useCallback((productId) => {
-    console.log('Delete product:', productId);
+    console.log("Delete product:", productId);
     // Add delete functionality here
   }, []);
 
   const handleDownload = useCallback((productId) => {
-    console.log('Download product:', productId);
+    console.log("Download product:", productId);
     // Add download functionality here
   }, []);
 
@@ -302,43 +368,47 @@ const Dashboard = () => {
     <div className="bg-gray-50 min-h-screen">
       {/* Header with Tab Navigation */}
       <div className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="flex justify-between items-center mb-4">
-          <h1 className="text-3xl font-bold text-black">Dashboard Management System</h1>
-          <div className="flex items-center gap-4 text-sm text-gray-600">
-            <Calendar className="h-5 w-5" />
-            <span>Nov 11,2025 - Nov 27 2025</span>
+        <div className="flex flex-wrap justify-between items-center mb-6 gap-4">
+          <h1 className="text-4xl font-bold text-gray-900 tracking-tight">
+            Dashboard
+          </h1>
+          <div className="flex items-center gap-2 text-sm text-black bg-gray-100 px-4 py-2 rounded-lg shadow-inner border border-slate-200">
+            <Calendar className="h-4 w-4" />
+            <span className="font-medium tracking-wide">
+              Nov 11, 2025 – Nov 27, 2025
+            </span>
           </div>
         </div>
-        
+
         {/* Tab Navigation */}
-        <div className="flex space-x-8 border-b">
-          <TabButton 
-            active={activeTab === 'dashboard'} 
-            onClick={() => handleTabChange('dashboard')}
-            label="Dashboard & Analytics"
+        <div className="flex space-x-8">
+          <TabButton
+            active={activeTab === "dashboard"}
+            onClick={() => handleTabChange("dashboard")}
+            label="Dashboard"
           />
-          <TabButton 
-            active={activeTab === 'inventory'} 
-            onClick={() => handleTabChange('inventory')}
-            label="Inventory Management"
-          />
-          <TabButton 
-            active={activeTab === 'sync'} 
-            onClick={() => handleTabChange('sync')}
+          <TabButton
+            active={activeTab === "sync"}
+            onClick={() => handleTabChange("sync")}
             label="Marketplace Sync"
           />
-          <TabButton 
-            active={activeTab === 'analytics'} 
-            onClick={() => handleTabChange('analytics')}
+          <TabButton
+            active={activeTab === "analytics"}
+            onClick={() => handleTabChange("analytics")}
             label="Analytics Reports"
+          />
+          <TabButton
+            active={activeTab === "inventory"}
+            onClick={() => handleTabChange("inventory")}
+            label="DataBase"
           />
         </div>
       </div>
 
       {/* Tab Content */}
       <div className="px-6 py-6">
-        {activeTab === 'dashboard' && (
-          <DashboardTab 
+        {activeTab === "dashboard" && (
+          <DashboardTab
             stats={stats}
             smsStats={smsStats}
             analyticsData={analyticsData}
@@ -346,9 +416,9 @@ const Dashboard = () => {
             onTimeRangeChange={handleTimeRangeChange}
           />
         )}
-        
-        {activeTab === 'inventory' && (
-          <InventoryTab 
+
+        {activeTab === "inventory" && (
+          <InventoryTab
             products={filteredInventoryProducts}
             searchTerm={searchTerm}
             filters={filters}
@@ -360,9 +430,9 @@ const Dashboard = () => {
             onDownload={handleDownload}
           />
         )}
-        
-        {activeTab === 'sync' && (
-          <SyncTab 
+
+        {activeTab === "sync" && (
+          <SyncTab
             productSyncData={filteredSyncProducts}
             marketplaces={marketplaces}
             syncLogs={syncLogs}
@@ -370,10 +440,8 @@ const Dashboard = () => {
             onSearchChange={handleSearchChange}
           />
         )}
-        
-        {activeTab === 'analytics' && (
-          <AnalyticsTab />
-        )}
+
+        {activeTab === "analytics" && <AnalyticsTab />}
       </div>
     </div>
   );
@@ -383,9 +451,9 @@ const Dashboard = () => {
 const TabButton = memo(({ active, onClick, label }) => (
   <button
     className={`py-2 px-4 text-sm font-medium border-b-2 transition-colors ${
-      active 
-        ? 'border-blue-500 text-blue-600' 
-        : 'border-transparent text-gray-500 hover:text-gray-700'
+      active
+        ? "border-blue-500 text-blue-600"
+        : "border-transparent text-gray-500 hover:text-gray-700"
     }`}
     onClick={onClick}
   >
@@ -393,140 +461,171 @@ const TabButton = memo(({ active, onClick, label }) => (
   </button>
 ));
 
-TabButton.displayName = 'TabButton';
+TabButton.displayName = "TabButton";
 
 // Dashboard Tab Component
-const DashboardTab = memo(({ stats, smsStats, analyticsData, selectedTimeRange, onTimeRangeChange }) => (
-  <div className="space-y-6">
-    <StatsGrid stats={stats} />
-    <SMSStatsSection smsStats={smsStats} />
-    <SalesAnalyticsSection 
-      analyticsData={analyticsData}
-      selectedTimeRange={selectedTimeRange}
-      onTimeRangeChange={onTimeRangeChange}
-    />
-    <MarketplaceSettingsSection />
-  </div>
-));
+const DashboardTab = memo(
+  ({
+    stats,
+    smsStats,
+    analyticsData,
+    selectedTimeRange,
+    onTimeRangeChange,
+  }) => (
+    <div className="space-y-6">
+      <StatsGrid stats={stats} />
+      <SMSStatsSection smsStats={smsStats} />
+      <SalesAnalyticsSection
+        analyticsData={analyticsData}
+        selectedTimeRange={selectedTimeRange}
+        onTimeRangeChange={onTimeRangeChange}
+      />
+      <MarketplaceSettingsSection />
+    </div>
+  )
+);
 
-DashboardTab.displayName = 'DashboardTab';
+DashboardTab.displayName = "DashboardTab";
 
 // Inventory Tab Component
-const InventoryTab = memo(({ products, searchTerm, filters, onSearchChange, onFilterChange, onResetFilters, onEdit, onDelete, onDownload }) => (
-  <div className="space-y-6">
-    {/* Search and Filter Bar */}
-    <div className="bg-white rounded-lg p-4 shadow-sm">
-      <div className="flex items-center gap-4 flex-wrap">
-        {/* Search */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search products..."
-            value={searchTerm}
-            onChange={onSearchChange}
-            className="pl-10 pr-4 py-2 border border-gray-300 rounded-md text-sm focus:ring-blue-500 focus:border-blue-500"
-          />
+const InventoryTab = memo(
+  ({
+    products,
+    searchTerm,
+    filters,
+    onSearchChange,
+    onFilterChange,
+    onResetFilters,
+    onEdit,
+    onDelete,
+    onDownload,
+  }) => (
+    <div className="space-y-6">
+      {/* Search and Filter Bar */}
+      <div className="bg-white rounded-lg p-4 shadow-sm">
+        <div className="flex items-center gap-4 flex-wrap">
+          {/* Search */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search products..."
+              value={searchTerm}
+              onChange={onSearchChange}
+              className="pl-10 pr-4 py-2 border border-gray-300 rounded-md text-sm focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+
+          <Filter className="h-5 w-5 text-gray-600" />
+
+          {/* Filter Controls */}
+          <select
+            value={filters.filterBy}
+            onChange={(e) => onFilterChange("filterBy", e.target.value)}
+            className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500"
+          >
+            <option value="">Filter By</option>
+            {FILTER_OPTIONS.filterBy.map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
+
+          <select
+            value={filters.category}
+            onChange={(e) => onFilterChange("category", e.target.value)}
+            className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500"
+          >
+            <option value="">Choose category</option>
+            {FILTER_OPTIONS.categories.map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
+
+          <select
+            value={filters.subcategory}
+            onChange={(e) => onFilterChange("subcategory", e.target.value)}
+            className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500"
+          >
+            <option value="">Choose sub category</option>
+            {FILTER_OPTIONS.subcategories.map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
+
+          <button
+            onClick={onResetFilters}
+            className="text-red-500 hover:text-red-600 text-sm font-medium flex items-center gap-1"
+          >
+            <RotateCcw className="h-4 w-4" />
+            Reset Filter
+          </button>
+        </div>
+      </div>
+
+      {/* Inventory Results */}
+      <div className="bg-white rounded-lg shadow-sm">
+        <div className="p-4 border-b">
+          <h2 className="text-lg font-semibold text-black">
+            Inventory Data ({products.length} items)
+          </h2>
         </div>
 
-        <Filter className="h-5 w-5 text-gray-600" />
-
-        {/* Filter Controls */}
-        <select
-          value={filters.filterBy}
-          onChange={(e) => onFilterChange('filterBy', e.target.value)}
-          className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500"
-        >
-          <option value="">Filter By</option>
-          {FILTER_OPTIONS.filterBy.map(option => (
-            <option key={option} value={option}>{option}</option>
-          ))}
-        </select>
-
-        <select
-          value={filters.category}
-          onChange={(e) => onFilterChange('category', e.target.value)}
-          className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500"
-        >
-          <option value="">Choose category</option>
-          {FILTER_OPTIONS.categories.map(option => (
-            <option key={option} value={option}>{option}</option>
-          ))}
-        </select>
-
-        <select
-          value={filters.subcategory}
-          onChange={(e) => onFilterChange('subcategory', e.target.value)}
-          className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500"
-        >
-          <option value="">Choose sub category</option>
-          {FILTER_OPTIONS.subcategories.map(option => (
-            <option key={option} value={option}>{option}</option>
-          ))}
-        </select>
-
-        <button
-          onClick={onResetFilters}
-          className="text-red-500 hover:text-red-600 text-sm font-medium flex items-center gap-1"
-        >
-          <RotateCcw className="h-4 w-4" />
-          Reset Filter
-        </button>
-      </div>
-    </div>
-
-    {/* Inventory Results */}
-    <div className="bg-white rounded-lg shadow-sm">
-      <div className="p-4 border-b">
-        <h2 className="text-lg font-semibold text-black">
-          Inventory Data ({products.length} items)
-        </h2>
-      </div>
-      
-      <div className="overflow-x-auto">
-        <table className="min-w-full">
-          <thead className="bg-gray-50 border-b">
-            <tr>
-              {INVENTORY_HEADERS.map(header => (
-                <th key={header} className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                  {header}
-                </th>
+        <div className="overflow-x-auto">
+          <table className="min-w-full">
+            <thead className="bg-gray-50 border-b">
+              <tr>
+                {INVENTORY_HEADERS.map((header) => (
+                  <th
+                    key={header}
+                    className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider"
+                  >
+                    {header}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {products.map((product) => (
+                <InventoryProductRow
+                  key={product.id}
+                  product={product}
+                  onEdit={onEdit}
+                  onDelete={onDelete}
+                  onDownload={onDownload}
+                />
               ))}
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {products.map((product) => (
-              <InventoryProductRow 
-                key={product.id} 
-                product={product} 
-                onEdit={onEdit}
-                onDelete={onDelete}
-                onDownload={onDownload}
-              />
-            ))}
-          </tbody>
-        </table>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
-  </div>
-));
+  )
+);
 
-InventoryTab.displayName = 'InventoryTab';
+InventoryTab.displayName = "InventoryTab";
 
 // Sync Tab Component
-const SyncTab = memo(({ productSyncData, marketplaces, syncLogs, searchTerm, onSearchChange }) => (
-  <div className="space-y-6">
-    <ProductSyncSection 
-      productSyncData={productSyncData} 
-      searchTerm={searchTerm}
-      onSearchChange={onSearchChange}
-    />
-    <MarketplaceConnectionsSection marketplaces={marketplaces} />
-    <SyncLogsSection syncLogs={syncLogs} />
-  </div>
-));
+const SyncTab = memo(
+  ({ productSyncData, marketplaces, syncLogs, searchTerm, onSearchChange }) => (
+    <div className="space-y-6">
+      <ProductSyncSection
+        productSyncData={productSyncData}
+        searchTerm={searchTerm}
+        onSearchChange={onSearchChange}
+      />
+      <MarketplaceConnectionsSection marketplaces={marketplaces} />
+      <SyncLogsSection syncLogs={syncLogs} />
+    </div>
+  )
+);
 
-SyncTab.displayName = 'SyncTab';
+SyncTab.displayName = "SyncTab";
 
 // Analytics Tab Component
 const AnalyticsTab = memo(() => (
@@ -535,9 +634,11 @@ const AnalyticsTab = memo(() => (
     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
       <div>
         <h2 className="text-2xl font-bold text-gray-900">Analytics Reports</h2>
-        <p className="text-gray-600 mt-1">Track your business performance and insights</p>
+        <p className="text-gray-600 mt-1">
+          Track your business performance and insights
+        </p>
       </div>
-      
+
       <div className="flex items-center space-x-3">
         {/* Period Selector */}
         <select className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
@@ -546,13 +647,13 @@ const AnalyticsTab = memo(() => (
           <option value="90d">Last 3 months</option>
           <option value="1y">Last year</option>
         </select>
-        
+
         {/* Action Buttons */}
         <button className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
           <RefreshCw className="h-4 w-4" />
           <span>Refresh</span>
         </button>
-        
+
         <button className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
           <Download className="h-4 w-4" />
           <span>Export</span>
@@ -579,7 +680,7 @@ const AnalyticsTab = memo(() => (
           </div>
         </div>
       </div>
-      
+
       <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
@@ -597,7 +698,7 @@ const AnalyticsTab = memo(() => (
           </div>
         </div>
       </div>
-      
+
       <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
@@ -615,7 +716,7 @@ const AnalyticsTab = memo(() => (
           </div>
         </div>
       </div>
-      
+
       <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
@@ -623,7 +724,9 @@ const AnalyticsTab = memo(() => (
               <Package className="h-6 w-6 text-yellow-600" />
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-600">Avg. Order Value</p>
+              <p className="text-sm font-medium text-gray-600">
+                Avg. Order Value
+              </p>
               <p className="text-2xl font-bold text-gray-900">₹156.80</p>
             </div>
           </div>
@@ -638,7 +741,9 @@ const AnalyticsTab = memo(() => (
     {/* Charts Section */}
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Revenue This Week</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          Revenue This Week
+        </h3>
         <div className="h-64 bg-gray-100 rounded-lg flex items-center justify-center">
           <div className="text-center">
             <BarChart3 className="h-16 w-16 text-gray-400 mx-auto mb-2" />
@@ -646,24 +751,30 @@ const AnalyticsTab = memo(() => (
           </div>
         </div>
       </div>
-      
+
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Top Performing Products</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          Top Performing Products
+        </h3>
         <div className="space-y-3">
           {[
-            { name: 'T-shirt', sales: 245, revenue: 12250 },
-            { name: 'Jeans', sales: 189, revenue: 15120 },
-            { name: 'Sneakers', sales: 156, revenue: 18720 },
-            { name: 'Jacket', sales: 134, revenue: 20100 },
-            { name: 'Dress', sales: 98, revenue: 9800 }
+            { name: "T-shirt", sales: 245, revenue: 12250 },
+            { name: "Jeans", sales: 189, revenue: 15120 },
+            { name: "Sneakers", sales: 156, revenue: 18720 },
+            { name: "Jacket", sales: 134, revenue: 20100 },
+            { name: "Dress", sales: 98, revenue: 9800 },
           ].map((item, index) => (
             <div key={index} className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
                 <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                <span className="text-sm font-medium text-gray-700">{item.name}</span>
+                <span className="text-sm font-medium text-gray-700">
+                  {item.name}
+                </span>
               </div>
               <div className="text-right">
-                <p className="text-sm font-semibold text-gray-900">₹{item.revenue.toLocaleString()}</p>
+                <p className="text-sm font-semibold text-gray-900">
+                  ₹{item.revenue.toLocaleString()}
+                </p>
                 <p className="text-xs text-gray-500">{item.sales} sales</p>
               </div>
             </div>
@@ -674,20 +785,24 @@ const AnalyticsTab = memo(() => (
 
     {/* Additional Insights */}
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Insights</h3>
+      <h3 className="text-lg font-semibold text-gray-900 mb-4">
+        Quick Insights
+      </h3>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="p-4 bg-green-50 rounded-lg">
-          <p className="text-sm font-medium text-green-600">Best Performing Day</p>
+          <p className="text-sm font-medium text-green-600">
+            Best Performing Day
+          </p>
           <p className="text-lg font-bold text-green-900">Saturday</p>
           <p className="text-xs text-green-600">₹9,100 revenue</p>
         </div>
-        
+
         <div className="p-4 bg-blue-50 rounded-lg">
           <p className="text-sm font-medium text-blue-600">Growth Trend</p>
           <p className="text-lg font-bold text-blue-900">+12.5%</p>
           <p className="text-xs text-blue-600">vs last period</p>
         </div>
-        
+
         <div className="p-4 bg-purple-50 rounded-lg">
           <p className="text-sm font-medium text-purple-600">Top Category</p>
           <p className="text-lg font-bold text-purple-900">Footwear</p>
@@ -698,210 +813,378 @@ const AnalyticsTab = memo(() => (
   </div>
 ));
 
-AnalyticsTab.displayName = 'AnalyticsTab';
+AnalyticsTab.displayName = "AnalyticsTab";
 
 // Custom hooks for data management (same as before but organized)
 const useDashboardData = () => {
-  const stats = useMemo(() => [
-    {
-      title: 'Total User',
-      value: '40,689',
-      change: '+8.5%',
-      changeType: 'increase',
-      period: 'Up from yesterday',
-      icon: Users,
-      color: 'bg-blue-500'
-    },
-    {
-      title: 'Total Order',
-      value: '10293',
-      change: '+1.3%',
-      changeType: 'increase',
-      period: 'Up from past week',
-      icon: ShoppingCart,
-      color: 'bg-green-500'
-    },
-    {
-      title: 'Total Sales',
-      value: '$89,000',
-      change: '-4.3%',
-      changeType: 'decrease',
-      period: 'Down from yesterday',
-      icon: DollarSign,
-      color: 'bg-yellow-500'
-    },
-    {
-      title: 'Total Pending',
-      value: '2040',
-      change: '+1.8%',
-      changeType: 'increase',
-      period: 'Up from yesterday',
-      icon: Package,
-      color: 'bg-purple-500'
-    },
-    {
-      title: 'Sync Products',
-      value: '10293',
-      change: '+1.3%',
-      changeType: 'increase',
-      period: 'Up from past week',
-      icon: RefreshCw,
-      color: 'bg-indigo-500'
-    }
-  ], []);
+  const stats = useMemo(
+    () => [
+      {
+        title: "Total User",
+        value: "40,689",
+        change: "+8.5%",
+        changeType: "increase",
+        period: "Up from yesterday",
+        icon: Users,
+        color: "bg-blue-500",
+      },
+      {
+        title: "Total Order",
+        value: "10293",
+        change: "+1.3%",
+        changeType: "increase",
+        period: "Up from past week",
+        icon: ShoppingCart,
+        color: "bg-green-500",
+      },
+      {
+        title: "Total Sales",
+        value: "$89,000",
+        change: "-4.3%",
+        changeType: "decrease",
+        period: "Down from yesterday",
+        icon: DollarSign,
+        color: "bg-yellow-500",
+      },
+      {
+        title: "Total Pending",
+        value: "2040",
+        change: "+1.8%",
+        changeType: "increase",
+        period: "Up from yesterday",
+        icon: Package,
+        color: "bg-purple-500",
+      },
+      {
+        title: "Sync Products",
+        value: "10293",
+        change: "+1.3%",
+        changeType: "increase",
+        period: "Up from past week",
+        icon: RefreshCw,
+        color: "bg-indigo-500",
+      },
+    ],
+    []
+  );
 
-  const smsStats = useMemo(() => [
-    { title: 'SMS Sent', value: '50,000' },
-    { title: 'Delivery Report', value: '35%' },
-    { title: 'Promotional SMS', value: '₹ 3345' },
-    { title: 'Transactional SMS', value: '₹ 778' }
-  ], []);
+  const smsStats = useMemo(
+    () => [
+      { title: "SMS Sent", value: "50,000" },
+      { title: "Delivery Report", value: "35%" },
+      { title: "Promotional SMS", value: "₹ 3345" },
+      { title: "Transactional SMS", value: "₹ 778" },
+    ],
+    []
+  );
 
-  const analyticsData = useMemo(() => [
-    { title: 'Visitor', value: '395', growth: '348.9', growthType: 'up' },
-    { title: 'New Visitors', value: '932', growth: '565.7', growthType: 'up' },
-    { title: 'Average engagement time', value: '1m 50', growth: '250.1', growthType: 'down' },
-    { title: 'Total Visitors', value: '150K', growth: null, growthType: null }
-  ], []);
+  const analyticsData = useMemo(
+    () => [
+      { title: "Visitor", value: "395", growth: "348.9", growthType: "up" },
+      {
+        title: "New Visitors",
+        value: "932",
+        growth: "565.7",
+        growthType: "up",
+      },
+      {
+        title: "Average engagement time",
+        value: "1m 50",
+        growth: "250.1",
+        growthType: "down",
+      },
+      {
+        title: "Total Visitors",
+        value: "150K",
+        growth: null,
+        growthType: null,
+      },
+    ],
+    []
+  );
 
   return { stats, smsStats, analyticsData };
 };
 
 const useMarketplaceData = () => {
-  const productSyncData = useMemo(() => [
-    { 
-      id: 1,
-      image: '/api/placeholder/200/200',
-      name: 'Item Stock',
-      price: '2025',
-      sku: '2025',
-      barcode: '2025',
-      synced: 'Yes',
-      marketplace: 'amazon',
-      status: 'connected',
-      error: null,
-      action: 'sync now'
-    },
-    {
-      id: 2,
-      image: '/api/placeholder/200/200', 
-      name: 'Item Stock',
-      price: '2025',
-      sku: '2025',
-      barcode: '2025',
-      synced: 'no',
-      marketplace: 'flipkart',
-      status: 'not connected',
-      error: 'sync',
-      action: 'sync now'
-    },
-    {
-      id: 3,
-      image: '/api/placeholder/200/200',
-      name: 'Item Stock', 
-      price: '2025',
-      sku: '2025',
-      barcode: '2025',
-      synced: 'sync',
-      marketplace: 'ajio',
-      status: 'not connected',
-      error: 'sync',
-      action: 'sync now'
-    }
-  ], []);
+  const productSyncData = useMemo(
+    () => [
+      {
+        id: 1,
+        image: "/api/placeholder/200/200",
+        name: "Item Stock",
+        price: "2025",
+        sku: "2025",
+        barcode: "2025",
+        synced: "Yes",
+        marketplace: "amazon",
+        status: "connected",
+        error: null,
+        action: "sync now",
+      },
+      {
+        id: 2,
+        image: "/api/placeholder/200/200",
+        name: "Item Stock",
+        price: "2025",
+        sku: "2025",
+        barcode: "2025",
+        synced: "no",
+        marketplace: "flipkart",
+        status: "not connected",
+        error: "sync",
+        action: "sync now",
+      },
+      {
+        id: 3,
+        image: "/api/placeholder/200/200",
+        name: "Item Stock",
+        price: "2025",
+        sku: "2025",
+        barcode: "2025",
+        synced: "sync",
+        marketplace: "ajio",
+        status: "not connected",
+        error: "sync",
+        action: "sync now",
+      },
+    ],
+    []
+  );
 
-  const marketplaces = useMemo(() => [
-    { id: 1, name: 'amazon', sellerId: '1234', status: 'connected', lastSync: '02.03pm' },
-    { id: 2, name: 'flipkart', sellerId: '5678', status: 'not connected', lastSync: null },
-    { id: 3, name: 'ajio', sellerId: '4587', status: 'connected', lastSync: null },
-    { id: 4, name: 'myntra', sellerId: null, status: 'not connected', lastSync: null },
-    { id: 5, name: 'nykaa', sellerId: null, status: 'not connected', lastSync: null }
-  ], []);
+  const marketplaces = useMemo(
+    () => [
+      {
+        id: 1,
+        name: "amazon",
+        sellerId: "1234",
+        status: "connected",
+        lastSync: "02.03pm",
+      },
+      {
+        id: 2,
+        name: "flipkart",
+        sellerId: "5678",
+        status: "not connected",
+        lastSync: null,
+      },
+      {
+        id: 3,
+        name: "ajio",
+        sellerId: "4587",
+        status: "connected",
+        lastSync: null,
+      },
+      {
+        id: 4,
+        name: "myntra",
+        sellerId: null,
+        status: "not connected",
+        lastSync: null,
+      },
+      {
+        id: 5,
+        name: "nykaa",
+        sellerId: null,
+        status: "not connected",
+        lastSync: null,
+      },
+    ],
+    []
+  );
 
-  const syncLogs = useMemo(() => [
-    { id: 1, date: 'Nov 11,2025', operation: 'product sync', marketplace: 'amazon', status: 'success', error: null },
-    { id: 2, date: 'Nov 11,2025', operation: 'inventory sync', marketplace: 'flipkart', status: 'fail', error: 'connection timeout' },
-    { id: 3, date: 'Nov 11,2025', operation: 'product sync', marketplace: 'ajio', status: 'fail', error: 'invalid credentials' }
-  ], []);
+  const syncLogs = useMemo(
+    () => [
+      {
+        id: 1,
+        date: "Nov 11,2025",
+        operation: "product sync",
+        marketplace: "amazon",
+        status: "success",
+        error: null,
+      },
+      {
+        id: 2,
+        date: "Nov 11,2025",
+        operation: "inventory sync",
+        marketplace: "flipkart",
+        status: "fail",
+        error: "connection timeout",
+      },
+      {
+        id: 3,
+        date: "Nov 11,2025",
+        operation: "product sync",
+        marketplace: "ajio",
+        status: "fail",
+        error: "invalid credentials",
+      },
+    ],
+    []
+  );
 
   return { productSyncData, marketplaces, syncLogs };
 };
 
 const useInventoryData = () => {
-  const inventoryProducts = useMemo(() => [
-    {
-      id: 1,
-      image: '/api/placeholder/120/140',
-      productName: 'T shirt',
-      category: 'T shirt',
-      subcategory: 'T shirt',
-      returnable: 'returnable',
-      sizes: [
-        { size: 'small', quantity: 5, myntraPrice: 4566, amazonPrice: 4566, flipkartPrice: 4566, nykaPrice: 4566, salePrice: 4566, actualPrice: 4566 },
-        { size: 'medium', quantity: 10, myntraPrice: 4566, amazonPrice: 4566, flipkartPrice: 4566, nykaPrice: 4566, salePrice: 4566, actualPrice: 4566 },
-        { size: 'large', quantity: 15, myntraPrice: 4566, amazonPrice: 4566, flipkartPrice: 4566, nykaPrice: 4566, salePrice: 4566, actualPrice: 4566 }
-      ],
-      sku: 'blk/m/inso123',
-      barcode: '45660000000000',
-      description: 'this is a shirt',
-      manufacturingDetails: 'mfd by apparels pvt ltd',
-      shippingReturns: '7 day return',
-      metaTitle: 'dhdhd/dhdhdh',
-      metaDescription: 'ths/ isnsn/s',
-      slugUrl: 'ths/ isnsn/s',
-      photos: true,
-      sizeChart: true,
-      status: 'good to go'
-    },
-    {
-      id: 2,
-      image: '/api/placeholder/120/140',
-      productName: 'T shirt',
-      category: 'T shirt',
-      subcategory: 'T shirt',
-      returnable: 'returnable',
-      sizes: [
-        { size: 'small', quantity: 3, myntraPrice: 3999, amazonPrice: 3999, flipkartPrice: 3999, nykaPrice: 3999, salePrice: 3999, actualPrice: 3999 },
-        { size: 'medium', quantity: 8, myntraPrice: 3999, amazonPrice: 3999, flipkartPrice: 3999, nykaPrice: 3999, salePrice: 3999, actualPrice: 3999 },
-        { size: 'large', quantity: 12, myntraPrice: 3999, amazonPrice: 3999, flipkartPrice: 3999, nykaPrice: 3999, salePrice: 3999, actualPrice: 3999 }
-      ],
-      sku: 'red/l/inso124',
-      barcode: '45660000000001',
-      description: 'red cotton shirt',
-      manufacturingDetails: 'mfd by textile mills',
-      shippingReturns: '7 day return',
-      metaTitle: 'red-shirt-cotton',
-      metaDescription: 'comfortable red shirt',
-      slugUrl: 'red-cotton-shirt',
-      photos: true,
-      sizeChart: true,
-      status: 'low'
-    },
-    {
-      id: 3,
-      image: '/api/placeholder/120/140',
-      productName: 'T shirt',
-      category: 'T shirt',
-      subcategory: 'T shirt',
-      returnable: 'returnable',
-      sizes: [
-        { size: 'small', quantity: 0, myntraPrice: 2999, amazonPrice: 2999, flipkartPrice: 2999, nykaPrice: 2999, salePrice: 2999, actualPrice: 2999 },
-        { size: 'medium', quantity: 2, myntraPrice: 2999, amazonPrice: 2999, flipkartPrice: 2999, nykaPrice: 2999, salePrice: 2999, actualPrice: 2999 },
-        { size: 'large', quantity: 5, myntraPrice: 2999, amazonPrice: 2999, flipkartPrice: 2999, nykaPrice: 2999, salePrice: 2999, actualPrice: 2999 }
-      ],
-      sku: 'blu/xl/inso125',
-      barcode: '45660000000002',
-      description: 'blue formal shirt',
-      manufacturingDetails: 'mfd by fashion house',
-      shippingReturns: '7 day return',
-      metaTitle: 'blue-formal-shirt',
-      metaDescription: 'professional blue shirt',
-      slugUrl: 'blue-formal-shirt',
-      photos: true,
-      sizeChart: false,
-      status: 'finished'
-    }
-  ], []);
+  const inventoryProducts = useMemo(
+    () => [
+      {
+        id: 1,
+        image: "/api/placeholder/120/140",
+        productName: "T shirt",
+        category: "T shirt",
+        subcategory: "T shirt",
+        returnable: "returnable",
+        sizes: [
+          {
+            size: "small",
+            quantity: 5,
+            myntraPrice: 4566,
+            amazonPrice: 4566,
+            flipkartPrice: 4566,
+            nykaPrice: 4566,
+            salePrice: 4566,
+            actualPrice: 4566,
+          },
+          {
+            size: "medium",
+            quantity: 10,
+            myntraPrice: 4566,
+            amazonPrice: 4566,
+            flipkartPrice: 4566,
+            nykaPrice: 4566,
+            salePrice: 4566,
+            actualPrice: 4566,
+          },
+          {
+            size: "large",
+            quantity: 15,
+            myntraPrice: 4566,
+            amazonPrice: 4566,
+            flipkartPrice: 4566,
+            nykaPrice: 4566,
+            salePrice: 4566,
+            actualPrice: 4566,
+          },
+        ],
+        sku: "blk/m/inso123",
+        barcode: "45660000000000",
+        description: "this is a shirt",
+        manufacturingDetails: "mfd by apparels pvt ltd",
+        shippingReturns: "7 day return",
+        metaTitle: "dhdhd/dhdhdh",
+        metaDescription: "ths/ isnsn/s",
+        slugUrl: "ths/ isnsn/s",
+        photos: true,
+        sizeChart: true,
+        status: "good to go",
+      },
+      {
+        id: 2,
+        image: "/api/placeholder/120/140",
+        productName: "T shirt",
+        category: "T shirt",
+        subcategory: "T shirt",
+        returnable: "returnable",
+        sizes: [
+          {
+            size: "small",
+            quantity: 3,
+            myntraPrice: 3999,
+            amazonPrice: 3999,
+            flipkartPrice: 3999,
+            nykaPrice: 3999,
+            salePrice: 3999,
+            actualPrice: 3999,
+          },
+          {
+            size: "medium",
+            quantity: 8,
+            myntraPrice: 3999,
+            amazonPrice: 3999,
+            flipkartPrice: 3999,
+            nykaPrice: 3999,
+            salePrice: 3999,
+            actualPrice: 3999,
+          },
+          {
+            size: "large",
+            quantity: 12,
+            myntraPrice: 3999,
+            amazonPrice: 3999,
+            flipkartPrice: 3999,
+            nykaPrice: 3999,
+            salePrice: 3999,
+            actualPrice: 3999,
+          },
+        ],
+        sku: "red/l/inso124",
+        barcode: "45660000000001",
+        description: "red cotton shirt",
+        manufacturingDetails: "mfd by textile mills",
+        shippingReturns: "7 day return",
+        metaTitle: "red-shirt-cotton",
+        metaDescription: "comfortable red shirt",
+        slugUrl: "red-cotton-shirt",
+        photos: true,
+        sizeChart: true,
+        status: "low",
+      },
+      {
+        id: 3,
+        image: "/api/placeholder/120/140",
+        productName: "T shirt",
+        category: "T shirt",
+        subcategory: "T shirt",
+        returnable: "returnable",
+        sizes: [
+          {
+            size: "small",
+            quantity: 0,
+            myntraPrice: 2999,
+            amazonPrice: 2999,
+            flipkartPrice: 2999,
+            nykaPrice: 2999,
+            salePrice: 2999,
+            actualPrice: 2999,
+          },
+          {
+            size: "medium",
+            quantity: 2,
+            myntraPrice: 2999,
+            amazonPrice: 2999,
+            flipkartPrice: 2999,
+            nykaPrice: 2999,
+            salePrice: 2999,
+            actualPrice: 2999,
+          },
+          {
+            size: "large",
+            quantity: 5,
+            myntraPrice: 2999,
+            amazonPrice: 2999,
+            flipkartPrice: 2999,
+            nykaPrice: 2999,
+            salePrice: 2999,
+            actualPrice: 2999,
+          },
+        ],
+        sku: "blu/xl/inso125",
+        barcode: "45660000000002",
+        description: "blue formal shirt",
+        manufacturingDetails: "mfd by fashion house",
+        shippingReturns: "7 day return",
+        metaTitle: "blue-formal-shirt",
+        metaDescription: "professional blue shirt",
+        slugUrl: "blue-formal-shirt",
+        photos: true,
+        sizeChart: false,
+        status: "finished",
+      },
+    ],
+    []
+  );
 
   return { inventoryProducts };
 };
@@ -910,368 +1193,521 @@ const useInventoryData = () => {
 // I'll include the essential ones here for completeness:
 
 const StatsGrid = memo(({ stats }) => (
-  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
     {stats.map((stat, index) => (
       <StatCard key={`stat-${index}`} stat={stat} />
     ))}
   </div>
 ));
 
-StatsGrid.displayName = 'StatsGrid';
+StatsGrid.displayName = "StatsGrid";
 
 const StatCard = memo(({ stat }) => {
   const Icon = stat.icon;
   return (
-    <div className="bg-white rounded-2xl shadow-sm p-6 hover:shadow-md transition-shadow duration-200">
+    <div className="bg-white rounded-2xl shadow-md p-6 border border-gray-100/50 hover:border-gray-200/60 group backdrop-blur-sm">
       <div className="flex items-center justify-between mb-4">
-        <div className={`p-3 rounded-full ${stat.color}`}>
+        <div
+          className={`p-3 rounded-xl ${stat.color} group-hover:scale-105 transition-transform duration-200 shadow-sm`}
+        >
           <Icon className="h-6 w-6 text-white" />
         </div>
       </div>
       <div>
-        <p className="text-base font-semibold text-[#202224] opacity-70 mb-1">{stat.title}</p>
-        <p className="text-3xl font-bold text-[#202224] tracking-wide mb-3">{stat.value}</p>
-        <div className="flex items-center">
-          {stat.changeType === 'increase' ? (
-            <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
+        <p className="text-base font-medium text-[#202224] opacity-75 mb-1 group-hover:opacity-90 transition-opacity duration-200">
+          {stat.title}
+        </p>
+        <p className="text-3xl font-bold text-[#202224] tracking-wide mb-3 group-hover:text-gray-800 transition-colors duration-200">
+          {stat.value}
+        </p>
+        <div className="flex items-center bg-gray-50/50 rounded-lg px-3 py-1.5 group-hover:bg-gray-50/80 transition-colors duration-200">
+          {stat.changeType === "increase" ? (
+            <TrendingUp className="h-4 w-4 text-emerald-500 mr-1.5" />
           ) : (
-            <TrendingDown className="h-4 w-4 text-red-500 mr-1" />
+            <TrendingDown className="h-4 w-4 text-rose-500 mr-1.5" />
           )}
-          <span className={`text-base font-semibold ${
-            stat.changeType === 'increase' ? 'text-[#00b69b]' : 'text-[#f93c65]'
-          }`}>
+          <span
+            className={`text-sm font-semibold ${
+              stat.changeType === "increase"
+                ? "text-[#00b69b]"
+                : "text-[#f93c65]"
+            }`}
+          >
             {stat.change}
           </span>
-          <span className="text-base text-[#606060] ml-1">{stat.period}</span>
+          <span className="text-sm text-[#606060] ml-1">{stat.period}</span>
         </div>
       </div>
     </div>
   );
 });
 
-StatCard.displayName = 'StatCard';
+StatCard.displayName = "StatCard";
 
 const SMSStatsSection = memo(({ smsStats }) => (
-  <div className="bg-white rounded-xl shadow-sm p-6">
-    <h3 className="text-xl font-bold text-gray-900 mb-4">SMS Analytics</h3>
+  <div className="bg-white rounded-2xl shadow-md p-8 border border-gray-100/50">
+    <h3 className="text-2xl font-bold text-gray-900 mb-6">SMS Analytics</h3>
     <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
       {smsStats.map((stat, index) => (
-        <div key={`sms-${index}`} className="text-left">
-          <p className="text-sm font-normal text-[#101316] mb-2">{stat.title}</p>
-          <p className="text-2xl font-bold text-[#202020]">{stat.value}</p>
+        <div
+          key={`sms-${index}`}
+          className="text-left group bg-gray-50 rounded-xl p-6 border border-gray-100"
+        >
+          <p className="text-sm font-medium text-[#101316] opacity-75 mb-2 group-hover:opacity-90 transition-opacity duration-200">
+            {stat.title}
+          </p>
+          <p className="text-3xl font-bold text-[#202020] group-hover:text-gray-800 transition-colors duration-200">
+            {stat.value}
+          </p>
         </div>
       ))}
     </div>
   </div>
 ));
 
-SMSStatsSection.displayName = 'SMSStatsSection';
+SMSStatsSection.displayName = "SMSStatsSection";
 
-const SalesAnalyticsSection = memo(({ analyticsData, selectedTimeRange, onTimeRangeChange }) => (
-  <div className="bg-white rounded-xl shadow-sm p-6">
-    <div className="flex justify-between items-center mb-6">
-      <h3 className="text-xl font-bold text-gray-900">Sales Details</h3>
-      <div className="flex items-center space-x-2">
-        <select className="border border-gray-300 rounded px-3 py-1 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-          {MONTHS.map(month => (
-            <option key={month} value={month}>{month}</option>
-          ))}
-        </select>
-      </div>
-    </div>
-    
-    <div className="h-64 bg-gray-100 rounded-lg flex items-center justify-center mb-6 hover:bg-gray-50 transition-colors duration-200">
-      <div className="text-center">
-        <BarChart3 className="h-16 w-16 text-gray-400 mx-auto mb-2" />
-        <p className="text-gray-500 text-sm">Chart visualization area</p>
-      </div>
-    </div>
-
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-      {analyticsData.map((item, index) => (
-        <div key={`analytics-${index}`}>
-          <p className="text-sm font-semibold text-[#9aa0a6] mb-1 tracking-wider">{item.title}</p>
-          <p className="text-xl font-semibold text-[#9aa0a6] mb-1">{item.value}</p>
-          {item.growth && (
-            <div className="flex items-center">
-              <span className={`text-sm ${item.growthType === 'up' ? 'text-green-500' : 'text-red-500'}`}>
-                {item.growth}
-              </span>
-              {item.growthType === 'up' ? (
-                <TrendingUp className="h-3 w-3 text-green-500 ml-1" />
-              ) : (
-                <TrendingDown className="h-3 w-3 text-red-500 ml-1" />
-              )}
-            </div>
-          )}
+const SalesAnalyticsSection = memo(
+  ({ analyticsData, selectedTimeRange, onTimeRangeChange }) => (
+    <div className="bg-white rounded-2xl shadow-md p-8">
+      <div className="flex justify-between items-center mb-8">
+        <h3 className="text-2xl font-bold text-gray-900">Sales Details</h3>
+        <div className="flex items-center space-x-2">
+          <select className="border border-gray-200 rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50/50 hover:bg-gray-50 transition-colors duration-200">
+            {MONTHS.map((month) => (
+              <option key={month} value={month}>
+                {month}
+              </option>
+            ))}
+          </select>
         </div>
-      ))}
-    </div>
+      </div>
 
-    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-      <h4 className="font-bold text-gray-900">Views Report</h4>
-      <div className="flex flex-wrap gap-2">
-        {TIME_PERIODS.map((period) => (
-          <button
-            key={period}
-            className={`px-4 py-2 rounded text-xs font-bold transition-all duration-200 ${
-              selectedTimeRange === period
-                ? 'bg-zinc-900 text-white border border-zinc-400'
-                : 'bg-white text-zinc-500 border border-zinc-400 hover:bg-gray-50'
-            }`}
-            onClick={() => onTimeRangeChange(period)}
-          >
-            {period}
-          </button>
+      <div className="h-64 bg-gradient-to-br from-gray-50 to-gray-100/50 rounded-2xl flex items-center justify-center mb-8 hover:from-gray-50/80 hover:to-gray-100/30 transition-all duration-300 border border-gray-100/50">
+        <div className="text-center">
+          <BarChart3 className="h-16 w-16 text-gray-400 mx-auto mb-3" />
+          <p className="text-gray-500 text-sm font-medium">
+            Chart visualization area
+          </p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+        {analyticsData.map((item, index) => (
+          <div key={`analytics-${index}`} className="group">
+            <p className="text-sm font-semibold text-[#9aa0a6] mb-2 tracking-wider group-hover:text-gray-600 transition-colors duration-200">
+              {item.title}
+            </p>
+            <p className="text-2xl font-bold text-[#9aa0a6] mb-2 group-hover:text-gray-700 transition-colors duration-200">
+              {item.value}
+            </p>
+            {item.growth && (
+              <div className="flex items-center bg-gray-50/50 rounded-lg px-3 py-1.5 group-hover:bg-gray-50/80 transition-colors duration-200">
+                <span
+                  className={`text-sm font-semibold mr-1.5 ${
+                    item.growthType === "up"
+                      ? "text-emerald-500"
+                      : "text-rose-500"
+                  }`}
+                >
+                  {item.growth}
+                </span>
+                {item.growthType === "up" ? (
+                  <TrendingUp className="h-4 w-4 text-emerald-500" />
+                ) : (
+                  <TrendingDown className="h-4 w-4 text-rose-500" />
+                )}
+              </div>
+            )}
+          </div>
         ))}
-        <button className="px-4 py-2 rounded text-xs font-bold bg-white border border-zinc-300 text-zinc-900 hover:bg-gray-50 transition-colors duration-200">
-          Export PDF
-        </button>
+      </div>
+
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 pt-6 border-t border-gray-100">
+        <h4 className="text-xl font-bold text-gray-900">Views Report</h4>
+        <div className="flex flex-wrap gap-3">
+          {TIME_PERIODS.map((period) => (
+            <button
+              key={period}
+              className={`px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 ${
+                selectedTimeRange === period
+                  ? "bg-zinc-900 text-white shadow-md hover:bg-zinc-800"
+                  : "bg-gray-50 text-zinc-600 border border-gray-200 hover:bg-gray-100 hover:border-gray-300"
+              }`}
+              onClick={() => onTimeRangeChange(period)}
+            >
+              {period}
+            </button>
+          ))}
+          <button className="px-5 py-2.5 rounded-xl text-sm font-semibold bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700 shadow-md hover:shadow-lg transition-all duration-200">
+            Export PDF
+          </button>
+        </div>
       </div>
     </div>
-  </div>
-));
+  )
+);
 
-SalesAnalyticsSection.displayName = 'SalesAnalyticsSection';
+SalesAnalyticsSection.displayName = "SalesAnalyticsSection";
 
 // Inventory Product Row Component
-const InventoryProductRow = memo(({ product, onEdit, onDelete, onDownload }) => (
-  <tr className="hover:bg-gray-50">
-    <td className="px-4 py-4">
-      <ProductImage image={product.image} productName={product.productName} />
-    </td>
-    <td className="px-4 py-4">
-      <div className="font-medium text-gray-900 text-sm">{product.productName}</div>
-      <div className="flex items-center gap-1 mt-1">
-        <span className="w-2 h-2 bg-black rounded-full"></span>
-        <span className="w-2 h-2 bg-gray-400 rounded-full"></span>
-      </div>
-    </td>
-    <td className="px-4 py-4">
-      <span className="text-sm text-gray-900">{product.category}</span>
-    </td>
-    <td className="px-4 py-4">
-      <span className="text-sm text-gray-900">{product.subcategory}</span>
-      <div className="text-xs text-gray-500 mt-1">{product.returnable}</div>
-    </td>
-    <td className="px-4 py-4">
-      <div className="space-y-1">
-        <div className="text-xs text-gray-600">myntra</div>
-        <div className="text-xs text-gray-600">amazon</div>
-        <div className="text-xs text-gray-600">flipkart</div>
-        <div className="text-xs text-gray-600">nykaa</div>
-      </div>
-    </td>
-    <td className="px-4 py-4">
-      <SizeData sizes={product.sizes} dataType="size" />
-    </td>
-    <td className="px-4 py-4">
-      <SizeData sizes={product.sizes} dataType="quantity" />
-    </td>
-    <td className="px-4 py-4">
-      <SizeData sizes={product.sizes} dataType="salePrice" />
-    </td>
-    <td className="px-4 py-4">
-      <SizeData sizes={product.sizes} dataType="actualPrice" />
-    </td>
-    <td className="px-4 py-4">
-      <span className="text-xs text-gray-600">{product.sku}</span>
-    </td>
-    <td className="px-4 py-4">
-      <span className="text-xs text-gray-600">{product.barcode}</span>
-    </td>
-    <td className="px-4 py-4">
-      <span className="text-xs text-gray-900 truncate max-w-xs">{product.description}</span>
-    </td>
-    <td className="px-4 py-4">
-      <span className="text-xs text-gray-900 truncate max-w-xs">{product.manufacturingDetails}</span>
-    </td>
-    <td className="px-4 py-4">
-      <span className="text-xs text-gray-900">{product.shippingReturns}</span>
-    </td>
-    <td className="px-4 py-4">
-      <span className="text-xs text-gray-900 truncate max-w-xs">{product.metaTitle}</span>
-    </td>
-    <td className="px-4 py-4">
-      <span className="text-xs text-gray-900 truncate max-w-xs">{product.metaDescription}</span>
-    </td>
-    <td className="px-4 py-4">
-      <span className="text-xs text-gray-900 truncate max-w-xs">{product.slugUrl}</span>
-    </td>
-    <td className="px-4 py-4">
-      <AvailabilityButton available={product.photos} label="Photos" />
-    </td>
-    <td className="px-4 py-4">
-      <AvailabilityButton available={product.sizeChart} label="Size chart" />
-    </td>
-    <td className="px-4 py-4">
-      <div className="flex flex-col items-center gap-2">
-        <StatusBadge status={product.status} />
-        <ActionButtons 
-          productId={product.id}
-          onEdit={onEdit}
-          onDelete={onDelete}
-          onDownload={onDownload}
-        />
-      </div>
-    </td>
-  </tr>
-));
+const InventoryProductRow = memo(
+  ({ product, onEdit, onDelete, onDownload }) => (
+    <tr className="hover:bg-gray-50/70 transition-colors duration-200 group border-b border-gray-100/60">
+      <td className="px-6 py-5">
+        <ProductImage image={product.image} productName={product.productName} />
+      </td>
+      <td className="px-6 py-5">
+        <div className="font-semibold text-gray-900 text-sm group-hover:text-gray-800 transition-colors duration-200">
+          {product.productName}
+        </div>
+        <div className="flex items-center gap-1.5 mt-2">
+          <span className="w-2.5 h-2.5 bg-gray-800 rounded-full"></span>
+          <span className="w-2.5 h-2.5 bg-gray-400 rounded-full"></span>
+        </div>
+      </td>
+      <td className="px-6 py-5">
+        <span className="text-sm text-gray-800 font-medium bg-gray-50/80 px-3 py-1.5 rounded-lg group-hover:bg-gray-100/80 transition-colors duration-200">
+          {product.category}
+        </span>
+      </td>
+      <td className="px-6 py-5">
+        <span className="text-sm text-gray-800 font-medium">
+          {product.subcategory}
+        </span>
+        <div className="text-xs text-gray-500 mt-1.5 bg-blue-50/60 px-2 py-1 rounded-md">
+          {product.returnable}
+        </div>
+      </td>
+      <td className="px-6 py-5">
+        <div className="space-y-1.5">
+          <div className="text-xs text-gray-600 bg-purple-50/60 px-2 py-1 rounded-md font-medium">
+            myntra
+          </div>
+          <div className="text-xs text-gray-600 bg-orange-50/60 px-2 py-1 rounded-md font-medium">
+            amazon
+          </div>
+          <div className="text-xs text-gray-600 bg-blue-50/60 px-2 py-1 rounded-md font-medium">
+            flipkart
+          </div>
+          <div className="text-xs text-gray-600 bg-pink-50/60 px-2 py-1 rounded-md font-medium">
+            nykaa
+          </div>
+        </div>
+      </td>
+      <td className="px-6 py-5">
+        <SizeData sizes={product.sizes} dataType="size" />
+      </td>
+      <td className="px-6 py-5">
+        <SizeData sizes={product.sizes} dataType="quantity" />
+      </td>
+      <td className="px-6 py-5">
+        <SizeData sizes={product.sizes} dataType="salePrice" />
+      </td>
+      <td className="px-6 py-5">
+        <SizeData sizes={product.sizes} dataType="actualPrice" />
+      </td>
+      <td className="px-6 py-5">
+        <span className="text-xs text-gray-600 font-mono bg-gray-50/80 px-2 py-1 rounded-md">
+          {product.sku}
+        </span>
+      </td>
+      <td className="px-6 py-5">
+        <span className="text-xs text-gray-600 font-mono bg-gray-50/80 px-2 py-1 rounded-md">
+          {product.barcode}
+        </span>
+      </td>
+      <td className="px-6 py-5">
+        <span className="text-xs text-gray-700 truncate max-w-xs block bg-gray-50/50 px-2 py-1.5 rounded-md">
+          {product.description}
+        </span>
+      </td>
+      <td className="px-6 py-5">
+        <span className="text-xs text-gray-700 truncate max-w-xs block bg-gray-50/50 px-2 py-1.5 rounded-md">
+          {product.manufacturingDetails}
+        </span>
+      </td>
+      <td className="px-6 py-5">
+        <span className="text-xs text-gray-700 bg-green-50/60 px-2 py-1.5 rounded-md font-medium">
+          {product.shippingReturns}
+        </span>
+      </td>
+      <td className="px-6 py-5">
+        <span className="text-xs text-gray-700 truncate max-w-xs block bg-indigo-50/50 px-2 py-1.5 rounded-md">
+          {product.metaTitle}
+        </span>
+      </td>
+      <td className="px-6 py-5">
+        <span className="text-xs text-gray-700 truncate max-w-xs block bg-indigo-50/50 px-2 py-1.5 rounded-md">
+          {product.metaDescription}
+        </span>
+      </td>
+      <td className="px-6 py-5">
+        <span className="text-xs text-gray-700 truncate max-w-xs block bg-slate-50/80 px-2 py-1.5 rounded-md font-mono">
+          {product.slugUrl}
+        </span>
+      </td>
+      <td className="px-6 py-5">
+        <AvailabilityButton available={product.photos} label="Photos" />
+      </td>
+      <td className="px-6 py-5">
+        <AvailabilityButton available={product.sizeChart} label="Size chart" />
+      </td>
+      <td className="px-6 py-5">
+        <div className="flex flex-col items-center gap-3">
+          <StatusBadge status={product.status} />
+          <ActionButtons
+            productId={product.id}
+            onEdit={onEdit}
+            onDelete={onDelete}
+            onDownload={onDownload}
+          />
+        </div>
+      </td>
+    </tr>
+  )
+);
 
-InventoryProductRow.displayName = 'InventoryProductRow';
+InventoryProductRow.displayName = "InventoryProductRow";
 
 // Additional components (simplified for brevity - include all from Dashboard_optimized.js)
-const ProductSyncSection = memo(({ productSyncData, searchTerm, onSearchChange }) => (
-  <div className="bg-white rounded-xl shadow-sm p-6">
-    <h2 className="text-2xl font-bold text-gray-900 mb-6">Product Sync Manager</h2>
-    
-    <div className="mb-6">
-      <div className="relative max-w-md">
-        <Search className="h-5 w-5 absolute left-3 top-3 text-gray-400" />
-        <input
-          type="text"
-          placeholder="Search products, marketplace, or SKU..."
-          value={searchTerm}
-          onChange={onSearchChange}
-          className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
-        />
-      </div>
-    </div>
+const ProductSyncSection = memo(
+  ({ productSyncData, searchTerm, onSearchChange }) => (
+    <div className="bg-white rounded-2xl shadow-md p-8">
+      <h2 className="text-3xl font-bold text-gray-900 mb-10">
+        Product Sync Manager
+      </h2>
 
-    <div className="overflow-x-auto">
-      <table className="w-full table-auto">
-        <thead>
-          <tr className="border-b border-gray-200">
-            {PRODUCT_SYNC_HEADERS.map(header => (
-              <th key={header} className="text-left py-3 px-4 font-['Montserrat:Regular',_sans-serif] text-[14px] font-normal leading-[20px] text-black">
-                {header}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {productSyncData.map((product) => (
-            <tr key={`sync-product-${product.id}`} className="border-b border-gray-100 hover:bg-gray-50 transition-colors duration-150">
-              <td className="py-4 px-4">
-                <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
-                  <Package className="h-8 w-8 text-gray-400" />
-                </div>
-              </td>
-              <td className="py-4 px-4 font-['Montserrat:Regular',_sans-serif] text-[14px] font-medium leading-[20px] text-gray-900">{product.name}</td>
-              <td className="py-4 px-4 font-['Montserrat:Regular',_sans-serif] text-[14px] font-normal leading-[20px] text-gray-700">{product.price}</td>
-              <td className="py-4 px-4 font-['Montserrat:Regular',_sans-serif] text-[14px] font-normal leading-[20px] text-gray-700">{product.sku}</td>
-              <td className="py-4 px-4 font-['Montserrat:Regular',_sans-serif] text-[14px] font-normal leading-[20px] text-gray-700">{product.barcode}</td>
-              <td className="py-4 px-4">
-                <FigmaButton status={product.synced}>
-                  {product.synced}
-                </FigmaButton>
-              </td>
-              <td className="py-4 px-4 font-['Montserrat:Regular',_sans-serif] text-[14px] font-normal leading-[20px] text-gray-700 capitalize">{product.marketplace}</td>
-              <td className="py-4 px-4">
-                {product.error && (
-                  <FigmaButton status={product.error}>
-                    {product.error}
-                  </FigmaButton>
-                )}
-              </td>
-              <td className="py-4 px-4">
-                <FigmaButton status="sync now">
-                  sync NOW
-                </FigmaButton>
-              </td>
+      <div className="mb-10">
+        <div className="relative max-w-xl">
+          <Search className="h-5 w-5 absolute left-4 top-3.5 text-gray-400 pointer-events-none" />
+          <input
+            type="text"
+            placeholder="Search products, marketplace, or SKU..."
+            value={searchTerm}
+            onChange={onSearchChange}
+            className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 hover:bg-white focus:bg-white transition-all duration-200 text-sm font-medium placeholder:text-gray-400"
+          />
+        </div>
+      </div>
+
+      <div className="overflow-x-auto rounded-xl border border-gray-100">
+        <table className="w-full table-auto">
+          <thead>
+            <tr className="bg-gray-50 border-b border-gray-200">
+              {PRODUCT_SYNC_HEADERS.map((header) => (
+                <th
+                  key={header}
+                  className="text-left py-4 px-6 font-semibold text-sm text-gray-600 uppercase tracking-wide"
+                >
+                  {header}
+                </th>
+              ))}
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {productSyncData.map((product, index) => (
+              <tr
+                key={`sync-product-${product.id}`}
+                className={`border-b border-gray-100 hover:bg-gray-50 transition-colors duration-200 group ${
+                  index % 2 === 0 ? "bg-white" : "bg-gray-50"
+                }`}
+              >
+                <td className="py-5 px-6">
+                  <div className="w-16 h-16 bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl flex items-center justify-center group-hover:from-gray-200 group-hover:to-gray-300 transition-all duration-200 shadow-sm">
+                    <Package className="h-8 w-8 text-gray-500" />
+                  </div>
+                </td>
+                <td className="py-5 px-6 font-semibold text-gray-900 text-base group-hover:text-gray-800 transition-colors duration-200">
+                  {product.name}
+                </td>
+                <td className="py-5 px-6 text-gray-700 text-base font-medium">
+                  <span className="bg-green-50 px-3 py-1.5 rounded-lg">
+                    {product.price}
+                  </span>
+                </td>
+                <td className="py-5 px-6 text-gray-700 text-sm">
+                  <span className="bg-gray-100 px-3 py-1.5 rounded-lg font-mono">
+                    {product.sku}
+                  </span>
+                </td>
+                <td className="py-5 px-6 text-gray-700 text-sm">
+                  <span className="bg-gray-100 px-3 py-1.5 rounded-lg font-mono">
+                    {product.barcode}
+                  </span>
+                </td>
+                <td className="py-5 px-6">
+                  <StatusBadge status={product.synced} />
+                </td>
+                <td className="py-5 px-6">
+                  <span
+                    className={`text-sm font-semibold capitalize px-3 py-1.5 rounded-lg ${
+                      product.marketplace === "amazon"
+                        ? "bg-orange-50 text-orange-700"
+                        : product.marketplace === "flipkart"
+                        ? "bg-blue-50 text-blue-700"
+                        : product.marketplace === "myntra"
+                        ? "bg-purple-50 text-purple-700"
+                        : product.marketplace === "nykaa"
+                        ? "bg-pink-50 text-pink-700"
+                        : "bg-gray-100 text-gray-700"
+                    }`}
+                  >
+                    {product.marketplace}
+                  </span>
+                </td>
+                <td className="py-5 px-6">
+                  {product.error && (
+                    <StatusBadge status={product.error} type="error" />
+                  )}
+                </td>
+                <td className="py-5 px-6">
+                  <button className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:from-blue-700 hover:to-blue-800 shadow-md hover:shadow-lg transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    Sync Now
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
-  </div>
-));
+  )
+);
 
-ProductSyncSection.displayName = 'ProductSyncSection';
+ProductSyncSection.displayName = "ProductSyncSection";
 
-const MarketplaceSettingsSection = memo(() => (
-  <div className="bg-white rounded-xl shadow-sm p-6">
-    <h3 className="text-xl font-bold text-gray-900 mb-6">Marketplace Settings</h3>
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-      <div>
-        <h4 className="text-lg font-semibold text-gray-800 mb-4">Orders from marketplace</h4>
-        <div className="space-y-3">
-          <div className="flex justify-between items-center">
-            <span className="text-gray-700">Global inventory sync</span>
-            <span className="text-green-600 font-medium">on</span>
+const MarketplaceSettingsSection = memo(() => {
+  const [settings, setSettings] = useState({
+    globalInventorySync: true,
+    syncFrequency: true,
+    globalSync: true,
+    additionalSync: false,
+    perMarketplaceRules: "6hr",
+  });
+
+  const toggleSetting = (key) => {
+    setSettings((prev) => ({
+      ...prev,
+      [key]: !prev[key],
+    }));
+  };
+
+  const updateDropdown = (value) => {
+    setSettings((prev) => ({
+      ...prev,
+      perMarketplaceRules: value,
+    }));
+  };
+
+  return (
+    <div className="bg-white rounded-2xl shadow-md p-8">
+      <h3 className="text-3xl font-bold text-gray-900 mb-10">
+        Marketplace Settings
+      </h3>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+        <div className="bg-gray-50 rounded-xl p-6 border border-gray-100">
+          <h4 className="text-lg font-semibold text-gray-800 mb-6 tracking-tight">
+            Orders from marketplace
+          </h4>
+          <div className="space-y-5">
+            <SettingButton
+              isOn={settings.globalInventorySync}
+              onToggle={() => toggleSetting("globalInventorySync")}
+              label="Global inventory sync"
+            />
+            <SettingButton
+              isOn={settings.syncFrequency}
+              onToggle={() => toggleSetting("syncFrequency")}
+              label="Sync frequency"
+            />
+            <HourDropdown
+              value={settings.perMarketplaceRules}
+              onChange={updateDropdown}
+              label="Per marketplace rules"
+            />
           </div>
-          <div className="flex justify-between items-center">
-            <span className="text-gray-700">Sync frequency</span>
-            <span className="text-green-600 font-medium">enabled</span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-gray-700">Per marketplace rules</span>
-            <span className="text-gray-700 font-medium">6 hours</span>
+        </div>
+        <div className="bg-gray-50 rounded-xl p-6 border border-gray-100">
+          <h4 className="text-lg font-semibold text-gray-800 mb-6 tracking-tight">
+            Out series settings
+          </h4>
+          <div className="space-y-5">
+            <SettingButton
+              isOn={settings.globalSync}
+              onToggle={() => toggleSetting("globalSync")}
+              label="Global sync"
+            />
+            <SettingButton
+              isOn={settings.additionalSync}
+              onToggle={() => toggleSetting("additionalSync")}
+              label="Additional sync"
+            />
           </div>
         </div>
       </div>
-      <div>
-        <h4 className="text-lg font-semibold text-gray-800 mb-4">Out series settings</h4>
-        <div className="space-y-3">
-          <div className="flex justify-between items-center">
-            <span className="text-gray-700">Global sync</span>
-            <div className="flex space-x-4">
-              <span className="text-green-600 font-medium">on</span>
-              <span className="text-green-600 font-medium">delivered</span>
-            </div>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-gray-700">Additional sync</span>
-            <div className="flex space-x-4">
-              <span className="text-red-600 font-medium">off</span>
-              <span className="text-red-600 font-medium">failed</span>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
-  </div>
-));
+  );
+});
 
-MarketplaceSettingsSection.displayName = 'MarketplaceSettingsSection';
+MarketplaceSettingsSection.displayName = "MarketplaceSettingsSection";
 
 const MarketplaceConnectionsSection = memo(({ marketplaces }) => (
-  <div className="bg-white rounded-xl shadow-sm p-6">
-    <h2 className="text-2xl font-bold text-gray-900 mb-6">Connect Marketplaces</h2>
-    
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+  <div className="bg-white rounded-2xl shadow-md p-8">
+    <h2 className="text-3xl font-bold text-gray-900 mb-8">
+      Connect Marketplaces
+    </h2>
+
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
       <div>
-        <h3 className="text-xl font-bold text-gray-900 mb-4">Available marketplace</h3>
-        <div className="space-y-4">
-          <div className="flex justify-between items-center font-bold border-b pb-2">
-            <span className="font-['Montserrat:Regular',_sans-serif] text-[14px] font-bold leading-[20px] text-gray-900">marketplace</span>
-            <span className="font-['Montserrat:Regular',_sans-serif] text-[14px] font-bold leading-[20px] text-gray-900">actions</span>
+        <h3 className="text-xl font-semibold text-gray-800 mb-5 tracking-tight">
+          Available marketplace
+        </h3>
+        <div className="space-y-5">
+          <div className="flex justify-between items-center font-semibold border-b border-gray-200 pb-3 text-gray-600 uppercase text-sm tracking-wide">
+            <span>Marketplace</span>
+            <span>Actions</span>
           </div>
           {marketplaces.map((marketplace) => (
-            <div key={`available-${marketplace.id}`} className="flex justify-between items-center py-2">
-              <span className="font-['Montserrat:Regular',_sans-serif] text-[14px] font-normal leading-[20px] text-gray-700 capitalize">{marketplace.name}</span>
-              <FigmaButton status={marketplace.status}>
+            <div
+              key={`available-${marketplace.id}`}
+              className="flex justify-between items-center py-2 border-b border-dashed border-gray-100"
+            >
+              <span className="text-base text-gray-800 capitalize">
+                {marketplace.name}
+              </span>
+              <button
+                className={`px-5 py-2 rounded-full text-xs font-medium shadow-sm hover:opacity-90 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                  STATUS_COLORS[marketplace.status] ||
+                  STATUS_COLORS["not connected"]
+                }`}
+              >
                 {marketplace.status}
-              </FigmaButton>
+              </button>
             </div>
           ))}
         </div>
       </div>
-      
+
       <div>
-        <h3 className="text-xl font-bold text-gray-900 mb-4">Connected accounts</h3>
-        <div className="space-y-4">
-          <div className="flex justify-between items-center font-bold border-b pb-2">
-            <span className="font-['Montserrat:Regular',_sans-serif] text-[14px] font-bold leading-[20px] text-gray-900">seller id</span>
-            <span className="font-['Montserrat:Regular',_sans-serif] text-[14px] font-bold leading-[20px] text-gray-900">last sync</span>
+        <h3 className="text-xl font-semibold text-gray-800 mb-5 tracking-tight">
+          Connected accounts
+        </h3>
+        <div className="space-y-5">
+          <div className="flex justify-between items-center font-semibold border-b border-gray-200 pb-3 text-gray-600 uppercase text-sm tracking-wide">
+            <span>Seller ID</span>
+            <span>Last Sync</span>
           </div>
           {marketplaces.map((marketplace) => (
-            <div key={`connected-${marketplace.id}`} className="flex justify-between items-center py-2">
-              <span className="font-['Montserrat:Regular',_sans-serif] text-[14px] font-normal leading-[20px] text-gray-700">
-                {marketplace.sellerId || 'Not connected'}
+            <div
+              key={`connected-${marketplace.id}`}
+              className="flex justify-between items-center py-2 border-b border-dashed border-gray-100"
+            >
+              <span className="text-sm text-gray-700 font-mono truncate max-w-[160px]">
+                {marketplace.sellerId || "Not connected"}
               </span>
-              <span className="font-['Montserrat:Regular',_sans-serif] text-[14px] font-normal leading-[20px] text-gray-700">
-                {marketplace.lastSync || 'Never'}
+              <span className="text-sm text-gray-600">
+                {marketplace.lastSync || "Never"}
               </span>
             </div>
           ))}
@@ -1281,18 +1717,21 @@ const MarketplaceConnectionsSection = memo(({ marketplaces }) => (
   </div>
 ));
 
-MarketplaceConnectionsSection.displayName = 'MarketplaceConnectionsSection';
+MarketplaceConnectionsSection.displayName = "MarketplaceConnectionsSection";
 
 const SyncLogsSection = memo(({ syncLogs }) => (
-  <div className="bg-white rounded-xl shadow-sm p-6">
-    <h2 className="text-2xl font-bold text-gray-900 mb-6">Sync Logs</h2>
-    
+  <div className="bg-white rounded-2xl shadow-md p-8">
+    <h2 className="text-3xl font-bold text-gray-900 mb-8">Sync Logs</h2>
+
     <div className="overflow-x-auto">
-      <table className="w-full table-auto">
+      <table className="w-full table-auto border-collapse">
         <thead>
-          <tr className="border-b border-gray-200">
-            {SYNC_LOG_HEADERS.map(header => (
-              <th key={header} className="text-left py-3 px-4 font-['Montserrat:Regular',_sans-serif] text-[14px] font-bold leading-[20px] text-gray-700">
+          <tr className="border-b border-gray-200 bg-gray-50">
+            {SYNC_LOG_HEADERS.map((header) => (
+              <th
+                key={header}
+                className="text-left py-4 px-5 text-sm font-semibold text-gray-600 uppercase tracking-wider"
+              >
                 {header}
               </th>
             ))}
@@ -1300,24 +1739,27 @@ const SyncLogsSection = memo(({ syncLogs }) => (
         </thead>
         <tbody>
           {syncLogs.map((log) => (
-            <tr key={`sync-log-${log.id}`} className="border-b border-gray-100 hover:bg-gray-50 transition-colors duration-150">
-              <td className="py-4 px-4 font-['Montserrat:Regular',_sans-serif] text-[14px] font-bold leading-[20px] text-gray-900 tracking-wider">
+            <tr
+              key={`sync-log-${log.id}`}
+              className="border-b border-gray-100 hover:bg-gray-50 transition-colors duration-150"
+            >
+              <td className="py-4 px-5 text-sm font-medium text-gray-900 whitespace-nowrap">
                 {log.date}
               </td>
-              <td className="py-4 px-4 font-['Montserrat:Regular',_sans-serif] text-[14px] font-bold leading-[20px] text-gray-900 capitalize">{log.operation}</td>
-              <td className="py-4 px-4 font-['Montserrat:Regular',_sans-serif] text-[14px] font-normal leading-[20px] text-gray-700 capitalize">{log.marketplace}</td>
-              <td className="py-4 px-4">
-                <FigmaButton status={log.status}>
-                  {log.status}
-                </FigmaButton>
+              <td className="py-4 px-5 text-sm font-medium text-gray-900 capitalize whitespace-nowrap">
+                {log.operation}
               </td>
-              <td className="py-4 px-4">
+              <td className="py-4 px-5 text-sm text-gray-700 capitalize whitespace-nowrap">
+                {log.marketplace}
+              </td>
+              <td className="py-4 px-5">
+                <StatusBadge status={log.status} />
+              </td>
+              <td className="py-4 px-5">
                 {log.error ? (
-                  <FigmaButton status={log.error}>
-                    {log.error}
-                  </FigmaButton>
+                  <StatusBadge status={log.error} type="error" />
                 ) : (
-                  <span className="font-['Montserrat:Regular',_sans-serif] text-[14px] font-normal leading-[20px] text-gray-400">No errors</span>
+                  <span className="text-gray-400 text-sm">No errors</span>
                 )}
               </td>
             </tr>
@@ -1328,6 +1770,6 @@ const SyncLogsSection = memo(({ syncLogs }) => (
   </div>
 ));
 
-SyncLogsSection.displayName = 'SyncLogsSection';
+SyncLogsSection.displayName = "SyncLogsSection";
 
-export default Dashboard;
+export default Database;
