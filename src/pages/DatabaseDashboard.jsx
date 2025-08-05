@@ -431,13 +431,14 @@ const DatabaseDashboard = () => {
 
   return (
     <div style={{
-      padding: '20px',
+      padding: '20px 20px 20px 10px',
       backgroundColor: '#f9fafb',
       minHeight: '100vh'
     }}>
       <div style={{
-        maxWidth: '1400px',
-        margin: '0 auto'
+        maxWidth: 'none',
+        margin: '0',
+        width: '100%'
       }}>
         {/* Header */}
         <div style={{
