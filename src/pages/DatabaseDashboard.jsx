@@ -9,6 +9,13 @@ const DatabaseDashboard = () => {
   const [activeTab, setActiveTab] = useState('users');
   const [searchTerm, setSearchTerm] = useState('');
   const [showPassword, setShowPassword] = useState({});
+  const [showSensitiveData, setShowSensitiveData] = useState({});
+  const [protectedFields, setProtectedFields] = useState({
+    email: true,
+    phone: true,
+    address: true,
+    dateOfBirth: true
+  });
   const [documentPreview, setDocumentPreview] = useState(null);
   const [sizeChartPreview, setSizeChartPreview] = useState(null);
   
@@ -501,6 +508,66 @@ const DatabaseDashboard = () => {
   const handleClose2FASuccess = useCallback(() => {
     setShow2FASuccess(false);
     setPending2FAUserId(null);
+  }, []);
+
+  // Sensitive data protection functions
+  const maskEmail = useCallback((email) => {
+    if (!email) return '';
+    const [username, domain] = email.split('@');
+    if (username.length <= 2) return '••••@' + domain;
+    return username.charAt(0) + '••••' + username.charAt(username.length - 1) + '@' + domain;
+  }, []);
+
+  const maskPhone = useCallback((phone) => {
+    if (!phone) return '';
+    const phoneStr = phone.toString();
+    if (phoneStr.length <= 4) return '••••';
+    return phoneStr.slice(0, 2) + '••••' + phoneStr.slice(-2);
+  }, []);
+
+  const maskAddress = useCallback((address) => {
+    if (!address) return {};
+    return {
+      street: address.street ? address.street.charAt(0) + '•••••' + address.street.slice(-2) : '',
+      city: address.city || '',
+      state: address.state || '',
+      pincode: address.pincode ? '••••••' : '',
+      landmark: address.landmark ? '•••••' : ''
+    };
+  }, []);
+
+  const maskDateOfBirth = useCallback((date) => {
+    if (!date) return '';
+    const parts = date.split('/');
+    if (parts.length === 3) {
+      return '••/' + parts[1] + '/' + parts[2]; // Hide day, show month/year
+    }
+    return '••/••/••••';
+  }, []);
+
+  const toggleSensitiveData = useCallback((userId, field) => {
+    // Check if user is authenticated for 2FA (required for any sensitive data)
+    if (!authenticated2FAUsers.has(userId)) {
+      setPending2FAUserId(userId);
+      setShow2FAModal(true);
+      return;
+    }
+
+    setShowSensitiveData(prev => ({
+      ...prev,
+      [`${userId}_${field}`]: !prev[`${userId}_${field}`]
+    }));
+  }, [authenticated2FAUsers]);
+
+  const isSensitiveDataVisible = useCallback((userId, field) => {
+    return showSensitiveData[`${userId}_${field}`] || false;
+  }, [showSensitiveData]);
+
+  const toggleFieldProtection = useCallback((field) => {
+    setProtectedFields(prev => ({
+      ...prev,
+      [field]: !prev[field]
+    }));
   }, []);
 
   // Document preview
@@ -1190,6 +1257,84 @@ const DatabaseDashboard = () => {
               }}>
                 👤 User Profile Data
               </h2>
+
+              {/* Sensitive Data Protection Controls */}
+              <div style={{
+                backgroundColor: '#f8fafc',
+                border: '1px solid #e2e8f0',
+                borderRadius: '8px',
+                padding: '16px',
+                marginBottom: '20px'
+              }}>
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  marginBottom: '12px'
+                }}>
+                  <span style={{
+                    fontSize: '16px',
+                    fontWeight: '600',
+                    color: '#1e293b'
+                  }}>
+                    🔒 Data Privacy Controls
+                  </span>
+                  <span style={{
+                    fontSize: '12px',
+                    color: '#64748b',
+                    backgroundColor: '#e2e8f0',
+                    padding: '2px 8px',
+                    borderRadius: '12px'
+                  }}>
+                    Admin Only
+                  </span>
+                </div>
+                
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                  gap: '12px'
+                }}>
+                  {Object.entries(protectedFields).map(([field, isProtected]) => (
+                    <label key={field} style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      cursor: 'pointer',
+                      padding: '8px',
+                      borderRadius: '6px',
+                      backgroundColor: isProtected ? '#fef2f2' : '#f0fdf4',
+                      border: isProtected ? '1px solid #fecaca' : '1px solid #bbf7d0'
+                    }}>
+                      <input
+                        type="checkbox"
+                        checked={isProtected}
+                        onChange={() => toggleFieldProtection(field)}
+                        style={{ margin: 0 }}
+                      />
+                      <span style={{
+                        fontSize: '13px',
+                        fontWeight: '500',
+                        color: isProtected ? '#dc2626' : '#16a34a'
+                      }}>
+                        {isProtected ? '🔒' : '🔓'} Protect {field.charAt(0).toUpperCase() + field.slice(1).replace(/([A-Z])/g, ' $1')}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+                
+                <div style={{
+                  marginTop: '12px',
+                  padding: '8px',
+                  backgroundColor: '#fef3c7',
+                  border: '1px solid #f59e0b',
+                  borderRadius: '6px',
+                  fontSize: '12px',
+                  color: '#92400e'
+                }}>
+                  ⚠️ Protected fields require 2FA authentication to view. Users must verify identity before accessing sensitive data.
+                </div>
+              </div>
               
               <div style={{ overflowX: 'auto' }}>
                 <table style={{
@@ -1222,7 +1367,29 @@ const DatabaseDashboard = () => {
                           </div>
                         </td>
                         <td style={{ padding: '12px', borderBottom: '1px solid #f3f4f6' }}>
-                          <div>{user.email}</div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span>
+                              {protectedFields.email && !isSensitiveDataVisible(user.id, 'email') 
+                                ? maskEmail(user.email) 
+                                : user.email}
+                            </span>
+                            {protectedFields.email && (
+                              <button
+                                onClick={() => toggleSensitiveData(user.id, 'email')}
+                                style={{
+                                  padding: '4px 8px',
+                                  fontSize: '12px',
+                                  border: authenticated2FAUsers.has(user.id) ? '1px solid #10b981' : '1px solid #d1d5db',
+                                  borderRadius: '4px',
+                                  cursor: 'pointer',
+                                  backgroundColor: authenticated2FAUsers.has(user.id) ? '#f0fdf4' : 'white',
+                                  color: authenticated2FAUsers.has(user.id) ? '#065f46' : '#374151'
+                                }}
+                              >
+                                {isSensitiveDataVisible(user.id, 'email') ? '🙈' : authenticated2FAUsers.has(user.id) ? '✅👁️' : '🔐👁️'}
+                              </button>
+                            )}
+                          </div>
                           <div style={{ fontSize: '11px', color: '#6b7280' }}>
                             Last Login: {user.lastLogin}
                           </div>
@@ -1240,19 +1407,97 @@ const DatabaseDashboard = () => {
                               <option value="+1">🇺🇸 +1</option>
                               <option value="+971">🇦🇪 +971</option>
                             </select>
-                            <span>{user.phone.number}</span>
+                            <span>
+                              {protectedFields.phone && !isSensitiveDataVisible(user.id, 'phone') 
+                                ? maskPhone(user.phone.number) 
+                                : user.phone.number}
+                            </span>
+                            {protectedFields.phone && (
+                              <button
+                                onClick={() => toggleSensitiveData(user.id, 'phone')}
+                                style={{
+                                  padding: '4px 8px',
+                                  fontSize: '12px',
+                                  border: authenticated2FAUsers.has(user.id) ? '1px solid #10b981' : '1px solid #d1d5db',
+                                  borderRadius: '4px',
+                                  cursor: 'pointer',
+                                  backgroundColor: authenticated2FAUsers.has(user.id) ? '#f0fdf4' : 'white',
+                                  color: authenticated2FAUsers.has(user.id) ? '#065f46' : '#374151'
+                                }}
+                              >
+                                {isSensitiveDataVisible(user.id, 'phone') ? '🙈' : authenticated2FAUsers.has(user.id) ? '✅👁️' : '🔐👁️'}
+                              </button>
+                            )}
                           </div>
                         </td>
                         <td style={{ padding: '12px', borderBottom: '1px solid #f3f4f6' }}>
-                          <div style={{ fontWeight: '500' }}>{user.dateOfBirth}</div>
-                          <div style={{ fontSize: '11px', color: '#6b7280' }}>DD/MM/YYYY</div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <div>
+                              <div style={{ fontWeight: '500' }}>
+                                {protectedFields.dateOfBirth && !isSensitiveDataVisible(user.id, 'dateOfBirth') 
+                                  ? maskDateOfBirth(user.dateOfBirth) 
+                                  : user.dateOfBirth}
+                              </div>
+                              <div style={{ fontSize: '11px', color: '#6b7280' }}>DD/MM/YYYY</div>
+                            </div>
+                            {protectedFields.dateOfBirth && (
+                              <button
+                                onClick={() => toggleSensitiveData(user.id, 'dateOfBirth')}
+                                style={{
+                                  padding: '4px 8px',
+                                  fontSize: '12px',
+                                  border: authenticated2FAUsers.has(user.id) ? '1px solid #10b981' : '1px solid #d1d5db',
+                                  borderRadius: '4px',
+                                  cursor: 'pointer',
+                                  backgroundColor: authenticated2FAUsers.has(user.id) ? '#f0fdf4' : 'white',
+                                  color: authenticated2FAUsers.has(user.id) ? '#065f46' : '#374151'
+                                }}
+                              >
+                                {isSensitiveDataVisible(user.id, 'dateOfBirth') ? '🙈' : authenticated2FAUsers.has(user.id) ? '✅👁️' : '🔐👁️'}
+                              </button>
+                            )}
+                          </div>
                         </td>
                         <td style={{ padding: '12px', borderBottom: '1px solid #f3f4f6' }}>
-                          <div><strong>Street:</strong> {user.address.street}</div>
-                          <div><strong>City:</strong> {user.address.city}, {user.address.state}</div>
-                          <div><strong>PIN:</strong> {user.address.pincode}</div>
-                          <div style={{ fontSize: '11px', color: '#6b7280' }}>
-                            📍 {user.address.landmark}
+                          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+                            <div style={{ flex: 1 }}>
+                              {protectedFields.address && !isSensitiveDataVisible(user.id, 'address') ? (
+                                <div>
+                                  <div><strong>Street:</strong> {maskAddress(user.address).street}</div>
+                                  <div><strong>City:</strong> {maskAddress(user.address).city}, {maskAddress(user.address).state}</div>
+                                  <div><strong>PIN:</strong> {maskAddress(user.address).pincode}</div>
+                                  <div style={{ fontSize: '11px', color: '#6b7280' }}>
+                                    📍 {maskAddress(user.address).landmark}
+                                  </div>
+                                </div>
+                              ) : (
+                                <div>
+                                  <div><strong>Street:</strong> {user.address.street}</div>
+                                  <div><strong>City:</strong> {user.address.city}, {user.address.state}</div>
+                                  <div><strong>PIN:</strong> {user.address.pincode}</div>
+                                  <div style={{ fontSize: '11px', color: '#6b7280' }}>
+                                    📍 {user.address.landmark}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                            {protectedFields.address && (
+                              <button
+                                onClick={() => toggleSensitiveData(user.id, 'address')}
+                                style={{
+                                  padding: '4px 8px',
+                                  fontSize: '12px',
+                                  border: authenticated2FAUsers.has(user.id) ? '1px solid #10b981' : '1px solid #d1d5db',
+                                  borderRadius: '4px',
+                                  cursor: 'pointer',
+                                  backgroundColor: authenticated2FAUsers.has(user.id) ? '#f0fdf4' : 'white',
+                                  color: authenticated2FAUsers.has(user.id) ? '#065f46' : '#374151',
+                                  whiteSpace: 'nowrap'
+                                }}
+                              >
+                                {isSensitiveDataVisible(user.id, 'address') ? '🙈' : authenticated2FAUsers.has(user.id) ? '✅👁️' : '🔐👁️'}
+                              </button>
+                            )}
                           </div>
                         </td>
                         <td style={{ padding: '12px', borderBottom: '1px solid #f3f4f6' }}>
