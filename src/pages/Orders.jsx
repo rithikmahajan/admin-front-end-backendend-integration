@@ -1,12 +1,12 @@
-import React, { useState, useMemo, useCallback, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { 
-  Filter, 
-  Calendar, 
-  ChevronDown, 
-  Eye, 
-  Edit, 
-  Download, 
+import React, { useState, useMemo, useCallback, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  Filter,
+  Calendar,
+  ChevronDown,
+  Eye,
+  Edit,
+  Download,
   MoreHorizontal,
   X,
   Printer,
@@ -18,28 +18,28 @@ import {
   Truck,
   User,
   FileText,
-  ArrowLeft
-} from 'lucide-react';
+  ArrowLeft,
+} from "lucide-react";
 
 /**
  * InvoiceTemplate Component
- * 
+ *
  * A professional invoice template based on the Figma design
  * Used for PDF generation and printing
  */
 const InvoiceTemplate = React.memo(({ orderData, orderStatus }) => {
-  const currentDate = new Date().toLocaleDateString('en-GB', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric'
+  const currentDate = new Date().toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
   });
 
   const expectedDate = new Date();
   expectedDate.setDate(expectedDate.getDate() + 14);
-  const expectedDateStr = expectedDate.toLocaleDateString('en-GB', {
-    day: '2-digit',
-    month: 'short', 
-    year: 'numeric'
+  const expectedDateStr = expectedDate.toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
   });
 
   return (
@@ -52,13 +52,13 @@ const InvoiceTemplate = React.memo(({ orderData, orderStatus }) => {
           </button>
           <h1 className="text-2xl font-normal text-gray-700">Invoice</h1>
         </div>
-        
+
         <div className="flex items-center space-x-4 print:hidden">
           <button className="bg-gray-100 p-3 rounded-lg hover:bg-gray-200">
             <Printer className="h-6 w-6 text-gray-600" />
           </button>
           <button className="p-3 hover:bg-gray-100 rounded-lg">
-            <Share2 className="h-6 w-6 text-gray-600" />  
+            <Share2 className="h-6 w-6 text-gray-600" />
           </button>
           <button className="p-3 hover:bg-gray-100 rounded-lg">
             <Download className="h-6 w-6 text-gray-600" />
@@ -72,23 +72,35 @@ const InvoiceTemplate = React.memo(({ orderData, orderStatus }) => {
         <div className="space-y-6">
           {/* Invoice From */}
           <div>
-            <h3 className="text-base font-semibold text-gray-700 mb-2">Invoice From :</h3>
+            <h3 className="text-base font-semibold text-gray-700 mb-2">
+              Invoice From :
+            </h3>
             <div className="space-y-1">
-              <p className="text-base font-bold text-gray-700">Virginia Walker</p>
-              <p className="text-sm font-semibold text-gray-600">9694 Krajcik Locks Suite 635</p>
+              <p className="text-base font-bold text-gray-700">
+                Virginia Walker
+              </p>
+              <p className="text-sm font-semibold text-gray-600">
+                9694 Krajcik Locks Suite 635
+              </p>
             </div>
           </div>
 
           {/* Invoice To */}
           <div>
-            <h3 className="text-base font-semibold text-gray-700 mb-2">Invoice To :</h3>
+            <h3 className="text-base font-semibold text-gray-700 mb-2">
+              Invoice To :
+            </h3>
           </div>
         </div>
 
         {/* Right Side - Dates */}
         <div className="text-right space-y-2">
-          <p className="text-base font-semibold text-gray-700">Invoice Date : {currentDate}</p>
-          <p className="text-base font-semibold text-gray-700">expected Date : {expectedDateStr}</p>
+          <p className="text-base font-semibold text-gray-700">
+            Invoice Date : {currentDate}
+          </p>
+          <p className="text-base font-semibold text-gray-700">
+            expected Date : {expectedDateStr}
+          </p>
         </div>
       </div>
 
@@ -124,7 +136,9 @@ const InvoiceTemplate = React.memo(({ orderData, orderStatus }) => {
 
         {/* Documents Submitted */}
         <div>
-          <h4 className="text-lg font-bold text-gray-800 mb-3">documents submitted</h4>
+          <h4 className="text-lg font-bold text-gray-800 mb-3">
+            documents submitted
+          </h4>
           <div className="space-y-1 text-base text-gray-600">
             <p>document name</p>
             <p>{orderData.documents.name}</p>
@@ -149,7 +163,10 @@ const InvoiceTemplate = React.memo(({ orderData, orderStatus }) => {
 
         {/* Table Rows */}
         {orderData.items.map((item, index) => (
-          <div key={index} className="grid grid-cols-9 gap-4 py-4 border-b border-gray-100 text-lg font-medium">
+          <div
+            key={index}
+            className="grid grid-cols-9 gap-4 py-4 border-b border-gray-100 text-lg font-medium"
+          >
             <div className="text-blue-600 underline">{item.id}</div>
             <div className="text-gray-900">{item.date}</div>
             <div className="text-gray-900 text-center">{item.customerName}</div>
@@ -172,7 +189,9 @@ const InvoiceTemplate = React.memo(({ orderData, orderStatus }) => {
           </div>
           <div className="flex justify-between text-lg font-bold text-gray-600">
             <span>Shipping Rate</span>
-            <span className="text-gray-900">{orderData.summary.shippingRate}</span>
+            <span className="text-gray-900">
+              {orderData.summary.shippingRate}
+            </span>
           </div>
           <div className="flex justify-between text-lg font-bold text-gray-600">
             <span>Promo</span>
@@ -200,7 +219,7 @@ const InvoiceTemplate = React.memo(({ orderData, orderStatus }) => {
 
 /**
  * DocumentViewer Component
- * 
+ *
  * Displays uploaded documents (front and reverse side of ID) based on the Figma design.
  * Shows document viewer screen with upload status and document images.
  */
@@ -225,7 +244,9 @@ const DocumentViewer = React.memo(({ orderId, onBack }) => {
           <div className="inline-flex items-center justify-center w-6 h-6 bg-gray-800 text-white rounded-full text-xs font-bold mb-3">
             i
           </div>
-          <h2 className="text-sm font-medium text-gray-900">Uploaded Indian Resident ID</h2>
+          <h2 className="text-sm font-medium text-gray-900">
+            Uploaded Indian Resident ID
+          </h2>
         </div>
 
         {/* Upload Status Indicators */}
@@ -233,17 +254,25 @@ const DocumentViewer = React.memo(({ orderId, onBack }) => {
           {/* Front Side Upload Status */}
           <div className="flex flex-col items-start space-y-2">
             <div className="bg-white border border-gray-300 rounded-full px-4 py-2 shadow-sm">
-              <span className="text-sm text-gray-600 font-normal">Uploaded front side</span>
+              <span className="text-sm text-gray-600 font-normal">
+                Uploaded front side
+              </span>
             </div>
-            <p className="text-xs text-gray-500 pl-4">Only .jpg and .jpeg files are allowed.</p>
+            <p className="text-xs text-gray-500 pl-4">
+              Only .jpg and .jpeg files are allowed.
+            </p>
           </div>
 
           {/* Reverse Side Upload Status */}
           <div className="flex flex-col items-start space-y-2">
             <div className="bg-white border border-gray-300 rounded-full px-4 py-2 shadow-sm">
-              <span className="text-sm text-gray-600 font-normal">Uploaded reverse side</span>
+              <span className="text-sm text-gray-600 font-normal">
+                Uploaded reverse side
+              </span>
             </div>
-            <p className="text-xs text-gray-500 pl-4">Only .jpg and .jpeg files are allowed.</p>
+            <p className="text-xs text-gray-500 pl-4">
+              Only .jpg and .jpeg files are allowed.
+            </p>
           </div>
         </div>
 
@@ -292,10 +321,10 @@ const DocumentViewer = React.memo(({ orderId, onBack }) => {
 
 /**
  * OrderDetails Component
- * 
+ *
  * Displays comprehensive order information including customer details,
  * order items, payment info, delivery address, and order summary.
- * 
+ *
  * Features:
  * - Order status management
  * - Customer information display
@@ -305,95 +334,95 @@ const DocumentViewer = React.memo(({ orderId, onBack }) => {
  */
 const OrderDetails = React.memo(({ orderId, onBack }) => {
   // State for order status management
-  const [orderStatus, setOrderStatus] = useState('Pending');
+  const [orderStatus, setOrderStatus] = useState("Pending");
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
-  const [notes, setNotes] = useState('');
+  const [notes, setNotes] = useState("");
   const [showDocumentViewer, setShowDocumentViewer] = useState(false);
 
   // Mock order data - in real app, this would be fetched based on orderId
   const orderData = {
-    id: orderId || '6743',
-    status: 'Pending',
-    dateRange: 'Feb 16,2022 - Feb 20,2022',
+    id: orderId || "6743",
+    status: "Pending",
+    dateRange: "Feb 16,2022 - Feb 20,2022",
     customer: {
-      name: 'Shristi Singh',
-      email: 'shristi@gmail.com',
-      phone: '+91 904 1212'
+      name: "Shristi Singh",
+      email: "shristi@gmail.com",
+      phone: "+91 904 1212",
     },
     orderInfo: {
-      shipping: 'Next express',
-      paymentMethod: 'Paypal',
-      status: 'Pending'
+      shipping: "Next express",
+      paymentMethod: "Paypal",
+      status: "Pending",
     },
-    deliveryAddress: 'Dharam Colony, Palam Vihar, Gurgaon, Haryana',
+    deliveryAddress: "Dharam Colony, Palam Vihar, Gurgaon, Haryana",
     paymentInfo: {
-      cardNumber: 'Master Card **** **** 6557',
-      businessName: 'Shristi Singh',
-      phone: '+91 904 231 1212'
+      cardNumber: "Master Card **** **** 6557",
+      businessName: "Shristi Singh",
+      phone: "+91 904 231 1212",
     },
     items: [
       {
-        id: '123456789222i',
-        image: '/api/placeholder/130/143',
-        date: '27 nov 2025',
-        customerName: 'pearl',
-        size: 'stock',
+        id: "123456789222i",
+        image: "/api/placeholder/130/143",
+        date: "27 nov 2025",
+        customerName: "pearl",
+        size: "stock",
         quantity: 2025,
-        sku: '2025',
-        barcode: '2025',
+        sku: "2025",
+        barcode: "2025",
         price: 4566,
-        salePrice: 4566
+        salePrice: 4566,
       },
       {
-        id: '123456789222i',
-        image: '/api/placeholder/130/143',
-        date: '27 nov 2025',
-        customerName: 'pearl',
-        size: 'stock',
+        id: "123456789222i",
+        image: "/api/placeholder/130/143",
+        date: "27 nov 2025",
+        customerName: "pearl",
+        size: "stock",
         quantity: 2025,
-        sku: '2025',
-        barcode: '2025',
+        sku: "2025",
+        barcode: "2025",
         price: 4566,
-        salePrice: 4566
-      }
+        salePrice: 4566,
+      },
     ],
     summary: {
       subTotal: 2025,
       shippingRate: 202,
       promo: 2025,
       points: 2025,
-      total: 2025
+      total: 2025,
     },
     documents: {
-      name: 'aadhar card'
-    }
+      name: "aadhar card",
+    },
   };
 
   // Status options
   const statusOptions = [
-    'Pending',
-    'Processing',
-    'Accepted',
-    'Allotted to vendor',
-    'Shipped',
-    'Delivered',
-    'Cancelled',
-    'Rejected'
+    "Pending",
+    "Processing",
+    "Accepted",
+    "Allotted to vendor",
+    "Shipped",
+    "Delivered",
+    "Cancelled",
+    "Rejected",
   ];
 
   // Status color mapping
   const getStatusColor = (status) => {
     const colorMap = {
-      'Pending': 'bg-orange-200 text-orange-800',
-      'Processing': 'bg-blue-200 text-blue-800',
-      'Accepted': 'bg-green-200 text-green-800',
-      'Allotted to vendor': 'bg-indigo-200 text-indigo-800',
-      'Shipped': 'bg-purple-200 text-purple-800',
-      'Delivered': 'bg-green-500 text-white',
-      'Cancelled': 'bg-red-200 text-red-800',
-      'Rejected': 'bg-red-500 text-white'
+      Pending: "bg-orange-200 text-orange-800",
+      Processing: "bg-blue-200 text-blue-800",
+      Accepted: "bg-green-200 text-green-800",
+      "Allotted to vendor": "bg-indigo-200 text-indigo-800",
+      Shipped: "bg-purple-200 text-purple-800",
+      Delivered: "bg-green-500 text-white",
+      Cancelled: "bg-red-200 text-red-800",
+      Rejected: "bg-red-500 text-white",
     };
-    return colorMap[status] || 'bg-gray-200 text-gray-800';
+    return colorMap[status] || "bg-gray-200 text-gray-800";
   };
 
   // Event handlers
@@ -413,17 +442,18 @@ const OrderDetails = React.memo(({ orderId, onBack }) => {
         customer: {
           name: orderData.customer.name,
           email: orderData.customer.email,
-          phone: orderData.customer.phone
+          phone: orderData.customer.phone,
         },
-        deliveryAddress: orderData.deliveryAddress || "123 Main Street, City, State 12345",
+        deliveryAddress:
+          orderData.deliveryAddress || "123 Main Street, City, State 12345",
         orderInfo: {
           shipping: orderData.orderInfo.shipping,
           paymentMethod: orderData.orderInfo.paymentMethod,
         },
         documents: {
-          name: orderData.documents.name
+          name: orderData.documents.name,
         },
-        items: orderData.items.map(item => ({
+        items: orderData.items.map((item) => ({
           id: item.id,
           date: item.date,
           customerName: item.customerName,
@@ -432,26 +462,26 @@ const OrderDetails = React.memo(({ orderId, onBack }) => {
           sku: item.sku,
           barcode: item.barcode,
           price: `₹${item.price}`,
-          salePrice: `₹${item.salePrice}`
+          salePrice: `₹${item.salePrice}`,
         })),
         summary: {
           subTotal: `₹${orderData.summary.subTotal}`,
           shippingRate: `₹${orderData.summary.shippingRate}`,
           promo: `₹${orderData.summary.promo}`,
           points: `₹${orderData.summary.points}`,
-          total: `₹${orderData.summary.total}`
-        }
+          total: `₹${orderData.summary.total}`,
+        },
       };
-      
+
       // Create a temporary container for the invoice
-      const tempDiv = document.createElement('div');
-      tempDiv.style.position = 'absolute';
-      tempDiv.style.left = '-9999px';
-      tempDiv.style.top = '-9999px';
-      tempDiv.style.width = '210mm'; // A4 width
-      tempDiv.style.height = '297mm'; // A4 height
-      tempDiv.style.backgroundColor = 'white';
-      
+      const tempDiv = document.createElement("div");
+      tempDiv.style.position = "absolute";
+      tempDiv.style.left = "-9999px";
+      tempDiv.style.top = "-9999px";
+      tempDiv.style.width = "210mm"; // A4 width
+      tempDiv.style.height = "297mm"; // A4 height
+      tempDiv.style.backgroundColor = "white";
+
       // Render the invoice component (simplified version for PDF)
       tempDiv.innerHTML = `
         <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 40px; color: #374151;">
@@ -464,26 +494,38 @@ const OrderDetails = React.memo(({ orderId, onBack }) => {
               <p style="font-size: 14px; color: #6B7280; margin: 0;">9694 Krajcik Locks Suite 635</p>
             </div>
             <div style="text-align: right;">
-              <p style="font-weight: 600; margin: 4px 0;">Invoice Date: ${new Date().toLocaleDateString('en-GB')}</p>
-              <p style="font-weight: 600; margin: 4px 0;">Expected Date: ${new Date(Date.now() + 14*24*60*60*1000).toLocaleDateString('en-GB')}</p>
+              <p style="font-weight: 600; margin: 4px 0;">Invoice Date: ${new Date().toLocaleDateString(
+                "en-GB"
+              )}</p>
+              <p style="font-weight: 600; margin: 4px 0;">Expected Date: ${new Date(
+                Date.now() + 14 * 24 * 60 * 60 * 1000
+              ).toLocaleDateString("en-GB")}</p>
             </div>
           </div>
 
           <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin-bottom: 32px; padding-bottom: 24px; border-bottom: 1px solid #E5E7EB;">
             <div>
               <h4 style="font-size: 18px; font-weight: bold; margin-bottom: 12px;">Billed To</h4>
-              <p style="margin: 4px 0;">Full Name: ${invoiceData.customer.name}</p>
+              <p style="margin: 4px 0;">Full Name: ${
+                invoiceData.customer.name
+              }</p>
               <p style="margin: 4px 0;">Email: ${invoiceData.customer.email}</p>
               <p style="margin: 4px 0;">Phone: ${invoiceData.customer.phone}</p>
             </div>
             <div>
               <h4 style="font-size: 18px; font-weight: bold; margin-bottom: 12px;">Deliver To</h4>
-              <p style="margin: 4px 0;">Address: ${invoiceData.deliveryAddress}</p>
+              <p style="margin: 4px 0;">Address: ${
+                invoiceData.deliveryAddress
+              }</p>
             </div>
             <div>
               <h4 style="font-size: 18px; font-weight: bold; margin-bottom: 12px;">Order Info</h4>
-              <p style="margin: 4px 0;">Shipping: ${invoiceData.orderInfo.shipping}</p>
-              <p style="margin: 4px 0;">Payment: ${invoiceData.orderInfo.paymentMethod}</p>
+              <p style="margin: 4px 0;">Shipping: ${
+                invoiceData.orderInfo.shipping
+              }</p>
+              <p style="margin: 4px 0;">Payment: ${
+                invoiceData.orderInfo.paymentMethod
+              }</p>
               <p style="margin: 4px 0;">Status: ${orderStatus}</p>
             </div>
             <div>
@@ -507,7 +549,9 @@ const OrderDetails = React.memo(({ orderId, onBack }) => {
               </tr>
             </thead>
             <tbody>
-              ${invoiceData.items.map(item => `
+              ${invoiceData.items
+                .map(
+                  (item) => `
                 <tr style="border-bottom: 1px solid #F3F4F6;">
                   <td style="padding: 16px 8px; color: #2563EB; text-decoration: underline;">${item.id}</td>
                   <td style="padding: 16px 8px;">${item.date}</td>
@@ -519,7 +563,9 @@ const OrderDetails = React.memo(({ orderId, onBack }) => {
                   <td style="padding: 16px 8px;">${item.price}</td>
                   <td style="padding: 16px 8px;">${item.salePrice}</td>
                 </tr>
-              `).join('')}
+              `
+                )
+                .join("")}
             </tbody>
           </table>
 
@@ -543,7 +589,9 @@ const OrderDetails = React.memo(({ orderId, onBack }) => {
               </div>
               <div style="display: flex; justify-content: space-between; padding-top: 12px; border-top: 1px solid #E5E7EB;">
                 <span style="font-weight: bold;">Total</span>
-                <span style="font-weight: bold;">${invoiceData.summary.total}</span>
+                <span style="font-weight: bold;">${
+                  invoiceData.summary.total
+                }</span>
               </div>
             </div>
           </div>
@@ -554,15 +602,15 @@ const OrderDetails = React.memo(({ orderId, onBack }) => {
           </div>
         </div>
       `;
-      
+
       document.body.appendChild(tempDiv);
-      
+
       // Use browser's print functionality to save as PDF
       const originalContents = document.body.innerHTML;
       document.body.innerHTML = tempDiv.innerHTML;
-      
+
       // Add print styles
-      const printStyles = document.createElement('style');
+      const printStyles = document.createElement("style");
       printStyles.textContent = `
         @media print {
           @page { size: A4; margin: 0.5in; }
@@ -571,15 +619,14 @@ const OrderDetails = React.memo(({ orderId, onBack }) => {
         }
       `;
       document.head.appendChild(printStyles);
-      
+
       window.print();
-      
+
       // Restore original content
       document.body.innerHTML = originalContents;
       document.head.removeChild(printStyles);
-      
     } catch (error) {
-      console.error('Error generating invoice:', error);
+      console.error("Error generating invoice:", error);
       // Fallback to JSON download
       const orderInfo = {
         orderId: orderData.id,
@@ -590,14 +637,14 @@ const OrderDetails = React.memo(({ orderId, onBack }) => {
         items: orderData.items,
         summary: orderData.summary,
         status: orderStatus,
-        dateRange: orderData.dateRange
+        dateRange: orderData.dateRange,
       };
-      
+
       const jsonData = JSON.stringify(orderInfo, null, 2);
-      const blob = new Blob([jsonData], { type: 'application/json' });
+      const blob = new Blob([jsonData], { type: "application/json" });
       const url = URL.createObjectURL(blob);
-      
-      const link = document.createElement('a');
+
+      const link = document.createElement("a");
       link.href = url;
       link.download = `order-${orderData.id}-details.json`;
       document.body.appendChild(link);
@@ -612,8 +659,10 @@ const OrderDetails = React.memo(({ orderId, onBack }) => {
     const invoiceText = `
 🧾 INVOICE - Order #${orderData.id}
 
-📅 Invoice Date: ${new Date().toLocaleDateString('en-GB')}
-📅 Expected Date: ${new Date(Date.now() + 14*24*60*60*1000).toLocaleDateString('en-GB')}
+📅 Invoice Date: ${new Date().toLocaleDateString("en-GB")}
+📅 Expected Date: ${new Date(
+      Date.now() + 14 * 24 * 60 * 60 * 1000
+    ).toLocaleDateString("en-GB")}
 
 👤 CUSTOMER DETAILS:
 • Full Name: ${orderData.customer.name}
@@ -633,7 +682,9 @@ ${orderData.deliveryAddress}
 ${orderData.documents.name}
 
 🛍️ ORDER ITEMS:
-${orderData.items.map(item => `
+${orderData.items
+  .map(
+    (item) => `
 • Order ID: ${item.id}
   Date: ${item.date}
   Customer: ${item.customerName}
@@ -643,7 +694,9 @@ ${orderData.items.map(item => `
   Barcode: ${item.barcode}
   Price: ₹${item.price}
   Sale Price: ₹${item.salePrice}
-`).join('')}
+`
+  )
+  .join("")}
 
 💰 ORDER SUMMARY:
 • Sub Total: ₹${orderData.summary.subTotal}
@@ -655,30 +708,33 @@ ${orderData.items.map(item => `
 © 2025 YORAA. All rights reserved.
 Thank you for your business!
     `.trim();
-    
+
     // Share order invoice details
     if (navigator.share) {
-      navigator.share({
-        title: `Invoice - Order #${orderData.id}`,
-        text: invoiceText,
-        url: window.location.href,
-      }).catch(console.error);
+      navigator
+        .share({
+          title: `Invoice - Order #${orderData.id}`,
+          text: invoiceText,
+          url: window.location.href,
+        })
+        .catch(console.error);
     } else {
       // Fallback - copy to clipboard
-      navigator.clipboard.writeText(invoiceText)
-        .then(() => alert('Invoice details copied to clipboard!'))
-        .catch(() => alert('Unable to copy invoice details.'));
+      navigator.clipboard
+        .writeText(invoiceText)
+        .then(() => alert("Invoice details copied to clipboard!"))
+        .catch(() => alert("Unable to copy invoice details."));
     }
   }, [orderData, orderStatus]);
 
   const handleSave = useCallback(() => {
     // Save order changes (status, notes, etc.)
-    console.log('Saving order changes:', {
+    console.log("Saving order changes:", {
       orderId: orderData.id,
       status: orderStatus,
-      notes: notes
+      notes: notes,
     });
-    alert('Order saved successfully!');
+    alert("Order saved successfully!");
   }, [orderData.id, orderStatus, notes]);
 
   const handleViewDocuments = useCallback(() => {
@@ -688,7 +744,7 @@ Thank you for your business!
   // If showing document viewer, render the DocumentViewer component
   if (showDocumentViewer) {
     return (
-      <DocumentViewer 
+      <DocumentViewer
         orderId={orderId}
         onBack={() => setShowDocumentViewer(false)}
       />
@@ -699,55 +755,71 @@ Thank you for your business!
     <div className="bg-gray-50 min-h-screen p-4">
       <div className="max-w-full mx-0 ml-4">
         {/* Header */}
-        <div className="mb-8">
+        <div className="mb-8 space-y-2">
           <button
             onClick={onBack}
-            className="flex items-center space-x-2 text-gray-600 hover:text-gray-800 mb-4"
+            className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors duration-200"
           >
             <ArrowLeft className="h-4 w-4" />
-            <span>Back to Orders</span>
+            <span className="text-sm font-medium">Back to Orders</span>
           </button>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">order details</h1>
-          <h2 className="text-2xl font-bold text-gray-800">order</h2>
+
+          <h1 className="text-3xl font-bold text-gray-900 tracking-tight capitalize">
+            Order Details
+          </h1>
+
+          <h2 className="text-xl font-semibold text-gray-700 capitalize">
+            Order
+          </h2>
         </div>
 
         {/* Order Details Container */}
-        <div className="bg-white rounded-2xl shadow-sm p-6 space-y-6">
+        <div className="bg-white rounded-2xl shadow-md p-6 space-y-6">
           {/* Order Header */}
-          <div className="space-y-2">
+          <div className="space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-6">
-                <span className="text-sm font-medium text-gray-900">Orders ID: #{orderData.id}</span>
-                <div className={`px-3 py-2 rounded-lg text-xs font-semibold ${getStatusColor(orderStatus)}`}>
+                <span className="text-sm font-medium text-gray-800 tracking-tight">
+                  Order ID: #{orderData.id}
+                </span>
+                <div
+                  className={`px-3 py-1.5 rounded-md text-xs font-semibold ${getStatusColor(
+                    orderStatus
+                  )} uppercase tracking-wide`}
+                >
                   {orderStatus}
                 </div>
               </div>
             </div>
-            
-            <div className="flex items-center justify-between">
+
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-0">
               <div className="flex items-center space-x-2">
-                <Calendar className="h-6 w-6 text-gray-400" />
-                <span className="text-base font-semibold text-black">{orderData.dateRange}</span>
+                <Calendar className="h-5 w-5 text-gray-400" />
+                <span className="text-sm font-semibold text-gray-800">
+                  {orderData.dateRange}
+                </span>
               </div>
-              
-              <div className="flex items-center space-x-5">
+
+              <div className="flex items-center space-x-3">
                 {/* Status Change Dropdown */}
                 <div className="relative">
                   <button
                     onClick={() => setShowStatusDropdown(!showStatusDropdown)}
-                    className="bg-gray-100 px-4 py-3 rounded-lg flex items-center justify-between w-56"
+                    className="bg-gray-100 px-4 py-2 rounded-md flex items-center justify-between w-56 hover:bg-gray-200 transition"
                   >
-                    <span className="text-sm font-semibold text-gray-900">Change Status</span>
-                    <ChevronDown className="h-5 w-5 text-gray-400" />
+                    <span className="text-sm font-semibold text-gray-800">
+                      Change Status
+                    </span>
+                    <ChevronDown className="h-4 w-4 text-gray-500" />
                   </button>
-                  
+
                   {showStatusDropdown && (
-                    <div className="absolute top-full right-0 mt-2 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50 w-56">
+                    <div className="absolute top-full right-0 mt-2 bg-white rounded-md shadow-lg border border-gray-200 py-1 z-50 w-56">
                       {statusOptions.map((status) => (
                         <button
                           key={status}
                           onClick={() => handleStatusChange(status)}
-                          className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 text-gray-700"
+                          className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 transition"
                         >
                           {status}
                         </button>
@@ -755,106 +827,116 @@ Thank you for your business!
                     </div>
                   )}
                 </div>
-                
+
                 {/* Print Button */}
                 <button
                   onClick={handlePrint}
-                  className="bg-gray-100 px-4 py-3 rounded-lg flex items-center justify-center"
+                  className="bg-gray-100 p-2 rounded-md hover:bg-gray-200 transition"
                 >
-                  <Printer className="h-6 w-6 text-gray-600" />
+                  <Printer className="h-5 w-5 text-gray-600" />
                 </button>
-                
+
                 {/* Save Button */}
                 <button
                   onClick={handleSave}
-                  className="bg-gray-100 px-4 py-3 rounded-lg"
+                  className="bg-gray-100 px-4 py-2 rounded-md hover:bg-gray-200 transition"
                 >
-                  <span className="text-sm font-semibold text-gray-900">Save</span>
+                  <span className="text-sm font-semibold text-gray-800">
+                    Save
+                  </span>
                 </button>
               </div>
             </div>
           </div>
 
           {/* Information Cards Row */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             {/* Customer Info */}
-            <div className="bg-white border border-gray-200 rounded-2xl p-6">
+            <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
               <div className="flex items-start space-x-4 mb-4">
-                <div className="bg-gray-900 p-4 rounded-lg">
-                  <User className="h-6 w-6 text-white" />
+                <div className="bg-gray-900 p-3 rounded-md">
+                  <User className="h-5 w-5 text-white" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">Customer</h3>
-                  <div className="space-y-2 text-base text-gray-600">
+                  <h3 className="text-lg font-bold text-gray-900 mb-1 tracking-tight">
+                    Customer
+                  </h3>
+                  <div className="space-y-1 text-sm text-gray-600 leading-normal">
                     <p>Full Name: {orderData.customer.name}</p>
                     <p>Email: {orderData.customer.email}</p>
                     <p>Phone: {orderData.customer.phone}</p>
                   </div>
                 </div>
               </div>
-              <button className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg text-sm font-medium hover:bg-blue-700">
+              <button className="w-full bg-blue-600 text-white py-2 px-4 rounded-md text-sm font-medium hover:bg-blue-700 transition">
                 View profile
               </button>
             </div>
 
             {/* Order Info */}
-            <div className="bg-white border border-gray-200 rounded-2xl p-6">
+            <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
               <div className="flex items-start space-x-4 mb-4">
-                <div className="bg-gray-900 p-4 rounded-lg">
-                  <Package className="h-6 w-6 text-white" />
+                <div className="bg-gray-900 p-3 rounded-md">
+                  <Package className="h-5 w-5 text-white" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">Order Info</h3>
-                  <div className="space-y-2 text-base text-gray-600 font-semibold">
+                  <h3 className="text-lg font-bold text-gray-900 mb-1 tracking-tight">
+                    Order Info
+                  </h3>
+                  <div className="space-y-1 text-sm text-gray-600 font-medium">
                     <p>Shipping: {orderData.orderInfo.shipping}</p>
                     <p>Payment Method: {orderData.orderInfo.paymentMethod}</p>
                     <p>Status: {orderData.orderInfo.status}</p>
                   </div>
                 </div>
               </div>
-              <button 
+              <button
                 onClick={handleDownload}
-                className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg text-sm font-medium hover:bg-blue-700"
+                className="w-full bg-blue-600 text-white py-2 px-4 rounded-md text-sm font-medium hover:bg-blue-700 transition"
               >
                 Download info
               </button>
             </div>
 
             {/* Delivery Info */}
-            <div className="bg-white border border-gray-200 rounded-2xl p-6">
+            <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
               <div className="flex items-start space-x-4 mb-4">
-                <div className="bg-gray-900 p-4 rounded-lg">
-                  <Package className="h-6 w-6 text-white" />
+                <div className="bg-gray-900 p-3 rounded-md">
+                  <Package className="h-5 w-5 text-white" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">Deliver to</h3>
-                  <div className="text-base text-gray-600 font-semibold">
+                  <h3 className="text-lg font-bold text-gray-900 mb-1 tracking-tight">
+                    Deliver To
+                  </h3>
+                  <div className="text-sm text-gray-600 font-medium leading-normal">
                     <p>Address: {orderData.deliveryAddress}</p>
                   </div>
                 </div>
               </div>
-              <button className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg text-sm font-medium hover:bg-blue-700">
+              <button className="w-full bg-blue-600 text-white py-2 px-4 rounded-md text-sm font-medium hover:bg-blue-700 transition">
                 View profile
               </button>
             </div>
 
             {/* Documents Info */}
-            <div className="bg-white border border-gray-200 rounded-2xl p-6">
+            <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
               <div className="flex items-start space-x-4 mb-4">
-                <div className="bg-gray-900 p-4 rounded-lg">
-                  <FileText className="h-6 w-6 text-white" />
+                <div className="bg-gray-900 p-3 rounded-md">
+                  <FileText className="h-5 w-5 text-white" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">documents submitted</h3>
-                  <div className="text-base text-gray-600 font-semibold">
-                    <p>document name</p>
+                  <h3 className="text-lg font-bold text-gray-900 mb-1 tracking-tight">
+                    Documents Submitted
+                  </h3>
+                  <div className="text-sm text-gray-600 font-medium leading-normal">
+                    <p>Document Name:</p>
                     <p>{orderData.documents.name}</p>
                   </div>
                 </div>
               </div>
-              <button 
+              <button
                 onClick={handleViewDocuments}
-                className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg text-sm font-medium hover:bg-blue-700"
+                className="w-full bg-blue-600 text-white py-2 px-4 rounded-md text-sm font-medium hover:bg-blue-700 transition"
               >
                 View documents
               </button>
@@ -862,37 +944,47 @@ Thank you for your business!
           </div>
 
           {/* Payment Info and Notes Row */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Payment Info */}
-            <div className="bg-white border border-gray-200 rounded-2xl p-4">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">payment info</h3>
-              <div className="space-y-2">
-                <div className="flex items-center space-x-2">
-                  <div className="w-9 h-5 bg-red-600 rounded flex items-center justify-center">
-                    <span className="text-xs text-white font-bold">M</span>
+            <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
+              <h3 className="text-lg font-bold text-gray-900 mb-4 tracking-tight">
+                Payment Info
+              </h3>
+              <div className="space-y-2 text-sm text-gray-700">
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-5 bg-red-600 rounded flex items-center justify-center">
+                    <span className="text-xs font-semibold text-white">M</span>
                   </div>
-                  <span className="text-base font-semibold text-gray-700">
+                  <span className="font-medium">
                     {orderData.paymentInfo.cardNumber}
                   </span>
                 </div>
-                <p className="text-base font-semibold text-gray-700">
-                  Business name: {orderData.paymentInfo.businessName}
+                <p className="font-medium">
+                  Business Name:{" "}
+                  <span className="text-gray-800">
+                    {orderData.paymentInfo.businessName}
+                  </span>
                 </p>
-                <p className="text-base font-semibold text-gray-700">
-                  Phone: {orderData.paymentInfo.phone}
+                <p className="font-medium">
+                  Phone:{" "}
+                  <span className="text-gray-800">
+                    {orderData.paymentInfo.phone}
+                  </span>
                 </p>
               </div>
             </div>
 
             {/* Note */}
             <div className="md:col-span-2">
-              <h3 className="text-xl font-medium text-gray-900 mb-2">Note</h3>
-              <div className="bg-white border border-gray-200 rounded-2xl p-4">
+              <h3 className="text-lg font-bold text-gray-900 mb-2 tracking-tight">
+                Note
+              </h3>
+              <div className="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
                 <textarea
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Type some notes"
-                  className="w-full h-20 text-base text-gray-700 placeholder-gray-500 border-none outline-none resize-none"
+                  placeholder="Add internal notes..."
+                  className="w-full h-24 text-sm text-gray-800 placeholder-gray-400 bg-transparent border-none outline-none resize-none"
                 />
               </div>
             </div>
@@ -900,86 +992,111 @@ Thank you for your business!
         </div>
 
         {/* Order Items Table */}
-        <div className="bg-white rounded-2xl shadow-sm mt-6">
+        <div className="bg-white rounded-2xl shadow-md mt-6">
           {/* Table Header */}
-          <div className="px-6 py-4 border-b border-gray-200">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-3xl font-bold text-gray-900">order</h2>
+          <div className="px-6 py-5 border-b border-gray-200">
+            <div className="flex items-center justify-between mb-12">
+              <h2 className="text-2xl font-bold text-gray-900 tracking-tight">
+                Order
+              </h2>
               <div className="flex items-center space-x-2">
                 <button
                   onClick={handlePrint}
-                  className="bg-gray-100 p-2 rounded-lg hover:bg-gray-200"
+                  className="bg-gray-100 p-2 rounded-md hover:bg-gray-200 transition"
                 >
-                  <Printer className="h-6 w-6 text-gray-600" />
+                  <Printer className="h-5 w-5 text-gray-600" />
                 </button>
-                <button 
+                <button
                   onClick={handleShare}
-                  className="p-2 hover:bg-gray-100 rounded"
+                  className="bg-gray-100 p-2 rounded-md hover:bg-gray-200 transition"
                 >
-                  <Share2 className="h-6 w-6 text-gray-600" />
+                  <Share2 className="h-5 w-5 text-gray-600" />
                 </button>
                 <button
                   onClick={handleDownload}
-                  className="p-2 hover:bg-gray-100 rounded"
+                  className="bg-gray-100 p-2 rounded-md hover:bg-gray-200 transition"
                 >
-                  <Download className="h-6 w-6 text-gray-600" />
+                  <Download className="h-5 w-5 text-gray-600" />
                 </button>
               </div>
             </div>
-            
+
             {/* Table Column Headers */}
-            <div className="grid grid-cols-10 gap-4 text-sm font-medium text-gray-600">
+            <div className="grid grid-cols-10 gap-4 text-sm font-bold text-gray-500 uppercase tracking-wide">
               <div>Image</div>
-              <div>order id</div>
-              <div>date</div>
-              <div>customer name</div>
-              <div>size</div>
-              <div>quantity</div>
+              <div>Order ID</div>
+              <div>Date</div>
+              <div>Customer Name</div>
+              <div>Size</div>
+              <div>Qty</div>
               <div>SKU</div>
-              <div>barcode no.</div>
+              <div>Barcode</div>
               <div>Price</div>
-              <div>sale price</div>
+              <div>Sale Price</div>
             </div>
           </div>
 
           {/* Table Body */}
-          <div className="p-6">
+          <div className="p-6 space-y-4">
             {orderData.items.map((item, index) => (
-              <div key={index} className="grid grid-cols-10 gap-4 items-center py-4 border-b border-gray-100 last:border-b-0">
+              <div
+                key={index}
+                className="grid grid-cols-10 gap-4 items-center py-4 border-b border-gray-100 last:border-b-0"
+              >
                 <div>
-                  <img 
-                    src={item.image} 
-                    alt="Product" 
-                    className="w-32 h-36 object-cover rounded-lg bg-gray-100"
+                  <img
+                    src={item.image}
+                    alt="Product"
+                    className="w-20 h-28 object-cover rounded-md bg-gray-100"
                   />
                 </div>
                 <div>
-                  <span className="text-xl font-medium text-blue-600 underline cursor-pointer">
+                  <span className="text-sm font-semibold text-blue-600 underline cursor-pointer">
                     {item.id}
                   </span>
                 </div>
-                <div className="text-xl font-medium text-gray-900">{item.date}</div>
-                <div className="text-xl font-medium text-gray-900">{item.customerName}</div>
-                <div className="text-xl font-medium text-gray-900">{item.size}</div>
-                <div className="text-xl font-medium text-gray-900">{item.quantity}</div>
-                <div className="text-xl font-medium text-gray-900">{item.sku}</div>
-                <div className="text-xl font-medium text-gray-900">{item.barcode}</div>
-                <div className="text-xl font-medium text-gray-900">{item.price}</div>
-                <div className="text-xl font-medium text-gray-900">{item.salePrice}</div>
+                <div className="text-sm font-medium text-gray-800">
+                  {item.date}
+                </div>
+                <div className="text-sm font-medium text-gray-800">
+                  {item.customerName}
+                </div>
+                <div className="text-sm font-medium text-gray-800">
+                  {item.size}
+                </div>
+                <div className="text-sm font-medium text-gray-800">
+                  {item.quantity}
+                </div>
+                <div className="text-sm font-medium text-gray-800">
+                  {item.sku}
+                </div>
+                <div className="text-sm font-medium text-gray-800">
+                  {item.barcode}
+                </div>
+                <div className="text-sm font-medium text-gray-800">
+                  {item.price}
+                </div>
+                <div className="text-sm font-medium text-gray-800">
+                  {item.salePrice}
+                </div>
               </div>
             ))}
           </div>
 
           {/* Order Summary */}
-          <div className="px-6 pb-6 flex justify-end">
-            <div className="space-y-4">
-              <div className="flex justify-between text-xl font-bold text-gray-600 min-w-[200px]">
+          <div className="flex justify-end p-6">
+            <div className="space-y-4 border boder-slate-200 bg-slate-100 p-6 rounded-xl">
+              <div className="flex justify-between text-base font-bold text-gray-700 min-w-[240px] border-b border-gray-200 pb-2">
                 <span>Sub Total</span>
-                <span className="text-gray-900">{orderData.summary.subTotal}</span>
+                <span className="text-gray-900">
+                  {orderData.summary.subTotal}
+                </span>
               </div>
               <div className="flex justify-between text-xl font-bold text-gray-600">
                 <span>Shipping Rate</span>
-                <span className="text-gray-900">{orderData.summary.shippingRate}</span>
+                <span className="text-gray-900">
+                  {orderData.summary.shippingRate}
+                </span>
               </div>
               <div className="flex justify-between text-xl font-bold text-gray-600">
                 <span>Promo</span>
@@ -987,7 +1104,9 @@ Thank you for your business!
               </div>
               <div className="flex justify-between text-xl font-bold text-gray-600">
                 <span>Points</span>
-                <span className="text-gray-900">{orderData.summary.points}</span>
+                <span className="text-gray-900">
+                  {orderData.summary.points}
+                </span>
               </div>
               <div className="flex justify-between text-xl font-bold text-gray-600 pt-2 border-t border-gray-200">
                 <span>Total</span>
@@ -1003,7 +1122,7 @@ Thank you for your business!
 
 /**
  * ReturnWindowScreen Component
- * 
+ *
  * A dedicated screen for managing return requests with options to:
  * - View return reason and product images
  * - Accept or reject the return
@@ -1011,30 +1130,30 @@ Thank you for your business!
  * - Provide explanation for rejection
  */
 const ReturnWindowScreen = React.memo(({ returnId, onBack }) => {
-  const [returnStatus, setReturnStatus] = useState('pending');
-  const [selectedReason, setSelectedReason] = useState('');
+  const [returnStatus, setReturnStatus] = useState("pending");
+  const [selectedReason, setSelectedReason] = useState("");
   const [vendorAllotted, setVendorAllotted] = useState(false);
   const [courierAllotted, setCourierAllotted] = useState(false);
-  const [explanation, setExplanation] = useState('');
+  const [explanation, setExplanation] = useState("");
   const [showVendorOptions, setShowVendorOptions] = useState(false);
   const [showCourierOptions, setShowCourierOptions] = useState(false);
   const [showVendorSelection, setShowVendorSelection] = useState(false);
-  const [selectedVendor, setSelectedVendor] = useState('');
+  const [selectedVendor, setSelectedVendor] = useState("");
 
   // Sample return reasons
   const returnReasons = [
-    'Size/fit issue (For Exchanging the product)',
-    'Product not as expected',
-    'Wrong item received',
-    'Damaged/defective product',
-    'Late delivery',
-    'Quality not as expected'
+    "Size/fit issue (For Exchanging the product)",
+    "Product not as expected",
+    "Wrong item received",
+    "Damaged/defective product",
+    "Late delivery",
+    "Quality not as expected",
   ];
 
   // Handle status change
   const handleStatusChange = useCallback((status) => {
     setReturnStatus(status);
-    if (status === 'accepted') {
+    if (status === "accepted") {
       setShowVendorOptions(true);
     } else {
       setShowVendorOptions(false);
@@ -1054,7 +1173,7 @@ const ReturnWindowScreen = React.memo(({ returnId, onBack }) => {
       setShowCourierOptions(false);
       setCourierAllotted(false);
       setShowVendorSelection(false);
-      setSelectedVendor('');
+      setSelectedVendor("");
     }
   }, []);
 
@@ -1068,7 +1187,9 @@ const ReturnWindowScreen = React.memo(({ returnId, onBack }) => {
     if (selectedVendor) {
       setShowVendorSelection(false);
       console.log(`Vendor ${selectedVendor} confirmed for return ${returnId}`);
-      alert(`Vendor "${selectedVendor}" has been successfully assigned to return ${returnId}`);
+      alert(
+        `Vendor "${selectedVendor}" has been successfully assigned to return ${returnId}`
+      );
     }
   }, [selectedVendor, returnId]);
 
@@ -1085,15 +1206,26 @@ const ReturnWindowScreen = React.memo(({ returnId, onBack }) => {
       vendorAllotted,
       courierAllotted,
       explanation,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
-    
-    console.log('Return response:', response);
-    alert(`Return ${returnStatus} successfully!\nVendor: ${vendorAllotted ? 'Allotted' : 'Not allotted'}\nCourier: ${courierAllotted ? 'Allotted' : 'Not allotted'}`);
-    
+
+    console.log("Return response:", response);
+    alert(
+      `Return ${returnStatus} successfully!\nVendor: ${
+        vendorAllotted ? "Allotted" : "Not allotted"
+      }\nCourier: ${courierAllotted ? "Allotted" : "Not allotted"}`
+    );
+
     // In a real app, this would make an API call
     onBack();
-  }, [returnId, returnStatus, vendorAllotted, courierAllotted, explanation, onBack]);
+  }, [
+    returnId,
+    returnStatus,
+    vendorAllotted,
+    courierAllotted,
+    explanation,
+    onBack,
+  ]);
 
   return (
     <div className="bg-gray-50 min-h-screen p-4">
@@ -1105,36 +1237,55 @@ const ReturnWindowScreen = React.memo(({ returnId, onBack }) => {
               onClick={onBack}
               className="flex items-center space-x-2 text-gray-600 hover:text-gray-800"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M10 19l-7-7m0 0l7-7m-7 7h18"
+                />
               </svg>
               <span>Back to Returns</span>
             </button>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">Return Window Screen</h1>
+          <h1 className="text-2xl font-bold text-gray-900">
+            Return Window Screen
+          </h1>
         </div>
 
         {/* Main Content */}
         <div className="bg-white rounded-lg shadow-lg p-6">
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-            
             {/* Image Preview Section */}
             <div className="lg:col-span-1">
-              <h3 className="text-lg font-bold text-gray-900 mb-4">Image Preview</h3>
+              <h3 className="text-lg font-bold text-gray-900 mb-4">
+                Image Preview
+              </h3>
               <div className="space-y-4">
-                {/* Main Product Image */}
                 <div className="w-full h-64 bg-gray-100 rounded-lg overflow-hidden">
                   <div className="w-full h-full bg-blue-200 rounded flex items-center justify-center">
-                    <div className="w-32 h-32 bg-blue-400 rounded" aria-label="Product image"></div>
+                    <div
+                      className="w-32 h-32 bg-blue-400 rounded"
+                      aria-label="Product image"
+                    ></div>
                   </div>
                 </div>
-                
-                {/* Thumbnail Images */}
                 <div className="grid grid-cols-2 gap-2">
                   {[1, 2, 3, 4].map((_, index) => (
-                    <div key={index} className="w-full h-20 bg-gray-100 rounded overflow-hidden">
+                    <div
+                      key={index}
+                      className="w-full h-20 bg-gray-100 rounded overflow-hidden"
+                    >
                       <div className="w-full h-full bg-blue-200 rounded flex items-center justify-center">
-                        <div className="w-8 h-8 bg-blue-400 rounded" aria-label={`Thumbnail ${index + 1}`}></div>
+                        <div
+                          className="w-8 h-8 bg-blue-400 rounded"
+                          aria-label={`Thumbnail ${index + 1}`}
+                        ></div>
                       </div>
                     </div>
                   ))}
@@ -1144,13 +1295,17 @@ const ReturnWindowScreen = React.memo(({ returnId, onBack }) => {
 
             {/* Reason of Return Section */}
             <div className="lg:col-span-1">
-              <h3 className="text-lg font-bold text-gray-900 mb-4">Reason of return</h3>
+              <h3 className="text-lg font-bold text-gray-900 mb-4">
+                Reason of return
+              </h3>
               <div className="space-y-1">
                 {returnReasons.map((reason, index) => (
                   <div
                     key={index}
                     className={`p-3 border-b border-gray-200 cursor-pointer hover:bg-gray-50 ${
-                      selectedReason === reason ? 'bg-blue-50 border-blue-200' : ''
+                      selectedReason === reason
+                        ? "bg-blue-50 border-blue-200"
+                        : ""
                     }`}
                     onClick={() => setSelectedReason(reason)}
                   >
@@ -1165,21 +1320,21 @@ const ReturnWindowScreen = React.memo(({ returnId, onBack }) => {
               <h3 className="text-lg font-bold text-gray-900 mb-4">Status</h3>
               <div className="space-y-4">
                 <button
-                  onClick={() => handleStatusChange('accepted')}
+                  onClick={() => handleStatusChange("accepted")}
                   className={`w-full px-4 py-2 rounded-lg font-medium ${
-                    returnStatus === 'accepted'
-                      ? 'bg-green-500 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    returnStatus === "accepted"
+                      ? "bg-green-500 text-white"
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                   }`}
                 >
                   Accepted
                 </button>
                 <button
-                  onClick={() => handleStatusChange('rejected')}
+                  onClick={() => handleStatusChange("rejected")}
                   className={`w-full px-4 py-2 rounded-lg font-medium ${
-                    returnStatus === 'rejected'
-                      ? 'bg-red-500 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    returnStatus === "rejected"
+                      ? "bg-red-500 text-white"
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                   }`}
                 >
                   Rejected
@@ -1190,14 +1345,16 @@ const ReturnWindowScreen = React.memo(({ returnId, onBack }) => {
               {showVendorOptions && (
                 <div className="mt-6 space-y-4">
                   <div>
-                    <h4 className="text-sm font-medium text-gray-700 mb-2">Allot Vendor</h4>
+                    <h4 className="text-sm font-medium text-gray-700 mb-2">
+                      Allot Vendor
+                    </h4>
                     <div className="flex space-x-2">
                       <button
                         onClick={() => handleVendorAllotment(false)}
                         className={`px-4 py-2 rounded-full text-sm font-medium ${
                           vendorAllotted === false
-                            ? 'bg-gray-200 text-gray-700'
-                            : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-50'
+                            ? "bg-gray-200 text-gray-700"
+                            : "bg-white border border-gray-300 text-gray-600 hover:bg-gray-50"
                         }`}
                       >
                         No
@@ -1206,69 +1363,93 @@ const ReturnWindowScreen = React.memo(({ returnId, onBack }) => {
                         onClick={() => handleVendorAllotment(true)}
                         className={`px-4 py-2 rounded-full text-sm font-medium ${
                           vendorAllotted === true
-                            ? 'bg-blue-600 text-white'
-                            : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-50'
+                            ? "bg-blue-600 text-white"
+                            : "bg-white border border-gray-300 text-gray-600 hover:bg-gray-50"
                         }`}
                       >
                         Yes
                       </button>
                     </div>
 
-                    {/* Display selected vendor name */}
-                    {vendorAllotted && selectedVendor && !showVendorSelection && (
-                      <div className="mt-4">
-                        <div className="text-sm font-medium text-gray-700 mb-2">Assigned Vendor:</div>
-                        <span className="inline-block px-3 py-1 bg-blue-100 text-blue-800 font-medium rounded-full text-sm">
-                          {selectedVendor}
-                        </span>
-                      </div>
-                    )}
+                    {vendorAllotted &&
+                      selectedVendor &&
+                      !showVendorSelection && (
+                        <div className="mt-4">
+                          <div className="text-sm font-medium text-gray-700 mb-2">
+                            Assigned Vendor:
+                          </div>
+                          <span className="inline-block px-3 py-1 bg-blue-100 text-blue-800 font-medium rounded-full text-sm">
+                            {selectedVendor}
+                          </span>
+                        </div>
+                      )}
 
-                    {/* Vendor Selection Dropdown */}
                     {showVendorSelection && (
                       <div className="mt-4">
                         <div className="bg-white border border-gray-200 rounded-xl shadow-lg p-4 max-w-[220px]">
-                          <div className="text-sm font-medium text-gray-400 mb-3">vendor name</div>
+                          <div className="text-sm font-medium text-gray-400 mb-3">
+                            vendor name
+                          </div>
                           <div className="space-y-0">
-                            {['ven 1', 'ven 2', 'ven 3'].map((vendor, index) => (
-                              <div key={vendor}>
-                                <label className="flex items-center justify-between py-2 px-2 hover:bg-gray-50 rounded cursor-pointer">
-                                  <span className="text-sm font-medium text-gray-900">{vendor}</span>
-                                  <div className="relative">
-                                    <input
-                                      type="radio"
-                                      name="vendor-selection"
-                                      value={vendor}
-                                      checked={selectedVendor === vendor}
-                                      onChange={() => handleVendorSelection(vendor)}
-                                      className="sr-only"
-                                    />
-                                    <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
-                                      selectedVendor === vendor 
-                                        ? 'border-blue-500 bg-blue-50' 
-                                        : 'border-gray-300 bg-white'
-                                    }`}>
-                                      {selectedVendor === vendor && (
-                                        <Check className="w-3 h-3 text-blue-500" />
-                                      )}
+                            {["ven 1", "ven 2", "ven 3"].map(
+                              (vendor, index) => (
+                                <div key={vendor}>
+                                  <label className="flex items-center justify-between py-2 px-2 hover:bg-gray-50 rounded cursor-pointer">
+                                    <span className="text-sm font-medium text-gray-900">
+                                      {vendor}
+                                    </span>
+                                    <div className="relative">
+                                      <input
+                                        type="radio"
+                                        name="vendor-selection"
+                                        value={vendor}
+                                        checked={selectedVendor === vendor}
+                                        onChange={() =>
+                                          handleVendorSelection(vendor)
+                                        }
+                                        className="sr-only"
+                                      />
+                                      <div
+                                        className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
+                                          selectedVendor === vendor
+                                            ? "border-blue-500 bg-blue-50"
+                                            : "border-gray-300 bg-white"
+                                        }`}
+                                      >
+                                        {selectedVendor === vendor && (
+                                          <Check className="w-3 h-3 text-blue-500" />
+                                        )}
+                                      </div>
                                     </div>
-                                  </div>
-                                </label>
-                                {index < 2 && <hr className="border-gray-200" />}
-                              </div>
-                            ))}
+                                  </label>
+                                  {index < 2 && (
+                                    <hr className="border-gray-200" />
+                                  )}
+                                </div>
+                              )
+                            )}
                           </div>
                           <button
                             onClick={handleVendorConfirm}
                             disabled={!selectedVendor}
                             className={`w-full mt-4 px-4 py-2 rounded-lg text-sm font-medium flex items-center justify-center space-x-2 ${
                               selectedVendor
-                                ? 'bg-blue-600 text-white hover:bg-blue-700'
-                                : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                                ? "bg-blue-600 text-white hover:bg-blue-700"
+                                : "bg-gray-200 text-gray-400 cursor-not-allowed"
                             }`}
                           >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                            <svg
+                              className="w-4 h-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                              />
                             </svg>
                             <span>confirm</span>
                           </button>
@@ -1279,14 +1460,16 @@ const ReturnWindowScreen = React.memo(({ returnId, onBack }) => {
 
                   {showCourierOptions && (
                     <div>
-                      <h4 className="text-sm font-medium text-gray-700 mb-2">Courier Allotted</h4>
+                      <h4 className="text-sm font-medium text-gray-700 mb-2">
+                        Courier Allotted
+                      </h4>
                       <div className="flex space-x-2">
                         <button
                           onClick={() => handleCourierAllotment(false)}
                           className={`px-4 py-2 rounded-full text-sm font-medium ${
                             courierAllotted === false
-                              ? 'bg-gray-200 text-gray-700'
-                              : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-50'
+                              ? "bg-gray-200 text-gray-700"
+                              : "bg-white border border-gray-300 text-gray-600 hover:bg-gray-50"
                           }`}
                         >
                           No
@@ -1295,8 +1478,8 @@ const ReturnWindowScreen = React.memo(({ returnId, onBack }) => {
                           onClick={() => handleCourierAllotment(true)}
                           className={`px-4 py-2 rounded-full text-sm font-medium ${
                             courierAllotted === true
-                              ? 'bg-blue-600 text-white'
-                              : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-50'
+                              ? "bg-blue-600 text-white"
+                              : "bg-white border border-gray-300 text-gray-600 hover:bg-gray-50"
                           }`}
                         >
                           Yes
@@ -1310,17 +1493,21 @@ const ReturnWindowScreen = React.memo(({ returnId, onBack }) => {
 
             {/* Give Reason/Explanation Section */}
             <div className="lg:col-span-2">
-              <h3 className="text-lg font-bold text-gray-900 mb-4">Give Explanation</h3>
+              <h3 className="text-lg font-bold text-gray-900 mb-4">
+                Give Explanation
+              </h3>
               <div className="space-y-4">
                 <textarea
                   value={explanation}
                   onChange={(e) => setExplanation(e.target.value)}
-                  placeholder={returnStatus === 'rejected' ? 'Provide reason for rejection...' : 'Add any additional notes...'}
+                  placeholder={
+                    returnStatus === "rejected"
+                      ? "Provide reason for rejection..."
+                      : "Add any additional notes..."
+                  }
                   className="w-full h-32 p-3 border-2 border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   rows={6}
                 />
-                
-                {/* Send Response Button */}
                 <div className="flex justify-center pt-4">
                   <button
                     onClick={handleSendResponse}
@@ -1340,11 +1527,11 @@ const ReturnWindowScreen = React.memo(({ returnId, onBack }) => {
 
 /**
  * Orders Component
- * 
+ *
  * A comprehensive orders management interface that displays order data in a table format
  * with enhanced filtering capabilities, status tracking, vendor allotment, courier management,
  * and real-time delivery status tracking.
- * 
+ *
  * Features:
  * - Order listing with detailed information
  * - Multiple filter options (date, type, status)
@@ -1356,7 +1543,7 @@ const ReturnWindowScreen = React.memo(({ returnId, onBack }) => {
  * - Real-time delivery status tracking
  * - Action buttons (barcode scan, print, download/share)
  * - Responsive design with Tailwind CSS
- * 
+ *
  * Performance Optimizations:
  * - useMemo for expensive computations
  * - useCallback for stable function references
@@ -1366,11 +1553,11 @@ const ReturnWindowScreen = React.memo(({ returnId, onBack }) => {
 const Orders = React.memo(() => {
   const navigate = useNavigate();
   // State management for filters, UI controls, and enhanced order management
-  const [selectedStartDate, setSelectedStartDate] = useState('06/05/1999');
-  const [selectedEndDate, setSelectedEndDate] = useState('06/05/1999');
-  const [filterBy, setFilterBy] = useState('Date');
-  const [orderType, setOrderType] = useState('Order Type');
-  const [orderStatus, setOrderStatus] = useState('Order Status');
+  const [selectedStartDate, setSelectedStartDate] = useState("06/05/1999");
+  const [selectedEndDate, setSelectedEndDate] = useState("06/05/1999");
+  const [filterBy, setFilterBy] = useState("Date");
+  const [orderType, setOrderType] = useState("Order Type");
+  const [orderStatus, setOrderStatus] = useState("Order Status");
   const [showDateDropdown, setShowDateDropdown] = useState(false);
   const [showOrderTypeDropdown, setShowOrderTypeDropdown] = useState(false);
   const [showOrderStatusDropdown, setShowOrderStatusDropdown] = useState(false);
@@ -1381,155 +1568,155 @@ const Orders = React.memo(() => {
   const [allottedVendorNames, setAllottedVendorNames] = useState({});
   const [courierAllotments, setCourierAllotments] = useState({});
   const [deliveryStatuses, setDeliveryStatuses] = useState({});
-  
+
   // New state for order details view
   const [showOrderDetails, setShowOrderDetails] = useState(false);
   const [selectedOrderId, setSelectedOrderId] = useState(null);
-  
+
   // New state for return window screen
   const [showReturnWindow, setShowReturnWindow] = useState(false);
   const [selectedReturnId, setSelectedReturnId] = useState(null);
-  
+
   // New state for tab management
-  const [activeTab, setActiveTab] = useState('orders');
+  const [activeTab, setActiveTab] = useState("orders");
 
   // State for managing orders data
   const [orders, setOrders] = useState(() => [
     {
-      orderId: '1234567892220',
-      paymentStatus: 'Pending',
-      image: '/api/placeholder/60/60',
-      productName: 'T shirt',
-      name: 'Tarnnish',
-      date: '13 aug 2024',
-      hsn: '406000',
-      size: ['small', 'medium', 'large'],
+      orderId: "1234567892220",
+      paymentStatus: "Pending",
+      image: "/api/placeholder/60/60",
+      productName: "T shirt",
+      name: "Tarnnish",
+      date: "13 aug 2024",
+      hsn: "406000",
+      size: ["small", "medium", "large"],
       sizeQuantity: [5, 10, 115],
       quantity: 130,
       price: 4566,
       salePrice: 4566,
-      sku: 'bkhvhm0251',
-      barcodeNo: '406000000000000',
-      status: 'pending',
-      orderType: 'prepaid',
-      slotVendor: 'slot vendor',
-      courierAlloted: 'NO',
-      delivered: 'NO',
-      actions: 'Pending',
+      sku: "bkhvhm0251",
+      barcodeNo: "406000000000000",
+      status: "pending",
+      orderType: "prepaid",
+      slotVendor: "slot vendor",
+      courierAlloted: "NO",
+      delivered: "NO",
+      actions: "Pending",
       vendorAllotted: false,
       allottedVendorName: null,
       courierTrackingId: null,
-      deliveryStatus: 'Order Placed',
-      lastUpdated: new Date().toISOString()
+      deliveryStatus: "Order Placed",
+      lastUpdated: new Date().toISOString(),
     },
     {
-      orderId: '1234567892221',
-      paymentStatus: 'Paid',
-      image: '/api/placeholder/60/60',
-      productName: 'T shirt',
-      name: 'Tarnnish',
-      date: '13 aug 2024',
-      hsn: '406000',
-      size: ['small', 'medium', 'large'],
+      orderId: "1234567892221",
+      paymentStatus: "Paid",
+      image: "/api/placeholder/60/60",
+      productName: "T shirt",
+      name: "Tarnnish",
+      date: "13 aug 2024",
+      hsn: "406000",
+      size: ["small", "medium", "large"],
       sizeQuantity: [5, 10, 115],
       quantity: 130,
       price: 4566,
       salePrice: 4566,
-      sku: 'bkhvhm0251',
-      barcodeNo: '406000000000000',
-      status: 'processing',
-      orderType: 'cod',
-      slotVendor: 'slot vendor',
-      courierAlloted: 'YES',
-      delivered: 'NO',
-      actions: 'Processing',
+      sku: "bkhvhm0251",
+      barcodeNo: "406000000000000",
+      status: "processing",
+      orderType: "cod",
+      slotVendor: "slot vendor",
+      courierAlloted: "YES",
+      delivered: "NO",
+      actions: "Processing",
       vendorAllotted: true,
-      allottedVendorName: 'ven 1',
-      courierTrackingId: 'SP123456789',
-      deliveryStatus: 'In Transit',
-      lastUpdated: new Date().toISOString()
+      allottedVendorName: "ven 1",
+      courierTrackingId: "SP123456789",
+      deliveryStatus: "In Transit",
+      lastUpdated: new Date().toISOString(),
     },
     {
-      orderId: '1234567892222',
-      paymentStatus: 'Paid',
-      image: '/api/placeholder/60/60',
-      productName: 'Lower',
-      name: 'Shristi',
-      date: '14 aug 2024',
-      hsn: '406001',
-      size: ['small', 'medium'],
+      orderId: "1234567892222",
+      paymentStatus: "Paid",
+      image: "/api/placeholder/60/60",
+      productName: "Lower",
+      name: "Shristi",
+      date: "14 aug 2024",
+      hsn: "406001",
+      size: ["small", "medium"],
       sizeQuantity: [8, 12],
       quantity: 20,
       price: 2500,
       salePrice: 2300,
-      sku: 'bkhvhm0252',
-      barcodeNo: '406001000000000',
-      status: 'accepted',
-      orderType: 'prepaid',
-      slotVendor: 'vendor 2',
-      courierAlloted: 'YES',
-      delivered: 'YES',
-      actions: 'Delivered',
+      sku: "bkhvhm0252",
+      barcodeNo: "406001000000000",
+      status: "accepted",
+      orderType: "prepaid",
+      slotVendor: "vendor 2",
+      courierAlloted: "YES",
+      delivered: "YES",
+      actions: "Delivered",
       vendorAllotted: true,
-      allottedVendorName: 'ven 2',
-      courierTrackingId: 'SP123456790',
-      deliveryStatus: 'Delivered',
-      lastUpdated: new Date().toISOString()
+      allottedVendorName: "ven 2",
+      courierTrackingId: "SP123456790",
+      deliveryStatus: "Delivered",
+      lastUpdated: new Date().toISOString(),
     },
     {
-      orderId: '1234567892223',
-      paymentStatus: 'Pending',
-      image: '/api/placeholder/60/60',
-      productName: 'Shorts',
-      name: 'Rajesh',
-      date: '15 aug 2024',
-      hsn: '406002',
-      size: ['medium', 'large'],
+      orderId: "1234567892223",
+      paymentStatus: "Pending",
+      image: "/api/placeholder/60/60",
+      productName: "Shorts",
+      name: "Rajesh",
+      date: "15 aug 2024",
+      hsn: "406002",
+      size: ["medium", "large"],
       sizeQuantity: [15, 25],
       quantity: 40,
       price: 1800,
       salePrice: 1650,
-      sku: 'bkhvhm0253',
-      barcodeNo: '406002000000000',
-      status: 'rejected',
-      orderType: 'cod',
-      slotVendor: 'vendor 3',
-      courierAlloted: 'NO',
-      delivered: 'NO',
-      actions: 'Rejected',
+      sku: "bkhvhm0253",
+      barcodeNo: "406002000000000",
+      status: "rejected",
+      orderType: "cod",
+      slotVendor: "vendor 3",
+      courierAlloted: "NO",
+      delivered: "NO",
+      actions: "Rejected",
       vendorAllotted: false,
       allottedVendorName: null,
       courierTrackingId: null,
-      deliveryStatus: 'Cancelled',
-      lastUpdated: new Date().toISOString()
+      deliveryStatus: "Cancelled",
+      lastUpdated: new Date().toISOString(),
     },
     {
-      orderId: '1234567892224',
-      paymentStatus: 'Paid',
-      image: '/api/placeholder/60/60',
-      productName: 'Jacket',
-      name: 'Priya',
-      date: '16 aug 2024',
-      hsn: '406003',
-      size: ['small', 'medium', 'large'],
+      orderId: "1234567892224",
+      paymentStatus: "Paid",
+      image: "/api/placeholder/60/60",
+      productName: "Jacket",
+      name: "Priya",
+      date: "16 aug 2024",
+      hsn: "406003",
+      size: ["small", "medium", "large"],
       sizeQuantity: [3, 7, 10],
       quantity: 20,
       price: 3500,
       salePrice: 3200,
-      sku: 'bkhvhm0254',
-      barcodeNo: '406003000000000',
-      status: 'allotted to vendor',
-      orderType: 'prepaid',
-      slotVendor: 'vendor 1',
-      courierAlloted: 'YES',
-      delivered: 'NO',
-      actions: 'On way',
+      sku: "bkhvhm0254",
+      barcodeNo: "406003000000000",
+      status: "allotted to vendor",
+      orderType: "prepaid",
+      slotVendor: "vendor 1",
+      courierAlloted: "YES",
+      delivered: "NO",
+      actions: "On way",
       vendorAllotted: true,
-      allottedVendorName: 'ven 3',
-      courierTrackingId: 'SP123456791',
-      deliveryStatus: 'Out for Delivery',
-      lastUpdated: new Date().toISOString()
-    }
+      allottedVendorName: "ven 3",
+      courierTrackingId: "SP123456791",
+      deliveryStatus: "Out for Delivery",
+      lastUpdated: new Date().toISOString(),
+    },
   ]); // Initial state data for orders
 
   // Tab handler
@@ -1541,103 +1728,106 @@ const Orders = React.memo(() => {
    * Sample return requests data
    * Memoized to prevent unnecessary re-creation on each render
    */
-  const returnRequests = useMemo(() => [
-    {
-      orderId: '1234567892225',
-      paymentStatus: 'Paid',
-      image: '/api/placeholder/60/60',
-      productName: 'T shirt',
-      name: 'Tarnnish',
-      date: '13 aug 2024',
-      hsn: '406000',
-      size: ['small', 'medium', 'large'],
-      sizeQuantity: [5, 10, 115],
-      quantity: 130,
-      price: 4566,
-      salePrice: 4566,
-      sku: 'bkhvhm0251',
-      barcodeNo: '406000000000000',
-      status: 'return requested',
-      orderType: 'prepaid',
-      slotVendor: 'slot vendor',
-      courierAlloted: 'NO',
-      delivered: 'YES',
-      actions: 'Return Pending',
-      vendorAllotted: true,
-      allottedVendorName: 'ven 1',
-      courierTrackingId: 'SP123456792',
-      deliveryStatus: 'Return Requested',
-      lastUpdated: new Date().toISOString(),
-      returnReason: 'Size/fit issue (For Exchanging the product)',
-      returnStatus: 'pending'
-    },
-    {
-      orderId: '1234567892226',
-      paymentStatus: 'Paid',
-      image: '/api/placeholder/60/60',
-      productName: 'Lower',
-      name: 'Shristi',
-      date: '14 aug 2024',
-      hsn: '406001',
-      size: ['small', 'medium'],
-      sizeQuantity: [8, 12],
-      quantity: 20,
-      price: 2500,
-      salePrice: 2300,
-      sku: 'bkhvhm0252',
-      barcodeNo: '406001000000000',
-      status: 'return approved',
-      orderType: 'prepaid',
-      slotVendor: 'vendor 2',
-      courierAlloted: 'YES',
-      delivered: 'YES',
-      actions: 'Return Approved',
-      vendorAllotted: true,
-      allottedVendorName: 'ven 2',
-      courierTrackingId: 'SP123456793',
-      deliveryStatus: 'Return Approved',
-      lastUpdated: new Date().toISOString(),
-      returnReason: 'Product not as expected',
-      returnStatus: 'accepted'
-    },
-    {
-      orderId: '1234567892227',
-      paymentStatus: 'Paid',
-      image: '/api/placeholder/60/60',
-      productName: 'Shorts',
-      name: 'Rajesh',
-      date: '15 aug 2024',
-      hsn: '406002',
-      size: ['medium', 'large'],
-      sizeQuantity: [15, 25],
-      quantity: 40,
-      price: 1800,
-      salePrice: 1650,
-      sku: 'bkhvhm0253',
-      barcodeNo: '406002000000000',
-      status: 'return rejected',
-      orderType: 'cod',
-      slotVendor: 'vendor 3',
-      courierAlloted: 'NO',
-      delivered: 'YES',
-      actions: 'Return Rejected',
-      vendorAllotted: false,
-      allottedVendorName: null,
-      courierTrackingId: null,
-      deliveryStatus: 'Return Rejected',
-      lastUpdated: new Date().toISOString(),
-      returnReason: 'Damaged/defective product',
-      returnStatus: 'rejected'
-    }
-  ], []); // Empty dependency array since this is static data
+  const returnRequests = useMemo(
+    () => [
+      {
+        orderId: "1234567892225",
+        paymentStatus: "Paid",
+        image: "/api/placeholder/60/60",
+        productName: "T shirt",
+        name: "Tarnnish",
+        date: "13 aug 2024",
+        hsn: "406000",
+        size: ["small", "medium", "large"],
+        sizeQuantity: [5, 10, 115],
+        quantity: 130,
+        price: 4566,
+        salePrice: 4566,
+        sku: "bkhvhm0251",
+        barcodeNo: "406000000000000",
+        status: "return requested",
+        orderType: "prepaid",
+        slotVendor: "slot vendor",
+        courierAlloted: "NO",
+        delivered: "YES",
+        actions: "Return Pending",
+        vendorAllotted: true,
+        allottedVendorName: "ven 1",
+        courierTrackingId: "SP123456792",
+        deliveryStatus: "Return Requested",
+        lastUpdated: new Date().toISOString(),
+        returnReason: "Size/fit issue (For Exchanging the product)",
+        returnStatus: "pending",
+      },
+      {
+        orderId: "1234567892226",
+        paymentStatus: "Paid",
+        image: "/api/placeholder/60/60",
+        productName: "Lower",
+        name: "Shristi",
+        date: "14 aug 2024",
+        hsn: "406001",
+        size: ["small", "medium"],
+        sizeQuantity: [8, 12],
+        quantity: 20,
+        price: 2500,
+        salePrice: 2300,
+        sku: "bkhvhm0252",
+        barcodeNo: "406001000000000",
+        status: "return approved",
+        orderType: "prepaid",
+        slotVendor: "vendor 2",
+        courierAlloted: "YES",
+        delivered: "YES",
+        actions: "Return Approved",
+        vendorAllotted: true,
+        allottedVendorName: "ven 2",
+        courierTrackingId: "SP123456793",
+        deliveryStatus: "Return Approved",
+        lastUpdated: new Date().toISOString(),
+        returnReason: "Product not as expected",
+        returnStatus: "accepted",
+      },
+      {
+        orderId: "1234567892227",
+        paymentStatus: "Paid",
+        image: "/api/placeholder/60/60",
+        productName: "Shorts",
+        name: "Rajesh",
+        date: "15 aug 2024",
+        hsn: "406002",
+        size: ["medium", "large"],
+        sizeQuantity: [15, 25],
+        quantity: 40,
+        price: 1800,
+        salePrice: 1650,
+        sku: "bkhvhm0253",
+        barcodeNo: "406002000000000",
+        status: "return rejected",
+        orderType: "cod",
+        slotVendor: "vendor 3",
+        courierAlloted: "NO",
+        delivered: "YES",
+        actions: "Return Rejected",
+        vendorAllotted: false,
+        allottedVendorName: null,
+        courierTrackingId: null,
+        deliveryStatus: "Return Rejected",
+        lastUpdated: new Date().toISOString(),
+        returnReason: "Damaged/defective product",
+        returnStatus: "rejected",
+      },
+    ],
+    []
+  ); // Empty dependency array since this is static data
 
   // Initialize allotted vendor names from existing order data
   useEffect(() => {
     const initialAllottedVendors = {};
     const initialSelectedVendors = {};
     const allData = [...orders, ...returnRequests];
-    
-    allData.forEach(order => {
+
+    allData.forEach((order) => {
       if (order.allottedVendorName) {
         initialAllottedVendors[order.orderId] = order.allottedVendorName;
         initialSelectedVendors[order.orderId] = true;
@@ -1645,9 +1835,9 @@ const Orders = React.memo(() => {
         initialSelectedVendors[order.orderId] = true;
       }
     });
-    
+
     setAllottedVendorNames(initialAllottedVendors);
-    setSelectedVendors(prev => ({...prev, ...initialSelectedVendors}));
+    setSelectedVendors((prev) => ({ ...prev, ...initialSelectedVendors }));
   }, [orders, returnRequests]);
 
   /**
@@ -1655,9 +1845,9 @@ const Orders = React.memo(() => {
    * Resets all filters to their default state
    */
   const handleResetFilter = useCallback(() => {
-    setFilterBy('Date');
-    setOrderType('Order Type');
-    setOrderStatus('Order Status');
+    setFilterBy("Date");
+    setOrderType("Order Type");
+    setOrderStatus("Order Status");
     setShowDateDropdown(false);
     setShowOrderTypeDropdown(false);
     setShowOrderStatusDropdown(false);
@@ -1667,77 +1857,88 @@ const Orders = React.memo(() => {
    * Enhanced handlers for vendor allotment and courier management
    */
   const handleVendorAllotment = useCallback((orderId, allot) => {
-    setSelectedVendors(prev => ({
+    setSelectedVendors((prev) => ({
       ...prev,
-      [orderId]: allot
+      [orderId]: allot,
     }));
-    
+
     if (allot) {
-      setShowVendorDropdown(prev => ({
+      setShowVendorDropdown((prev) => ({
         ...prev,
-        [orderId]: true
+        [orderId]: true,
       }));
     } else {
-      setShowVendorDropdown(prev => ({
+      setShowVendorDropdown((prev) => ({
         ...prev,
-        [orderId]: false
+        [orderId]: false,
       }));
-      setSelectedVendorNames(prev => ({
+      setSelectedVendorNames((prev) => ({
         ...prev,
-        [orderId]: ''
+        [orderId]: "",
       }));
-      setAllottedVendorNames(prev => ({
+      setAllottedVendorNames((prev) => ({
         ...prev,
-        [orderId]: null
+        [orderId]: null,
       }));
     }
-    
-    console.log(`${allot ? 'Allotting' : 'Not allotting'} vendor for order ${orderId}`);
+
+    console.log(
+      `${allot ? "Allotting" : "Not allotting"} vendor for order ${orderId}`
+    );
   }, []);
 
-  const handleVendorSelection = useCallback((orderId, vendorName) => {
-    if (vendorName === 'Confirmed') {
-      // Close dropdown after confirmation and store the allotted vendor
-      setShowVendorDropdown(prev => ({
-        ...prev,
-        [orderId]: false
-      }));
-      const selectedVendor = selectedVendorNames[orderId];
-      if (selectedVendor) {
-        setAllottedVendorNames(prev => ({
+  const handleVendorSelection = useCallback(
+    (orderId, vendorName) => {
+      if (vendorName === "Confirmed") {
+        // Close dropdown after confirmation and store the allotted vendor
+        setShowVendorDropdown((prev) => ({
           ...prev,
-          [orderId]: selectedVendor
+          [orderId]: false,
         }));
-        console.log(`Vendor ${selectedVendor} confirmed for order ${orderId}`);
-        alert(`Vendor "${selectedVendor}" has been successfully assigned to order ${orderId}`);
+        const selectedVendor = selectedVendorNames[orderId];
+        if (selectedVendor) {
+          setAllottedVendorNames((prev) => ({
+            ...prev,
+            [orderId]: selectedVendor,
+          }));
+          console.log(
+            `Vendor ${selectedVendor} confirmed for order ${orderId}`
+          );
+          alert(
+            `Vendor "${selectedVendor}" has been successfully assigned to order ${orderId}`
+          );
+        }
+      } else {
+        // Set selected vendor
+        setSelectedVendorNames((prev) => ({
+          ...prev,
+          [orderId]: vendorName,
+        }));
       }
-    } else {
-      // Set selected vendor
-      setSelectedVendorNames(prev => ({
-        ...prev,
-        [orderId]: vendorName
-      }));
-    }
-  }, [selectedVendorNames]);
+    },
+    [selectedVendorNames]
+  );
 
   const handleCourierAllotment = useCallback((orderId, allot) => {
-    setCourierAllotments(prev => ({
+    setCourierAllotments((prev) => ({
       ...prev,
-      [orderId]: allot
+      [orderId]: allot,
     }));
-    
+
     if (allot) {
       // Simulate Shiprocket integration
       const trackingId = `SP${Date.now()}`;
-      setDeliveryStatuses(prev => ({
+      setDeliveryStatuses((prev) => ({
         ...prev,
-        [orderId]: 'Shipped'
+        [orderId]: "Shipped",
       }));
-      console.log(`Courier allotted for order ${orderId}, tracking ID: ${trackingId}`);
+      console.log(
+        `Courier allotted for order ${orderId}, tracking ID: ${trackingId}`
+      );
     } else {
-      setDeliveryStatuses(prev => ({
+      setDeliveryStatuses((prev) => ({
         ...prev,
-        [orderId]: 'Pending Shipment'
+        [orderId]: "Pending Shipment",
       }));
     }
   }, []);
@@ -1745,7 +1946,9 @@ const Orders = React.memo(() => {
   const handleBarcodeScanning = useCallback((orderId) => {
     // In a real app, this would open camera/barcode scanner
     console.log(`Scanning barcode for order ${orderId}`);
-    alert(`Barcode scanning for order ${orderId}\n(Camera functionality would be implemented here)`);
+    alert(
+      `Barcode scanning for order ${orderId}\n(Camera functionality would be implemented here)`
+    );
   }, []);
 
   const handleOrderIdClick = useCallback((orderId) => {
@@ -1766,34 +1969,34 @@ const Orders = React.memo(() => {
   const handleAcceptOrder = useCallback((orderId) => {
     // Update order status to 'processing' when accepted
     console.log(`Accepting order ${orderId}`);
-    
-    setOrders(prevOrders => 
-      prevOrders.map(order => 
-        order.orderId === orderId 
-          ? { ...order, status: 'processing' }
-          : order
+
+    setOrders((prevOrders) =>
+      prevOrders.map((order) =>
+        order.orderId === orderId ? { ...order, status: "processing" } : order
       )
     );
-    
-    alert(`Order ${orderId} has been accepted and status changed to Processing`);
+
+    alert(
+      `Order ${orderId} has been accepted and status changed to Processing`
+    );
   }, []);
 
   const handleRejectOrder = useCallback((orderId) => {
     // Update order status to 'rejected' when rejected
     console.log(`Rejecting order ${orderId}`);
-    
+
     // Show confirmation dialog
-    const confirmReject = window.confirm(`Are you sure you want to reject order ${orderId}?`);
-    
+    const confirmReject = window.confirm(
+      `Are you sure you want to reject order ${orderId}?`
+    );
+
     if (confirmReject) {
-      setOrders(prevOrders => 
-        prevOrders.map(order => 
-          order.orderId === orderId 
-            ? { ...order, status: 'rejected' }
-            : order
+      setOrders((prevOrders) =>
+        prevOrders.map((order) =>
+          order.orderId === orderId ? { ...order, status: "rejected" } : order
         )
       );
-      
+
       alert(`Order ${orderId} has been rejected`);
     }
   }, []);
@@ -1857,7 +2060,7 @@ const Orders = React.memo(() => {
    */
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (!event.target.closest('.dropdown-container')) {
+      if (!event.target.closest(".dropdown-container")) {
         setShowDateDropdown(false);
         setShowOrderTypeDropdown(false);
         setShowOrderStatusDropdown(false);
@@ -1865,9 +2068,9 @@ const Orders = React.memo(() => {
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
@@ -1876,77 +2079,92 @@ const Orders = React.memo(() => {
    * @param {string} status - The order status
    * @returns {string} CSS classes for styling
    */
-  const getStatusColor = useMemo(() => (status) => {
-    const statusMap = {
-      accepted: 'bg-green-100 text-green-700',
-      processing: 'bg-blue-100 text-blue-700',
-      rejected: 'bg-red-100 text-red-700',
-      pending: 'bg-yellow-100 text-yellow-700',
-      'return requested': 'bg-orange-100 text-orange-700',
-      'return approved': 'bg-green-100 text-green-700',
-      'return rejected': 'bg-red-100 text-red-700',
-      'allotted to vendor': 'bg-indigo-100 text-indigo-700'
-    };
-    return statusMap[status?.toLowerCase()] || 'bg-gray-100 text-gray-800';
-  }, []);
+  const getStatusColor = useMemo(
+    () => (status) => {
+      const statusMap = {
+        accepted: "bg-green-100 text-green-700",
+        processing: "bg-blue-100 text-blue-700",
+        rejected: "bg-red-100 text-red-700",
+        pending: "bg-yellow-100 text-yellow-700",
+        "return requested": "bg-orange-100 text-orange-700",
+        "return approved": "bg-green-100 text-green-700",
+        "return rejected": "bg-red-100 text-red-700",
+        "allotted to vendor": "bg-indigo-100 text-indigo-700",
+      };
+      return statusMap[status?.toLowerCase()] || "bg-gray-100 text-gray-800";
+    },
+    []
+  );
 
   /**
    * Memoized utility function to get payment status-specific CSS classes
    * @param {string} status - The payment status
    * @returns {string} CSS classes for styling
    */
-  const getPaymentStatusColor = useMemo(() => (status) => {
-    const statusMap = {
-      paid: 'bg-green-500 text-white',
-      pending: 'bg-red-500 text-white'
-    };
-    return statusMap[status?.toLowerCase()] || 'bg-gray-500 text-white';
-  }, []);
+  const getPaymentStatusColor = useMemo(
+    () => (status) => {
+      const statusMap = {
+        paid: "bg-green-500 text-white",
+        pending: "bg-red-500 text-white",
+      };
+      return statusMap[status?.toLowerCase()] || "bg-gray-500 text-white";
+    },
+    []
+  );
 
   /**
    * Memoized utility function to get delivery status-specific CSS classes
    * @param {string} status - The delivery status
    * @returns {string} CSS classes for styling
    */
-  const getDeliveryStatusColor = useMemo(() => (status) => {
-    const statusMap = {
-      'Order Placed': 'bg-blue-100 text-blue-700',
-      'Pending Shipment': 'bg-yellow-100 text-yellow-700',
-      'Shipped': 'bg-indigo-100 text-indigo-700',
-      'In Transit': 'bg-purple-100 text-purple-700',
-      'Out for Delivery': 'bg-orange-100 text-orange-700',
-      'Delivered': 'bg-green-100 text-green-700',
-      'Cancelled': 'bg-red-100 text-red-700',
-      'Returned': 'bg-gray-100 text-gray-700',
-      'Return Requested': 'bg-orange-100 text-orange-700',
-      'Return Approved': 'bg-green-100 text-green-700',
-      'Return Rejected': 'bg-red-100 text-red-700'
-    };
-    return statusMap[status] || 'bg-gray-100 text-gray-800';
-  }, []);
+  const getDeliveryStatusColor = useMemo(
+    () => (status) => {
+      const statusMap = {
+        "Order Placed": "bg-blue-100 text-blue-700",
+        "Pending Shipment": "bg-yellow-100 text-yellow-700",
+        Shipped: "bg-indigo-100 text-indigo-700",
+        "In Transit": "bg-purple-100 text-purple-700",
+        "Out for Delivery": "bg-orange-100 text-orange-700",
+        Delivered: "bg-green-100 text-green-700",
+        Cancelled: "bg-red-100 text-red-700",
+        Returned: "bg-gray-100 text-gray-700",
+        "Return Requested": "bg-orange-100 text-orange-700",
+        "Return Approved": "bg-green-100 text-green-700",
+        "Return Rejected": "bg-red-100 text-red-700",
+      };
+      return statusMap[status] || "bg-gray-100 text-gray-800";
+    },
+    []
+  );
 
   /**
    * Optimized filter handlers using useCallback to prevent unnecessary re-renders
    */
   const filteredOrders = useMemo(() => {
-    const currentData = activeTab === 'orders' ? orders : returnRequests;
-    
-    return currentData.filter(order => {
+    const currentData = activeTab === "orders" ? orders : returnRequests;
+
+    return currentData.filter((order) => {
       // Filter by order status
-      if (orderStatus !== 'Order Status' && order.status !== orderStatus.toLowerCase()) {
+      if (
+        orderStatus !== "Order Status" &&
+        order.status !== orderStatus.toLowerCase()
+      ) {
         return false;
       }
-      
+
       // Filter by order type
-      if (orderType !== 'Order Type' && order.orderType !== orderType.toLowerCase()) {
+      if (
+        orderType !== "Order Type" &&
+        order.orderType !== orderType.toLowerCase()
+      ) {
         return false;
       }
-      
+
       // Add date filtering logic here if needed
       // if (filterBy !== 'Date') {
       //   // Implement date filtering logic based on filterBy value
       // }
-      
+
       return true;
     });
   }, [orders, returnRequests, activeTab, orderStatus, orderType, filterBy]);
@@ -1956,9 +2174,10 @@ const Orders = React.memo(() => {
    */
   const handlePrintOrderList = useCallback(() => {
     // Create a formatted table for printing
-    const currentData = activeTab === 'orders' ? filteredOrders : filteredOrders;
-    const title = activeTab === 'orders' ? 'Orders List' : 'Return Requests';
-    
+    const currentData =
+      activeTab === "orders" ? filteredOrders : filteredOrders;
+    const title = activeTab === "orders" ? "Orders List" : "Return Requests";
+
     const printContent = `
       <html>
         <head>
@@ -1991,7 +2210,7 @@ const Orders = React.memo(() => {
           <table>
             <thead>
               <tr>
-                <th>${activeTab === 'returns' ? 'Return ID' : 'Order ID'}</th>
+                <th>${activeTab === "returns" ? "Return ID" : "Order ID"}</th>
                 <th>Product Name</th>
                 <th>Customer</th>
                 <th>Date</th>
@@ -2004,7 +2223,9 @@ const Orders = React.memo(() => {
               </tr>
             </thead>
             <tbody>
-              ${currentData.map(order => `
+              ${currentData
+                .map(
+                  (order) => `
                 <tr>
                   <td>${order.orderId}</td>
                   <td>${order.productName}</td>
@@ -2013,11 +2234,15 @@ const Orders = React.memo(() => {
                   <td>${order.quantity}</td>
                   <td>₹${order.price}</td>
                   <td>₹${order.salePrice}</td>
-                  <td><span class="status status-${order.status.toLowerCase().replace(/\s+/g, '-')}">${order.status}</span></td>
+                  <td><span class="status status-${order.status
+                    .toLowerCase()
+                    .replace(/\s+/g, "-")}">${order.status}</span></td>
                   <td>${order.paymentStatus}</td>
                   <td>${order.deliveryStatus}</td>
                 </tr>
-              `).join('')}
+              `
+                )
+                .join("")}
             </tbody>
           </table>
         </body>
@@ -2025,7 +2250,7 @@ const Orders = React.memo(() => {
     `;
 
     // Open new window for printing
-    const printWindow = window.open('', '_blank');
+    const printWindow = window.open("", "_blank");
     if (printWindow) {
       printWindow.document.write(printContent);
       printWindow.document.close();
@@ -2034,359 +2259,439 @@ const Orders = React.memo(() => {
       printWindow.close();
     } else {
       // Fallback - show alert if popup blocked
-      alert('Please allow popups to print the order list');
+      alert("Please allow popups to print the order list");
     }
   }, [activeTab, filteredOrders, selectedStartDate, selectedEndDate]);
 
   // If showing order details, render the OrderDetails component
   if (showOrderDetails && selectedOrderId) {
-    return <OrderDetails orderId={selectedOrderId} onBack={() => setShowOrderDetails(false)} />;
+    return (
+      <OrderDetails
+        orderId={selectedOrderId}
+        onBack={() => setShowOrderDetails(false)}
+      />
+    );
   }
 
   // If showing return window screen, render the ReturnWindowScreen component
   if (showReturnWindow && selectedReturnId) {
-    return <ReturnWindowScreen returnId={selectedReturnId} onBack={() => setShowReturnWindow(false)} />;
+    return (
+      <ReturnWindowScreen
+        returnId={selectedReturnId}
+        onBack={() => setShowReturnWindow(false)}
+      />
+    );
   }
 
   return (
     <div className="bg-gray-50 min-h-screen p-4">
       <div className="max-w-full mx-0 ml-4">
-      {/* Tab Navigation */}
-      <div className="flex items-center space-x-8 mb-6">
-        <button
-          onClick={() => handleTabChange('orders')}
-          className={`text-xl font-semibold pb-2 ${
-            activeTab === 'orders' 
-              ? 'text-black border-b-2 border-black' 
-              : 'text-gray-500 hover:text-gray-700'
-          }`}
-        >
-          orders list
-        </button>
-        <button
-          onClick={() => handleTabChange('returns')}
-          className={`text-xl font-semibold pb-2 ${
-            activeTab === 'returns' 
-              ? 'text-black border-b-2 border-black' 
-              : 'text-gray-500 hover:text-gray-700'
-          }`}
-        >
-          return requests
-        </button>
-      </div>
-
-      {/* Header Section - Title and date in one line */}
-      <div className="flex justify-between items-center mb-6">
-        <div className="flex items-center space-x-3">
-          {/* Removed print icon from here - moved to filter section */}
-        </div>
-        <div className="relative">
-          <button 
-            onClick={handleDateRangeToggle}
-            className="dropdown-container flex items-center space-x-2 bg-gray-50 px-3 py-1 rounded hover:bg-gray-100 transition-colors"
-          >
-            <span className="text-sm text-gray-600 font-medium">{selectedStartDate}</span>
-            <span className="text-sm text-gray-400">-</span>
-            <span className="text-sm text-gray-600 font-medium">{selectedEndDate}</span>
-            <Calendar className="h-4 w-4 text-gray-400" />
-          </button>
-          
-          {/* Date Range Picker Dropdown */}
-          {showDateRangePicker && (
-            <div className="dropdown-container absolute right-0 top-full mt-2 bg-white rounded-lg shadow-lg border border-gray-200 p-4 z-50 min-w-[300px]">
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
-                  <input
-                    type="date"
-                    value={selectedStartDate}
-                    onChange={handleStartDateChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
-                  <input
-                    type="date"
-                    value={selectedEndDate}
-                    onChange={handleEndDateChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
-                <div className="flex justify-end space-x-2 pt-2">
-                  <button
-                    onClick={() => setShowDateRangePicker(false)}
-                    className="px-3 py-1 text-sm text-gray-600 hover:text-gray-800"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={() => setShowDateRangePicker(false)}
-                    className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
-                  >
-                    Apply
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Filter Controls Section */}
-      <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
-        <div className="flex items-center space-x-4">
-          {/* Filter Icon and Label */}
-          <div className="flex items-center space-x-2">
-            <Filter className="h-4 w-4 text-gray-400" />
-            <span className="text-sm text-gray-700 font-medium">Filter By</span>
-          </div>
-
-          {/* Date Filter */}
-          <div className="relative dropdown-container">
-            <button
-              onClick={handleDateDropdownToggle}
-              className="flex items-center justify-between bg-white border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-w-[120px] hover:bg-gray-50"
-              aria-label="Filter by date"
-            >
-              <span className={filterBy === 'Date' ? 'text-gray-400' : 'text-gray-900'}>
-                {filterBy}
-              </span>
-              <ChevronDown className="h-3 w-3 text-gray-400 ml-2" />
-            </button>
-            
-            {/* Date Dropdown */}
-            {showDateDropdown && (
-              <div className="absolute top-full left-0 mt-1 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50 min-w-[180px]">
-                <button
-                  onClick={() => handleDateFilterSelect('Today')}
-                  className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 text-gray-700"
-                >
-                  Today
-                </button>
-                <button
-                  onClick={() => handleDateFilterSelect('This week')}
-                  className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 text-gray-700"
-                >
-                  This week
-                </button>
-                <button
-                  onClick={() => handleDateFilterSelect('This month')}
-                  className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 text-gray-700"
-                >
-                  This month
-                </button>
-                <hr className="my-1" />
-                <button
-                  onClick={() => {
-                    handleDateFilterSelect('select a Range');
-                    setShowDateRangePicker(true);
-                  }}
-                  className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 text-gray-700"
-                >
-                  select a Range
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* Order Type Filter */}
-          <div className="relative dropdown-container">
-            <button
-              onClick={handleOrderTypeDropdownToggle}
-              className="flex items-center justify-between bg-white border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-w-[120px] hover:bg-gray-50"
-              aria-label="Filter by order type"
-            >
-              <span className={orderType === 'Order Type' ? 'text-gray-400' : 'text-gray-900'}>
-                {orderType}
-              </span>
-              <ChevronDown className="h-3 w-3 text-gray-400 ml-2" />
-            </button>
-            
-            {/* Order Type Dropdown */}
-            {showOrderTypeDropdown && (
-              <div className="absolute top-full left-0 mt-1 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50 min-w-[140px]">
-                <div className="px-4 py-2 text-xs text-gray-500 border-b border-gray-100">
-                  choose sort by
-                </div>
-                <button
-                  onClick={() => handleOrderTypeSelect('Prepaid')}
-                  className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 text-gray-700"
-                >
-                  Prepaid
-                </button>
-                <button
-                  onClick={() => handleOrderTypeSelect('Cod')}
-                  className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 text-gray-700"
-                >
-                  Cod
-                </button>
-                <button
-                  onClick={() => handleOrderTypeSelect('Partial Paid')}
-                  className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 text-gray-700"
-                >
-                  Partial Paid
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* Order Status Filter */}
-          <div className="relative dropdown-container">
-            <button
-              onClick={handleOrderStatusDropdownToggle}
-              className="flex items-center justify-between bg-white border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-w-[120px] hover:bg-gray-50"
-              aria-label="Filter by order status"
-            >
-              <span className={orderStatus === 'Order Status' ? 'text-gray-400' : 'text-gray-900'}>
-                {orderStatus}
-              </span>
-              <ChevronDown className="h-3 w-3 text-gray-400 ml-2" />
-            </button>
-            
-            {/* Order Status Dropdown */}
-            {showOrderStatusDropdown && (
-              <div className="absolute top-full left-0 mt-1 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50 min-w-[160px]">
-                <div className="px-4 py-2 text-xs text-gray-500 border-b border-gray-100">
-                  choose sort by
-                </div>
-                {activeTab === 'orders' ? (
-                  <>
-                    <button
-                      onClick={() => handleOrderStatusSelect('Pending')}
-                      className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 text-gray-700"
-                    >
-                      Pending
-                    </button>
-                    <button
-                      onClick={() => handleOrderStatusSelect('Processing')}
-                      className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 text-gray-700"
-                    >
-                      Processing
-                    </button>
-                    <button
-                      onClick={() => handleOrderStatusSelect('Accepted')}
-                      className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 text-gray-700"
-                    >
-                      Accepted
-                    </button>
-                    <button
-                      onClick={() => handleOrderStatusSelect('Allotted to vendor')}
-                      className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 text-gray-700"
-                    >
-                      Allotted to vendor
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <button
-                      onClick={() => handleOrderStatusSelect('Return requested')}
-                      className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 text-gray-700"
-                    >
-                      Return requested
-                    </button>
-                    <button
-                      onClick={() => handleOrderStatusSelect('Return approved')}
-                      className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 text-gray-700"
-                    >
-                      Return approved
-                    </button>
-                    <button
-                      onClick={() => handleOrderStatusSelect('Return rejected')}
-                      className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 text-gray-700"
-                    >
-                      Return rejected
-                    </button>
-                  </>
-                )}
-              </div>
-            )}
-          </div>
-
-          {/* Print Button - Next to Order Status */}
+        {/* Tab Navigation */}
+        <div className="flex items-center space-x-8 mb-6">
           <button
-            onClick={handlePrintOrderList}
-            className="p-2 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-lg border border-gray-300 bg-white transition-colors"
-            aria-label="Print order list"
-            title="Print Order List"
+            onClick={() => handleTabChange("orders")}
+            className={`text-xl font-semibold pb-2 ${
+              activeTab === "orders"
+                ? "text-black border-b-2 border-black"
+                : "text-gray-500 hover:text-gray-700"
+            }`}
           >
-            <Printer className="h-4 w-4" />
+            orders list
+          </button>
+          <button
+            onClick={() => handleTabChange("returns")}
+            className={`text-xl font-semibold pb-2 ${
+              activeTab === "returns"
+                ? "text-black border-b-2 border-black"
+                : "text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            return requests
           </button>
         </div>
 
-        {/* Reset Filter Button */}
-        <button 
-          onClick={handleResetFilter}
-          className="flex items-center space-x-1 text-red-500 hover:text-red-700 text-sm font-medium"
-          aria-label="Reset all filters"
-        >
-          <X className="h-4 w-4" />
-          <span>Reset Filter</span>
-        </button>
-      </div>
+        {/* Header Section - Title and date in one line */}
+        <div className="flex justify-between items-center mb-6">
+          <div className="flex items-center space-x-3">
+            {/* Removed print icon from here - moved to filter section */}
+          </div>
+          <div className="relative">
+            <button
+              onClick={handleDateRangeToggle}
+              className="dropdown-container flex items-center space-x-2 bg-gray-50 px-3 py-1 rounded hover:bg-gray-100 transition-colors"
+            >
+              <span className="text-sm text-gray-600 font-medium">
+                {selectedStartDate}
+              </span>
+              <span className="text-sm text-gray-400">-</span>
+              <span className="text-sm text-gray-600 font-medium">
+                {selectedEndDate}
+              </span>
+              <Calendar className="h-4 w-4 text-gray-400" />
+            </button>
 
-      {/* Orders Table */}
-      <div className="bg-white rounded-lg border border-gray-200 mr-4">
-        <table className="w-full">
-          {/* Table Header */}
-          <thead className="bg-gray-50">
-            <tr className="border-b border-gray-200">
-              <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                {activeTab === 'returns' ? 'return id' : 'order id'}
-              </th>
-              <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Image</th>
-              <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Product Name</th>
-              <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">name</th>
-              <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">date</th>
-              <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">HSN</th>
-              <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">size</th>
-              <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">quantity</th>
-              <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Price</th>
-              <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Sale Price</th>
-              <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">SKU</th>
-              <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">barcode no.</th>
-              <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">status</th>
-              {activeTab === 'returns' ? (
-                <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">return to vendor</th>
-              ) : (
-                <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">vendor allotment</th>
+            {/* Date Range Picker Dropdown */}
+            {showDateRangePicker && (
+              <div className="dropdown-container absolute right-0 top-full mt-2 bg-white rounded-lg shadow-lg border border-gray-200 p-4 z-50 min-w-[300px]">
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Start Date
+                    </label>
+                    <input
+                      type="date"
+                      value={selectedStartDate}
+                      onChange={handleStartDateChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      End Date
+                    </label>
+                    <input
+                      type="date"
+                      value={selectedEndDate}
+                      onChange={handleEndDateChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+                  <div className="flex justify-end space-x-2 pt-2">
+                    <button
+                      onClick={() => setShowDateRangePicker(false)}
+                      className="px-3 py-1 text-sm text-gray-600 hover:text-gray-800"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={() => setShowDateRangePicker(false)}
+                      className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
+                    >
+                      Apply
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Filter Controls Section */}
+        <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
+          <div className="flex items-center space-x-4">
+            {/* Filter Icon and Label */}
+            <div className="flex items-center space-x-2">
+              <Filter className="h-4 w-4 text-gray-400" />
+              <span className="text-sm text-gray-700 font-medium">
+                Filter By
+              </span>
+            </div>
+
+            {/* Date Filter */}
+            <div className="relative dropdown-container">
+              <button
+                onClick={handleDateDropdownToggle}
+                className="flex items-center justify-between bg-white border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-w-[120px] hover:bg-gray-50"
+                aria-label="Filter by date"
+              >
+                <span
+                  className={
+                    filterBy === "Date" ? "text-gray-400" : "text-gray-900"
+                  }
+                >
+                  {filterBy}
+                </span>
+                <ChevronDown className="h-3 w-3 text-gray-400 ml-2" />
+              </button>
+
+              {/* Date Dropdown */}
+              {showDateDropdown && (
+                <div className="absolute top-full left-0 mt-1 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50 min-w-[180px]">
+                  <button
+                    onClick={() => handleDateFilterSelect("Today")}
+                    className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 text-gray-700"
+                  >
+                    Today
+                  </button>
+                  <button
+                    onClick={() => handleDateFilterSelect("This week")}
+                    className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 text-gray-700"
+                  >
+                    This week
+                  </button>
+                  <button
+                    onClick={() => handleDateFilterSelect("This month")}
+                    className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 text-gray-700"
+                  >
+                    This month
+                  </button>
+                  <hr className="my-1" />
+                  <button
+                    onClick={() => {
+                      handleDateFilterSelect("select a Range");
+                      setShowDateRangePicker(true);
+                    }}
+                    className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 text-gray-700"
+                  >
+                    select a Range
+                  </button>
+                </div>
               )}
-              <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">courier alloted</th>
-              <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">delivery status</th>
-              <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">actions</th>
-            </tr>
-          </thead>
-          
-          {/* Table Body */}
-          <tbody className="bg-white divide-y divide-gray-100">
-            {filteredOrders.map((order, index) => (
-              <OrderRow 
-                key={`${order.orderId}-${index}`}
-                order={order}
-                getStatusColor={getStatusColor}
-                getPaymentStatusColor={getPaymentStatusColor}
-                getDeliveryStatusColor={getDeliveryStatusColor}
-                onOrderIdClick={handleOrderIdClick}
-                onReturnIdClick={handleReturnIdClick}
-                onVendorAllotment={handleVendorAllotment}
-                onVendorSelection={handleVendorSelection}
-                onCourierAllotment={handleCourierAllotment}
-                onBarcodeScanning={handleBarcodeScanning}
-                onAcceptOrder={handleAcceptOrder}
-                onRejectOrder={handleRejectOrder}
-                showVendorDropdown={showVendorDropdown}
-                setShowVendorDropdown={setShowVendorDropdown}
-                selectedVendors={selectedVendors}
-                selectedVendorNames={selectedVendorNames}
-                allottedVendorNames={allottedVendorNames}
-                courierAllotments={courierAllotments}
-                deliveryStatuses={deliveryStatuses}
-                activeTab={activeTab}
-              />
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </div>
+
+            {/* Order Type Filter */}
+            <div className="relative dropdown-container">
+              <button
+                onClick={handleOrderTypeDropdownToggle}
+                className="flex items-center justify-between bg-white border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-w-[120px] hover:bg-gray-50"
+                aria-label="Filter by order type"
+              >
+                <span
+                  className={
+                    orderType === "Order Type"
+                      ? "text-gray-400"
+                      : "text-gray-900"
+                  }
+                >
+                  {orderType}
+                </span>
+                <ChevronDown className="h-3 w-3 text-gray-400 ml-2" />
+              </button>
+
+              {/* Order Type Dropdown */}
+              {showOrderTypeDropdown && (
+                <div className="absolute top-full left-0 mt-1 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50 min-w-[140px]">
+                  <div className="px-4 py-2 text-xs text-gray-500 border-b border-gray-100">
+                    choose sort by
+                  </div>
+                  <button
+                    onClick={() => handleOrderTypeSelect("Prepaid")}
+                    className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 text-gray-700"
+                  >
+                    Prepaid
+                  </button>
+                  <button
+                    onClick={() => handleOrderTypeSelect("Cod")}
+                    className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 text-gray-700"
+                  >
+                    Cod
+                  </button>
+                  <button
+                    onClick={() => handleOrderTypeSelect("Partial Paid")}
+                    className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 text-gray-700"
+                  >
+                    Partial Paid
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Order Status Filter */}
+            <div className="relative dropdown-container">
+              <button
+                onClick={handleOrderStatusDropdownToggle}
+                className="flex items-center justify-between bg-white border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-w-[120px] hover:bg-gray-50"
+                aria-label="Filter by order status"
+              >
+                <span
+                  className={
+                    orderStatus === "Order Status"
+                      ? "text-gray-400"
+                      : "text-gray-900"
+                  }
+                >
+                  {orderStatus}
+                </span>
+                <ChevronDown className="h-3 w-3 text-gray-400 ml-2" />
+              </button>
+
+              {/* Order Status Dropdown */}
+              {showOrderStatusDropdown && (
+                <div className="absolute top-full left-0 mt-1 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50 min-w-[160px]">
+                  <div className="px-4 py-2 text-xs text-gray-500 border-b border-gray-100">
+                    choose sort by
+                  </div>
+                  {activeTab === "orders" ? (
+                    <>
+                      <button
+                        onClick={() => handleOrderStatusSelect("Pending")}
+                        className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 text-gray-700"
+                      >
+                        Pending
+                      </button>
+                      <button
+                        onClick={() => handleOrderStatusSelect("Processing")}
+                        className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 text-gray-700"
+                      >
+                        Processing
+                      </button>
+                      <button
+                        onClick={() => handleOrderStatusSelect("Accepted")}
+                        className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 text-gray-700"
+                      >
+                        Accepted
+                      </button>
+                      <button
+                        onClick={() =>
+                          handleOrderStatusSelect("Allotted to vendor")
+                        }
+                        className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 text-gray-700"
+                      >
+                        Allotted to vendor
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        onClick={() =>
+                          handleOrderStatusSelect("Return requested")
+                        }
+                        className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 text-gray-700"
+                      >
+                        Return requested
+                      </button>
+                      <button
+                        onClick={() =>
+                          handleOrderStatusSelect("Return approved")
+                        }
+                        className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 text-gray-700"
+                      >
+                        Return approved
+                      </button>
+                      <button
+                        onClick={() =>
+                          handleOrderStatusSelect("Return rejected")
+                        }
+                        className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 text-gray-700"
+                      >
+                        Return rejected
+                      </button>
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Print Button - Next to Order Status */}
+            <button
+              onClick={handlePrintOrderList}
+              className="p-2 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-lg border border-gray-300 bg-white transition-colors"
+              aria-label="Print order list"
+              title="Print Order List"
+            >
+              <Printer className="h-4 w-4" />
+            </button>
+          </div>
+
+          {/* Reset Filter Button */}
+          <button
+            onClick={handleResetFilter}
+            className="flex items-center space-x-1 text-red-500 hover:text-red-700 text-sm font-medium"
+            aria-label="Reset all filters"
+          >
+            <X className="h-4 w-4" />
+            <span>Reset Filter</span>
+          </button>
+        </div>
+
+        {/* Orders Table */}
+        <section className="w-full">
+          <div className="overflow-x-auto rounded-lg border border-gray-200">
+            <table className="min-w-[1300px] w-full">
+              {/* Table Header */}
+              <thead className="bg-gray-50">
+                <tr className="border-b border-gray-200">
+                  <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    {activeTab === "returns" ? "return id" : "order id"}
+                  </th>
+                  <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    Image
+                  </th>
+                  <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    Product Name
+                  </th>
+                  <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    name
+                  </th>
+                  <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    date
+                  </th>
+                  <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    HSN
+                  </th>
+                  <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    size
+                  </th>
+                  <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    quantity
+                  </th>
+                  <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    Price
+                  </th>
+                  <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    Sale Price
+                  </th>
+                  <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    SKU
+                  </th>
+                  <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    barcode no.
+                  </th>
+                  <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    status
+                  </th>
+                  {activeTab === "returns" ? (
+                    <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      return to vendor
+                    </th>
+                  ) : (
+                    <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      vendor allotment
+                    </th>
+                  )}
+                  <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    courier alloted
+                  </th>
+                  <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    delivery status
+                  </th>
+                  <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    actions
+                  </th>
+                </tr>
+              </thead>
+
+              {/* Table Body */}
+              <tbody className="bg-white divide-y divide-gray-100">
+                {filteredOrders.map((order, index) => (
+                  <OrderRow
+                    key={`${order.orderId}-${index}`}
+                    order={order}
+                    getStatusColor={getStatusColor}
+                    getPaymentStatusColor={getPaymentStatusColor}
+                    getDeliveryStatusColor={getDeliveryStatusColor}
+                    onOrderIdClick={handleOrderIdClick}
+                    onReturnIdClick={handleReturnIdClick}
+                    onVendorAllotment={handleVendorAllotment}
+                    onVendorSelection={handleVendorSelection}
+                    onCourierAllotment={handleCourierAllotment}
+                    onBarcodeScanning={handleBarcodeScanning}
+                    onAcceptOrder={handleAcceptOrder}
+                    onRejectOrder={handleRejectOrder}
+                    showVendorDropdown={showVendorDropdown}
+                    setShowVendorDropdown={setShowVendorDropdown}
+                    selectedVendors={selectedVendors}
+                    selectedVendorNames={selectedVendorNames}
+                    allottedVendorNames={allottedVendorNames}
+                    courierAllotments={courierAllotments}
+                    deliveryStatuses={deliveryStatuses}
+                    activeTab={activeTab}
+                  />
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
       </div>
     </div>
   );
@@ -2394,7 +2699,7 @@ const Orders = React.memo(() => {
 
 /**
  * OrderRow Component - Enhanced row component with comprehensive order management features
- * 
+ *
  * @param {Object} props - Component props
  * @param {Object} props.order - Order data object
  * @param {Function} props.getStatusColor - Function to get status color
@@ -2411,402 +2716,411 @@ const Orders = React.memo(() => {
  * @param {Object} props.courierAllotments - State for courier allotments
  * @param {Object} props.deliveryStatuses - State for delivery statuses
  */
-const OrderRow = React.memo(({ 
-  order, 
-  getStatusColor, 
-  getPaymentStatusColor, 
-  getDeliveryStatusColor,
-  onOrderIdClick,
-  onReturnIdClick,
-  onVendorAllotment,
-  onVendorSelection,
-  onCourierAllotment,
-  onBarcodeScanning,
-  onAcceptOrder,
-  onRejectOrder,
-  showVendorDropdown,
-  setShowVendorDropdown,
-  selectedVendors,
-  selectedVendorNames,
-  allottedVendorNames,
-  courierAllotments,
-  deliveryStatuses,
-  activeTab
-}) => {
-  // Available vendors for allotment
-  const availableVendors = ['ven 1', 'ven 2', 'ven 3'];
+const OrderRow = React.memo(
+  ({
+    order,
+    getStatusColor,
+    getPaymentStatusColor,
+    getDeliveryStatusColor,
+    onOrderIdClick,
+    onReturnIdClick,
+    onVendorAllotment,
+    onVendorSelection,
+    onCourierAllotment,
+    onBarcodeScanning,
+    onAcceptOrder,
+    onRejectOrder,
+    showVendorDropdown,
+    setShowVendorDropdown,
+    selectedVendors,
+    selectedVendorNames,
+    allottedVendorNames,
+    courierAllotments,
+    deliveryStatuses,
+    activeTab,
+  }) => {
+    // Available vendors for allotment
+    const availableVendors = ["ven 1", "ven 2", "ven 3"];
 
-  /**
-   * Action button handlers - memoized to prevent unnecessary re-renders
-   */
-  const handleView = useCallback(() => {
-    if (activeTab === 'returns') {
-      onReturnIdClick(order.orderId);
-    } else {
-      onOrderIdClick(order.orderId);
-    }
-  }, [order.orderId, onOrderIdClick, onReturnIdClick, activeTab]);
+    /**
+     * Action button handlers - memoized to prevent unnecessary re-renders
+     */
+    const handleView = useCallback(() => {
+      if (activeTab === "returns") {
+        onReturnIdClick(order.orderId);
+      } else {
+        onOrderIdClick(order.orderId);
+      }
+    }, [order.orderId, onOrderIdClick, onReturnIdClick, activeTab]);
 
-  const handleEdit = useCallback(() => {
-    console.log('Edit order:', order.orderId);
-    // Implement edit logic here
-  }, [order.orderId]);
+    const handleEdit = useCallback(() => {
+      console.log("Edit order:", order.orderId);
+      // Implement edit logic here
+    }, [order.orderId]);
 
-  const handleDownload = useCallback(() => {
-    console.log('Download order:', order.orderId);
-    // Implement download logic here
-  }, [order.orderId]);
+    const handleDownload = useCallback(() => {
+      console.log("Download order:", order.orderId);
+      // Implement download logic here
+    }, [order.orderId]);
 
-  const handleShare = useCallback(() => {
-    console.log('Share order:', order.orderId);
-    if (navigator.share) {
-      navigator.share({
-        title: `Order #${order.orderId}`,
-        text: `Order details for #${order.orderId}`,
-        url: `${window.location.origin}/order-details/${order.orderId}`,
-      }).catch(console.error);
-    } else {
-      // Fallback - copy to clipboard
-      navigator.clipboard.writeText(`${window.location.origin}/order-details/${order.orderId}`)
-        .then(() => alert('Order link copied to clipboard!'))
-        .catch(console.error);
-    }
-  }, [order.orderId]);
+    const handleShare = useCallback(() => {
+      console.log("Share order:", order.orderId);
+      if (navigator.share) {
+        navigator
+          .share({
+            title: `Order #${order.orderId}`,
+            text: `Order details for #${order.orderId}`,
+            url: `${window.location.origin}/order-details/${order.orderId}`,
+          })
+          .catch(console.error);
+      } else {
+        // Fallback - copy to clipboard
+        navigator.clipboard
+          .writeText(`${window.location.origin}/order-details/${order.orderId}`)
+          .then(() => alert("Order link copied to clipboard!"))
+          .catch(console.error);
+      }
+    }, [order.orderId]);
 
-  const handlePrint = useCallback(() => {
-    console.log('Print order:', order.orderId);
-    // Open order details in new window for printing
-    const printWindow = window.open(`/order-details/${order.orderId}?print=true`, '_blank');
-    if (printWindow) {
-      printWindow.onload = () => {
-        printWindow.print();
-      };
-    }
-  }, [order.orderId]);
+    const handlePrint = useCallback(() => {
+      console.log("Print order:", order.orderId);
+      // Open order details in new window for printing
+      const printWindow = window.open(
+        `/order-details/${order.orderId}?print=true`,
+        "_blank"
+      );
+      if (printWindow) {
+        printWindow.onload = () => {
+          printWindow.print();
+        };
+      }
+    }, [order.orderId]);
 
-  const handleBarcodeScan = useCallback(() => {
-    onBarcodeScanning(order.orderId);
-  }, [order.orderId, onBarcodeScanning]);
+    const handleBarcodeScan = useCallback(() => {
+      onBarcodeScanning(order.orderId);
+    }, [order.orderId, onBarcodeScanning]);
 
-  const handleVendorAllot = useCallback((allot) => {
-    onVendorAllotment(order.orderId, allot);
-  }, [order.orderId, onVendorAllotment]);
+    const handleVendorAllot = useCallback(
+      (allot) => {
+        onVendorAllotment(order.orderId, allot);
+      },
+      [order.orderId, onVendorAllotment]
+    );
 
-  const handleVendorSelect = useCallback((vendorName) => {
-    onVendorSelection(order.orderId, vendorName);
-  }, [order.orderId, onVendorSelection]);
+    const handleVendorSelect = useCallback(
+      (vendorName) => {
+        onVendorSelection(order.orderId, vendorName);
+      },
+      [order.orderId, onVendorSelection]
+    );
 
-  const handleVendorConfirm = useCallback(() => {
-    if (selectedVendorNames[order.orderId]) {
-      onVendorSelection(order.orderId, 'Confirmed');
-    }
-  }, [order.orderId, onVendorSelection, selectedVendorNames]);
+    const handleVendorConfirm = useCallback(() => {
+      if (selectedVendorNames[order.orderId]) {
+        onVendorSelection(order.orderId, "Confirmed");
+      }
+    }, [order.orderId, onVendorSelection, selectedVendorNames]);
 
-  const handleCourierAllot = useCallback((allot) => {
-    onCourierAllotment(order.orderId, allot);
-  }, [order.orderId, onCourierAllotment]);
+    const handleCourierAllot = useCallback(
+      (allot) => {
+        onCourierAllotment(order.orderId, allot);
+      },
+      [order.orderId, onCourierAllotment]
+    );
 
-  const handleAccept = useCallback(() => {
-    onAcceptOrder(order.orderId);
-  }, [order.orderId, onAcceptOrder]);
+    const handleAccept = useCallback(() => {
+      onAcceptOrder(order.orderId);
+    }, [order.orderId, onAcceptOrder]);
 
-  const handleReject = useCallback(() => {
-    onRejectOrder(order.orderId);
-  }, [order.orderId, onRejectOrder]);
+    const handleReject = useCallback(() => {
+      onRejectOrder(order.orderId);
+    }, [order.orderId, onRejectOrder]);
 
-  // Get current states
-  const isVendorAllotted = selectedVendors[order.orderId];
-  const isCourierAllotted = courierAllotments[order.orderId];
-  const currentDeliveryStatus = deliveryStatuses[order.orderId] || order.deliveryStatus;
+    // Get current states
+    const isVendorAllotted = selectedVendors[order.orderId];
+    const isCourierAllotted = courierAllotments[order.orderId];
+    const currentDeliveryStatus =
+      deliveryStatuses[order.orderId] || order.deliveryStatus;
 
-  return (
-    <tr className="border-b border-gray-100 hover:bg-gray-50">
-      {/* Order ID with Payment Status Badge - Now Clickable */}
-      <td className="py-4 px-2">
-        <div className="space-y-2">
-          <button
-            onClick={handleView}
-            className="text-sm font-medium text-blue-600 hover:text-blue-800 underline cursor-pointer"
-          >
-            {order.orderId}
-          </button>
-          <div className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-            {activeTab === 'returns' ? 'RETURN STATUS' : 'PAYMENT STATUS'}
-          </div>
-          <span className={`inline-block px-2 py-1 text-xs font-medium rounded ${getPaymentStatusColor(order.paymentStatus)}`}>
-            {order.paymentStatus}
-          </span>
-        </div>
-      </td>
-
-      {/* Product Image */}
-      <td className="py-4 px-2">
-        <div className="w-12 h-12 bg-gray-100 rounded overflow-hidden flex items-center justify-center">
-          <div className="w-10 h-10 bg-blue-200 rounded flex items-center justify-center">
-            <div className="w-6 h-6 bg-blue-400 rounded" aria-label="Product image"></div>
-          </div>
-        </div>
-      </td>
-
-      {/* Product Information */}
-      <td className="py-4 px-2">
-        <span className="text-sm font-medium text-gray-900">{order.productName}</span>
-      </td>
-
-      <td className="py-4 px-2">
-        <span className="text-sm text-gray-700">{order.name}</span>
-      </td>
-
-      <td className="py-4 px-2">
-        <span className="text-sm text-gray-700">{order.date}</span>
-      </td>
-
-      <td className="py-4 px-2">
-        <span className="text-sm text-gray-700">{order.hsn}</span>
-      </td>
-
-      {/* Size Information */}
-      <td className="py-4 px-2">
-        <div className="space-y-1">
-          {order.size.map((size, index) => (
-            <div key={size} className="text-xs text-gray-600">{size}</div>
-          ))}
-        </div>
-      </td>
-
-      {/* Quantity */}
-      <td className="py-4 px-2">
-        <div className="space-y-1">
-          {order.sizeQuantity.map((qty, index) => (
-            <div key={index} className="text-xs text-gray-900 font-medium">{qty}</div>
-          ))}
-        </div>
-      </td>
-
-      {/* Price */}
-      <td className="py-4 px-2">
-        <span className="text-sm text-gray-700 font-medium">₹{order.price}</span>
-      </td>
-
-      <td className="py-4 px-2">
-        <span className="text-sm text-gray-700 font-medium">₹{order.salePrice}</span>
-      </td>
-
-      {/* SKU */}
-      <td className="py-4 px-2">
-        <span className="text-sm text-gray-700">{order.sku}</span>
-      </td>
-
-      {/* Barcode */}
-      <td className="py-4 px-2">
-        <span className="text-xs text-gray-700 font-mono break-all">{order.barcodeNo}</span>
-      </td>
-
-      {/* Status */}
-      <td className="py-4 px-2">
-        {order.status.toLowerCase() === 'pending' ? (
-          <div className="flex flex-col space-y-2">
+    return (
+      <tr className="border-b border-gray-200 hover:bg-gray-50 text-sm">
+        {/* Order ID + Payment Status */}
+        <td className="py-4 px-3 min-w-[160px]">
+          <div className="space-y-1">
             <button
-              onClick={handleAccept}
-              className="px-3 py-1 text-xs font-medium rounded-full bg-green-500 text-white hover:bg-green-600 transition-colors"
+              onClick={handleView}
+              className="text-blue-600 hover:text-blue-800 font-semibold underline"
             >
-              Accept
+              {order.orderId}
             </button>
-            <button
-              onClick={handleReject}
-              className="px-3 py-1 text-xs font-medium rounded-full bg-red-500 text-white hover:bg-red-600 transition-colors"
-            >
-              Reject
-            </button>
-          </div>
-        ) : (
-          <span className={`inline-block px-3 py-1 text-xs font-medium rounded-full ${getStatusColor(order.status)}`}>
-            {order.status}
-          </span>
-        )}
-      </td>
-
-      {/* Vendor Allotment or Return to Vendor */}
-      <td className="py-4 px-2">
-        <div className="space-y-2">
-          <div className="text-xs text-gray-600 font-medium text-center">
-            {activeTab === 'returns' ? 'return to vendor' : 'allot vendor'}
-          </div>
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={() => handleVendorAllot(false)}
-              className={`px-3 py-1 text-xs font-medium rounded-full border ${
-                isVendorAllotted === false 
-                  ? 'bg-gray-200 border-gray-300 text-gray-700' 
-                  : 'bg-white border-gray-300 text-gray-600 hover:bg-gray-50'
-              }`}
-            >
-              No
-            </button>
-            <button
-              onClick={() => handleVendorAllot(true)}
-              className={`px-3 py-1 text-xs font-medium rounded-full ${
-                isVendorAllotted === true 
-                  ? (activeTab === 'returns' ? 'bg-blue-600 text-white' : 'bg-red-500 text-white')
-                  : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-50'
-              }`}
-            >
-              Yes
-            </button>
-          </div>
-          
-          {/* Display allotted vendor name */}
-          {(isVendorAllotted || order.allottedVendorName || allottedVendorNames[order.orderId]) && (
-            <div className="text-xs text-center mt-2">
-              <span className="inline-block px-2 py-1 bg-blue-100 text-blue-800 font-medium rounded-full">
-                {allottedVendorNames[order.orderId] || order.allottedVendorName || 'Vendor Assigned'}
-              </span>
+            <div className="text-xs text-gray-500 uppercase tracking-wide">
+              {activeTab === "returns" ? "RETURN STATUS" : "PAYMENT STATUS"}
             </div>
+            <span
+              className={`inline-block px-2 py-1 text-xs rounded-full font-medium ${getPaymentStatusColor(
+                order.paymentStatus
+              )}`}
+            >
+              {order.paymentStatus}
+            </span>
+          </div>
+        </td>
+
+        {/* Product Image */}
+        <td className="py-4 px-3">
+          <div className="w-12 h-12 bg-gray-100 rounded flex items-center justify-center">
+            <div className="w-10 h-10 bg-blue-200 rounded flex items-center justify-center">
+              <div
+                className="w-6 h-6 bg-blue-400 rounded"
+                aria-label="Product image"
+              />
+            </div>
+          </div>
+        </td>
+
+        {/* Product Name */}
+        <td className="py-4 px-3 font-medium text-gray-900">
+          {order.productName}
+        </td>
+
+        {/* Customer Name */}
+        <td className="py-4 px-3 text-gray-700">{order.name}</td>
+
+        {/* Order Date */}
+        <td className="py-4 px-3 text-gray-700">{order.date}</td>
+
+        {/* HSN */}
+        <td className="py-4 px-3 text-gray-700">{order.hsn}</td>
+
+        {/* Sizes */}
+        <td className="py-4 px-3">
+          <div className="space-y-1">
+            {order.size.map((size) => (
+              <div key={size} className="text-xs text-gray-600">
+                {size}
+              </div>
+            ))}
+          </div>
+        </td>
+
+        {/* Quantities */}
+        <td className="py-4 px-3">
+          <div className="space-y-1">
+            {order.sizeQuantity.map((qty, i) => (
+              <div key={i} className="text-xs font-semibold text-gray-800">
+                {qty}
+              </div>
+            ))}
+          </div>
+        </td>
+
+        {/* Price */}
+        <td className="py-4 px-3 font-semibold text-gray-700">
+          ₹{order.price}
+        </td>
+
+        {/* Sale Price */}
+        <td className="py-4 px-3 font-semibold text-gray-700">
+          ₹{order.salePrice}
+        </td>
+
+        {/* SKU */}
+        <td className="py-4 px-3 text-gray-700">{order.sku}</td>
+
+        {/* Barcode */}
+        <td className="py-4 px-3 text-xs font-mono text-gray-700 break-all">
+          {order.barcodeNo}
+        </td>
+
+        {/* Status */}
+        <td className="py-4 px-3">
+          {order.status.toLowerCase() === "pending" ? (
+            <div className="space-y-2">
+              <button
+                onClick={handleAccept}
+                className="w-full bg-green-500 hover:bg-green-600 text-white py-1 text-xs rounded-full"
+              >
+                Accept
+              </button>
+              <button
+                onClick={handleReject}
+                className="w-full bg-red-500 hover:bg-red-600 text-white py-1 text-xs rounded-full"
+              >
+                Reject
+              </button>
+            </div>
+          ) : (
+            <span
+              className={`inline-block px-3 py-1 text-xs rounded-full font-medium ${getStatusColor(
+                order.status
+              )}`}
+            >
+              {order.status}
+            </span>
           )}
-          
-          {/* Vendor Selection Dropdown */}
-          {isVendorAllotted && showVendorDropdown[order.orderId] && (
-            <div className="relative">
-              <div className="mt-2 bg-white border border-gray-200 rounded-xl shadow-lg p-4 z-50 min-w-[220px]">
-                <div className="text-sm font-medium text-gray-400 mb-3">vendor name</div>
-                <div className="space-y-0">
-                  {availableVendors.map((vendor, index) => (
-                    <div key={vendor}>
-                      <label className="flex items-center justify-between py-2 px-2 hover:bg-gray-50 rounded cursor-pointer">
-                        <span className="text-sm font-medium text-gray-900">{vendor}</span>
-                        <div className="relative">
-                          <input
-                            type="radio"
-                            name={`vendor-selection-${order.orderId}`}
-                            value={vendor}
-                            checked={selectedVendorNames[order.orderId] === vendor}
-                            onChange={() => handleVendorSelect(vendor)}
-                            className="sr-only"
-                          />
-                          <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
-                            selectedVendorNames[order.orderId] === vendor 
-                              ? 'border-blue-500 bg-blue-50' 
-                              : 'border-gray-300 bg-white'
-                          }`}>
-                            {selectedVendorNames[order.orderId] === vendor && (
-                              <Check className="w-3 h-3 text-blue-500" />
-                            )}
-                          </div>
-                        </div>
-                      </label>
-                      {index < availableVendors.length - 1 && <hr className="border-gray-200" />}
-                    </div>
-                  ))}
-                </div>
+        </td>
+
+        {/* Vendor Allotment */}
+        <td className="py-4 px-3 text-xs">
+          <div className="space-y-2">
+            <div className="text-gray-600 font-medium text-center">
+              {activeTab === "returns" ? "Return to Vendor" : "Allot Vendor"}
+            </div>
+            <div className="flex justify-center gap-2">
+              {[false, true].map((value) => (
                 <button
-                  onClick={handleVendorConfirm}
-                  disabled={!selectedVendorNames[order.orderId]}
-                  className={`w-full mt-4 px-4 py-2 rounded-lg text-sm font-medium flex items-center justify-center space-x-2 ${
-                    selectedVendorNames[order.orderId]
-                      ? 'bg-blue-600 text-white hover:bg-blue-700'
-                      : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                  key={value ? "yes" : "no"}
+                  onClick={() => handleVendorAllot(value)}
+                  className={`px-3 py-1 rounded-full text-xs font-medium border ${
+                    value === isVendorAllotted
+                      ? activeTab === "returns" && value
+                        ? "bg-blue-600 text-white"
+                        : "bg-gray-200 text-gray-700"
+                      : "bg-white text-gray-600 hover:bg-gray-100"
                   }`}
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                  </svg>
-                  <span>confirm</span>
+                  {value ? "Yes" : "No"}
                 </button>
+              ))}
+            </div>
+            {(isVendorAllotted ||
+              order.allottedVendorName ||
+              allottedVendorNames[order.orderId]) && (
+              <div className="text-center">
+                <span className="inline-block px-2 py-1 bg-blue-100 text-blue-800 font-medium rounded-full">
+                  {allottedVendorNames[order.orderId] ||
+                    order.allottedVendorName ||
+                    "Vendor Assigned"}
+                </span>
               </div>
-            </div>
-          )}
-        </div>
-      </td>
-
-      {/* Courier Allotment */}
-      <td className="py-4 px-2">
-        <div className="space-y-2">
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={() => handleCourierAllot(false)}
-              className={`px-3 py-1 text-xs font-medium rounded-full border ${
-                isCourierAllotted === false 
-                  ? 'bg-gray-200 border-gray-300 text-gray-700' 
-                  : 'bg-white border-gray-300 text-gray-600 hover:bg-gray-50'
-              }`}
-            >
-              No
-            </button>
-            <button
-              onClick={() => handleCourierAllot(true)}
-              className={`px-3 py-1 text-xs font-medium rounded-full ${
-                isCourierAllotted === true 
-                  ? 'bg-blue-600 text-white' 
-                  : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-50'
-              }`}
-            >
-              Yes
-            </button>
+            )}
+            {isVendorAllotted && showVendorDropdown[order.orderId] && (
+              <div className="relative mt-2 z-10">
+                <div className="bg-white border rounded-xl shadow-lg p-4">
+                  <div className="text-gray-400 mb-2 font-semibold">
+                    Vendor Name
+                  </div>
+                  {availableVendors.map((vendor, i) => (
+                    <label
+                      key={vendor}
+                      className="flex justify-between items-center py-1"
+                    >
+                      <span className="text-sm text-gray-900">{vendor}</span>
+                      <input
+                        type="radio"
+                        className="sr-only"
+                        checked={selectedVendorNames[order.orderId] === vendor}
+                        onChange={() => handleVendorSelect(vendor)}
+                      />
+                      <div
+                        className={`w-5 h-5 flex items-center justify-center rounded border-2 ${
+                          selectedVendorNames[order.orderId] === vendor
+                            ? "border-blue-500 bg-blue-50"
+                            : "border-gray-300"
+                        }`}
+                      >
+                        {selectedVendorNames[order.orderId] === vendor && (
+                          <Check className="w-3 h-3 text-blue-500" />
+                        )}
+                      </div>
+                    </label>
+                  ))}
+                  <button
+                    onClick={handleVendorConfirm}
+                    disabled={!selectedVendorNames[order.orderId]}
+                    className={`w-full mt-3 py-2 rounded text-sm font-medium ${
+                      selectedVendorNames[order.orderId]
+                        ? "bg-blue-600 text-white hover:bg-blue-700"
+                        : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                    }`}
+                  >
+                    Confirm
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
-          {isCourierAllotted && (
-            <div className="text-xs text-green-600 font-medium">
-              <Package className="inline w-3 h-3 mr-1" />
-              Shiprocket
+        </td>
+
+        {/* Courier Allotment */}
+        <td className="py-4 px-3 text-xs">
+          <div className="space-y-2">
+            <div className="flex justify-center gap-2">
+              {[false, true].map((value) => (
+                <button
+                  key={value ? "yes" : "no"}
+                  onClick={() => handleCourierAllot(value)}
+                  className={`px-3 py-1 rounded-full text-xs font-medium border ${
+                    value === isCourierAllotted
+                      ? "bg-blue-600 text-white"
+                      : "bg-white text-gray-600 hover:bg-gray-100"
+                  }`}
+                >
+                  {value ? "Yes" : "No"}
+                </button>
+              ))}
             </div>
-          )}
-        </div>
-      </td>
+            {isCourierAllotted && (
+              <div className="text-green-600 font-medium text-center">
+                <Package className="inline w-4 h-4 mr-1" /> Shiprocket
+              </div>
+            )}
+          </div>
+        </td>
 
-      {/* Delivery Status */}
-      <td className="py-4 px-2">
-        <span className={`inline-block px-2 py-1 text-xs font-medium rounded-full ${getDeliveryStatusColor(currentDeliveryStatus)}`}>
-          {currentDeliveryStatus}
-        </span>
-      </td>
+        {/* Delivery Status */}
+        <td className="py-4 px-3">
+          <span
+            className={`inline-block px-2 py-1 text-xs rounded-full font-medium ${getDeliveryStatusColor(
+              currentDeliveryStatus
+            )}`}
+          >
+            {currentDeliveryStatus}
+          </span>
+        </td>
 
-      {/* Actions */}
-      <td className="py-4 px-2">
-        <div className="flex flex-col items-start space-y-2">
-          <div className="flex items-center space-x-1">
-            <button 
+        {/* Action Buttons */}
+        <td className="py-4 px-3">
+          <div className="flex flex-wrap gap-2">
+            <button
               onClick={handleBarcodeScan}
+              title="Scan"
               className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded"
-              aria-label="Scan barcode"
-              title="Scan Barcode"
             >
-              <Scan className="h-4 w-4" />
+              <Scan className="w-4 h-4" />
             </button>
-            <button 
+            <button
               onClick={handlePrint}
+              title="Print"
               className="p-1.5 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded"
-              aria-label="Print order"
-              title="Print Order"
             >
-              <Printer className="h-4 w-4" />
+              <Printer className="w-4 h-4" />
             </button>
-            <button 
+            <button
               onClick={handleDownload}
+              title="Download"
               className="p-1.5 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded"
-              aria-label="Download order"
-              title="Download Order"
             >
-              <Download className="h-4 w-4" />
+              <Download className="w-4 h-4" />
             </button>
-            <button 
+            <button
               onClick={handleShare}
+              title="Share"
               className="p-1.5 text-gray-400 hover:text-orange-600 hover:bg-orange-50 rounded"
-              aria-label="Share order"
-              title="Share Order"
             >
-              <Share2 className="h-4 w-4" />
+              <Share2 className="w-4 h-4" />
             </button>
           </div>
-        </div>
-      </td>
-    </tr>
-  );
-});
+        </td>
+      </tr>
+    );
+  }
+);
 
 // Set display names for debugging
-DocumentViewer.displayName = 'DocumentViewer';
-ReturnWindowScreen.displayName = 'ReturnWindowScreen';
-OrderDetails.displayName = 'OrderDetails';
-Orders.displayName = 'Orders';
-OrderRow.displayName = 'OrderRow';
+DocumentViewer.displayName = "DocumentViewer";
+ReturnWindowScreen.displayName = "ReturnWindowScreen";
+OrderDetails.displayName = "OrderDetails";
+Orders.displayName = "Orders";
+OrderRow.displayName = "OrderRow";
 
 export default Orders;
