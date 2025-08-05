@@ -16,6 +16,7 @@ const Layout = () => {
   const getRouteForItem = (item) => {
     const routeMap = {
       "Dashboard": "/",
+      "Data base": "/database",
       "orders": "/orders",
       "return and exchange requests": "/return-orders",
       "support messages": "/messages",
@@ -30,8 +31,9 @@ const Layout = () => {
       "product bundling": "/bundling",
       "Arrangement control": "/arrangement",
       "new admin partner": "/new-partner",
-      "users /block user": "/users",
+      "users /block user": "/block-user",
       "send notification in app(inbuilt)": "/in-app-notification",
+      "Send Promo Notification": "/send-promo-notification",
       "push notification": "/push-notification",
       "manage and post reviews": "/manage-reviews",
       "Promo codes": "/promo-code-management",
@@ -40,9 +42,14 @@ const Layout = () => {
       "Cart abandonment recovery": "/cart-recovery",
       "(bulk message and email)": "/bulk-messages",
       "analytics report(google)": "/analytics",
-      "Data base": "/database",
       "support chat log": "/support-logs",
-      "Settings": "/settings"
+      "Settings": "/settings",
+      "FAQ Management": "/faq-management",
+      "Collect communication preferences": "/collect-communication-preferences",
+      "collect Profile visibility data": "/collect-profile-visibility",
+      "collectlocationdata": "/collect-location-data",
+      "get auto invoice mailing": "/auto-invoice-mailing",
+      "hugging face api open close": "/hugging-face-api"
     };
     return routeMap[item] || "#";
   };

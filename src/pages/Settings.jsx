@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useMemo, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import CollectCommunicationPreferences from './Collect communication preferences';
 import GetAutoInvoiceMailing from './get auto invoice mailing';
 
@@ -112,6 +113,19 @@ const PREDEFINED_OPTIONS = {
 };
 
 const Settings = () => {
+  // ==============================
+  // NAVIGATION SETUP
+  // ==============================
+  const navigate = useNavigate();
+
+  // ==============================
+  // NAVIGATION HANDLERS
+  // ==============================
+  
+  const handleNavigateToSubPage = useCallback((path) => {
+    navigate(path);
+  }, [navigate]);
+
   // ==============================
   // CORE SETTINGS STATE
   // ==============================
@@ -3045,7 +3059,7 @@ const Settings = () => {
   // REUSABLE COMPONENT DEFINITIONS (useCallback optimized)
   // ==============================
   
-  const ToggleSwitch = useCallback(({ enabled, onToggle, label, settingKey, onClick }) => (
+  const ToggleSwitch = useCallback(({ enabled, onToggle, label, settingKey, onClick, hasRoute, routePath }) => (
     <div className="flex items-center justify-between py-4">
       <span className="font-bold text-[#010101] text-[20px] font-montserrat">{label}</span>
       <div className="flex items-center space-x-2">
@@ -3069,9 +3083,17 @@ const Settings = () => {
         >
           Off
         </button>
+        {hasRoute && (
+          <button
+            onClick={() => handleNavigateToSubPage(routePath)}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-full text-[14px] font-medium transition-colors"
+          >
+            Go to Page
+          </button>
+        )}
       </div>
     </div>
-  ), [handleToggleSetting]);
+  ), [handleToggleSetting, handleNavigateToSubPage]);
 
   const ViewSettingsButton = useCallback(({ onClick }) => (
     <button 
@@ -3321,28 +3343,38 @@ const Settings = () => {
           enabled={settings.profileVisibility}
           label="collect Profile visibility data"
           settingKey="profileVisibility"
+          hasRoute={true}
+          routePath="/settings/profile-visibility"
         />
         <ToggleSwitch 
           enabled={settings.collectData}
           label="collect Location data"
           settingKey="collectData"
+          hasRoute={true}
+          routePath="/settings/location-data"
         />
         <ToggleSwitch 
           enabled={showCommunicationPreferences}
           label="Collect communication preferences"
           settingKey="communicationPreferences"
           onClick={() => setShowCommunicationPreferences(!showCommunicationPreferences)}
+          hasRoute={true}
+          routePath="/settings/communication-preferences"
         />
         <ToggleSwitch 
           enabled={showAutoInvoiceMailing}
           label="get auto invoice mailing"
           settingKey="autoInvoiceMailing"
           onClick={() => setShowAutoInvoiceMailing(!showAutoInvoiceMailing)}
+          hasRoute={true}
+          routePath="/settings/auto-invoice"
         />
         <ToggleSwitch 
           enabled={settings.huggingFaceAPI}
           label="hugging face api open close"
           settingKey="huggingFaceAPI"
+          hasRoute={true}
+          routePath="/settings/hugging-face"
         />
       </div>
 
