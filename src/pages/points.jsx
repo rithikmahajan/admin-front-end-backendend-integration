@@ -345,13 +345,9 @@ const Points = () => {
       <div className="absolute left-[50px] top-[60px]">
         <h1 className="text-[32px] font-bold text-black leading-6 mb-2">point management</h1>
       </div>
-      
-      <div className="absolute left-[50px] top-[140px]">
-        <p className="text-[20px] font-bold text-black leading-6">Point management system</p>
-      </div>
 
       {/* Toggle Switch */}
-      <div className="absolute left-[346px] top-[124px] flex items-center gap-2">
+      <div className="absolute left-[346px] top-[60px] flex items-center gap-2">
         <button
           onClick={() => handleTogglePointsSystem('on')}
           className={`h-[34px] w-[69px] rounded-[100px] border border-black flex items-center justify-center ${
@@ -387,12 +383,6 @@ const Points = () => {
             className="w-[325px] h-[47px] px-4 border-2 border-black rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder=""
           />
-          <button className="p-2 hover:bg-gray-100 rounded-lg">
-            <Edit2 className="w-5 h-5 text-gray-600" />
-          </button>
-          <button className="p-2 hover:bg-gray-100 rounded-lg">
-            <Trash2 className="w-5 h-5 text-gray-600" />
-          </button>
         </div>
       </div>
 
