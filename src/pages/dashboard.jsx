@@ -120,20 +120,6 @@ const DATE_RANGE_OPTIONS = [
 ];
 
 const TIME_PERIODS = ["07 Days", "30 Days", "6 Months", "7 Days"];
-const MONTHS = [
-  "January",
-  "February",
-  "March",
-  "April",
-  "May",
-  "June",
-  "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December",
-];
 
 // Table Headers
 const PRODUCT_SYNC_HEADERS = [
@@ -1950,15 +1936,6 @@ const SalesAnalyticsSection = memo(
               </div>
             )}
           </div>
-          
-          {/* Month selector */}
-          <select className="border border-gray-200 rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50/50 hover:bg-gray-50 transition-colors duration-200">
-            {MONTHS.map((month) => (
-              <option key={month} value={month}>
-                {month}
-              </option>
-            ))}
-          </select>
         </div>
       </div>
 
@@ -2204,7 +2181,7 @@ const ProductSyncSection = memo(
                 }`}
               >
                 <td className="py-5 px-6">
-                  <div className="w-16 h-16 bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl flex items-center justify-center group-hover:from-gray-200 group-hover:to-gray-300 transition-all duration-200 shadow-sm">
+                  <div className="w-16 h-16 flex items-center justify-center">
                     <Package className="h-8 w-8 text-gray-500" />
                   </div>
                 </td>
@@ -2212,47 +2189,39 @@ const ProductSyncSection = memo(
                   {product.name}
                 </td>
                 <td className="py-5 px-6 text-gray-700 text-base font-medium">
-                  <span className="bg-green-50 px-3 py-1.5 rounded-lg">
-                    {product.price}
-                  </span>
+                  {product.price}
                 </td>
                 <td className="py-5 px-6 text-gray-700 text-sm">
-                  <span className="bg-gray-100 px-3 py-1.5 rounded-lg font-mono">
+                  <span className="font-mono">
                     {product.sku}
                   </span>
                 </td>
                 <td className="py-5 px-6 text-gray-700 text-sm">
-                  <span className="bg-gray-100 px-3 py-1.5 rounded-lg font-mono">
+                  <span className="font-mono">
                     {product.barcode}
                   </span>
                 </td>
                 <td className="py-5 px-6">
-                  <StatusBadge status={product.synced} />
+                  <span className={`text-sm font-medium ${
+                    product.synced === 'Yes' ? 'text-green-600' : 
+                    product.synced === 'no' ? 'text-red-600' : 'text-yellow-600'
+                  }`}>
+                    {product.synced === 'Yes' ? 'Connected' : 
+                     product.synced === 'no' ? 'Disconnected' : product.synced}
+                  </span>
                 </td>
                 <td className="py-5 px-6">
-                  <span
-                    className={`text-sm font-semibold capitalize px-3 py-1.5 rounded-lg ${
-                      product.marketplace === "amazon"
-                        ? "bg-orange-50 text-orange-700"
-                        : product.marketplace === "flipkart"
-                        ? "bg-blue-50 text-blue-700"
-                        : product.marketplace === "myntra"
-                        ? "bg-purple-50 text-purple-700"
-                        : product.marketplace === "nykaa"
-                        ? "bg-pink-50 text-pink-700"
-                        : "bg-gray-100 text-gray-700"
-                    }`}
-                  >
+                  <span className="text-sm font-medium text-gray-800 capitalize">
                     {product.marketplace}
                   </span>
                 </td>
                 <td className="py-5 px-6">
-                  {product.error && (
-                    <StatusBadge status={product.error} type="error" />
-                  )}
+                  <span className="text-sm text-red-600 font-medium">
+                    {product.error || 'No errors'}
+                  </span>
                 </td>
                 <td className="py-5 px-6">
-                  <button className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:from-blue-700 hover:to-blue-800 shadow-md hover:shadow-lg transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  <button className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
                     Sync Now
                   </button>
                 </td>
@@ -2356,7 +2325,7 @@ const MarketplaceConnectionsSection = memo(({ marketplaces }) => (
         <div className="space-y-5">
           <div className="flex justify-between items-center font-semibold border-b border-gray-200 pb-3 text-gray-600 uppercase text-sm tracking-wide">
             <span>Marketplace</span>
-            <span>Actions</span>
+            <span>Status</span>
           </div>
           {marketplaces.map((marketplace) => (
             <div
@@ -2366,14 +2335,11 @@ const MarketplaceConnectionsSection = memo(({ marketplaces }) => (
               <span className="text-base text-gray-800 capitalize">
                 {marketplace.name}
               </span>
-              <button
-                className={`px-5 py-2 rounded-full text-xs font-medium shadow-sm hover:opacity-90 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-                  STATUS_COLORS[marketplace.status] ||
-                  STATUS_COLORS["not connected"]
-                }`}
-              >
-                {marketplace.status}
-              </button>
+              <span className={`text-sm font-medium ${
+                marketplace.status === 'connected' ? 'text-green-600' : 'text-red-600'
+              }`}>
+                {marketplace.status === 'connected' ? 'Connected' : 'Disconnected'}
+              </span>
             </div>
           ))}
         </div>
@@ -2384,21 +2350,29 @@ const MarketplaceConnectionsSection = memo(({ marketplaces }) => (
           Connected accounts
         </h3>
         <div className="space-y-5">
-          <div className="flex justify-between items-center font-semibold border-b border-gray-200 pb-3 text-gray-600 uppercase text-sm tracking-wide">
+          <div className="grid grid-cols-3 gap-4 font-semibold border-b border-gray-200 pb-3 text-gray-600 uppercase text-sm tracking-wide">
             <span>Seller ID</span>
             <span>Last Sync</span>
+            <span>Action</span>
           </div>
           {marketplaces.map((marketplace) => (
             <div
               key={`connected-${marketplace.id}`}
-              className="flex justify-between items-center py-2 border-b border-dashed border-gray-100"
+              className="grid grid-cols-3 gap-4 items-center py-3 border-b border-dashed border-gray-100"
             >
-              <span className="text-sm text-gray-700 font-mono truncate max-w-[160px]">
+              <span className="text-sm text-gray-700 font-mono truncate">
                 {marketplace.sellerId || "Not connected"}
               </span>
               <span className="text-sm text-gray-600">
                 {marketplace.lastSync || "Never"}
               </span>
+              <div className="flex justify-start">
+                {marketplace.status === 'connected' && (
+                  <button className="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-blue-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1">
+                    Sync Now
+                  </button>
+                )}
+              </div>
             </div>
           ))}
         </div>
@@ -2443,14 +2417,16 @@ const SyncLogsSection = memo(({ syncLogs }) => (
                 {log.marketplace}
               </td>
               <td className="py-4 px-5">
-                <StatusBadge status={log.status} />
+                <span className={`text-sm font-medium ${
+                  log.status === 'success' ? 'text-green-600' : 'text-red-600'
+                }`}>
+                  {log.status === 'success' ? 'Success' : 'Failed'}
+                </span>
               </td>
               <td className="py-4 px-5">
-                {log.error ? (
-                  <StatusBadge status={log.error} type="error" />
-                ) : (
-                  <span className="text-gray-400 text-sm">No errors</span>
-                )}
+                <span className="text-sm text-gray-700">
+                  {log.error || 'No errors'}
+                </span>
               </td>
             </tr>
           ))}
