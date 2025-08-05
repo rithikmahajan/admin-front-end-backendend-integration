@@ -17,11 +17,8 @@ const Layout = () => {
     const routeMap = {
       "Dashboard": "/",
       "Database Dashboard": "/database",
-      "Test Page": "/test",
       "orders": "/orders",
       "return and exchange requests": "/return-orders",
-      "support messages": "/messages",
-      "vendor msg and in app notifications": "/messages",
       "Category": "/upload-category",
       "Subcategory": "/subcategory",
       "Items": "/manage-items",
@@ -50,9 +47,7 @@ const Layout = () => {
       "collect Profile visibility data": "/collect-profile-visibility",
       "collectlocationdata": "/collect-location-data",
       "get auto invoice mailing": "/auto-invoice-mailing",
-      "hugging face api open close": "/hugging-face-api",
-      "Date Components Demo": "/date-components-demo",
-      "2 factor": "/2-factor"
+      "hugging face api open close": "/hugging-face-api"
     };
     return routeMap[item] || "#";
   };

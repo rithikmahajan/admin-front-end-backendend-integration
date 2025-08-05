@@ -1,14 +1,12 @@
 const sidebarItems = [
   {
     title: "Dashboard",
-    items: ["Dashboard", "Database Dashboard", "Test Page"],
+    items: ["Dashboard", "Database Dashboard"],
   },
   {
     title: "App order area",
     items: [
       "orders",
-      "support messages",
-      "vendor msg and in app notifications",
     ],
   },
   {
@@ -26,8 +24,6 @@ const sidebarItems = [
       "Arrangement control",
       "new admin partner",
       "users /block user",
-      "Date Components Demo",
-      "2 factor",
     ],
   },
   {
