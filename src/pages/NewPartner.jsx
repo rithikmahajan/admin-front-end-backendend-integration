@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { X } from 'lucide-react';
+import TwoFactorAuth from '../components/TwoFactorAuth';
+import SuccessModal from '../components/SuccessModal';
 
 // Image constants from Figma design
 const imgProgressBar = "http://localhost:3845/assets/910f1120d3bdc0f6938634d6aef7d55a7bec572e.svg";
@@ -20,6 +22,18 @@ const NewPartner = () => {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [selectedVendorId, setSelectedVendorId] = useState(null);
   const [blockAction, setBlockAction] = useState(''); // 'block' or 'unblock'
+  
+  // 2FA Flow states for partner creation
+  const [show2FAModal, setShow2FAModal] = useState(false);
+  const [showVerificationSuccessModal, setShowVerificationSuccessModal] = useState(false);
+  const [showPartnerCreatedSuccessModal, setShowPartnerCreatedSuccessModal] = useState(false);
+  const [pendingPartnerData, setPendingPartnerData] = useState(null);
+  
+  // 2FA Flow states for blocking/unblocking
+  const [showBlockConfirmModal, setShowBlockConfirmModal] = useState(false);
+  const [showBlock2FAModal, setShowBlock2FAModal] = useState(false);
+  const [showBlockSuccessModal, setShowBlockSuccessModal] = useState(false);
+  const [pendingBlockData, setPendingBlockData] = useState(null);
 
   const [vendors, setVendors] = useState([
     {
@@ -74,8 +88,8 @@ const NewPartner = () => {
       return;
     }
     
-    // Create new vendor
-    const newVendor = {
+    // Store the form data and show 2FA modal
+    const newPartnerData = {
       id: Date.now(), // Simple ID generation
       vendorName: formData.name,
       vendorId: formData.newId,
@@ -84,36 +98,20 @@ const NewPartner = () => {
       status: 'active'
     };
     
-    setVendors(prev => [...prev, newVendor]);
-    
-    // Reset form
-    setFormData({
-      name: '',
-      newId: '',
-      password: '',
-      confirmPassword: ''
-    });
-    
-    alert('New partner created successfully!');
+    setPendingPartnerData(newPartnerData);
+    setShow2FAModal(true);
   };
 
   const handleBlockVendor = (vendorId, action) => {
     setSelectedVendorId(vendorId);
     setBlockAction(action);
-    setShowConfirmModal(true);
+    setPendingBlockData({ vendorId, action });
+    setShowBlockConfirmModal(true);
   };
 
   const confirmBlockVendor = () => {
-    setVendors(prev => 
-      prev.map(vendor => 
-        vendor.id === selectedVendorId 
-          ? { ...vendor, status: blockAction === 'block' ? 'blocked' : 'active' }
-          : vendor
-      )
-    );
-    setShowConfirmModal(false);
-    setShowSuccessModal(true);
-    setSelectedVendorId(null);
+    setShowBlockConfirmModal(false);
+    setShowBlock2FAModal(true);
   };
 
   const cancelBlockVendor = () => {
@@ -123,6 +121,78 @@ const NewPartner = () => {
 
   const closeSuccessModal = () => {
     setShowSuccessModal(false);
+  };
+
+  // Block/Unblock 2FA Flow handlers
+  const handleBlock2FASubmit = (data) => {
+    console.log('Block 2FA Authentication Data:', data);
+    setShowBlock2FAModal(false);
+    
+    // Update vendor status
+    if (pendingBlockData) {
+      setVendors(prev => 
+        prev.map(vendor => 
+          vendor.id === pendingBlockData.vendorId 
+            ? { ...vendor, status: pendingBlockData.action === 'block' ? 'blocked' : 'active' }
+            : vendor
+        )
+      );
+    }
+    
+    setShowBlockSuccessModal(true);
+  };
+
+  const handleCancelBlock2FA = () => {
+    setShowBlock2FAModal(false);
+    setPendingBlockData(null);
+    setSelectedVendorId(null);
+  };
+
+  const handleBlockSuccessDone = () => {
+    setShowBlockSuccessModal(false);
+    setPendingBlockData(null);
+    setSelectedVendorId(null);
+  };
+
+  const handleCancelBlockConfirm = () => {
+    setShowBlockConfirmModal(false);
+    setPendingBlockData(null);
+    setSelectedVendorId(null);
+  };
+
+  // 2FA Flow handlers
+  const handle2FASubmit = (data) => {
+    console.log('2FA Authentication Data:', data);
+    setShow2FAModal(false);
+    setShowVerificationSuccessModal(true);
+  };
+
+  const handleCancel2FA = () => {
+    setShow2FAModal(false);
+    setPendingPartnerData(null);
+  };
+
+  const handleVerificationSuccessDone = () => {
+    setShowVerificationSuccessModal(false);
+    setShowPartnerCreatedSuccessModal(true);
+  };
+
+  const handlePartnerCreatedSuccessDone = () => {
+    setShowPartnerCreatedSuccessModal(false);
+    
+    // Now create the vendor and reset form
+    if (pendingPartnerData) {
+      setVendors(prev => [...prev, pendingPartnerData]);
+      setPendingPartnerData(null);
+      
+      // Reset form
+      setFormData({
+        name: '',
+        newId: '',
+        password: '',
+        confirmPassword: ''
+      });
+    }
   };
 
   const handlePasswordEdit = (vendorId, field, value) => {
@@ -266,18 +336,17 @@ const NewPartner = () => {
         {vendors.length > 0 ? (
           <div className="max-w-6xl">
             {/* Table Headers */}
-            <div className="grid grid-cols-6 gap-8 mb-4">
+            <div className="grid grid-cols-5 gap-8 mb-4">
               <div className="text-[#000000] text-[20px] text-left tracking-[-0.5px]">vendor name</div>
               <div className="text-[#000000] text-[20px] text-left tracking-[-0.5px]">vendor id</div>
               <div className="text-[#000000] text-[20px] text-center tracking-[-0.5px]">password</div>
               <div className="text-[#000000] text-[20px] text-center tracking-[-0.5px]">edit password</div>
-              <div className="text-[#000000] text-[20px] text-center tracking-[-0.5px]">block</div>
-              <div className="text-[#000000] text-[20px] text-center tracking-[-0.5px]">unblock</div>
+              <div className="text-[#000000] text-[20px] text-center tracking-[-0.5px]">status</div>
             </div>
 
             {/* Table Rows */}
             {vendors.map((vendor, index) => (
-              <div key={vendor.id} className="grid grid-cols-6 gap-8 items-center py-4">
+              <div key={vendor.id} className="grid grid-cols-5 gap-8 items-center py-4">
                 <div className="text-[#202224] text-[14px] font-bold">{vendor.vendorName}</div>
                 <div className="text-[#202224] text-[14px] font-bold">{vendor.vendorId}</div>
                 <div className="flex items-center justify-center">
@@ -323,29 +392,16 @@ const NewPartner = () => {
                   )}
                 </div>
                 <div className="flex justify-center">
+                  {/* Toggle Button */}
                   <button
-                    onClick={() => handleBlockVendor(vendor.id, 'block')}
-                    disabled={vendor.status === 'blocked'}
-                    className={`text-[#ffffff] text-[14px] font-normal px-4 py-2.5 rounded-lg border shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] transition-colors ${
-                      vendor.status === 'blocked'
-                        ? 'bg-gray-400 border-gray-400 cursor-not-allowed opacity-50'
-                        : 'bg-[#000000] border-[#333333] hover:bg-gray-800 cursor-pointer'
-                    }`}
-                  >
-                    Block NOW
-                  </button>
-                </div>
-                <div className="flex justify-center">
-                  <button
-                    onClick={() => handleBlockVendor(vendor.id, 'unblock')}
-                    disabled={vendor.status === 'active'}
-                    className={`text-[#ffffff] text-[14px] font-normal px-4 py-2.5 rounded-lg border shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] transition-colors ${
+                    onClick={() => handleBlockVendor(vendor.id, vendor.status === 'active' ? 'block' : 'unblock')}
+                    className={`text-[#ffffff] text-[14px] font-normal px-6 py-2.5 rounded-lg border shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] transition-colors ${
                       vendor.status === 'active'
-                        ? 'bg-gray-400 border-gray-400 cursor-not-allowed opacity-50'
-                        : 'bg-[#dc2626] border-[#dc2626] hover:bg-red-700 cursor-pointer'
+                        ? 'bg-[#dc2626] border-[#dc2626] hover:bg-red-700 cursor-pointer'
+                        : 'bg-[#16a34a] border-[#16a34a] hover:bg-green-700 cursor-pointer'
                     }`}
                   >
-                    Unblock NOW
+                    {vendor.status === 'active' ? 'Block' : 'Unblock'}
                   </button>
                 </div>
               </div>
@@ -363,13 +419,13 @@ const NewPartner = () => {
         )}
       </div>
 
-      {/* Confirmation Modal */}
-      {showConfirmModal && (
+      {/* Block Confirmation Modal */}
+      {showBlockConfirmModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-lg p-8 max-w-md w-full mx-4 relative">
+          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] p-8 max-w-md w-full mx-4 relative">
             {/* Close button */}
             <button
-              onClick={cancelBlockVendor}
+              onClick={handleCancelBlockConfirm}
               className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
             >
               <X className="h-6 w-6" />
@@ -377,23 +433,32 @@ const NewPartner = () => {
 
             {/* Modal content */}
             <div className="text-center">
-              <h2 className="text-lg font-bold text-black mb-8 leading-6">
-                are you sure you want to {blockAction}
+              {/* Warning Icon */}
+              <div className="flex justify-center mb-6">
+                <div className="w-16 h-16 bg-orange-500 rounded-full flex items-center justify-center">
+                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16c-.77.833.192 2.5 1.732 2.5z" />
+                  </svg>
+                </div>
+              </div>
+
+              <h2 className="font-montserrat font-bold text-[18px] text-black mb-8 leading-[22px] tracking-[-0.41px]">
+                are you sure you want to {pendingBlockData?.action} this partner
               </h2>
               
               <div className="flex justify-center space-x-4">
                 {/* Yes button */}
                 <button
                   onClick={confirmBlockVendor}
-                  className="bg-black text-white px-6 py-3 rounded-full font-semibold hover:bg-gray-800 transition-colors min-w-[120px]"
+                  className="bg-black text-white px-12 py-4 rounded-full font-medium text-[16px] font-montserrat hover:bg-gray-800 transition-colors"
                 >
-                  yes
+                  Yes
                 </button>
                 
                 {/* Cancel button */}
                 <button
-                  onClick={cancelBlockVendor}
-                  className="border border-gray-300 text-black px-6 py-3 rounded-full font-medium hover:bg-gray-50 transition-colors min-w-[120px]"
+                  onClick={handleCancelBlockConfirm}
+                  className="border border-[#e4e4e4] text-black px-12 py-4 rounded-full font-medium text-[16px] font-montserrat hover:bg-gray-50 transition-colors"
                 >
                   Cancel
                 </button>
@@ -446,6 +511,50 @@ const NewPartner = () => {
           </div>
         </div>
       )}
+
+      {/* 2FA Modal for Partner Creation */}
+      {show2FAModal && (
+        <TwoFactorAuth
+          onSubmit={handle2FASubmit}
+          onClose={handleCancel2FA}
+          phoneNumber="+91 9876543210"
+          emailAddress="admin@yoraa.in"
+        />
+      )}
+
+      {/* 2FA Modal for Blocking/Unblocking */}
+      {showBlock2FAModal && (
+        <TwoFactorAuth
+          onSubmit={handleBlock2FASubmit}
+          onClose={handleCancelBlock2FA}
+          phoneNumber="+91 9876543210"
+          emailAddress="admin@yoraa.in"
+        />
+      )}
+
+      {/* Verification Success Modal */}
+      <SuccessModal
+        isOpen={showVerificationSuccessModal}
+        onClose={handleVerificationSuccessDone}
+        title="id verified successfully!"
+        buttonText="Done"
+      />
+
+      {/* Partner Created Success Modal */}
+      <SuccessModal
+        isOpen={showPartnerCreatedSuccessModal}
+        onClose={handlePartnerCreatedSuccessDone}
+        title="New Partner created successfully!"
+        buttonText="Done"
+      />
+
+      {/* Block Success Modal */}
+      <SuccessModal
+        isOpen={showBlockSuccessModal}
+        onClose={handleBlockSuccessDone}
+        title={pendingBlockData?.action === 'block' ? 'partner blocked successfully!' : 'partner unblocked successfully!'}
+        buttonText="Done"
+      />
     </div>
   );
 };
