@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useMemo } from 'react';
+import TwoFactorAuth from '../components/TwoFactorAuth';
 
 // Enhanced Database Dashboard based on Figma designs
 const DatabaseDashboard = () => {
@@ -7,6 +8,34 @@ const DatabaseDashboard = () => {
   const [showPassword, setShowPassword] = useState({});
   const [documentPreview, setDocumentPreview] = useState(null);
   const [sizeChartPreview, setSizeChartPreview] = useState(null);
+  
+  // 2FA states for password viewing
+  const [show2FAModal, setShow2FAModal] = useState(false);
+  const [pending2FAUserId, setPending2FAUserId] = useState(null);
+  const [show2FASuccess, setShow2FASuccess] = useState(false);
+  const [authenticated2FAUsers, setAuthenticated2FAUsers] = useState(new Set());
+  
+  // Filter states
+  const [filters, setFilters] = useState({
+    users: {
+      gender: 'all',
+      accountStatus: 'all',
+      pointRange: 'all',
+      dateRange: 'all'
+    },
+    orders: {
+      deliveryStatus: 'all',
+      paymentStatus: 'all',
+      dateRange: 'all',
+      priceRange: 'all'
+    },
+    products: {
+      status: 'all',
+      brand: 'all',
+      category: 'all',
+      stockLevel: 'all'
+    }
+  });
 
   // Mock data for User Data View (View 1) - Based on Figma Design
   const mockUsers = [
@@ -390,33 +419,130 @@ const DatabaseDashboard = () => {
 
   // Filter functions
   const filteredUsers = useMemo(() => {
-    return mockUsers.filter(user =>
-      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.username.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [searchTerm]);
+    return mockUsers.filter(user => {
+      // Search filter
+      const searchMatch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.username.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      // Gender filter
+      const genderMatch = filters.users.gender === 'all' || user.gender === filters.users.gender;
+      
+      // Account status filter
+      const statusMatch = filters.users.accountStatus === 'all' || 
+        (filters.users.accountStatus === 'active' && !user.deleteAccount) ||
+        (filters.users.accountStatus === 'deleted' && user.deleteAccount);
+      
+      // Point range filter
+      const pointMatch = filters.users.pointRange === 'all' ||
+        (filters.users.pointRange === 'low' && user.pointBalance < 500) ||
+        (filters.users.pointRange === 'medium' && user.pointBalance >= 500 && user.pointBalance < 1000) ||
+        (filters.users.pointRange === 'high' && user.pointBalance >= 1000);
+      
+      return searchMatch && genderMatch && statusMatch && pointMatch;
+    });
+  }, [searchTerm, filters.users]);
 
   const filteredOrders = useMemo(() => {
-    return mockOrders.filter(order =>
-      order.orderId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.sku.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [searchTerm]);
+    return mockOrders.filter(order => {
+      // Search filter
+      const searchMatch = order.orderId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        order.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        order.sku.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      // Delivery status filter
+      const deliveryMatch = filters.orders.deliveryStatus === 'all' || 
+        order.deliveryStatus === filters.orders.deliveryStatus;
+      
+      // Payment status filter
+      const paymentMatch = filters.orders.paymentStatus === 'all' || 
+        order.paymentStatus === filters.orders.paymentStatus;
+      
+      return searchMatch && deliveryMatch && paymentMatch;
+    });
+  }, [searchTerm, filters.orders]);
 
   const filteredProducts = useMemo(() => {
-    return mockProducts.filter(product =>
-      product.article.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [searchTerm]);
+    return mockProducts.filter(product => {
+      // Search filter
+      const searchMatch = product.article.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      // Status filter
+      const statusMatch = filters.products.status === 'all' || product.status === filters.products.status;
+      
+      // Brand filter
+      const brandMatch = filters.products.brand === 'all' || product.brand === filters.products.brand;
+      
+      // Category filter
+      const categoryMatch = filters.products.category === 'all' || 
+        product.category.includes(filters.products.category);
+      
+      // Stock level filter
+      const totalStock = product.variants.reduce((sum, variant) => sum + variant.stock, 0);
+      const stockMatch = filters.products.stockLevel === 'all' ||
+        (filters.products.stockLevel === 'low' && totalStock < 50) ||
+        (filters.products.stockLevel === 'medium' && totalStock >= 50 && totalStock < 150) ||
+        (filters.products.stockLevel === 'high' && totalStock >= 150);
+      
+      return searchMatch && statusMatch && brandMatch && categoryMatch && stockMatch;
+    });
+  }, [searchTerm, filters.products]);
 
-  // Toggle password visibility
+  // Toggle password visibility with 2FA authentication
   const togglePassword = useCallback((userId) => {
-    setShowPassword(prev => ({
-      ...prev,
-      [userId]: !prev[userId]
-    }));
+    // If user is already authenticated, just toggle password visibility
+    if (authenticated2FAUsers.has(userId)) {
+      setShowPassword(prev => ({
+        ...prev,
+        [userId]: !prev[userId]
+      }));
+    } else {
+      // Require 2FA authentication first
+      setPending2FAUserId(userId);
+      setShow2FAModal(true);
+    }
+  }, [authenticated2FAUsers]);
+
+  // Handle 2FA submission for password viewing
+  const handle2FASubmit = useCallback((data) => {
+    if (data && data.verificationCode.length === 4 && data.emailPassword && data.defaultPassword) {
+      setShow2FAModal(false);
+      setShow2FASuccess(true);
+      
+      // Add user to authenticated users
+      setAuthenticated2FAUsers(prev => new Set([...prev, pending2FAUserId]));
+      
+      // Show password after authentication
+      setTimeout(() => {
+        setShowPassword(prev => ({
+          ...prev,
+          [pending2FAUserId]: true
+        }));
+        setShow2FASuccess(false);
+        setPending2FAUserId(null);
+      }, 2000);
+      
+      console.log('2FA Authentication Data for password viewing:', {
+        userId: pending2FAUserId,
+        verificationCode: data.verificationCode,
+        emailPassword: data.emailPassword,
+        defaultPassword: data.defaultPassword
+      });
+    } else {
+      alert('Please fill in all fields');
+    }
+  }, [pending2FAUserId]);
+
+  // Handle 2FA cancellation
+  const handleCancel2FA = useCallback(() => {
+    setShow2FAModal(false);
+    setPending2FAUserId(null);
+  }, []);
+
+  // Close 2FA success modal
+  const handleClose2FASuccess = useCallback(() => {
+    setShow2FASuccess(false);
+    setPending2FAUserId(null);
   }, []);
 
   // Document preview
@@ -427,6 +553,30 @@ const DatabaseDashboard = () => {
   // Size chart preview
   const openSizeChart = useCallback((charts) => {
     setSizeChartPreview(charts);
+  }, []);
+
+  // Filter handler
+  const updateFilter = useCallback((tab, filterType, value) => {
+    setFilters(prev => ({
+      ...prev,
+      [tab]: {
+        ...prev[tab],
+        [filterType]: value
+      }
+    }));
+  }, []);
+
+  // Reset filters
+  const resetFilters = useCallback((tab) => {
+    setFilters(prev => ({
+      ...prev,
+      [tab]: {
+        ...Object.keys(prev[tab]).reduce((acc, key) => {
+          acc[key] = 'all';
+          return acc;
+        }, {})
+      }
+    }));
   }, []);
 
   return (
@@ -489,6 +639,272 @@ const DatabaseDashboard = () => {
           </div>
         </div>
 
+        {/* Advanced Filters */}
+        <div style={{
+          backgroundColor: 'white',
+          borderRadius: '8px',
+          border: '1px solid #e5e7eb',
+          marginBottom: '20px',
+          padding: '20px'
+        }}>
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '15px'
+          }}>
+            <h3 style={{
+              fontSize: '16px',
+              fontWeight: '600',
+              color: '#374151',
+              margin: 0,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}>
+              🔧 Advanced Filters
+            </h3>
+            <button
+              onClick={() => resetFilters(activeTab)}
+              style={{
+                padding: '6px 12px',
+                backgroundColor: '#f3f4f6',
+                border: '1px solid #d1d5db',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                fontSize: '12px',
+                color: '#374151'
+              }}
+            >
+              🔄 Reset Filters
+            </button>
+          </div>
+
+          {/* User Filters */}
+          {activeTab === 'users' && (
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+              gap: '15px'
+            }}>
+              <div>
+                <label style={{ fontSize: '12px', fontWeight: '500', color: '#374151', display: 'block', marginBottom: '5px' }}>
+                  👤 Gender
+                </label>
+                <select
+                  value={filters.users.gender}
+                  onChange={(e) => updateFilter('users', 'gender', e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '4px',
+                    fontSize: '14px'
+                  }}
+                >
+                  <option value="all">All Genders</option>
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                </select>
+              </div>
+
+              <div>
+                <label style={{ fontSize: '12px', fontWeight: '500', color: '#374151', display: 'block', marginBottom: '5px' }}>
+                  ✅ Account Status
+                </label>
+                <select
+                  value={filters.users.accountStatus}
+                  onChange={(e) => updateFilter('users', 'accountStatus', e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '4px',
+                    fontSize: '14px'
+                  }}
+                >
+                  <option value="all">All Status</option>
+                  <option value="active">Active</option>
+                  <option value="deleted">Deleted</option>
+                </select>
+              </div>
+
+              <div>
+                <label style={{ fontSize: '12px', fontWeight: '500', color: '#374151', display: 'block', marginBottom: '5px' }}>
+                  💰 Point Range
+                </label>
+                <select
+                  value={filters.users.pointRange}
+                  onChange={(e) => updateFilter('users', 'pointRange', e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '4px',
+                    fontSize: '14px'
+                  }}
+                >
+                  <option value="all">All Points</option>
+                  <option value="low">Low (&lt; 500)</option>
+                  <option value="medium">Medium (500-999)</option>
+                  <option value="high">High (≥ 1000)</option>
+                </select>
+              </div>
+            </div>
+          )}
+
+          {/* Order Filters */}
+          {activeTab === 'orders' && (
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+              gap: '15px'
+            }}>
+              <div>
+                <label style={{ fontSize: '12px', fontWeight: '500', color: '#374151', display: 'block', marginBottom: '5px' }}>
+                  🚚 Delivery Status
+                </label>
+                <select
+                  value={filters.orders.deliveryStatus}
+                  onChange={(e) => updateFilter('orders', 'deliveryStatus', e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '4px',
+                    fontSize: '14px'
+                  }}
+                >
+                  <option value="all">All Delivery Status</option>
+                  <option value="pending">Pending</option>
+                  <option value="shipped">Shipped</option>
+                  <option value="delivered">Delivered</option>
+                  <option value="cancelled">Cancelled</option>
+                </select>
+              </div>
+
+              <div>
+                <label style={{ fontSize: '12px', fontWeight: '500', color: '#374151', display: 'block', marginBottom: '5px' }}>
+                  💳 Payment Status
+                </label>
+                <select
+                  value={filters.orders.paymentStatus}
+                  onChange={(e) => updateFilter('orders', 'paymentStatus', e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '4px',
+                    fontSize: '14px'
+                  }}
+                >
+                  <option value="all">All Payment Status</option>
+                  <option value="pending">Pending</option>
+                  <option value="completed">Completed</option>
+                  <option value="failed">Failed</option>
+                  <option value="refunded">Refunded</option>
+                </select>
+              </div>
+            </div>
+          )}
+
+          {/* Product Filters */}
+          {activeTab === 'products' && (
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+              gap: '15px'
+            }}>
+              <div>
+                <label style={{ fontSize: '12px', fontWeight: '500', color: '#374151', display: 'block', marginBottom: '5px' }}>
+                  🔄 Return Status
+                </label>
+                <select
+                  value={filters.products.status}
+                  onChange={(e) => updateFilter('products', 'status', e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '4px',
+                    fontSize: '14px'
+                  }}
+                >
+                  <option value="all">All Status</option>
+                  <option value="returnable">Returnable</option>
+                  <option value="non-returnable">Non-Returnable</option>
+                </select>
+              </div>
+
+              <div>
+                <label style={{ fontSize: '12px', fontWeight: '500', color: '#374151', display: 'block', marginBottom: '5px' }}>
+                  🏷️ Brand
+                </label>
+                <select
+                  value={filters.products.brand}
+                  onChange={(e) => updateFilter('products', 'brand', e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '4px',
+                    fontSize: '14px'
+                  }}
+                >
+                  <option value="all">All Brands</option>
+                  <option value="Adidas">Adidas</option>
+                  <option value="Nike">Nike</option>
+                  <option value="Zara">Zara</option>
+                </select>
+              </div>
+
+              <div>
+                <label style={{ fontSize: '12px', fontWeight: '500', color: '#374151', display: 'block', marginBottom: '5px' }}>
+                  📦 Category
+                </label>
+                <select
+                  value={filters.products.category}
+                  onChange={(e) => updateFilter('products', 'category', e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '4px',
+                    fontSize: '14px'
+                  }}
+                >
+                  <option value="all">All Categories</option>
+                  <option value="tshirt">T-Shirts</option>
+                  <option value="shoes">Shoes</option>
+                  <option value="dress">Dresses</option>
+                </select>
+              </div>
+
+              <div>
+                <label style={{ fontSize: '12px', fontWeight: '500', color: '#374151', display: 'block', marginBottom: '5px' }}>
+                  📊 Stock Level
+                </label>
+                <select
+                  value={filters.products.stockLevel}
+                  onChange={(e) => updateFilter('products', 'stockLevel', e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '4px',
+                    fontSize: '14px'
+                  }}
+                >
+                  <option value="all">All Stock Levels</option>
+                  <option value="low">Low (&lt; 50)</option>
+                  <option value="medium">Medium (50-149)</option>
+                  <option value="high">High (≥ 150)</option>
+                </select>
+              </div>
+            </div>
+          )}
+        </div>
+
         {/* Tab Navigation */}
         <div style={{
           backgroundColor: 'white',
@@ -544,6 +960,155 @@ const DatabaseDashboard = () => {
           border: '1px solid #e5e7eb',
           padding: '20px'
         }}>
+          {/* Filter Summary */}
+          <div style={{
+            backgroundColor: '#f8fafc',
+            border: '1px solid #e2e8f0',
+            borderRadius: '6px',
+            padding: '12px',
+            marginBottom: '20px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '10px'
+          }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '15px',
+              fontSize: '14px',
+              color: '#374151'
+            }}>
+              <span style={{ fontWeight: '600' }}>
+                📊 Results: {
+                  activeTab === 'users' ? filteredUsers.length :
+                  activeTab === 'orders' ? filteredOrders.length :
+                  filteredProducts.length
+                } items
+              </span>
+              {searchTerm && (
+                <span style={{
+                  padding: '4px 8px',
+                  backgroundColor: '#dbeafe',
+                  borderRadius: '4px',
+                  fontSize: '12px'
+                }}>
+                  🔍 Search: "{searchTerm}"
+                </span>
+              )}
+            </div>
+            <div style={{
+              display: 'flex',
+              gap: '8px',
+              flexWrap: 'wrap'
+            }}>
+              {/* Active filter indicators */}
+              {activeTab === 'users' && (
+                <>
+                  {filters.users.gender !== 'all' && (
+                    <span style={{
+                      padding: '4px 8px',
+                      backgroundColor: '#fef3c7',
+                      borderRadius: '4px',
+                      fontSize: '12px'
+                    }}>
+                      👤 {filters.users.gender}
+                    </span>
+                  )}
+                  {filters.users.accountStatus !== 'all' && (
+                    <span style={{
+                      padding: '4px 8px',
+                      backgroundColor: '#d1fae5',
+                      borderRadius: '4px',
+                      fontSize: '12px'
+                    }}>
+                      ✅ {filters.users.accountStatus}
+                    </span>
+                  )}
+                  {filters.users.pointRange !== 'all' && (
+                    <span style={{
+                      padding: '4px 8px',
+                      backgroundColor: '#f0fdf4',
+                      borderRadius: '4px',
+                      fontSize: '12px'
+                    }}>
+                      💰 {filters.users.pointRange} points
+                    </span>
+                  )}
+                </>
+              )}
+              {activeTab === 'orders' && (
+                <>
+                  {filters.orders.deliveryStatus !== 'all' && (
+                    <span style={{
+                      padding: '4px 8px',
+                      backgroundColor: '#dbeafe',
+                      borderRadius: '4px',
+                      fontSize: '12px'
+                    }}>
+                      🚚 {filters.orders.deliveryStatus}
+                    </span>
+                  )}
+                  {filters.orders.paymentStatus !== 'all' && (
+                    <span style={{
+                      padding: '4px 8px',
+                      backgroundColor: '#fef3c7',
+                      borderRadius: '4px',
+                      fontSize: '12px'
+                    }}>
+                      💳 {filters.orders.paymentStatus}
+                    </span>
+                  )}
+                </>
+              )}
+              {activeTab === 'products' && (
+                <>
+                  {filters.products.status !== 'all' && (
+                    <span style={{
+                      padding: '4px 8px',
+                      backgroundColor: '#f0fdf4',
+                      borderRadius: '4px',
+                      fontSize: '12px'
+                    }}>
+                      🔄 {filters.products.status}
+                    </span>
+                  )}
+                  {filters.products.brand !== 'all' && (
+                    <span style={{
+                      padding: '4px 8px',
+                      backgroundColor: '#fef2f2',
+                      borderRadius: '4px',
+                      fontSize: '12px'
+                    }}>
+                      🏷️ {filters.products.brand}
+                    </span>
+                  )}
+                  {filters.products.category !== 'all' && (
+                    <span style={{
+                      padding: '4px 8px',
+                      backgroundColor: '#ede9fe',
+                      borderRadius: '4px',
+                      fontSize: '12px'
+                    }}>
+                      📦 {filters.products.category}
+                    </span>
+                  )}
+                  {filters.products.stockLevel !== 'all' && (
+                    <span style={{
+                      padding: '4px 8px',
+                      backgroundColor: '#ecfdf5',
+                      borderRadius: '4px',
+                      fontSize: '12px'
+                    }}>
+                      📊 {filters.products.stockLevel} stock
+                    </span>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+
           {/* User Data View */}
           {activeTab === 'users' && (
             <div>
@@ -652,24 +1217,25 @@ const DatabaseDashboard = () => {
                               style={{
                                 padding: '4px 8px',
                                 fontSize: '12px',
-                                border: '1px solid #d1d5db',
+                                border: authenticated2FAUsers.has(user.id) ? '1px solid #10b981' : '1px solid #d1d5db',
                                 borderRadius: '4px',
                                 cursor: 'pointer',
-                                backgroundColor: 'white'
+                                backgroundColor: authenticated2FAUsers.has(user.id) ? '#f0fdf4' : 'white',
+                                color: authenticated2FAUsers.has(user.id) ? '#065f46' : '#374151'
                               }}
                             >
-                              {showPassword[user.id] ? '🙈' : '👁️'}
+                              {showPassword[user.id] ? '🙈' : authenticated2FAUsers.has(user.id) ? '✅👁️' : '��👁️'}
                             </button>
                           </div>
                           <div style={{ 
                             fontSize: '10px', 
-                            color: '#ef4444',
-                            backgroundColor: '#fef2f2',
+                            color: authenticated2FAUsers.has(user.id) ? '#059669' : '#ef4444',
+                            backgroundColor: authenticated2FAUsers.has(user.id) ? '#f0fdf4' : '#fef2f2',
                             padding: '3px 6px',
                             borderRadius: '3px',
-                            border: '1px solid #fecaca'
+                            border: authenticated2FAUsers.has(user.id) ? '1px solid #bbf7d0' : '1px solid #fecaca'
                           }}>
-                            🔐 Requires 2FA Authentication
+                            {authenticated2FAUsers.has(user.id) ? '✅ 2FA Authenticated' : '🔐 Requires 2FA Authentication'}
                           </div>
                         </td>
                         <td style={{ padding: '12px', borderBottom: '1px solid #f3f4f6' }}>
@@ -1435,6 +2001,79 @@ const DatabaseDashboard = () => {
                 </ul>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* 2FA Modal for Password Viewing */}
+      {show2FAModal && (
+        <TwoFactorAuth
+          onSubmit={handle2FASubmit}
+          onClose={handleCancel2FA}
+          phoneNumber="+91 9876543210"
+          emailAddress="admin@company.com"
+        />
+      )}
+
+      {/* 2FA Success Modal */}
+      {show2FASuccess && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0,0,0,0.7)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '8px',
+            padding: '30px',
+            maxWidth: '400px',
+            width: '90%',
+            textAlign: 'center',
+            boxShadow: '0px 4px 120px 2px rgba(0,0,0,0.25)'
+          }}>
+            <div style={{
+              fontSize: '48px',
+              marginBottom: '20px'
+            }}>
+              ✅
+            </div>
+            <h3 style={{
+              fontSize: '24px',
+              fontWeight: '600',
+              color: '#059669',
+              margin: '0 0 15px 0'
+            }}>
+              Authentication Successful!
+            </h3>
+            <p style={{
+              fontSize: '14px',
+              color: '#6b7280',
+              margin: '0 0 25px 0'
+            }}>
+              You can now view sensitive password information. This session will remain authenticated for your convenience.
+            </p>
+            <button
+              onClick={handleClose2FASuccess}
+              style={{
+                padding: '10px 20px',
+                backgroundColor: '#059669',
+                color: 'white',
+                border: 'none',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                fontSize: '14px',
+                fontWeight: '600'
+              }}
+            >
+              Continue
+            </button>
           </div>
         </div>
       )}
