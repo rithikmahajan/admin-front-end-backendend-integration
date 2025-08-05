@@ -7,7 +7,7 @@ import InviteAFriend from "./pages/inviteafriend";
 import ManageReviews from "./pages/ManageReviews";
 import Orders from "./pages/Orders";
 import OrderDetails from "./pages/OrderDetails";
-import Database from "./pages/database";
+import Dashboard from "./pages/dashboard";
 import Analytics from "./pages/Analytics";
 import Settings from "./pages/Settings";
 import Users from "./pages/Users";
@@ -38,7 +38,11 @@ import CollectCommunicationPreferences from "./pages/Collect communication prefe
 import CollectProfileVisibilityData from "./pages/collect Profile visibility data";
 import CollectLocationData from "./pages/collectlocationdata";
 import GetAutoInvoiceMailing from "./pages/get auto invoice mailing";
+import MontserratFontDemo from "./components/MontserratFontDemo";
 import HuggingFaceApiOpenClose from "./pages/hugging face api open close";
+import DateComponentsDemo from "./pages/DateComponentsDemo";
+import TwoFactorDemoPage from "./pages/TwoFactorDemoPage";
+import DeleteConfirmationDemo from "./components/DeleteConfirmationDemo";
 
 const App = () => {
   return (
@@ -47,8 +51,13 @@ const App = () => {
         {/* All routes wrapped in Layout to show sidebar and admin interface */}
         <Route element={<Layout />}>
           {/* ===== DASHBOARD & MAIN ===== */}
-          <Route path="/" element={<Database />} />
-          <Route path="/database" element={<Database />} />
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/database" element={<Dashboard />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/font-demo" element={<MontserratFontDemo />} />
+          <Route path="/date-components-demo" element={<DateComponentsDemo />} />
+          <Route path="/2-factor" element={<TwoFactorDemoPage />} />
+          <Route path="/delete-confirmation-demo" element={<DeleteConfirmationDemo />} />
           
           {/* ===== ORDER MANAGEMENT ===== */}
           <Route path="/orders" element={<Orders />} />

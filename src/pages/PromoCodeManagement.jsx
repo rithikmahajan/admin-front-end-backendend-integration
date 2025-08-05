@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useMemo } from 'react';
+import TwoFactorAuth from '../components/TwoFactorAuth';
 
 // Constants
 const DISCOUNT_TYPES = ['Percentage', 'Fixed Amount', 'Free Shipping'];
@@ -176,33 +177,43 @@ const PromoCodeManagement = () => {
   }, [updateModalState]);
 
   // 2FA handlers
-  const handle2FASubmit = useCallback(() => {
-    if (validateAuthForm()) {
+  const handle2FASubmit = useCallback((data) => {
+    if (data && data.verificationCode.length === 4 && data.emailPassword && data.defaultPassword) {
       updateModalState({ show2FAModal: false, showSuccessModal: true });
-      resetAuthForm();
+      
+      console.log('Promo Code 2FA Authentication Data:', {
+        action: 'toggle_on',
+        verificationCode: data.verificationCode,
+        emailPassword: data.emailPassword,
+        defaultPassword: data.defaultPassword
+      });
     } else {
       alert('Please fill in all fields');
     }
-  }, [validateAuthForm, updateModalState, resetAuthForm]);
+  }, [updateModalState]);
 
-  const handleOff2FASubmit = useCallback(() => {
-    if (validateAuthForm()) {
+  const handleOff2FASubmit = useCallback((data) => {
+    if (data && data.verificationCode.length === 4 && data.emailPassword && data.defaultPassword) {
       updateModalState({ showOff2FAModal: false, showOffSuccessModal: true });
-      resetAuthForm();
+      
+      console.log('Promo Code 2FA Authentication Data:', {
+        action: 'toggle_off',
+        verificationCode: data.verificationCode,
+        emailPassword: data.emailPassword,
+        defaultPassword: data.defaultPassword
+      });
     } else {
       alert('Please fill in all fields');
     }
-  }, [validateAuthForm, updateModalState, resetAuthForm]);
+  }, [updateModalState]);
 
   const handleCancel2FA = useCallback(() => {
     updateModalState({ show2FAModal: false });
-    resetAuthForm();
-  }, [updateModalState, resetAuthForm]);
+  }, [updateModalState]);
 
   const handleCancelOff2FA = useCallback(() => {
     updateModalState({ showOff2FAModal: false });
-    resetAuthForm();
-  }, [updateModalState, resetAuthForm]);
+  }, [updateModalState]);
 
   // Success modal handlers
   const handleSuccessModalDone = useCallback(() => {
@@ -260,20 +271,25 @@ const PromoCodeManagement = () => {
     updateEditState({ editingPromo: null, newPromoCode: '' });
   }, [updateModalState, updateEditState]);
 
-  const handleEdit2FASubmit = useCallback(() => {
-    if (validateAuthForm()) {
+  const handleEdit2FASubmit = useCallback((data) => {
+    if (data && data.verificationCode.length === 4 && data.emailPassword && data.defaultPassword) {
       updateModalState({ showEdit2FAModal: false, showEditSuccessModal: true });
-      resetAuthForm();
+      
+      console.log('Promo Code Edit 2FA Authentication Data:', {
+        action: 'edit',
+        verificationCode: data.verificationCode,
+        emailPassword: data.emailPassword,
+        defaultPassword: data.defaultPassword
+      });
     } else {
       alert('Please fill in all fields');
     }
-  }, [validateAuthForm, updateModalState, resetAuthForm]);
+  }, [updateModalState]);
 
   const handleCancelEdit2FA = useCallback(() => {
     updateModalState({ showEdit2FAModal: false });
-    resetAuthForm();
     updateEditState({ editingPromo: null, newPromoCode: '' });
-  }, [updateModalState, resetAuthForm, updateEditState]);
+  }, [updateModalState, updateEditState]);
 
   const handleEditSuccessDone = useCallback(() => {
     if (editState.editingPromo && editState.newPromoCode.trim()) {
@@ -528,42 +544,32 @@ const PromoCodeManagement = () => {
 
       {/* 2FA Modal */}
       {modalState.show2FAModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-            <h3 className="text-lg font-semibold mb-4">Two-Factor Authentication</h3>
-            <p className="mb-4">Please enter the verification code and your passwords</p>
-            
-            <div className="mb-4">
-              <label className="block text-sm font-medium mb-2">Verification Code</label>
-              <div className="flex space-x-2">
-                {[0, 1, 2, 3].map((index) => renderOtpInput(index))}
-              </div>
-            </div>
+        <TwoFactorAuth
+          onSubmit={handle2FASubmit}
+          onClose={handleCancel2FA}
+          phoneNumber="+1 (555) 123-4567"
+          emailAddress="admin@promocodes.com"
+        />
+      )}
 
-            <div className="mb-4">
-              {renderPasswordField('Verification Password', 'verificationPassword', authState.showVerificationPassword)}
-            </div>
+      {/* Off 2FA Modal */}
+      {modalState.showOff2FAModal && (
+        <TwoFactorAuth
+          onSubmit={handleOff2FASubmit}
+          onClose={handleCancelOff2FA}
+          phoneNumber="+1 (555) 123-4567"
+          emailAddress="admin@promocodes.com"
+        />
+      )}
 
-            <div className="mb-6">
-              {renderPasswordField('Default Password', 'defaultPassword', authState.showDefaultPassword)}
-            </div>
-
-            <div className="flex justify-end space-x-4">
-              <button
-                onClick={handleCancel2FA}
-                className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handle2FASubmit}
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-              >
-                Submit
-              </button>
-            </div>
-          </div>
-        </div>
+      {/* Edit 2FA Modal */}
+      {modalState.showEdit2FAModal && (
+        <TwoFactorAuth
+          onSubmit={handleEdit2FASubmit}
+          onClose={handleCancelEdit2FA}
+          phoneNumber="+1 (555) 123-4567"
+          emailAddress="admin@promocodes.com"
+        />
       )}
 
       {/* Similar modals for other states would follow the same pattern... */}

@@ -26,6 +26,8 @@ const sidebarItems = [
       "Arrangement control",
       "new admin partner",
       "users /block user",
+      "Date Components Demo",
+      "2 factor",
     ],
   },
   {
@@ -41,14 +43,6 @@ const sidebarItems = [
       "Cart abandonment recovery",
       "(bulk message and email)",
     ],
-  },
-  {
-    title: "Analytics & Data base",
-    items: ["analytics report(google)", "Data base"],
-  },
-  {
-    title: "Others",
-    items: ["support chat log"],
   },
   {
     title: "Settings",

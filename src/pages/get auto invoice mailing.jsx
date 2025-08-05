@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from 'react';
+import TwoFactorAuth from '../components/TwoFactorAuth';
 
 /**
  * Auto Invoice Mailing Component
@@ -35,11 +36,7 @@ const GetAutoInvoiceMailing = () => {
   });
 
   // Authentication state
-  const [otpCode, setOtpCode] = useState(['', '', '', '']);
-  const [verificationPassword, setVerificationPassword] = useState('');
-  const [defaultPassword, setDefaultPassword] = useState('');
-  const [showVerificationPassword, setShowVerificationPassword] = useState(false);
-  const [showDefaultPassword, setShowDefaultPassword] = useState(false);
+  // Note: OTP and password inputs are now handled by TwoFactorAuth component
 
   // ==============================
   // UTILITY FUNCTIONS
@@ -78,19 +75,12 @@ const GetAutoInvoiceMailing = () => {
   // 2FA HANDLERS
   // ==============================
   
-  const handle2FASubmit = useCallback((settingKey, action) => {
-    const otpString = otpCode.join('');
-    if (otpString.length === 4 && verificationPassword && defaultPassword) {
-      updateModal(`${settingKey}2FA${action}`, false);
-      updateModal(`${settingKey}Success${action}`, true);
-      // Reset 2FA form
-      setOtpCode(['', '', '', '']);
-      setVerificationPassword('');
-      setDefaultPassword('');
-    } else {
-      alert('Please fill in all fields');
-    }
-  }, [otpCode, verificationPassword, defaultPassword, updateModal]);
+  const handle2FASubmit = useCallback((settingKey, action, data) => {
+    // Data contains: { code: string, emailPassword: string, defaultPassword: string }
+    console.log('2FA submitted with data:', data);
+    updateModal(`${settingKey}2FA${action}`, false);
+    updateModal(`${settingKey}Success${action}`, true);
+  }, [updateModal]);
 
   const handleCancel2FA = useCallback((settingKey, action) => {
     updateModal(`${settingKey}2FA${action}`, false);
@@ -123,24 +113,6 @@ const GetAutoInvoiceMailing = () => {
     updateModal(`${settingKey}FinalSuccess${action}`, false);
     setAutoInvoicing(action === 'On');
   }, [updateModal]);
-
-  // ==============================
-  // OTP INPUT HANDLER
-  // ==============================
-  
-  const handleOtpChange = useCallback((index, value) => {
-    if (value.length <= 1 && /^\d*$/.test(value)) {
-      const newOtp = [...otpCode];
-      newOtp[index] = value;
-      setOtpCode(newOtp);
-      
-      // Auto-focus next input
-      if (value && index < 3) {
-        const nextInput = document.querySelector(`input[name="otp-${index + 1}"]`);
-        if (nextInput) nextInput.focus();
-      }
-    }
-  }, [otpCode]);
 
   // ==============================
   // COMPONENT DEFINITIONS
@@ -252,180 +224,22 @@ const GetAutoInvoiceMailing = () => {
 
         {/* 2FA Modal - On */}
         {modals[`${settingKey}2FAOn`] && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-lg mx-4 overflow-clip">
-              <button 
-                onClick={() => handleCancel2FA(settingKey, 'On')}
-                className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700"
-              >
-                <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-              <div className="p-8">
-                <h3 className="text-center font-bold text-black text-[18px] mb-6">2-Factor Authentication</h3>
-                
-                <div className="mb-4">
-                  <label className="block text-sm font-medium mb-2">Enter OTP Code</label>
-                  <div className="flex gap-2 justify-center">
-                    {otpCode.map((digit, index) => (
-                      <input
-                        key={index}
-                        id={`otp-${settingKey}-on-${index}`}
-                        type="text"
-                        value={digit}
-                        onChange={(e) => handleOtpChange(index, e.target.value)}
-                        className="w-12 h-12 text-center border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
-                        maxLength="1"
-                      />
-                    ))}
-                  </div>
-                </div>
-
-                <div className="mb-4">
-                  <label className="block text-sm font-medium mb-2">Verification Password</label>
-                  <div className="relative">
-                    <input
-                      type={showVerificationPassword ? "text" : "password"}
-                      value={verificationPassword}
-                      onChange={(e) => setVerificationPassword(e.target.value)}
-                      className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowVerificationPassword(!showVerificationPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
-                    >
-                      {showVerificationPassword ? "👁️" : "👁️‍🗨️"}
-                    </button>
-                  </div>
-                </div>
-
-                <div className="mb-6">
-                  <label className="block text-sm font-medium mb-2">Default Password</label>
-                  <div className="relative">
-                    <input
-                      type={showDefaultPassword ? "text" : "password"}
-                      value={defaultPassword}
-                      onChange={(e) => setDefaultPassword(e.target.value)}
-                      className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowDefaultPassword(!showDefaultPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
-                    >
-                      {showDefaultPassword ? "👁️" : "👁️‍🗨️"}
-                    </button>
-                  </div>
-                </div>
-
-                <div className="flex gap-4">
-                  <button
-                    onClick={() => handle2FASubmit(settingKey, 'On')}
-                    className="flex-1 bg-black text-white py-3 rounded-full font-semibold hover:bg-gray-800 transition-colors"
-                  >
-                    Submit
-                  </button>
-                  <button
-                    onClick={() => handleCancel2FA(settingKey, 'On')}
-                    className="flex-1 border border-gray-300 text-black py-3 rounded-full font-medium hover:bg-gray-50 transition-colors"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
+          <TwoFactorAuth
+            onSubmit={(data) => handle2FASubmit(settingKey, 'On', data)}
+            onClose={() => handleCancel2FA(settingKey, 'On')}
+            phoneNumber="+1 (555) 123-4567"
+            emailAddress="invoice@automail.com"
+          />
         )}
 
         {/* 2FA Modal - Off */}
         {modals[`${settingKey}2FAOff`] && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-lg mx-4 overflow-clip">
-              <button 
-                onClick={() => handleCancel2FA(settingKey, 'Off')}
-                className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700"
-              >
-                <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-              <div className="p-8">
-                <h3 className="text-center font-bold text-black text-[18px] mb-6">2-Factor Authentication</h3>
-                
-                <div className="mb-4">
-                  <label className="block text-sm font-medium mb-2">Enter OTP Code</label>
-                  <div className="flex gap-2 justify-center">
-                    {otpCode.map((digit, index) => (
-                      <input
-                        key={index}
-                        id={`otp-${settingKey}-off-${index}`}
-                        type="text"
-                        value={digit}
-                        onChange={(e) => handleOtpChange(index, e.target.value)}
-                        className="w-12 h-12 text-center border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
-                        maxLength="1"
-                      />
-                    ))}
-                  </div>
-                </div>
-
-                <div className="mb-4">
-                  <label className="block text-sm font-medium mb-2">Verification Password</label>
-                  <div className="relative">
-                    <input
-                      type={showVerificationPassword ? "text" : "password"}
-                      value={verificationPassword}
-                      onChange={(e) => setVerificationPassword(e.target.value)}
-                      className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowVerificationPassword(!showVerificationPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
-                    >
-                      {showVerificationPassword ? "👁️" : "👁️‍🗨️"}
-                    </button>
-                  </div>
-                </div>
-
-                <div className="mb-6">
-                  <label className="block text-sm font-medium mb-2">Default Password</label>
-                  <div className="relative">
-                    <input
-                      type={showDefaultPassword ? "text" : "password"}
-                      value={defaultPassword}
-                      onChange={(e) => setDefaultPassword(e.target.value)}
-                      className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowDefaultPassword(!showDefaultPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
-                    >
-                      {showDefaultPassword ? "👁️" : "👁️‍🗨️"}
-                    </button>
-                  </div>
-                </div>
-
-                <div className="flex gap-4">
-                  <button
-                    onClick={() => handle2FASubmit(settingKey, 'Off')}
-                    className="flex-1 bg-black text-white py-3 rounded-full font-semibold hover:bg-gray-800 transition-colors"
-                  >
-                    Submit
-                  </button>
-                  <button
-                    onClick={() => handleCancel2FA(settingKey, 'Off')}
-                    className="flex-1 border border-gray-300 text-black py-3 rounded-full font-medium hover:bg-gray-50 transition-colors"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
+          <TwoFactorAuth
+            onSubmit={(data) => handle2FASubmit(settingKey, 'Off', data)}
+            onClose={() => handleCancel2FA(settingKey, 'Off')}
+            phoneNumber="+1 (555) 123-4567"
+            emailAddress="invoice@automail.com"
+          />
         )}
 
         {/* Success Modal - On */}
@@ -561,7 +375,7 @@ const GetAutoInvoiceMailing = () => {
         )}
       </>
     );
-  }, [modals, handleCancelToggle, handleConfirmToggleOn, handleConfirmToggleOff, handle2FASubmit, handleCancel2FA, handleSuccessModalDone, handleFinalSuccessModalDone, otpCode, verificationPassword, defaultPassword, showVerificationPassword, showDefaultPassword, handleOtpChange, handleCloseSuccessModal, handleCloseFinalSuccessModal]);
+  }, [modals, handleCancelToggle, handleConfirmToggleOn, handleConfirmToggleOff, handle2FASubmit, handleCancel2FA, handleSuccessModalDone, handleFinalSuccessModalDone, handleCloseSuccessModal, handleCloseFinalSuccessModal]);
 
   // ==============================
   // MAIN RENDER

@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 
 /**
- * Unified Database & Dashboard Component - Performance Optimized
+ * Unified Dashboard & Database Component - Performance Optimized
  * 
  * A comprehensive admin interface that combines:
  * - Dashboard analytics with real-time statistics
@@ -59,32 +59,73 @@ const SYNC_LOG_HEADERS = [
   'date', 'operation', 'market place', 'status', 'error message'
 ];
 
-// Status Colors Configuration
+// Status Colors Configuration - Updated to match Figma exactly
 const STATUS_COLORS = {
-  success: 'bg-green-500 text-white',
-  error: 'bg-red-500 text-white',
+  success: 'bg-[#00b69b] text-black',
+  error: 'bg-[#ef3826] text-black',
   warning: 'bg-yellow-500 text-white',
-  info: 'bg-blue-500 text-white',
-  Yes: 'bg-green-500 text-white',
-  no: 'bg-blue-500 text-white',
-  sync: 'bg-red-500 text-white',
-  fail: 'bg-red-500 text-white',
-  connected: 'bg-green-500 hover:bg-green-600 text-white',
-  'not connected': 'bg-red-500 hover:bg-red-600 text-white',
+  info: 'bg-[#5088ff] text-black',
+  Yes: 'bg-[#00b69b] text-black',
+  no: 'bg-[#ef3826] text-black',
+  sync: 'bg-[#ef3826] text-black',
+  fail: 'bg-[#ef3826] text-black',
+  connected: 'bg-[#00b69b] hover:bg-[#00a085] text-black',
+  'not connected': 'bg-[#ef3826] hover:bg-[#d63021] text-black',
   'good to go': 'bg-green-100 text-green-600',
   'low': 'bg-purple-100 text-purple-600',
   'finished': 'bg-red-100 text-red-600'
 };
 
-// Memoized Status Badge Component
+// Figma-style Button Component
+const FigmaButton = memo(({ status, children, onClick, className = "", ...props }) => {
+  const getButtonStyles = useCallback((status) => {
+    const baseClasses = "relative box-border flex flex-row gap-2 items-center justify-center overflow-clip px-4 py-2.5 rounded-lg font-['Montserrat:Regular',_sans-serif] text-[14px] font-normal leading-[20px] text-black text-nowrap transition-all duration-200 hover:opacity-90 min-h-[40px]";
+    
+    const statusStyles = {
+      'success': 'bg-[#00b69b]',
+      'connected': 'bg-[#00b69b]',
+      'yes': 'bg-[#00b69b]',
+      'Yes': 'bg-[#00b69b]',
+      'not connected': 'bg-[#ef3826]',
+      'fail': 'bg-[#ef3826]',
+      'no': 'bg-[#ef3826]',
+      'sync': 'bg-[#ef3826]',
+      'connection timeout': 'bg-[#ef3826]',
+      'sync now': 'bg-[#5088ff]',
+    };
+
+    return `${baseClasses} ${statusStyles[status?.toLowerCase()] || 'bg-gray-500'}`;
+  }, []);
+
+  return (
+    <button 
+      className={`${getButtonStyles(status)} ${className}`}
+      onClick={onClick}
+      {...props}
+    >
+      <div className="font-['Montserrat:Regular',_sans-serif] leading-[0] not-italic relative shrink-0 text-[#000000] text-[14px] text-left text-nowrap">
+        <p className="block leading-[20px] whitespace-pre">{children || status}</p>
+      </div>
+      <div
+        aria-hidden="true"
+        className="absolute border border-[#d0d5dd] border-solid inset-0 pointer-events-none rounded-lg shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)]"
+      />
+    </button>
+  );
+});
+
+FigmaButton.displayName = 'FigmaButton';
+
+// Memoized Status Badge Component (updated to match Figma sizing)
 const StatusBadge = memo(({ status, type = 'status' }) => {
   const getStatusColor = useCallback((status, type) => {
     if (type === 'error') return STATUS_COLORS.error;
     return STATUS_COLORS[status] || STATUS_COLORS.error;
   }, []);
 
+  // For status badges, use consistent sizing with FigmaButton
   return (
-    <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(status, type)}`}>
+    <span className={`px-4 py-2.5 rounded-lg text-[14px] font-normal leading-[20px] font-['Montserrat:Regular',_sans-serif] text-nowrap ${getStatusColor(status, type)}`}>
       {status}
     </span>
   );
@@ -171,8 +212,8 @@ const SizeData = memo(({ sizes, dataType }) => (
 
 SizeData.displayName = 'SizeData';
 
-// Main Database Component
-const Database = () => {
+// Main Dashboard Component
+const Dashboard = () => {
   // State management for UI interactions
   const [activeTab, setActiveTab] = useState('dashboard');
   const [searchTerm, setSearchTerm] = useState('');
@@ -262,7 +303,7 @@ const Database = () => {
       {/* Header with Tab Navigation */}
       <div className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="flex justify-between items-center mb-4">
-          <h1 className="text-3xl font-bold text-black">Database Management System</h1>
+          <h1 className="text-3xl font-bold text-black">Dashboard Management System</h1>
           <div className="flex items-center gap-4 text-sm text-gray-600">
             <Calendar className="h-5 w-5" />
             <span>Nov 11,2025 - Nov 27 2025</span>
@@ -1102,7 +1143,7 @@ const ProductSyncSection = memo(({ productSyncData, searchTerm, onSearchChange }
         <thead>
           <tr className="border-b border-gray-200">
             {PRODUCT_SYNC_HEADERS.map(header => (
-              <th key={header} className="text-left py-3 px-4 font-normal text-[15px] text-black">
+              <th key={header} className="text-left py-3 px-4 font-['Montserrat:Regular',_sans-serif] text-[14px] font-normal leading-[20px] text-black">
                 {header}
               </th>
             ))}
@@ -1116,21 +1157,27 @@ const ProductSyncSection = memo(({ productSyncData, searchTerm, onSearchChange }
                   <Package className="h-8 w-8 text-gray-400" />
                 </div>
               </td>
-              <td className="py-4 px-4 font-medium text-gray-900 text-[21px]">{product.name}</td>
-              <td className="py-4 px-4 text-gray-700 text-[21px]">{product.price}</td>
-              <td className="py-4 px-4 text-gray-700 text-[21px]">{product.sku}</td>
-              <td className="py-4 px-4 text-gray-700 text-[21px]">{product.barcode}</td>
+              <td className="py-4 px-4 font-['Montserrat:Regular',_sans-serif] text-[14px] font-medium leading-[20px] text-gray-900">{product.name}</td>
+              <td className="py-4 px-4 font-['Montserrat:Regular',_sans-serif] text-[14px] font-normal leading-[20px] text-gray-700">{product.price}</td>
+              <td className="py-4 px-4 font-['Montserrat:Regular',_sans-serif] text-[14px] font-normal leading-[20px] text-gray-700">{product.sku}</td>
+              <td className="py-4 px-4 font-['Montserrat:Regular',_sans-serif] text-[14px] font-normal leading-[20px] text-gray-700">{product.barcode}</td>
               <td className="py-4 px-4">
-                <StatusBadge status={product.synced} />
+                <FigmaButton status={product.synced}>
+                  {product.synced}
+                </FigmaButton>
               </td>
-              <td className="py-4 px-4 text-gray-700 capitalize text-[21px]">{product.marketplace}</td>
+              <td className="py-4 px-4 font-['Montserrat:Regular',_sans-serif] text-[14px] font-normal leading-[20px] text-gray-700 capitalize">{product.marketplace}</td>
               <td className="py-4 px-4">
-                {product.error && <StatusBadge status={product.error} type="error" />}
+                {product.error && (
+                  <FigmaButton status={product.error}>
+                    {product.error}
+                  </FigmaButton>
+                )}
               </td>
               <td className="py-4 px-4">
-                <button className="bg-blue-600 text-white px-4 py-2 rounded text-sm font-medium hover:bg-blue-700 transition-colors duration-200">
+                <FigmaButton status="sync now">
                   sync NOW
-                </button>
+                </FigmaButton>
               </td>
             </tr>
           ))}
@@ -1197,17 +1244,15 @@ const MarketplaceConnectionsSection = memo(({ marketplaces }) => (
         <h3 className="text-xl font-bold text-gray-900 mb-4">Available marketplace</h3>
         <div className="space-y-4">
           <div className="flex justify-between items-center font-bold border-b pb-2">
-            <span className="text-lg">marketplace</span>
-            <span className="text-lg">actions</span>
+            <span className="font-['Montserrat:Regular',_sans-serif] text-[14px] font-bold leading-[20px] text-gray-900">marketplace</span>
+            <span className="font-['Montserrat:Regular',_sans-serif] text-[14px] font-bold leading-[20px] text-gray-900">actions</span>
           </div>
           {marketplaces.map((marketplace) => (
             <div key={`available-${marketplace.id}`} className="flex justify-between items-center py-2">
-              <span className="text-lg text-gray-700 capitalize">{marketplace.name}</span>
-              <button className={`px-6 py-3 rounded-full text-sm font-semibold transition-colors duration-200 ${
-                STATUS_COLORS[marketplace.status] || STATUS_COLORS['not connected']
-              }`}>
+              <span className="font-['Montserrat:Regular',_sans-serif] text-[14px] font-normal leading-[20px] text-gray-700 capitalize">{marketplace.name}</span>
+              <FigmaButton status={marketplace.status}>
                 {marketplace.status}
-              </button>
+              </FigmaButton>
             </div>
           ))}
         </div>
@@ -1217,15 +1262,15 @@ const MarketplaceConnectionsSection = memo(({ marketplaces }) => (
         <h3 className="text-xl font-bold text-gray-900 mb-4">Connected accounts</h3>
         <div className="space-y-4">
           <div className="flex justify-between items-center font-bold border-b pb-2">
-            <span className="text-lg">seller id</span>
-            <span className="text-lg">last sync</span>
+            <span className="font-['Montserrat:Regular',_sans-serif] text-[14px] font-bold leading-[20px] text-gray-900">seller id</span>
+            <span className="font-['Montserrat:Regular',_sans-serif] text-[14px] font-bold leading-[20px] text-gray-900">last sync</span>
           </div>
           {marketplaces.map((marketplace) => (
             <div key={`connected-${marketplace.id}`} className="flex justify-between items-center py-2">
-              <span className="text-sm text-gray-700 font-mono">
+              <span className="font-['Montserrat:Regular',_sans-serif] text-[14px] font-normal leading-[20px] text-gray-700">
                 {marketplace.sellerId || 'Not connected'}
               </span>
-              <span className="text-sm text-gray-700">
+              <span className="font-['Montserrat:Regular',_sans-serif] text-[14px] font-normal leading-[20px] text-gray-700">
                 {marketplace.lastSync || 'Never'}
               </span>
             </div>
@@ -1247,7 +1292,7 @@ const SyncLogsSection = memo(({ syncLogs }) => (
         <thead>
           <tr className="border-b border-gray-200">
             {SYNC_LOG_HEADERS.map(header => (
-              <th key={header} className="text-left py-3 px-4 font-bold text-gray-700 text-lg">
+              <th key={header} className="text-left py-3 px-4 font-['Montserrat:Regular',_sans-serif] text-[14px] font-bold leading-[20px] text-gray-700">
                 {header}
               </th>
             ))}
@@ -1256,19 +1301,23 @@ const SyncLogsSection = memo(({ syncLogs }) => (
         <tbody>
           {syncLogs.map((log) => (
             <tr key={`sync-log-${log.id}`} className="border-b border-gray-100 hover:bg-gray-50 transition-colors duration-150">
-              <td className="py-4 px-4 text-sm font-bold text-gray-900 tracking-wider">
+              <td className="py-4 px-4 font-['Montserrat:Regular',_sans-serif] text-[14px] font-bold leading-[20px] text-gray-900 tracking-wider">
                 {log.date}
               </td>
-              <td className="py-4 px-4 text-sm font-bold text-gray-900 capitalize">{log.operation}</td>
-              <td className="py-4 px-4 text-sm text-gray-700 capitalize">{log.marketplace}</td>
+              <td className="py-4 px-4 font-['Montserrat:Regular',_sans-serif] text-[14px] font-bold leading-[20px] text-gray-900 capitalize">{log.operation}</td>
+              <td className="py-4 px-4 font-['Montserrat:Regular',_sans-serif] text-[14px] font-normal leading-[20px] text-gray-700 capitalize">{log.marketplace}</td>
               <td className="py-4 px-4">
-                <StatusBadge status={log.status} />
+                <FigmaButton status={log.status}>
+                  {log.status}
+                </FigmaButton>
               </td>
               <td className="py-4 px-4">
                 {log.error ? (
-                  <StatusBadge status={log.error} type="error" />
+                  <FigmaButton status={log.error}>
+                    {log.error}
+                  </FigmaButton>
                 ) : (
-                  <span className="text-gray-400 text-sm">No errors</span>
+                  <span className="font-['Montserrat:Regular',_sans-serif] text-[14px] font-normal leading-[20px] text-gray-400">No errors</span>
                 )}
               </td>
             </tr>
@@ -1281,4 +1330,4 @@ const SyncLogsSection = memo(({ syncLogs }) => (
 
 SyncLogsSection.displayName = 'SyncLogsSection';
 
-export default Database;
+export default Dashboard;

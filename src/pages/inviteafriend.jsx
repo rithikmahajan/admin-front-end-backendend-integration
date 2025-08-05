@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useMemo, useReducer } from 'react';
+import TwoFactorAuth from '../components/TwoFactorAuth';
 
 // Modal state management using useReducer for better performance
 const initialModalState = {
@@ -158,39 +159,36 @@ const InviteAFriend = React.memo(() => {
   }, [isToggleOn, showModal]);
 
   // Generic 2FA handler
-  const handle2FASubmit = useCallback((nextModal) => {
-    if (validate2FAFields()) {
-      hideModal('show2FAModal');
-      hideModal('showOff2FAModal');
-      hideModal('showEdit2FAModal');
-      hideModal('showIssue2FAModal');
-      hideModal('showDelete2FAModal');
-      showModal(nextModal);
-      reset2FA();
-    } else {
-      alert('Please fill in all fields');
-    }
-  }, [validate2FAFields, hideModal, showModal, reset2FA]);
+  const handle2FASubmit = useCallback((nextModal, data) => {
+    // Data contains: { code: string, emailPassword: string, defaultPassword: string }
+    console.log('2FA submitted with data:', data);
+    hideModal('show2FAModal');
+    hideModal('showOff2FAModal');
+    hideModal('showEdit2FAModal');
+    hideModal('showIssue2FAModal');
+    hideModal('showDelete2FAModal');
+    showModal(nextModal);
+  }, [hideModal, showModal]);
 
   // Specific 2FA handlers
-  const handleToggle2FASubmit = useCallback(() => {
-    handle2FASubmit('showSuccessModal');
+  const handleToggle2FASubmit = useCallback((data) => {
+    handle2FASubmit('showSuccessModal', data);
   }, [handle2FASubmit]);
 
-  const handleToggleOff2FASubmit = useCallback(() => {
-    handle2FASubmit('showOffSuccessModal');
+  const handleToggleOff2FASubmit = useCallback((data) => {
+    handle2FASubmit('showOffSuccessModal', data);
   }, [handle2FASubmit]);
 
-  const handleEdit2FASubmit = useCallback(() => {
-    handle2FASubmit('showEditSuccessModal');
+  const handleEdit2FASubmit = useCallback((data) => {
+    handle2FASubmit('showEditSuccessModal', data);
   }, [handle2FASubmit]);
 
-  const handleIssue2FASubmit = useCallback(() => {
-    handle2FASubmit('showIssueSuccessModal');
+  const handleIssue2FASubmit = useCallback((data) => {
+    handle2FASubmit('showIssueSuccessModal', data);
   }, [handle2FASubmit]);
 
-  const handleDelete2FASubmit = useCallback(() => {
-    handle2FASubmit('showDeleteSuccessModal');
+  const handleDelete2FASubmit = useCallback((data) => {
+    handle2FASubmit('showDeleteSuccessModal', data);
   }, [handle2FASubmit]);
 
   // Confirmation handlers
@@ -690,112 +688,12 @@ const InviteAFriend = React.memo(() => {
 
       {/* 2FA Modal for turning ON */}
       {modalState.show2FAModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div
-            className="bg-white rounded-[32px] shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative"
-            style={{ width: '600px', minHeight: '600px', padding: '48px 56px' }}
-          >
-            <button 
-              onClick={handleCancel2FA}
-              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-            
-            <div className="text-center mb-6">
-              <p className="text-lg font-bold text-black mb-4 tracking-[-0.41px] leading-[22px]">
-                If you want to change or access these settings please enter the OTP send to your registered mobile no. and the password
-              </p>
-            </div>
-
-            <div className="mb-6">
-              <h3 className="text-2xl font-bold text-black mb-2 tracking-[0.72px]">
-                Verification code
-              </h3>
-              <p className="text-sm text-black mb-4">
-                Please enter the verification code we sent to your phone number
-              </p>
-              
-              <div className="flex justify-center gap-4 mb-4">
-                {formState.otpCode.map((digit, index) => (
-                  <input
-                    key={index}
-                    id={`otp-${index}`}
-                    type="text"
-                    value={digit}
-                    onChange={(e) => handleOtpChange(index, e.target.value)}
-                    onKeyDown={(e) => handleOtpKeyDown(index, e)}
-                    className="w-12 h-12 border-2 border-gray-300 rounded-full text-center text-lg font-semibold focus:border-blue-500 focus:outline-none"
-                    maxLength={1}
-                  />
-                ))}
-              </div>
-            </div>
-
-            <p className="text-sm text-black mb-4 text-center">
-              Please enter the verification code we sent to your email address
-            </p>
-
-            <div className="mb-4 relative">
-              <input
-                type={formState.showVerificationPassword ? "text" : "password"}
-                value={formState.verificationPassword}
-                onChange={(e) => handleFieldChange('verificationPassword', e.target.value)}
-                placeholder="Password"
-                className="w-full border-b border-gray-300 pb-2 text-base focus:border-blue-500 focus:outline-none bg-transparent"
-              />
-              <button
-                type="button"
-                onClick={() => togglePasswordVisibility('showVerificationPassword')}
-                className="absolute right-0 top-0 text-gray-400 hover:text-gray-600"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  {formState.showVerificationPassword ? (
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                  ) : (
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
-                  )}
-                </svg>
-              </button>
-            </div>
-
-            <p className="text-sm text-black mb-4">
-              Please enter the default code.
-            </p>
-
-            <div className="mb-6 relative">
-              <input
-                type={formState.showDefaultPassword ? "text" : "password"}
-                value={formState.defaultPassword}
-                onChange={(e) => handleFieldChange('defaultPassword', e.target.value)}
-                placeholder="Password"
-                className="w-full border-b border-gray-300 pb-2 text-base focus:border-blue-500 focus:outline-none bg-transparent"
-              />
-              <button
-                type="button"
-                onClick={() => togglePasswordVisibility('showDefaultPassword')}
-                className="absolute right-0 top-0 text-gray-400 hover:text-gray-600"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  {formState.showDefaultPassword ? (
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                  ) : (
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
-                  )}
-                </svg>
-              </button>
-            </div>
-
-            <button
-              onClick={handleToggle2FASubmit}
-              className="w-full bg-black text-white py-3 rounded-[26.5px] font-bold text-base uppercase hover:bg-gray-800 transition-colors"
-            >
-              SUBMIT
-            </button>
-          </div>
-        </div>
+        <TwoFactorAuth
+          onSubmit={handleToggle2FASubmit}
+          onClose={handleCancel2FA}
+          phoneNumber="+1 (555) 123-4567"
+          emailAddress="invite@friendsystem.com"
+        />
       )}
 
       {/* Edit Modal */}

@@ -49,7 +49,9 @@ const Layout = () => {
       "collect Profile visibility data": "/collect-profile-visibility",
       "collectlocationdata": "/collect-location-data",
       "get auto invoice mailing": "/auto-invoice-mailing",
-      "hugging face api open close": "/hugging-face-api"
+      "hugging face api open close": "/hugging-face-api",
+      "Date Components Demo": "/date-components-demo",
+      "2 factor": "/2-factor"
     };
     return routeMap[item] || "#";
   };

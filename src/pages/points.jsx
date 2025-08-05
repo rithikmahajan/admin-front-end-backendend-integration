@@ -17,6 +17,7 @@
 
 import React, { useState, useCallback, useMemo } from 'react';
 import { ChevronDown, Search, Edit2, Trash2, Filter } from 'lucide-react';
+import TwoFactorAuth from '../components/TwoFactorAuth';
 
 // Constants
 const INITIAL_USER_DATA = {
@@ -83,10 +84,6 @@ const Points = () => {
 
   // Form States
   const [otpCode, setOtpCode] = useState(INITIAL_OTP_STATE);
-  const [verificationPassword, setVerificationPassword] = useState('');
-  const [defaultPassword, setDefaultPassword] = useState('');
-  const [showVerificationPassword, setShowVerificationPassword] = useState(false);
-  const [showDefaultPassword, setShowDefaultPassword] = useState(false);
 
   // User Management States
   const [deletingUserId, setDeletingUserId] = useState(null);
@@ -116,8 +113,6 @@ const Points = () => {
   // Helper Functions
   const resetOtpForm = useCallback(() => {
     setOtpCode(INITIAL_OTP_STATE);
-    setVerificationPassword('');
-    setDefaultPassword('');
   }, []);
 
   const resetEditForm = useCallback(() => {
@@ -133,8 +128,8 @@ const Points = () => {
 
   const validateOtpForm = useCallback(() => {
     const otpString = otpCode.join('');
-    return otpString.length === 4 && verificationPassword && defaultPassword;
-  }, [otpCode, verificationPassword, defaultPassword]);
+    return otpString.length === 4;
+  }, [otpCode]);
 
   const validateEditForm = useCallback(() => {
     return editUserName.trim() && editUserId.trim() && editPhoneNo.trim() && editEmailId.trim();
@@ -206,15 +201,15 @@ const Points = () => {
     }
   }, [validateOtpForm, resetOtpForm]);
 
-  const handleOff2FASubmit = useCallback(() => {
-    if (validateOtpForm()) {
+  const handleOff2FASubmit = useCallback((data) => {
+    if (data?.verificationCode && data?.verificationPassword && data?.defaultPassword) {
       setShowOff2FAModal(false);
       setShowOffSuccessModal(true);
       resetOtpForm();
     } else {
       alert('Please fill in all fields');
     }
-  }, [validateOtpForm, resetOtpForm]);
+  }, [resetOtpForm]);
 
   const handleSuccessModalDone = useCallback(() => {
     setShowSuccessModal(false);
@@ -267,34 +262,6 @@ const Points = () => {
     setPointsSystemEnabled(false);
   }, []);
 
-  // Event Handlers - OTP Input Management
-  const handleOtpChange = useCallback((index, value) => {
-    if (value.length <= 1 && /^\d*$/.test(value)) {
-      const newOtp = [...otpCode];
-      newOtp[index] = value;
-      setOtpCode(newOtp);
-      
-      // Auto-focus next input
-      if (value && index < 3) {
-        const nextInputId = showOff2FAModal ? `otp-off-${index + 1}` : 
-                            showEdit2FAModal ? `edit-otp-${index + 1}` : 
-                            `otp-${index + 1}`;
-        const nextInput = document.getElementById(nextInputId);
-        if (nextInput) nextInput.focus();
-      }
-    }
-  }, [otpCode, showOff2FAModal, showEdit2FAModal]);
-
-  const handleOtpKeyDown = useCallback((index, e) => {
-    if (e.key === 'Backspace' && !otpCode[index] && index > 0) {
-      const prevInputId = showOff2FAModal ? `otp-off-${index - 1}` : 
-                          showEdit2FAModal ? `edit-otp-${index - 1}` : 
-                          `otp-${index - 1}`;
-      const prevInput = document.getElementById(prevInputId);
-      if (prevInput) prevInput.focus();
-    }
-  }, [otpCode, showOff2FAModal, showEdit2FAModal]);
-
   // Event Handlers - User Edit Operations
   const handleSaveEditedUser = useCallback(() => {
     if (validateEditForm()) {
@@ -310,27 +277,21 @@ const Points = () => {
     resetEditForm();
   }, [resetEditForm]);
 
-  const handleEdit2FASubmit = useCallback(() => {
-    // Validate OTP and passwords here
-    const otpString = otpCode.join('');
-    if (otpString.length === 4 && verificationPassword && defaultPassword) {
+  const handleEdit2FASubmit = useCallback((data) => {
+    if (data?.verificationCode && data?.verificationPassword && data?.defaultPassword) {
       setShowEdit2FAModal(false);
       setShowEditSuccessModal(true);
       // Reset 2FA form
       setOtpCode(['', '', '', '']);
-      setVerificationPassword('');
-      setDefaultPassword('');
     } else {
       alert('Please fill in all fields');
     }
-  }, [otpCode, verificationPassword, defaultPassword]);
+  }, []);
 
   const handleCancelEdit2FA = useCallback(() => {
     setShowEdit2FAModal(false);
     // Reset 2FA form
     setOtpCode(['', '', '', '']);
-    setVerificationPassword('');
-    setDefaultPassword('');
     // Reset edit form
     setEditingUser(null);
     setEditUserName('');
@@ -687,237 +648,21 @@ const Points = () => {
 
       {/* 2FA Modal */}
       {show2FAModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div
-            className="bg-white rounded-[32px] shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative"
-            style={{ width: '600px', minHeight: '600px', padding: '48px 56px' }}
-          >
-            {/* Close button */}
-            <button 
-              onClick={handleCancel2FA}
-              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-            
-            {/* Header text */}
-            <div className="text-center mb-6">
-              <p className="text-lg font-bold text-black mb-4 tracking-[-0.41px] leading-[22px]">
-                If you want to change or access these settings please enter the OTP send to your registered mobile no. and the password
-              </p>
-            </div>
-
-            {/* Verification Code Section */}
-            <div className="mb-6">
-              <h3 className="text-2xl font-bold text-black mb-2 tracking-[0.72px]">
-                Verification code
-              </h3>
-              <p className="text-sm text-black mb-4">
-                Please enter the verification code we sent to your phone number
-              </p>
-              
-              {/* OTP Input Circles */}
-              <div className="flex justify-center gap-4 mb-4">
-                {otpCode.map((digit, index) => (
-                  <input
-                    key={index}
-                    id={`otp-${index}`}
-                    type="text"
-                    value={digit}
-                    onChange={(e) => handleOtpChange(index, e.target.value)}
-                    onKeyDown={(e) => handleOtpKeyDown(index, e)}
-                    className="w-12 h-12 border-2 border-gray-300 rounded-full text-center text-lg font-semibold focus:border-blue-500 focus:outline-none"
-                    maxLength={1}
-                  />
-                ))}
-              </div>
-            </div>
-
-            {/* Email verification text */}
-            <p className="text-sm text-black mb-4 text-center">
-              Please enter the verification code we sent to your email address
-            </p>
-
-            {/* Verification Password Input */}
-            <div className="mb-4 relative">
-              <input
-                type={showVerificationPassword ? "text" : "password"}
-                value={verificationPassword}
-                onChange={(e) => setVerificationPassword(e.target.value)}
-                placeholder="Password"
-                className="w-full border-b border-gray-300 pb-2 text-base focus:border-blue-500 focus:outline-none bg-transparent"
-              />
-              <button
-                type="button"
-                onClick={() => setShowVerificationPassword(!showVerificationPassword)}
-                className="absolute right-0 top-0 text-gray-400 hover:text-gray-600"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  {showVerificationPassword ? (
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                  ) : (
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
-                  )}
-                </svg>
-              </button>
-            </div>
-
-            {/* Default code text */}
-            <p className="text-sm text-black mb-4">
-              Please enter the default code.
-            </p>
-
-            {/* Default Password Input */}
-            <div className="mb-6 relative">
-              <input
-                type={showDefaultPassword ? "text" : "password"}
-                value={defaultPassword}
-                onChange={(e) => setDefaultPassword(e.target.value)}
-                placeholder="Password"
-                className="w-full border-b border-gray-300 pb-2 text-base focus:border-blue-500 focus:outline-none bg-transparent"
-              />
-              <button
-                type="button"
-                onClick={() => setShowDefaultPassword(!showDefaultPassword)}
-                className="absolute right-0 top-0 text-gray-400 hover:text-gray-600"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  {showDefaultPassword ? (
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                  ) : (
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
-                  )}
-                </svg>
-              </button>
-            </div>
-
-            {/* Submit Button */}
-            <button
-              onClick={handle2FASubmit}
-              className="w-full bg-black text-white py-3 rounded-[26.5px] font-bold text-base uppercase hover:bg-gray-800 transition-colors"
-            >
-              SUBMIT
-            </button>
-          </div>
-        </div>
+        <TwoFactorAuth
+          onSubmit={handle2FASubmit}
+          onClose={handleCancel2FA}
+          phoneNumber="+1 (555) 123-4567"
+          emailAddress="points@system.com"
+        />
       )}
-
       {/* Off 2FA Modal */}
       {showOff2FAModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] p-8 max-w-md w-full mx-4 relative">
-            {/* Close button */}
-            <button 
-              onClick={handleCancelOff2FA}
-              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-            
-            {/* Header text */}
-            <div className="text-center mb-6">
-              <p className="text-lg font-bold text-black mb-4 tracking-[-0.41px] leading-[22px]">
-                If you want to change or access these settings please enter the OTP send to your registered mobile no. and the password
-              </p>
-            </div>
-
-            {/* Verification Code Section */}
-            <div className="mb-6">
-              <h3 className="text-2xl font-bold text-black mb-2 tracking-[0.72px]">
-                Verification code
-              </h3>
-              <p className="text-sm text-black mb-4">
-                Please enter the verification code we sent to your phone number
-              </p>
-              
-              {/* OTP Input Circles */}
-              <div className="flex justify-center gap-4 mb-4">
-                {otpCode.map((digit, index) => (
-                  <input
-                    key={index}
-                    id={`otp-off-${index}`}
-                    type="text"
-                    value={digit}
-                    onChange={(e) => handleOtpChange(index, e.target.value)}
-                    onKeyDown={(e) => handleOtpKeyDown(index, e)}
-                    className="w-12 h-12 border-2 border-gray-300 rounded-full text-center text-lg font-semibold focus:border-blue-500 focus:outline-none"
-                    maxLength={1}
-                  />
-                ))}
-              </div>
-            </div>
-
-            {/* Email verification text */}
-            <p className="text-sm text-black mb-4 text-center">
-              Please enter the verification code we sent to your email address
-            </p>
-
-            {/* Verification Password Input */}
-            <div className="mb-4 relative">
-              <input
-                type={showVerificationPassword ? "text" : "password"}
-                value={verificationPassword}
-                onChange={(e) => setVerificationPassword(e.target.value)}
-                placeholder="Password"
-                className="w-full border-b border-gray-300 pb-2 text-base focus:border-blue-500 focus:outline-none bg-transparent"
-              />
-              <button
-                type="button"
-                onClick={() => setShowVerificationPassword(!showVerificationPassword)}
-                className="absolute right-0 top-0 text-gray-400 hover:text-gray-600"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  {showVerificationPassword ? (
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                  ) : (
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
-                  )}
-                </svg>
-              </button>
-            </div>
-
-            {/* Default code text */}
-            <p className="text-sm text-black mb-4">
-              Please enter the default code.
-            </p>
-
-            {/* Default Password Input */}
-            <div className="mb-6 relative">
-              <input
-                type={showDefaultPassword ? "text" : "password"}
-                value={defaultPassword}
-                onChange={(e) => setDefaultPassword(e.target.value)}
-                placeholder="Password"
-                className="w-full border-b border-gray-300 pb-2 text-base focus:border-blue-500 focus:outline-none bg-transparent"
-              />
-              <button
-                type="button"
-                onClick={() => setShowDefaultPassword(!showDefaultPassword)}
-                className="absolute right-0 top-0 text-gray-400 hover:text-gray-600"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  {showDefaultPassword ? (
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                  ) : (
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
-                  )}
-                </svg>
-              </button>
-            </div>
-
-            {/* Submit Button */}
-            <button
-              onClick={handleOff2FASubmit}
-              className="w-full bg-black text-white py-3 rounded-[26.5px] font-bold text-base uppercase hover:bg-gray-800 transition-colors"
-            >
-              SUBMIT
-            </button>
-          </div>
-        </div>
+        <TwoFactorAuth
+          onSubmit={handleOff2FASubmit}
+          onClose={handleCancelOff2FA}
+          phoneNumber="+1 (555) 123-4567"
+          emailAddress="points@system.com"
+        />
       )}
 
       {/* Success Modal */}
@@ -1195,121 +940,12 @@ const Points = () => {
 
       {/* Edit 2FA Modal */}
       {showEdit2FAModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div
-            className="bg-white rounded-[32px] shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative"
-            style={{ width: '600px', minHeight: '600px', padding: '48px 56px' }}
-          >
-            {/* Close button */}
-            <button 
-              onClick={handleCancelEdit2FA}
-              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-            
-            {/* Header text */}
-            <div className="text-center mb-6">
-              <p className="text-lg font-bold text-black mb-4 tracking-[-0.41px] leading-[22px]">
-                If you want to change or access these settings please enter the OTP send to your registered mobile no. and the password
-              </p>
-            </div>
-
-            {/* Verification Code Section */}
-            <div className="mb-6">
-              <h3 className="text-2xl font-bold text-black mb-2 tracking-[0.72px]">
-                Verification code
-              </h3>
-              <p className="text-sm text-black mb-4">
-                Please enter the verification code we sent to your phone number
-              </p>
-              
-              {/* OTP Input Circles */}
-              <div className="flex justify-center gap-4 mb-4">
-                {otpCode.map((digit, index) => (
-                  <input
-                    key={index}
-                    id={`edit-otp-${index}`}
-                    type="text"
-                    value={digit}
-                    onChange={(e) => handleOtpChange(index, e.target.value)}
-                    onKeyDown={(e) => handleOtpKeyDown(index, e)}
-                    className="w-12 h-12 border-2 border-gray-300 rounded-full text-center text-lg font-semibold focus:border-blue-500 focus:outline-none"
-                    maxLength={1}
-                  />
-                ))}
-              </div>
-            </div>
-
-            {/* Email verification text */}
-            <p className="text-sm text-black mb-4 text-center">
-              Please enter the verification code we sent to your email address
-            </p>
-
-            {/* Verification Password Input */}
-            <div className="mb-4 relative">
-              <input
-                type={showVerificationPassword ? "text" : "password"}
-                value={verificationPassword}
-                onChange={(e) => setVerificationPassword(e.target.value)}
-                placeholder="Password"
-                className="w-full border-b border-gray-300 pb-2 text-base focus:border-blue-500 focus:outline-none bg-transparent"
-              />
-              <button
-                type="button"
-                onClick={() => setShowVerificationPassword(!showVerificationPassword)}
-                className="absolute right-0 top-0 text-gray-400 hover:text-gray-600"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  {showVerificationPassword ? (
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                  ) : (
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
-                  )}
-                </svg>
-              </button>
-            </div>
-
-            {/* Default code text */}
-            <p className="text-sm text-black mb-4">
-              Please enter the default code.
-            </p>
-
-            {/* Default Password Input */}
-            <div className="mb-6 relative">
-              <input
-                type={showDefaultPassword ? "text" : "password"}
-                value={defaultPassword}
-                onChange={(e) => setDefaultPassword(e.target.value)}
-                placeholder="Password"
-                className="w-full border-b border-gray-300 pb-2 text-base focus:border-blue-500 focus:outline-none bg-transparent"
-              />
-              <button
-                type="button"
-                onClick={() => setShowDefaultPassword(!showDefaultPassword)}
-                className="absolute right-0 top-0 text-gray-400 hover:text-gray-600"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  {showDefaultPassword ? (
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                  ) : (
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
-                  )}
-                </svg>
-              </button>
-            </div>
-
-            {/* Submit Button */}
-            <button
-              onClick={handleEdit2FASubmit}
-              className="w-full bg-black text-white py-3 rounded-[26.5px] font-bold text-base uppercase hover:bg-gray-800 transition-colors"
-            >
-              SUBMIT
-            </button>
-          </div>
-        </div>
+        <TwoFactorAuth
+          onSubmit={handleEdit2FASubmit}
+          onClose={handleCancelEdit2FA}
+          phoneNumber="+1 (555) 123-4567"
+          emailAddress="edit@points.com"
+        />
       )}
 
       {/* Edit Success Modal */}
