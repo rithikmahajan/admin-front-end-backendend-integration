@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import CollectCommunicationPreferences from './Collect communication preferences';
 import GetAutoInvoiceMailing from './get auto invoice mailing';
 import TwoFactorAuth from '../components/TwoFactorAuth';
+import DeleteConfirmationModal from '../components/DeleteConfirmationModal';
+import SuccessModal from '../components/SuccessModal';
 
 /**
  * Settings Component - Comprehensive settings management for the application
@@ -4151,352 +4153,91 @@ const Settings = () => {
       {renderModalsForSetting('huggingFaceAPI', 'Hugging Face API')}
 
       {/* Discount Condition Created Success Modal */}
-      {modals.discountConditionCreatedSuccess && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-md mx-4 overflow-clip">
-            <button 
-              onClick={handleDiscountCreatedSuccessDone}
-              className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700"
-            >
-              <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-            <div className="p-8 text-center">
-              <h3 className="font-bold text-black text-[18px] mb-6 font-montserrat">
-                condition created successfully!
-              </h3>
-              <button
-                onClick={handleDiscountCreatedSuccessDone}
-                className="bg-black text-white px-16 py-3 rounded-full font-medium text-[16px] font-montserrat hover:bg-gray-800 transition-colors"
-              >
-                Done
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <SuccessModal
+        isOpen={modals.discountConditionCreatedSuccess}
+        onClose={handleDiscountCreatedSuccessDone}
+        title="Condition created successfully!"
+      />
 
       {/* Discount Condition Updated Success Modal */}
-      {modals.discountConditionUpdatedSuccess && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-md mx-4 overflow-clip">
-            <button 
-              onClick={handleDiscountUpdatedSuccessDone}
-              className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700"
-            >
-              <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-            <div className="p-8 text-center">
-              <h3 className="font-bold text-black text-[18px] mb-6 font-montserrat">
-                condition updated successfully!
-              </h3>
-              <button
-                onClick={handleDiscountUpdatedSuccessDone}
-                className="bg-black text-white px-16 py-3 rounded-full font-medium text-[16px] font-montserrat hover:bg-gray-800 transition-colors"
-              >
-                Done
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <SuccessModal
+        isOpen={modals.discountConditionUpdatedSuccess}
+        onClose={handleDiscountUpdatedSuccessDone}
+        title="Condition updated successfully!"
+      />
 
       {/* Discount Condition Delete Confirmation Modal */}
-      {modals.discountConditionDeleteConfirm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-md mx-4 overflow-clip">
-            <button 
-              onClick={handleCancelDeleteCondition}
-              className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700"
-            >
-              <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-            <div className="p-8 text-center">
-              <h3 className="font-bold text-black text-[18px] mb-6 font-montserrat">
-                Are you sure you want to turn delete this condition
-              </h3>
-              <div className="flex gap-4 justify-center">
-                <button
-                  onClick={handleConfirmDeleteCondition}
-                  className="bg-black text-white px-8 py-3 rounded-full font-medium text-[16px] font-montserrat hover:bg-gray-800 transition-colors"
-                >
-                  yes
-                </button>
-                <button
-                  onClick={handleCancelDeleteCondition}
-                  className="border border-[#e4e4e4] text-black px-8 py-3 rounded-full font-medium text-[16px] font-montserrat hover:bg-gray-50 transition-colors"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <DeleteConfirmationModal
+        isOpen={modals.discountConditionDeleteConfirm}
+        onClose={handleCancelDeleteCondition}
+        onConfirm={handleConfirmDeleteCondition}
+        title="Are you sure you want to delete this condition?"
+      />
 
       {/* Discount Condition Deleted Success Modal */}
-      {modals.discountConditionDeletedSuccess && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-md mx-4 overflow-clip">
-            <button 
-              onClick={handleDiscountDeletedSuccessDone}
-              className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700"
-            >
-              <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-            <div className="p-8 text-center">
-              <h3 className="font-bold text-black text-[18px] mb-6 font-montserrat">
-                condition deleted successfully!
-              </h3>
-              <button
-                onClick={handleDiscountDeletedSuccessDone}
-                className="bg-black text-white px-16 py-3 rounded-full font-medium text-[16px] font-montserrat hover:bg-gray-800 transition-colors"
-              >
-                Done
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <SuccessModal
+        isOpen={modals.discountConditionDeletedSuccess}
+        onClose={handleDiscountDeletedSuccessDone}
+        title="Condition deleted successfully!"
+      />
 
       {/* Shipping Charge Created Success Modal */}
-      {modals.shippingChargeCreatedSuccess && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-md mx-4 overflow-clip">
-            <button 
-              onClick={handleShippingChargeCreatedSuccessDone}
-              className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700"
-            >
-              <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-            <div className="p-8 text-center">
-              <h3 className="font-bold text-black text-[18px] mb-6 font-montserrat">
-                shipping charge created successfully!
-              </h3>
-              <button
-                onClick={handleShippingChargeCreatedSuccessDone}
-                className="bg-black text-white px-16 py-3 rounded-full font-medium text-[16px] font-montserrat hover:bg-gray-800 transition-colors"
-              >
-                Done
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <SuccessModal
+        isOpen={modals.shippingChargeCreatedSuccess}
+        onClose={handleShippingChargeCreatedSuccessDone}
+        title="Shipping charge created successfully!"
+      />
 
       {/* Shipping Charge Updated Success Modal */}
-      {modals.shippingChargeUpdatedSuccess && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-md mx-4 overflow-clip">
-            <button 
-              onClick={handleShippingChargeUpdatedSuccessDone}
-              className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700"
-            >
-              <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-            <div className="p-8 text-center">
-              <h3 className="font-bold text-black text-[18px] mb-6 font-montserrat">
-                shipping charge updated successfully!
-              </h3>
-              <button
-                onClick={handleShippingChargeUpdatedSuccessDone}
-                className="bg-black text-white px-16 py-3 rounded-full font-medium text-[16px] font-montserrat hover:bg-gray-800 transition-colors"
-              >
-                Done
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <SuccessModal
+        isOpen={modals.shippingChargeUpdatedSuccess}
+        onClose={handleShippingChargeUpdatedSuccessDone}
+        title="Shipping charge updated successfully!"
+      />
 
       {/* Shipping Charge Delete Confirmation Modal */}
-      {modals.shippingChargeDeleteConfirm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-md mx-4 overflow-clip">
-            <button 
-              onClick={handleCancelDeleteShippingCharge}
-              className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700"
-            >
-              <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-            <div className="p-8 text-center">
-              <h3 className="font-bold text-black text-[18px] mb-6 font-montserrat">
-                Are you sure you want to turn delete this shipping charge
-              </h3>
-              <div className="flex gap-4 justify-center">
-                <button
-                  onClick={handleConfirmDeleteShippingCharge}
-                  className="bg-black text-white px-8 py-3 rounded-full font-medium text-[16px] font-montserrat hover:bg-gray-800 transition-colors"
-                >
-                  yes
-                </button>
-                <button
-                  onClick={handleCancelDeleteShippingCharge}
-                  className="border border-[#e4e4e4] text-black px-8 py-3 rounded-full font-medium text-[16px] font-montserrat hover:bg-gray-50 transition-colors"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <DeleteConfirmationModal
+        isOpen={modals.shippingChargeDeleteConfirm}
+        onClose={handleCancelDeleteShippingCharge}
+        onConfirm={handleConfirmDeleteShippingCharge}
+        title="Are you sure you want to delete this shipping charge?"
+      />
 
       {/* Shipping Charge Deleted Success Modal */}
-      {modals.shippingChargeDeletedSuccess && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-md mx-4 overflow-clip">
-            <button 
-              onClick={handleShippingChargeDeletedSuccessDone}
-              className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700"
-            >
-              <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-            <div className="p-8 text-center">
-              <h3 className="font-bold text-black text-[18px] mb-6 font-montserrat">
-                shipping charge deleted successfully!
-              </h3>
-              <button
-                onClick={handleShippingChargeDeletedSuccessDone}
-                className="bg-black text-white px-16 py-3 rounded-full font-medium text-[16px] font-montserrat hover:bg-gray-800 transition-colors"
-              >
-                Done
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <SuccessModal
+        isOpen={modals.shippingChargeDeletedSuccess}
+        onClose={handleShippingChargeDeletedSuccessDone}
+        title="Shipping charge deleted successfully!"
+      />
 
       {/* HSN Code Success Modal - Created */}
-      {modals.hsnCodeCreatedModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-md mx-4 overflow-clip">
-            <button 
-              onClick={handleHsnCodeCreatedSuccessDone}
-              className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700"
-            >
-              <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-            <div className="p-8 text-center">
-              <h3 className="font-bold text-black text-[18px] mb-6 font-montserrat">
-                hsn code added successfully!
-              </h3>
-              <button
-                onClick={handleHsnCodeCreatedSuccessDone}
-                className="bg-black text-white px-16 py-3 rounded-full font-medium text-[16px] font-montserrat hover:bg-gray-800 transition-colors"
-              >
-                Done
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <SuccessModal
+        isOpen={modals.hsnCodeCreatedModal}
+        onClose={handleHsnCodeCreatedSuccessDone}
+        title="HSN code added successfully!"
+      />
 
       {/* HSN Code Success Modal - Updated */}
-      {modals.hsnCodeUpdatedModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-md mx-4 overflow-clip">
-            <button 
-              onClick={handleHsnCodeUpdatedSuccessDone}
-              className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700"
-            >
-              <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-            <div className="p-8 text-center">
-              <h3 className="font-bold text-black text-[18px] mb-6 font-montserrat">
-                hsn code updated successfully!
-              </h3>
-              <button
-                onClick={handleHsnCodeUpdatedSuccessDone}
-                className="bg-black text-white px-16 py-3 rounded-full font-medium text-[16px] font-montserrat hover:bg-gray-800 transition-colors"
-              >
-                Done
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <SuccessModal
+        isOpen={modals.hsnCodeUpdatedModal}
+        onClose={handleHsnCodeUpdatedSuccessDone}
+        title="HSN code updated successfully!"
+      />
 
       {/* HSN Code Success Modal - Deleted */}
-      {modals.hsnCodeDeletedModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-md mx-4 overflow-clip">
-            <button 
-              onClick={handleHsnCodeDeletedSuccessDone}
-              className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700"
-            >
-              <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-            <div className="p-8 text-center">
-              <h3 className="font-bold text-black text-[18px] mb-6 font-montserrat">
-                hsn code deleted successfully!
-              </h3>
-              <button
-                onClick={handleHsnCodeDeletedSuccessDone}
-                className="bg-black text-white px-16 py-3 rounded-full font-medium text-[16px] font-montserrat hover:bg-gray-800 transition-colors"
-              >
-                Done
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <SuccessModal
+        isOpen={modals.hsnCodeDeletedModal}
+        onClose={handleHsnCodeDeletedSuccessDone}
+        title="HSN code deleted successfully!"
+      />
 
       {/* HSN Code Delete Confirmation Modal */}
-      {modals.deleteHsnCodeModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-md mx-4 overflow-clip">
-            <button 
-              onClick={() => setModals(prev => ({ ...prev, deleteHsnCodeModal: false }))}
-              className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700"
-            >
-              <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-            <div className="p-8 text-center">
-              <h3 className="font-bold text-black text-[18px] mb-6 font-montserrat">
-                Are you sure you want to delete this hsn code?
-              </h3>
-              <div className="flex gap-4 justify-center">
-                <button
-                  onClick={handleConfirmDeleteHsnCode}
-                  className="bg-black text-white px-8 py-3 rounded-full font-medium text-[16px] font-montserrat hover:bg-gray-800 transition-colors"
-                >
-                  yes
-                </button>
-                <button
-                  onClick={() => setModals(prev => ({ ...prev, deleteHsnCodeModal: false }))}
-                  className="border border-[#e4e4e4] text-black px-8 py-3 rounded-full font-medium text-[16px] font-montserrat hover:bg-gray-50 transition-colors"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <DeleteConfirmationModal
+        isOpen={modals.deleteHsnCodeModal}
+        onClose={handleCancelDeleteHsnCode}
+        onConfirm={handleConfirmDeleteHsnCode}
+        title="Are you sure you want to delete this HSN code?"
+      />
 
       {/* Language, Country, Region Modal */}
       {locationModals.languageCountryModal && <LanguageCountryRegionModal />}
@@ -5071,420 +4812,106 @@ const Settings = () => {
       )}
 
       {/* Location Success Modals */}
-      {locationModals.countryCreatedSuccess && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-lg p-8 text-center max-w-md mx-4">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-            <h3 className="font-bold text-lg mb-2">Country Added Successfully</h3>
-            <p className="text-gray-600 mb-6">The country has been added to your settings.</p>
-            <button
-              onClick={() => handleLocationSuccessDone('country')}
-              className="bg-black text-white px-6 py-2 rounded-full font-medium hover:bg-gray-800 transition-colors"
-            >
-              Done
-            </button>
-          </div>
-        </div>
-      )}
+      <SuccessModal
+        isOpen={locationModals.countryCreatedSuccess}
+        onClose={() => handleLocationSuccessDone('country')}
+        title="Country added successfully!"
+      />
 
-      {locationModals.languageCreatedSuccess && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-lg p-8 text-center max-w-md mx-4">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-            <h3 className="font-bold text-lg mb-2">Language Added Successfully</h3>
-            <p className="text-gray-600 mb-6">The language has been added to your settings.</p>
-            <button
-              onClick={() => handleLocationSuccessDone('language')}
-              className="bg-black text-white px-6 py-2 rounded-full font-medium hover:bg-gray-800 transition-colors"
-            >
-              Done
-            </button>
-          </div>
-        </div>
-      )}
+      <SuccessModal
+        isOpen={locationModals.languageCreatedSuccess}
+        onClose={() => handleLocationSuccessDone('language')}
+        title="Language added successfully!"
+      />
 
-      {locationModals.currencyCreatedSuccess && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-lg p-8 text-center max-w-md mx-4">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-            <h3 className="font-bold text-lg mb-2">Currency Added Successfully</h3>
-            <p className="text-gray-600 mb-6">The currency has been added to your settings.</p>
-            <button
-              onClick={() => handleLocationSuccessDone('currency')}
-              className="bg-black text-white px-6 py-2 rounded-full font-medium hover:bg-gray-800 transition-colors"
-            >
-              Done
-            </button>
-          </div>
-        </div>
-      )}
+      <SuccessModal
+        isOpen={locationModals.currencyCreatedSuccess}
+        onClose={() => handleLocationSuccessDone('currency')}
+        title="Currency added successfully!"
+      />
 
       {/* Orders Saved Success Modal */}
-      {locationModals.ordersSavedSuccess && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-lg p-8 text-center max-w-md mx-4">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-            <h3 className="font-bold text-lg mb-2">Orders Updated Successfully</h3>
-            <p className="text-gray-600 mb-6">The order sequence has been updated for all items.</p>
-            <button
-              onClick={() => setLocationModals(prev => ({ ...prev, ordersSavedSuccess: false }))}
-              className="bg-black text-white px-6 py-2 rounded-full font-medium hover:bg-gray-800 transition-colors"
-            >
-              Done
-            </button>
-          </div>
-        </div>
-      )}
+      <SuccessModal
+        isOpen={locationModals.ordersSavedSuccess}
+        onClose={() => setLocationModals(prev => ({ ...prev, ordersSavedSuccess: false }))}
+        title="Orders updated successfully!"
+      />
 
       {/* Auto Notification Success Modals */}
-      {autoNotificationModals.conditionCreatedSuccess && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-md mx-4 overflow-clip">
-            <button 
-              onClick={handleNotificationConditionCreatedSuccessDone}
-              className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700"
-            >
-              <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-            <div className="p-8 text-center">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-              </div>
-              <h3 className="font-bold text-black text-[18px] mb-2 font-montserrat">
-                Notification condition created successfully!
-              </h3>
-              <p className="text-gray-600 mb-6">The auto notification condition has been added.</p>
-              <button
-                onClick={handleNotificationConditionCreatedSuccessDone}
-                className="bg-black text-white px-16 py-3 rounded-full font-medium text-[16px] font-montserrat hover:bg-gray-800 transition-colors"
-              >
-                Done
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <SuccessModal
+        isOpen={autoNotificationModals.conditionCreatedSuccess}
+        onClose={handleNotificationConditionCreatedSuccessDone}
+        title="Notification condition created successfully!"
+      />
 
-      {autoNotificationModals.conditionUpdatedSuccess && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-md mx-4 overflow-clip">
-            <button 
-              onClick={handleNotificationConditionUpdatedSuccessDone}
-              className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700"
-            >
-              <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-            <div className="p-8 text-center">
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                </svg>
-              </div>
-              <h3 className="font-bold text-black text-[18px] mb-2 font-montserrat">
-                Notification condition updated successfully!
-              </h3>
-              <p className="text-gray-600 mb-6">The auto notification condition has been updated.</p>
-              <button
-                onClick={handleNotificationConditionUpdatedSuccessDone}
-                className="bg-black text-white px-16 py-3 rounded-full font-medium text-[16px] font-montserrat hover:bg-gray-800 transition-colors"
-              >
-                Done
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <SuccessModal
+        isOpen={autoNotificationModals.conditionUpdatedSuccess}
+        onClose={handleNotificationConditionUpdatedSuccessDone}
+        title="Notification condition updated successfully!"
+      />
 
-      {autoNotificationModals.conditionDeletedSuccess && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-md mx-4 overflow-clip">
-            <button 
-              onClick={handleNotificationConditionDeletedSuccessDone}
-              className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700"
-            >
-              <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-            <div className="p-8 text-center">
-              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-              </div>
-              <h3 className="font-bold text-black text-[18px] mb-2 font-montserrat">
-                Notification condition deleted successfully!
-              </h3>
-              <p className="text-gray-600 mb-6">The auto notification condition has been removed.</p>
-              <button
-                onClick={handleNotificationConditionDeletedSuccessDone}
-                className="bg-black text-white px-16 py-3 rounded-full font-medium text-[16px] font-montserrat hover:bg-gray-800 transition-colors"
-              >
-                Done
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <SuccessModal
+        isOpen={autoNotificationModals.conditionDeletedSuccess}
+        onClose={handleNotificationConditionDeletedSuccessDone}
+        title="Notification condition deleted successfully!"
+      />
 
       {/* Auto Notification Delete Confirmation Modal */}
-      {autoNotificationModals.conditionDeleteConfirm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-md mx-4 overflow-clip">
-            <button 
-              onClick={handleCancelDeleteNotificationCondition}
-              className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700"
-            >
-              <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-            <div className="p-8 text-center">
-              <h3 className="font-bold text-black text-[18px] mb-6 font-montserrat">
-                Are you sure you want to delete this notification condition?
-              </h3>
-              <div className="flex gap-4 justify-center">
-                <button
-                  onClick={handleConfirmDeleteNotificationCondition}
-                  className="bg-black text-white px-8 py-3 rounded-full font-medium text-[16px] font-montserrat hover:bg-gray-800 transition-colors"
-                >
-                  yes
-                </button>
-                <button
-                  onClick={handleCancelDeleteNotificationCondition}
-                  className="border border-[#e4e4e4] text-black px-8 py-3 rounded-full font-medium text-[16px] font-montserrat hover:bg-gray-50 transition-colors"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <DeleteConfirmationModal
+        isOpen={autoNotificationModals.conditionDeleteConfirm}
+        onClose={handleCancelDeleteNotificationCondition}
+        onConfirm={handleConfirmDeleteNotificationCondition}
+        title="Are you sure you want to delete this notification condition?"
+      />
 
       {/* Dynamic Pricing Success Modals */}
-      {dynamicPricingModals.conditionCreatedSuccess && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-md mx-4 overflow-clip">
-            <button 
-              onClick={handleDynamicPricingConditionCreatedSuccessDone}
-              className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700"
-            >
-              <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-            <div className="p-8 text-center">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-              </div>
-              <h3 className="font-bold text-black text-[18px] mb-2 font-montserrat">
-                Dynamic pricing condition created successfully!
-              </h3>
-              <p className="text-gray-600 mb-6">The pricing condition has been added to your settings.</p>
-              <button
-                onClick={handleDynamicPricingConditionCreatedSuccessDone}
-                className="bg-black text-white px-16 py-3 rounded-full font-medium text-[16px] font-montserrat hover:bg-gray-800 transition-colors"
-              >
-                Done
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <SuccessModal
+        isOpen={dynamicPricingModals.conditionCreatedSuccess}
+        onClose={handleDynamicPricingConditionCreatedSuccessDone}
+        title="Dynamic pricing condition created successfully!"
+      />
 
-      {dynamicPricingModals.conditionUpdatedSuccess && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-md mx-4 overflow-clip">
-            <button 
-              onClick={handleDynamicPricingConditionUpdatedSuccessDone}
-              className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700"
-            >
-              <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-            <div className="p-8 text-center">
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                </svg>
-              </div>
-              <h3 className="font-bold text-black text-[18px] mb-2 font-montserrat">
-                Dynamic pricing condition updated successfully!
-              </h3>
-              <p className="text-gray-600 mb-6">The pricing condition has been updated.</p>
-              <button
-                onClick={handleDynamicPricingConditionUpdatedSuccessDone}
-                className="bg-black text-white px-16 py-3 rounded-full font-medium text-[16px] font-montserrat hover:bg-gray-800 transition-colors"
-              >
-                Done
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <SuccessModal
+        isOpen={dynamicPricingModals.conditionUpdatedSuccess}
+        onClose={handleDynamicPricingConditionUpdatedSuccessDone}
+        title="Dynamic pricing condition updated successfully!"
+      />
 
-      {dynamicPricingModals.conditionDeletedSuccess && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-md mx-4 overflow-clip">
-            <button 
-              onClick={handleDynamicPricingConditionDeletedSuccessDone}
-              className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700"
-            >
-              <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-            <div className="p-8 text-center">
-              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-              </div>
-              <h3 className="font-bold text-black text-[18px] mb-2 font-montserrat">
-                Dynamic pricing condition deleted successfully!
-              </h3>
-              <p className="text-gray-600 mb-6">The pricing condition has been removed from your settings.</p>
-              <button
-                onClick={handleDynamicPricingConditionDeletedSuccessDone}
-                className="bg-black text-white px-16 py-3 rounded-full font-medium text-[16px] font-montserrat hover:bg-gray-800 transition-colors"
-              >
-                Done
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <SuccessModal
+        isOpen={dynamicPricingModals.conditionDeletedSuccess}
+        onClose={handleDynamicPricingConditionDeletedSuccessDone}
+        title="Dynamic pricing condition deleted successfully!"
+      />
 
       {/* Dynamic Pricing Delete Confirmation Modal */}
-      {dynamicPricingModals.conditionDeleteConfirm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-md mx-4 overflow-clip">
-            <button 
-              onClick={handleCancelDeleteDynamicPricingCondition}
-              className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700"
-            >
-              <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-            <div className="p-8 text-center">
-              <h3 className="font-bold text-black text-[18px] mb-6 font-montserrat">
-                Are you sure you want to delete this pricing condition?
-              </h3>
-              <div className="flex gap-4 justify-center">
-                <button
-                  onClick={handleConfirmDeleteDynamicPricingCondition}
-                  className="bg-black text-white px-8 py-3 rounded-full font-medium text-[16px] font-montserrat hover:bg-gray-800 transition-colors"
-                >
-                  yes
-                </button>
-                <button
-                  onClick={handleCancelDeleteDynamicPricingCondition}
-                  className="border border-[#e4e4e4] text-black px-8 py-3 rounded-full font-medium text-[16px] font-montserrat hover:bg-gray-50 transition-colors"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <DeleteConfirmationModal
+        isOpen={dynamicPricingModals.conditionDeleteConfirm}
+        onClose={handleCancelDeleteDynamicPricingCondition}
+        onConfirm={handleConfirmDeleteDynamicPricingCondition}
+        title="Are you sure you want to delete this pricing condition?"
+      />
 
       {/* Delete Confirmation Modals */}
-      {locationModals.deleteCountryConfirm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-lg p-8 text-center max-w-md mx-4">
-            <h3 className="font-bold text-lg mb-4">Delete Country</h3>
-            <p className="text-gray-600 mb-6">Are you sure you want to delete this country? This action cannot be undone.</p>
-            <div className="flex gap-4 justify-center">
-              <button
-                onClick={handleConfirmDeleteCountry}
-                className="bg-red-600 text-white px-6 py-2 rounded-full font-medium hover:bg-red-700 transition-colors"
-              >
-                Delete
-              </button>
-              <button
-                onClick={handleCancelDeleteCountry}
-                className="border border-gray-300 text-black px-6 py-2 rounded-full font-medium hover:bg-gray-50 transition-colors"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <DeleteConfirmationModal
+        isOpen={locationModals.deleteCountryConfirm}
+        onClose={handleCancelDeleteCountry}
+        onConfirm={handleConfirmDeleteCountry}
+        title="Are you sure you want to delete this country?"
+      />
 
-      {locationModals.deleteLanguageConfirm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-lg p-8 text-center max-w-md mx-4">
-            <h3 className="font-bold text-lg mb-4">Delete Language</h3>
-            <p className="text-gray-600 mb-6">Are you sure you want to delete this language? This action cannot be undone.</p>
-            <div className="flex gap-4 justify-center">
-              <button
-                onClick={handleConfirmDeleteLanguage}
-                className="bg-red-600 text-white px-6 py-2 rounded-full font-medium hover:bg-red-700 transition-colors"
-              >
-                Delete
-              </button>
-              <button
-                onClick={handleCancelDeleteLanguage}
-                className="border border-gray-300 text-black px-6 py-2 rounded-full font-medium hover:bg-gray-50 transition-colors"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <DeleteConfirmationModal
+        isOpen={locationModals.deleteLanguageConfirm}
+        onClose={handleCancelDeleteLanguage}
+        onConfirm={handleConfirmDeleteLanguage}
+        title="Are you sure you want to delete this language?"
+      />
 
-      {locationModals.deleteCurrencyConfirm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-lg p-8 text-center max-w-md mx-4">
-            <h3 className="font-bold text-lg mb-4">Delete Currency</h3>
-            <p className="text-gray-600 mb-6">Are you sure you want to delete this currency? This action cannot be undone.</p>
-            <div className="flex gap-4 justify-center">
-              <button
-                onClick={handleConfirmDeleteCurrency}
-                className="bg-red-600 text-white px-6 py-2 rounded-full font-medium hover:bg-red-700 transition-colors"
-              >
-                Delete
-              </button>
-              <button
-                onClick={handleCancelDeleteCurrency}
-                className="border border-gray-300 text-black px-6 py-2 rounded-full font-medium hover:bg-gray-50 transition-colors"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <DeleteConfirmationModal
+        isOpen={locationModals.deleteCurrencyConfirm}
+        onClose={handleCancelDeleteCurrency}
+        onConfirm={handleConfirmDeleteCurrency}
+        title="Are you sure you want to delete this currency?"
+      />
 
       {/* Webhook Management Modal */}
       {webhookModals.webhookModal && (
@@ -5834,140 +5261,31 @@ const Settings = () => {
       )}
 
       {/* Webhook Success Modals */}
-      {webhookModals.webhookCreatedSuccess && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-md mx-4 overflow-clip">
-            <button 
-              onClick={handleWebhookCreatedSuccessDone}
-              className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700"
-            >
-              <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-            <div className="p-8 text-center">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-              </div>
-              <h3 className="font-bold text-black text-[18px] mb-2 font-montserrat">
-                Webhook created successfully!
-              </h3>
-              <p className="text-gray-600 mb-6">Your webhook has been configured and is now active.</p>
-              <button
-                onClick={handleWebhookCreatedSuccessDone}
-                className="bg-black text-white px-16 py-3 rounded-full font-medium text-[16px] font-montserrat hover:bg-gray-800 transition-colors"
-              >
-                Done
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <SuccessModal
+        isOpen={webhookModals.webhookCreatedSuccess}
+        onClose={handleWebhookCreatedSuccessDone}
+        title="Webhook created successfully!"
+      />
 
-      {webhookModals.webhookUpdatedSuccess && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-md mx-4 overflow-clip">
-            <button 
-              onClick={handleWebhookUpdatedSuccessDone}
-              className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700"
-            >
-              <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-            <div className="p-8 text-center">
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                </svg>
-              </div>
-              <h3 className="font-bold text-black text-[18px] mb-2 font-montserrat">
-                Webhook updated successfully!
-              </h3>
-              <p className="text-gray-600 mb-6">Your webhook configuration has been updated.</p>
-              <button
-                onClick={handleWebhookUpdatedSuccessDone}
-                className="bg-black text-white px-16 py-3 rounded-full font-medium text-[16px] font-montserrat hover:bg-gray-800 transition-colors"
-              >
-                Done
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <SuccessModal
+        isOpen={webhookModals.webhookUpdatedSuccess}
+        onClose={handleWebhookUpdatedSuccessDone}
+        title="Webhook updated successfully!"
+      />
 
-      {webhookModals.webhookDeletedSuccess && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-md mx-4 overflow-clip">
-            <button 
-              onClick={handleWebhookDeletedSuccessDone}
-              className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700"
-            >
-              <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-            <div className="p-8 text-center">
-              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-              </div>
-              <h3 className="font-bold text-black text-[18px] mb-2 font-montserrat">
-                Webhook deleted successfully!
-              </h3>
-              <p className="text-gray-600 mb-6">The webhook has been removed from your configuration.</p>
-              <button
-                onClick={handleWebhookDeletedSuccessDone}
-                className="bg-black text-white px-16 py-3 rounded-full font-medium text-[16px] font-montserrat hover:bg-gray-800 transition-colors"
-              >
-                Done
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <SuccessModal
+        isOpen={webhookModals.webhookDeletedSuccess}
+        onClose={handleWebhookDeletedSuccessDone}
+        title="Webhook deleted successfully!"
+      />
 
       {/* Webhook Delete Confirmation Modal */}
-      {webhookModals.webhookDeleteConfirm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-md mx-4 overflow-clip">
-            <button 
-              onClick={handleCancelDeleteWebhook}
-              className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700"
-            >
-              <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-            <div className="p-8 text-center">
-              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16c-.77.833.192 2.5 1.732 2.5z" />
-                </svg>
-              </div>
-              <h3 className="font-bold text-black text-[18px] mb-2 font-montserrat">Delete Webhook</h3>
-              <p className="text-gray-600 mb-6">Are you sure you want to delete this webhook? This action cannot be undone.</p>
-              <div className="flex gap-4 justify-center">
-                <button
-                  onClick={handleConfirmDeleteWebhook}
-                  className="bg-red-600 text-white px-6 py-2 rounded-full font-medium hover:bg-red-700 transition-colors"
-                >
-                  Delete
-                </button>
-                <button
-                  onClick={handleCancelDeleteWebhook}
-                  className="border border-gray-300 text-black px-6 py-2 rounded-full font-medium hover:bg-gray-50 transition-colors"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <DeleteConfirmationModal
+        isOpen={webhookModals.webhookDeleteConfirm}
+        onClose={handleCancelDeleteWebhook}
+        onConfirm={handleConfirmDeleteWebhook}
+        title="Are you sure you want to delete this webhook?"
+      />
 
       {/* Conditional Component Rendering */}
       {showCommunicationPreferences && <CollectCommunicationPreferences />}

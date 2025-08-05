@@ -3,6 +3,7 @@ import { Upload, Plus, ChevronDown, X, CheckCircle, XCircle, Edit, Trash2 } from
 import { useNavigate } from 'react-router-dom';
 import { DEFAULT_VARIANT, DEFAULT_PRODUCT_DATA, validateImageFile } from '../constants';
 import UploadProgressLoader from '../components/UploadProgressLoader';
+import DeleteConfirmationModal from '../components/DeleteConfirmationModal';
 
 // Constants for better maintainability
 const NOTIFICATION_TYPES = {
@@ -3303,45 +3304,12 @@ const SingleProductUpload = React.memo(() => {
       )}
 
       {/* Delete Permanent Option Confirmation Modal */}
-      {showDeleteConfirmModal && deletingPermanentOption && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-lg max-w-md w-full mx-4 relative">
-            <div className="p-6 text-center">
-              {/* Warning icon */}
-              <div className="mx-auto mb-4 w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
-                <div className="w-8 h-8 bg-red-600 rounded-full flex items-center justify-center">
-                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                  </svg>
-                </div>
-              </div>
-              
-              <h2 className="text-lg font-bold text-black mb-3 leading-tight font-['Montserrat']">
-                Delete Permanent Option
-              </h2>
-              
-              <p className="text-gray-600 mb-6 font-['Montserrat']">
-                Are you sure you want to delete "<strong>{deletingPermanentOption.label}</strong>"? This action cannot be undone.
-              </p>
-              
-              <div className="flex gap-4 justify-center">
-                <button
-                  onClick={cancelDeletePermanentOption}
-                  className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 px-6 rounded-lg transition-colors focus:outline-none font-['Montserrat']"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={confirmDeletePermanentOption}
-                  className="bg-red-600 hover:bg-red-700 text-white font-medium py-3 px-6 rounded-lg transition-colors focus:outline-none font-['Montserrat']"
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <DeleteConfirmationModal
+        isOpen={showDeleteConfirmModal && deletingPermanentOption}
+        onClose={cancelDeletePermanentOption}
+        onConfirm={confirmDeletePermanentOption}
+        title={`Are you sure you want to delete "${deletingPermanentOption?.label}"?`}
+      />
 
       {/* Detailed Review Modal */}
       {showDetailedReviewModal && (

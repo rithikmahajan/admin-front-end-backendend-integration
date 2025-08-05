@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Search, Edit2, Trash2, ChevronDown, X, Upload, Image as ImageIcon } from 'lucide-react';
+import DeleteConfirmationModal from '../components/DeleteConfirmationModal';
 
 const UploadCategory = () => {
   // Modal states
@@ -445,42 +446,15 @@ const UploadCategory = () => {
       )}
 
       {/* Delete Confirmation Modal */}
-      {modals.delete && deletingCategory && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full mx-4 overflow-hidden">
-            
-            {/* Modal Content */}
-            <div className="p-8 text-center">
-              
-              {/* Delete Confirmation Message */}
-              <div className="mb-8">
-                <h2 className="text-lg font-semibold text-gray-900 leading-tight">
-                  Are you sure you<br />want to delete this<br />category
-                </h2>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex gap-3">
-                <button
-                  onClick={handleConfirmDelete}
-                  className="flex-1 bg-black hover:bg-gray-800 text-white font-medium py-3 px-6 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
-                >
-                  yes
-                </button>
-                <button
-                  onClick={() => {
-                    closeModal('delete');
-                    setDeletingCategory(null);
-                  }}
-                  className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 px-6 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <DeleteConfirmationModal
+        isOpen={modals.delete && deletingCategory}
+        onClose={() => {
+          closeModal('delete');
+          setDeletingCategory(null);
+        }}
+        onConfirm={handleConfirmDelete}
+        title="Are you sure you want to delete this category?"
+      />
 
       {/* Delete Success Modal */}
       {modals.deleteSuccess && renderSuccessModal(

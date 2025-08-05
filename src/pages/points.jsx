@@ -18,6 +18,7 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { ChevronDown, Search, Edit2, Trash2, Filter } from 'lucide-react';
 import TwoFactorAuth from '../components/TwoFactorAuth';
+import SuccessModal from '../components/SuccessModal';
 
 // Constants
 const INITIAL_USER_DATA = {
@@ -666,132 +667,40 @@ const Points = () => {
       )}
 
       {/* Success Modal */}
-      {showSuccessModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] p-11 max-w-md w-full mx-4 text-center relative">
-            {/* Close button */}
-            <button 
-              onClick={handleCloseSuccessModal}
-              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-            
-            {/* Success message */}
-            <div className="mb-8 mt-4">
-              <h2 className="text-lg font-bold text-black tracking-[-0.41px] p-4 leading-[22px]">
-                id verified successfully!
-              </h2>
-            </div>
-
-            {/* Done Button */}
-            <button
-              onClick={handleSuccessModalDone}
-              className="bg-black text-white px-12 py-3 pb-4 rounded-3xl font-semibold text-base hover:bg-gray-800 transition-colors"
-            >
-              Done
-            </button>
-          </div>
-        </div>
-      )}
+      <SuccessModal
+        isOpen={showSuccessModal}
+        onClose={handleCloseSuccessModal}
+        title="ID verified successfully!"
+        buttonText="Done"
+        onButtonClick={handleSuccessModalDone}
+      />
 
       {/* Off Success Modal */}
-      {showOffSuccessModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] p-11 max-w-md w-full mx-4 text-center relative">
-            {/* Close button */}
-            <button 
-              onClick={handleCloseOffSuccessModal}
-              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-            
-            {/* Success message */}
-            <div className="mb-8 mt-4">
-              <h2 className="text-lg font-bold text-black tracking-[-0.41px] p-5 leading-[22px]">
-                id verified successfully!
-              </h2>
-            </div>
-
-            {/* Done Button */}
-            <button
-              onClick={handleOffSuccessModalDone}
-              className="bg-black text-white px-12 py-3 rounded-3xl font-semibold text-base hover:bg-gray-800 transition-colors"
-            >
-              Done
-            </button>
-          </div>
-        </div>
-      )}
+      <SuccessModal
+        isOpen={showOffSuccessModal}
+        onClose={handleCloseOffSuccessModal}
+        title="ID verified successfully!"
+        buttonText="Done"
+        onButtonClick={handleOffSuccessModalDone}
+      />
 
       {/* Final Success Modal */}
-      {showFinalSuccessModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] p-11 max-w-md w-full mx-4 text-center relative">
-            {/* Close button */}
-            <button 
-              onClick={handleCloseFinalSuccessModal}
-              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-            
-            {/* Success message */}
-            <div className="mb-8 mt-4">
-              <h2 className="text-lg font-bold text-black tracking-[-0.41px] leading-[22px] p-8">
-                points system turned on successfully!
-              </h2>
-            </div>
-
-            {/* Done Button */}
-            <button
-              onClick={handleFinalSuccessModalDone}
-              className="bg-black text-white px-12 py-3 rounded-3xl font-semibold text-base hover:bg-gray-800 transition-colors"
-            >
-              Done
-            </button>
-          </div>
-        </div>
-      )}
+      <SuccessModal
+        isOpen={showFinalSuccessModal}
+        onClose={handleCloseFinalSuccessModal}
+        title="Points system turned on successfully!"
+        buttonText="Done"
+        onButtonClick={handleFinalSuccessModalDone}
+      />
 
       {/* Off Final Success Modal */}
-      {showOffFinalSuccessModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] p-8 max-w-md w-full mx-4 text-center relative">
-            {/* Close button */}
-            <button 
-              onClick={handleCloseOffFinalSuccessModal}
-              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-            
-            {/* Success message */}
-            <div className="mb-8 mt-4">
-              <h2 className="text-lg font-bold text-black tracking-[-0.41px] leading-[22px]">
-                points system turned off successfully!
-              </h2>
-            </div>
-
-            {/* Done Button */}
-            <button
-              onClick={handleOffFinalSuccessModalDone}
-              className="bg-black text-white px-12 py-3 rounded-3xl font-semibold text-base hover:bg-gray-800 transition-colors"
-            >
-              Done
-            </button>
-          </div>
-        </div>
-      )}
+      <SuccessModal
+        isOpen={showOffFinalSuccessModal}
+        onClose={handleCloseOffFinalSuccessModal}
+        title="Points system turned off successfully!"
+        buttonText="Done"
+        onButtonClick={handleOffFinalSuccessModalDone}
+      />
 
       {/* Edit User Modal */}
       {showEditModal && (
@@ -949,43 +858,13 @@ const Points = () => {
       )}
 
       {/* Edit Success Modal */}
-      {showEditSuccessModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-md mx-4 overflow-clip">
-            {/* Close button - positioned exactly as in Figma */}
-            <button 
-              onClick={handleCloseEditSuccessModal}
-              className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700"
-            >
-              <div className="absolute bottom-[17.18%] left-[17.18%] right-[17.18%] top-[17.17%]">
-                <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </div>
-            </button>
-            
-            {/* Modal content - positioned exactly as in Figma */}
-            <div className="absolute top-[61px] left-1/2 transform -translate-x-1/2 w-[242px] text-center">
-              <p className="font-bold text-black text-[18px] leading-[22px] tracking-[-0.41px] font-['Montserrat']">
-                points updated successfully !
-              </p>
-            </div>
-            
-            {/* Done Button Container - positioned exactly as in Figma */}
-            <div className="absolute top-[155px] left-1/2 transform" style={{ transform: 'translateX(calc(-50% + 7px))' }}>
-              <button
-                onClick={handleEditSuccessDone}
-                className="bg-black text-white rounded-3xl w-[270px] h-12 font-semibold text-[16px] leading-[22px] font-['Montserrat'] hover:bg-gray-800 transition-colors"
-              >
-                Done
-              </button>
-            </div>
-            
-            {/* Modal height spacer to ensure proper modal size */}
-            <div className="h-[240px]"></div>
-          </div>
-        </div>
-      )}
+      <SuccessModal
+        isOpen={showEditSuccessModal}
+        onClose={handleCloseEditSuccessModal}
+        title="Points updated successfully!"
+        buttonText="Done"
+        onButtonClick={handleEditSuccessDone}
+      />
 
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (
@@ -1034,43 +913,13 @@ const Points = () => {
       )}
 
       {/* Delete Success Modal */}
-      {showDeleteSuccessModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-md mx-4 overflow-clip">
-            {/* Close button */}
-            <button 
-              onClick={handleDeleteSuccessDone}
-              className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700"
-            >
-              <div className="absolute bottom-[17.18%] left-[17.18%] right-[17.18%] top-[17.17%]">
-                <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </div>
-            </button>
-            
-            {/* Modal content */}
-            <div className="absolute top-[61px] left-1/2 transform -translate-x-1/2 w-[242px] text-center">
-              <p className="font-bold text-black text-[18px] leading-[22px] tracking-[-0.41px] font-['Montserrat']">
-                User deleted successfully!
-              </p>
-            </div>
-            
-            {/* Done Button Container */}
-            <div className="absolute top-[155px] left-1/2 transform" style={{ transform: 'translateX(calc(-50% + 7px))' }}>
-              <button
-                onClick={handleDeleteSuccessDone}
-                className="bg-black text-white rounded-3xl w-[270px] h-12 font-semibold text-[16px] leading-[22px] font-['Montserrat'] hover:bg-gray-800 transition-colors"
-              >
-                Done
-              </button>
-            </div>
-            
-            {/* Modal height spacer */}
-            <div className="h-[240px]"></div>
-          </div>
-        </div>
-      )}
+      <SuccessModal
+        isOpen={showDeleteSuccessModal}
+        onClose={handleDeleteSuccessDone}
+        title="User deleted successfully!"
+        buttonText="Done"
+        onButtonClick={handleDeleteSuccessDone}
+      />
     </div>
   );
 };

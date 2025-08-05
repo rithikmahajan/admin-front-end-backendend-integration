@@ -43,6 +43,7 @@ import HuggingFaceApiOpenClose from "./pages/hugging face api open close";
 import DateComponentsDemo from "./pages/DateComponentsDemo";
 import TwoFactorDemoPage from "./pages/TwoFactorDemoPage";
 import DeleteConfirmationDemo from "./components/DeleteConfirmationDemo";
+import SuccessModalDemo from "./components/SuccessModalDemo";
 
 const App = () => {
   return (
@@ -58,6 +59,7 @@ const App = () => {
           <Route path="/date-components-demo" element={<DateComponentsDemo />} />
           <Route path="/2-factor" element={<TwoFactorDemoPage />} />
           <Route path="/delete-confirmation-demo" element={<DeleteConfirmationDemo />} />
+          <Route path="/success-modal-demo" element={<SuccessModalDemo />} />
           
           {/* ===== ORDER MANAGEMENT ===== */}
           <Route path="/orders" element={<Orders />} />

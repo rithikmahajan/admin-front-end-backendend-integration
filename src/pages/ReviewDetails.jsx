@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { ArrowLeft, Star, Upload, Edit2, Trash2, X, Check } from 'lucide-react';
+import DeleteConfirmationModal from '../components/DeleteConfirmationModal';
+import SuccessModal from '../components/SuccessModal';
 
 const ReviewDetails = ({ productName = "Review 1", onGoBack }) => {
   // Customer reviews state
@@ -792,66 +794,19 @@ const ReviewDetails = ({ productName = "Review 1", onGoBack }) => {
       )}
 
       {/* Delete Confirmation Modal */}
-      {showDeleteConfirmModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-8 max-w-md w-full mx-4">
-            <div className="text-center">
-              <div className="mb-6">
-                <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
-                  <Trash2 className="w-8 h-8 text-red-600" />
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  Are you sure you want to delete this review?
-                </h3>
-                <p className="text-gray-600 text-sm">
-                  This action cannot be undone. The review will be permanently removed.
-                </p>
-              </div>
-              <div className="flex space-x-4">
-                <button
-                  onClick={() => setShowDeleteConfirmModal(false)}
-                  className="flex-1 px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={confirmDelete}
-                  className="flex-1 px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors font-medium"
-                >
-                  Yes
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <DeleteConfirmationModal
+        isOpen={showDeleteConfirmModal}
+        onClose={() => setShowDeleteConfirmModal(false)}
+        onConfirm={confirmDelete}
+        title="Are you sure you want to delete this review?"
+      />
 
       {/* Delete Success Modal */}
-      {showDeleteSuccessModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-8 max-w-md w-full mx-4">
-            <div className="text-center">
-              <div className="mb-6">
-                <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
-                  <Check className="w-8 h-8 text-green-600" />
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  deleted successfully!
-                </h3>
-                <p className="text-gray-600 text-sm">
-                  The review has been removed from your list.
-                </p>
-              </div>
-              <button
-                onClick={() => setShowDeleteSuccessModal(false)}
-                className="w-full px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors font-medium"
-              >
-                Done
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <SuccessModal
+        isOpen={showDeleteSuccessModal}
+        onClose={() => setShowDeleteSuccessModal(false)}
+        title="Deleted successfully!"
+      />
     </div>
   );
 };

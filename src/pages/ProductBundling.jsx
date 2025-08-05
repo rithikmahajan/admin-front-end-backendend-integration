@@ -16,6 +16,8 @@
 
 import React, { useState, useCallback, useMemo } from 'react';
 import { ChevronDown, Plus, Edit, Trash2, GripVertical } from 'lucide-react';
+import DeleteConfirmationModal from '../components/DeleteConfirmationModal';
+import SuccessModal from '../components/SuccessModal';
 import {
   DndContext,
   closestCenter,
@@ -335,60 +337,6 @@ const ProductBundling = () => {
         bundleItem.id === itemId ? { ...bundleItem, productData: null } : bundleItem
       ));
     }
-  }, []);
-
-  // Modal Components
-  const SuccessModal = useMemo(() => ({ show, onClose, message = "Item assigned successfully!" }) => {
-    if (!show) return null;
-
-    return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white rounded-2xl p-8 max-w-md w-full mx-4 text-center">
-          <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
-            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-            </svg>
-          </div>
-          <h2 className="text-xl font-bold text-black mb-8 font-montserrat">{message}</h2>
-          <button 
-            onClick={onClose}
-            className="w-full bg-black text-white py-4 rounded-full text-lg font-medium hover:bg-gray-800 transition-colors font-montserrat"
-          >
-            Done
-          </button>
-        </div>
-      </div>
-    );
-  }, []);
-
-  const DeleteConfirmModal = useMemo(() => ({ show, onConfirm, onCancel }) => {
-    if (!show) return null;
-
-    return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white rounded-2xl p-8 max-w-md w-full mx-4 text-center">
-          <h2 className="text-xl font-bold text-black mb-8 font-montserrat leading-relaxed">
-            Are you sure you<br />
-            want to delete this<br />
-            item
-          </h2>
-          <div className="flex gap-4">
-            <button 
-              onClick={onConfirm}
-              className="flex-1 bg-black text-white py-4 rounded-full text-lg font-medium hover:bg-gray-800 transition-colors font-montserrat"
-            >
-              yes
-            </button>
-            <button 
-              onClick={onCancel}
-              className="flex-1 bg-gray-100 text-black py-4 rounded-full text-lg font-medium hover:bg-gray-200 transition-colors font-montserrat"
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      </div>
-    );
   }, []);
 
   // Reusable Components
@@ -917,23 +865,24 @@ const ProductBundling = () => {
       
       {/* Success Modal */}
       <SuccessModal 
-        show={showSuccessModal} 
-        onClose={() => setShowSuccessModal(false)} 
-        message="Item assigned successfully!" 
+        isOpen={showSuccessModal}
+        onClose={() => setShowSuccessModal(false)}
+        title="Item assigned successfully!"
       />
       
       {/* Delete Confirmation Modal */}
-      <DeleteConfirmModal 
-        show={showDeleteConfirmModal} 
-        onConfirm={confirmDeleteBundle} 
-        onCancel={cancelDeleteBundle} 
+      <DeleteConfirmationModal
+        isOpen={showDeleteConfirmModal}
+        onClose={cancelDeleteBundle}
+        onConfirm={confirmDeleteBundle}
+        title="Are you sure you want to delete this item?"
       />
       
       {/* Delete Success Modal */}
       <SuccessModal 
-        show={showDeleteSuccessModal} 
-        onClose={() => setShowDeleteSuccessModal(false)} 
-        message="Item deleted successfully!" 
+        isOpen={showDeleteSuccessModal}
+        onClose={() => setShowDeleteSuccessModal(false)}
+        title="Item deleted successfully!"
       />
     </div>
   );
