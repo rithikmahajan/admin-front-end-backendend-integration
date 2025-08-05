@@ -104,6 +104,8 @@ const FILTER_OPTIONS = {
     "PG rent receipt – Duly stamped",
   ],
   filterBy: ["category", "status"],
+  sortBy: ["Name", "Price", "Date Added", "Category", "SKU", "Quantity"],
+  sortOrder: ["Ascending", "Descending"],
   dates: ["today", "week"],
 };
 
@@ -491,11 +493,21 @@ const Database = () => {
   });
   const [analyticsDateRange, setAnalyticsDateRange] = useState("Nov 11, 2025 – Nov 27, 2025");
   
+  // Inventory date range state
+  const [selectedInventoryDateRange, setSelectedInventoryDateRange] = useState({
+    label: "Last 7 Days",
+    value: "7days",
+    days: 7
+  });
+  const [inventoryDateRange, setInventoryDateRange] = useState("Nov 11, 2025 – Nov 27, 2025");
+  
   const [filters, setFilters] = useState({
     category: "",
     subcategory: "",
     date: "",
     filterBy: "",
+    sortBy: "",
+    sortOrder: "",
   });
 
   // Data hooks - Centralized data management
@@ -555,6 +567,8 @@ const Database = () => {
       subcategory: "",
       date: "",
       filterBy: "",
+      sortBy: "",
+      sortOrder: "",
     });
     setSearchTerm("");
   }, []);
@@ -773,6 +787,78 @@ const Database = () => {
     
     // Here you would typically trigger analytics data refetch with the new date range
     console.log('Analytics date range changed:', { startDate, endDate, range: formattedRange });
+  }, []);
+
+  // Inventory date range change handler
+  const handleInventoryDateRangeChange = useCallback((rangeOption) => {
+    setSelectedInventoryDateRange(rangeOption);
+    
+    // Calculate actual dates based on selection
+    const today = new Date();
+    let startDate, endDate;
+    
+    if (rangeOption.value === "custom" && rangeOption.startDate && rangeOption.endDate) {
+      startDate = new Date(rangeOption.startDate);
+      endDate = new Date(rangeOption.endDate);
+    } else {
+      switch (rangeOption.value) {
+        case "today":
+          startDate = endDate = new Date(today);
+          break;
+        case "yesterday":
+          startDate = endDate = new Date(today.getTime() - 24 * 60 * 60 * 1000);
+          break;
+        case "7days":
+          startDate = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+          endDate = new Date(today);
+          break;
+        case "14days":
+          startDate = new Date(today.getTime() - 14 * 24 * 60 * 60 * 1000);
+          endDate = new Date(today);
+          break;
+        case "30days":
+          startDate = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+          endDate = new Date(today);
+          break;
+        case "90days":
+          startDate = new Date(today.getTime() - 90 * 24 * 60 * 60 * 1000);
+          endDate = new Date(today);
+          break;
+        case "thisMonth":
+          startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+          endDate = new Date(today);
+          break;
+        case "lastMonth":
+          startDate = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+          endDate = new Date(today.getFullYear(), today.getMonth(), 0);
+          break;
+        case "thisYear":
+          startDate = new Date(today.getFullYear(), 0, 1);
+          endDate = new Date(today);
+          break;
+        default:
+          startDate = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+          endDate = new Date(today);
+      }
+    }
+    
+    // Format the date range for display
+    const formatDate = (date) => {
+      return date.toLocaleDateString('en-US', { 
+        month: 'short', 
+        day: 'numeric', 
+        year: 'numeric' 
+      });
+    };
+    
+    const formattedRange = startDate.toDateString() === endDate.toDateString() 
+      ? formatDate(startDate)
+      : `${formatDate(startDate)} – ${formatDate(endDate)}`;
+    
+    setInventoryDateRange(formattedRange);
+    
+    // Here you would typically trigger inventory data refetch with the new date range
+    console.log('Inventory date range changed:', { startDate, endDate, range: formattedRange });
   }, []);
 
   // Analytics refresh handler
@@ -1030,6 +1116,9 @@ const Database = () => {
             onEdit={handleEdit}
             onDelete={handleDelete}
             onDownload={handleDownload}
+            selectedInventoryDateRange={selectedInventoryDateRange}
+            onInventoryDateRangeChange={handleInventoryDateRangeChange}
+            inventoryDateRange={inventoryDateRange}
           />
         )}
 
@@ -1109,6 +1198,7 @@ const DashboardTab = memo(
 DashboardTab.displayName = "DashboardTab";
 
 // Inventory Tab Component
+// Inventory Tab Component
 const InventoryTab = memo(
   ({
     products,
@@ -1120,81 +1210,157 @@ const InventoryTab = memo(
     onEdit,
     onDelete,
     onDownload,
+    selectedInventoryDateRange,
+    onInventoryDateRangeChange,
+    inventoryDateRange,
   }) => (
     <div className="space-y-6">
-      {/* Search and Filter Bar */}
-      <div className="bg-white rounded-lg p-4 shadow-sm">
-        <div className="flex items-center gap-4 flex-wrap">
-          {/* Search */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search products..."
-              value={searchTerm}
-              onChange={onSearchChange}
-              className="pl-10 pr-4 py-2 border border-gray-300 rounded-md text-sm focus:ring-blue-500 focus:border-blue-500"
+      {/* Header with Search and Filters */}
+      <div className="bg-white rounded-lg p-6 shadow-sm">
+        <div className="flex flex-col space-y-4">
+          {/* Top row with Search and Date Range */}
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            {/* Search Bar */}
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search products..."
+                value={searchTerm}
+                onChange={onSearchChange}
+                className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 hover:bg-white focus:bg-white transition-all duration-200"
+              />
+            </div>
+
+            {/* Date Range Picker */}
+            <DateRangePicker 
+              selectedRange={selectedInventoryDateRange}
+              onRangeChange={onInventoryDateRangeChange}
+              dateRange={inventoryDateRange}
             />
           </div>
 
-          <Filter className="h-5 w-5 text-gray-600" />
+          {/* Filter Row */}
+          <div className="flex items-center gap-4 flex-wrap">
+            <div className="flex items-center gap-2">
+              <Filter className="h-4 w-4 text-gray-600" />
+              <span className="text-sm font-medium text-gray-700">Filters:</span>
+            </div>
 
-          {/* Filter Controls */}
-          <select
-            value={filters.filterBy}
-            onChange={(e) => onFilterChange("filterBy", e.target.value)}
-            className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500"
-          >
-            <option value="">Filter By</option>
-            {FILTER_OPTIONS.filterBy.map((option) => (
-              <option key={option} value={option}>
-                {option}
-              </option>
-            ))}
-          </select>
+            {/* Filter By Dropdown */}
+            <select
+              value={filters.filterBy}
+              onChange={(e) => onFilterChange("filterBy", e.target.value)}
+              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white hover:bg-gray-50 transition-colors duration-200"
+            >
+              <option value="">Filter By</option>
+              {FILTER_OPTIONS.filterBy.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
 
-          <select
-            value={filters.category}
-            onChange={(e) => onFilterChange("category", e.target.value)}
-            className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500"
-          >
-            <option value="">Choose category</option>
-            {FILTER_OPTIONS.categories.map((option) => (
-              <option key={option} value={option}>
-                {option}
-              </option>
-            ))}
-          </select>
+            {/* Sort By Dropdown */}
+            <select
+              value={filters.sortBy}
+              onChange={(e) => onFilterChange("sortBy", e.target.value)}
+              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white hover:bg-gray-50 transition-colors duration-200"
+            >
+              <option value="">Sort By</option>
+              {FILTER_OPTIONS.sortBy.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
 
-          <select
-            value={filters.subcategory}
-            onChange={(e) => onFilterChange("subcategory", e.target.value)}
-            className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500"
-          >
-            <option value="">Choose sub category</option>
-            {FILTER_OPTIONS.subcategories.map((option) => (
-              <option key={option} value={option}>
-                {option}
-              </option>
-            ))}
-          </select>
+            {/* Sort Order Dropdown */}
+            <select
+              value={filters.sortOrder}
+              onChange={(e) => onFilterChange("sortOrder", e.target.value)}
+              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white hover:bg-gray-50 transition-colors duration-200"
+            >
+              <option value="">Order</option>
+              {FILTER_OPTIONS.sortOrder.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
 
-          <button
-            onClick={onResetFilters}
-            className="text-red-500 hover:text-red-600 text-sm font-medium flex items-center gap-1"
-          >
-            <RotateCcw className="h-4 w-4" />
-            Reset Filter
-          </button>
+            {/* Category Dropdown */}
+            <select
+              value={filters.category}
+              onChange={(e) => onFilterChange("category", e.target.value)}
+              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white hover:bg-gray-50 transition-colors duration-200"
+            >
+              <option value="">Choose Category</option>
+              {FILTER_OPTIONS.categories.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+
+            {/* Subcategory Dropdown */}
+            <select
+              value={filters.subcategory}
+              onChange={(e) => onFilterChange("subcategory", e.target.value)}
+              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white hover:bg-gray-50 transition-colors duration-200"
+            >
+              <option value="">Choose Subcategory</option>
+              {FILTER_OPTIONS.subcategories.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+
+            {/* Reset Filter Button */}
+            <button
+              onClick={onResetFilters}
+              className="text-red-500 hover:text-red-600 text-sm font-medium flex items-center gap-1.5 px-3 py-2 rounded-lg hover:bg-red-50 transition-all duration-200"
+            >
+              <RotateCcw className="h-4 w-4" />
+              Reset Filter
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Inventory Results */}
       <div className="bg-white rounded-lg shadow-sm">
-        <div className="p-4 border-b">
-          <h2 className="text-lg font-semibold text-black">
-            Inventory Data ({products.length} items)
-          </h2>
+        <div className="p-6 border-b">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <h2 className="text-xl font-semibold text-gray-900">
+                Showing Inventory Data
+              </h2>
+              <p className="text-sm text-gray-600 mt-1">
+                {products.length} items found for {inventoryDateRange}
+              </p>
+            </div>
+            
+            {/* Additional filter tags if any are active */}
+            <div className="flex flex-wrap gap-2">
+              {filters.sortBy && (
+                <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">
+                  Sort: {filters.sortBy} ({filters.sortOrder || 'Default'})
+                </span>
+              )}
+              {filters.category && (
+                <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">
+                  Category: {filters.category}
+                </span>
+              )}
+              {filters.subcategory && (
+                <span className="px-2 py-1 bg-purple-100 text-purple-700 text-xs rounded-full">
+                  Subcategory: {filters.subcategory}
+                </span>
+              )}
+            </div>
+          </div>
         </div>
 
         <div className="overflow-x-auto">
