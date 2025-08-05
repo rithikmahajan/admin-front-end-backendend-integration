@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Flag, MessageCircle, Check } from 'lucide-react';
+import { Eye, EyeOff, Check } from 'lucide-react';
 
 // Modal types enum for better type safety
 const MODAL_TYPES = {
@@ -10,43 +10,73 @@ const MODAL_TYPES = {
   UNBLOCK_SUCCESS: 'unblock_success'
 };
 
-// Table headers configuration
+// Table headers configuration - Updated to match Figma design
 const TABLE_HEADERS = [
-  { key: 'name', label: 'name' },
-  { key: 'channel', label: 'Channel' },
-  { key: 'id', label: 'ID' },
-  { key: 'phone', label: 'Phone number' },
+  { key: 'name', label: 'Name' },
+  { key: 'email', label: 'Email' },
+  { key: 'phone', label: 'Phone' },
+  { key: 'dateOfBirth', label: 'Date of Birth' },
   { key: 'address', label: 'Address' },
-  { key: 'action', label: 'Action' }
+  { key: 'deleteAccountRecord', label: 'Delete account record' },
+  { key: 'userName', label: 'user name' },
+  { key: 'appReviews', label: 'App reviews' },
+  { key: 'gender', label: 'Gender' },
+  { key: 'passwordDetails', label: 'Password details' },
+  { key: 'pointBalance', label: 'Point balance' },
+  { key: 'blockOption', label: 'Block option' },
+  { key: 'accountStatus', label: 'Account status' }
 ];
 
 // Page content constants
 const PAGE_CONTENT = {
-  title: 'Block User',
-  subtitle: 'Block user system',
-  messageTitle: 'Write a message',
-  messagePlaceholder: 'Type your message here...'
+  title: 'Block user',
+  subtitle: 'Block user system'
 };
 
 /**
  * BlockUser Component - Manages user blocking/unblocking functionality
  * Features:
- * - Display users in a table format
+ * - Display users in a comprehensive table format matching Figma design
  * - Block/Unblock users with confirmation modals
- * - Send messages to users
- * - User action buttons (flag, upgrade, message limit)
+ * - Real-time account status updates
+ * - Password visibility toggle
+ * - Comprehensive user data management
  */
 const BlockUser = () => {
-  const [message, setMessage] = useState('');
   const [users, setUsers] = useState([
     {
       id: 1,
-      name: 'Cora Cayetto',
-      channel: 'WhatsApp',
-      userId: '20231042366',
-      phoneNumber: '+629797624012',
-      address: '5567 Richmond View Suite 961 Burnaby, 93546-8616',
-      isBlocked: false
+      name: 'Rithik mahajan',
+      email: 'Rithikmahajan27@gmail.com',
+      phone: '+91 7006114695',
+      dateOfBirth: '28/august/1998',
+      address: 'House NO. 19, new kaleeth nagar, Upper gummat bazar, jammu,180001',
+      deleteAccountRecord: 'present',
+      userName: 'Rithik27',
+      appReviews: { rating: 5, text: 'It is a good app' },
+      gender: 'Male',
+      passwordDetails: 'Password123',
+      pointBalance: 200,
+      isBlocked: true,
+      accountStatus: 'blocked',
+      showPassword: false
+    },
+    {
+      id: 2,
+      name: 'Rithik mahajan',
+      email: 'Rithikmahajan27@gmail.com',
+      phone: '+91 7006114695',
+      dateOfBirth: '28/august/1998',
+      address: 'House NO. 19, new kaleeth nagar, Upper gummat bazar, jammu,180001',
+      deleteAccountRecord: 'present',
+      userName: 'Rithik27',
+      appReviews: { rating: 5, text: 'It is a good app' },
+      gender: 'Male',
+      passwordDetails: 'Password123',
+      pointBalance: 200,
+      isBlocked: false,
+      accountStatus: 'Active',
+      showPassword: false
     }
   ]);
 
@@ -67,20 +97,30 @@ const BlockUser = () => {
   };
 
   const confirmBlockUser = () => {
-    updateUserBlockStatus(selectedUser.id, true);
+    updateUserBlockStatus(selectedUser.id, true, 'blocked');
     setCurrentModal(MODAL_TYPES.BLOCK_SUCCESS);
   };
 
   const confirmUnblockUser = () => {
-    updateUserBlockStatus(selectedUser.id, false);
+    updateUserBlockStatus(selectedUser.id, false, 'Active');
     setCurrentModal(MODAL_TYPES.UNBLOCK_SUCCESS);
   };
 
-  const updateUserBlockStatus = (userId, isBlocked) => {
+  const updateUserBlockStatus = (userId, isBlocked, accountStatus) => {
     setUsers(prev => 
       prev.map(user => 
         user.id === userId 
-          ? { ...user, isBlocked }
+          ? { ...user, isBlocked, accountStatus }
+          : user
+      )
+    );
+  };
+
+  const togglePasswordVisibility = (userId) => {
+    setUsers(prev => 
+      prev.map(user => 
+        user.id === userId 
+          ? { ...user, showPassword: !user.showPassword }
           : user
       )
     );
@@ -91,12 +131,14 @@ const BlockUser = () => {
     setSelectedUser(null);
   };
 
-  const handleSendMessage = () => {
-    if (message.trim()) {
-      console.log('Sending message:', message);
-      alert('Message sent successfully!');
-      setMessage('');
-    }
+  // Helper function to render stars for app reviews
+  const renderStars = (rating) => {
+    return '★'.repeat(rating) + '☆'.repeat(5 - rating);
+  };
+
+  // Helper function to mask password
+  const maskPassword = (password) => {
+    return '•'.repeat(password.length);
   };
 
   // Reusable components
@@ -169,128 +211,105 @@ const BlockUser = () => {
   );
 
   /**
-   * UserRow - Individual user row component
-   * @param {Object} user - User object with id, name, channel, etc.
+   * UserRow - Individual user row component with comprehensive user data
+   * @param {Object} user - User object with all required fields
    */
   const UserRow = ({ user }) => (
     <tr key={user.id} className="border-b border-gray-100 hover:bg-gray-50">
-      <td className="py-4 px-4 text-gray-900 font-medium">{user.name}</td>
-      <td className="py-4 px-4">
-        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-green-100 text-green-800">
-          {user.channel}
-        </span>
-      </td>
-      <td className="py-4 px-4 text-gray-900">{user.userId}</td>
-      <td className="py-4 px-4 text-gray-900">{user.phoneNumber}</td>
-      <td className="py-4 px-4 text-gray-700 max-w-xs">
-        <div className="truncate" title={user.address}>
+      <td className="py-4 px-4 text-gray-900 font-medium text-center tracking-[-0.4px]">{user.name}</td>
+      <td className="py-4 px-4 text-gray-900 text-center tracking-[-0.4px]">{user.email}</td>
+      <td className="py-4 px-4 text-gray-900 text-center tracking-[-0.4px] uppercase">{user.phone}</td>
+      <td className="py-4 px-4 text-gray-900 text-center">{user.dateOfBirth}</td>
+      <td className="py-4 px-4 text-gray-900 text-left leading-[1.2]">
+        <div className="max-w-[200px]">
           {user.address}
         </div>
       </td>
-      <td className="py-4 px-4">
-        <div className="flex items-center space-x-2">
-          {/* Flag Button */}
-          <ActionButton variant="icon" onClick={() => {}}>
-            <Flag className="h-4 w-4 text-blue-600" />
-          </ActionButton>
-          
-          {/* Upgrade Button */}
-          <ActionButton 
-            variant="secondary" 
-            className="px-3 py-1 rounded-full text-xs"
-            onClick={() => {}}
-          >
-            upgrade
-          </ActionButton>
-          
-          {/* Block/Unblock Button */}
-          <ActionButton
-            variant={user.isBlocked ? "success" : "primary"}
-            onClick={() => handleBlockUser(user.id)}
-          >
-            {user.isBlocked ? 'Unblock' : 'Block Now'}
-          </ActionButton>
-          
-          {/* Message Limit Button */}
-          <ActionButton 
-            variant="dark" 
-            className="text-sm"
-            onClick={() => {}}
-          >
-            message limit
-          </ActionButton>
+      <td className="py-4 px-4 text-gray-900 text-center tracking-[-0.4px] uppercase">{user.deleteAccountRecord}</td>
+      <td className="py-4 px-4 text-gray-900 font-medium">{user.userName}</td>
+      <td className="py-4 px-4 text-gray-900">
+        <div className="max-w-[127px]">
+          <div className="text-yellow-500 mb-1">{renderStars(user.appReviews.rating)}</div>
+          <div className="text-sm leading-[1.2]">{user.appReviews.text}</div>
         </div>
+      </td>
+      <td className="py-4 px-4 text-gray-900 font-medium">{user.gender}</td>
+      <td className="py-4 px-4 text-gray-900">
+        <div className="flex items-center space-x-2">
+          <span className="font-medium">
+            {user.showPassword ? user.passwordDetails : maskPassword(user.passwordDetails)}
+          </span>
+          <button
+            onClick={() => togglePasswordVisibility(user.id)}
+            className="p-1 hover:bg-gray-100 rounded"
+          >
+            {user.showPassword ? (
+              <EyeOff className="h-4 w-4 text-gray-600" />
+            ) : (
+              <Eye className="h-4 w-4 text-gray-600" />
+            )}
+          </button>
+        </div>
+      </td>
+      <td className="py-4 px-4 text-gray-900 font-medium">{user.pointBalance}</td>
+      <td className="py-4 px-4">
+        <button
+          onClick={() => handleBlockUser(user.id)}
+          className={`px-4 py-2 rounded-lg font-medium text-black text-[14px] leading-[20px] transition-colors shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] border border-[#d0d5dd] ${
+            user.isBlocked 
+              ? 'bg-[#00b69b] hover:bg-[#009688]' 
+              : 'bg-[#ef3826] hover:bg-[#d32f2f]'
+          }`}
+        >
+          {user.isBlocked ? 'Unblock' : 'Block now'}
+        </button>
+      </td>
+      <td className="py-4 px-4 text-gray-900 font-medium">
+        <span className={`${
+          user.accountStatus === 'blocked' 
+            ? 'text-red-600' 
+            : 'text-green-600'
+        }`}>
+          {user.accountStatus}
+        </span>
       </td>
     </tr>
   );
 
   return (
-    <div className="min-h-screen bg-gray-50">
-     
-          <div className="text-2xl font-bold text-gray-900">
-            {PAGE_CONTENT.title.toLowerCase()}
-          </div>
+    <div className="min-h-screen w-full bg-white">
+      {/* Page Title - positioned exactly like Figma */}
+      <div className="absolute left-[65px] top-[87px] transform -translate-y-1/2">
+        <h1 className="text-[24px] font-bold text-black font-['Montserrat:Bold',_sans-serif] leading-[22px]">
+          Block user
+        </h1>
+      </div>
+
+      {/* Main Content - Full screen table */}
+      <div className="pt-[120px] w-full">
         
-
-      {/* Main Content */}
-      
-        <div className="max-w-7xl m-0 p-6">
-          
-          {/* Page Title */}
-          <div className="mb-8">
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">{PAGE_CONTENT.title.toLowerCase()}</h1>
-            <p className="text-lg text-gray-700">{PAGE_CONTENT.subtitle}</p>
-          </div>
-
-          {/* Users Table */}
-          <div className="mb-8">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-gray-200">
-                    {TABLE_HEADERS.map(header => (
-                      <th key={header.key} className="text-left py-4 px-4 font-medium text-gray-700 text-base">
-                        {header.label}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {users.map((user) => (
-                    <UserRow key={user.id} user={user} />
+        {/* Users Table - Full width */}
+        <div className="w-full">
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-full">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  {TABLE_HEADERS.map(header => (
+                    <th key={header.key} className="text-left py-4 px-4 font-bold text-[#010101] text-[16px] font-['Montserrat:Bold',_sans-serif]">
+                      {header.label}
+                    </th>
                   ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {/* Write a Message Section */}
-          <div className="mt-12">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">{PAGE_CONTENT.messageTitle.toLowerCase()}</h2>
-            
-            <div className="space-y-4">
-              <textarea
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                placeholder={PAGE_CONTENT.messagePlaceholder}
-                className="w-full h-32 px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
-              />
-              
-              <div className="flex justify-end">
-                <ActionButton
-                  variant="primary"
-                  onClick={handleSendMessage}
-                  className="flex items-center space-x-2"
-                >
-                  <MessageCircle className="h-4 w-4" />
-                  <span>Send Message</span>
-                </ActionButton>
-              </div>
-            </div>
+                </tr>
+              </thead>
+              <tbody>
+                {users.map((user) => (
+                  <UserRow key={user.id} user={user} />
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
-      
-
+      </div>
       {/* Modals */}
       <Modal
         isOpen={currentModal === MODAL_TYPES.BLOCK_CONFIRM}
