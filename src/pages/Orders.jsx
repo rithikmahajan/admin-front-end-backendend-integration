@@ -1526,6 +1526,357 @@ const ReturnWindowScreen = React.memo(({ returnId, onBack }) => {
 });
 
 /**
+ * ExchangeWindowScreen Component
+ *
+ * A dedicated screen for managing exchange requests with options to:
+ * - View exchange reason and product images
+ * - Accept or reject the exchange
+ * - Allot vendor and courier if accepted
+ * - Provide explanation for rejection
+ */
+const ExchangeWindowScreen = React.memo(({ exchangeId, onBack }) => {
+  const [exchangeStatus, setExchangeStatus] = useState("pending");
+  const [selectedReason, setSelectedReason] = useState("");
+  const [vendorAllotted, setVendorAllotted] = useState(false);
+  const [courierAllotted, setCourierAllotted] = useState(false);
+  const [explanation, setExplanation] = useState("");
+  const [showVendorOptions, setShowVendorOptions] = useState(false);
+  const [showCourierOptions, setShowCourierOptions] = useState(false);
+  const [showVendorSelection, setShowVendorSelection] = useState(false);
+  const [selectedVendor, setSelectedVendor] = useState("");
+
+  // Sample exchange reasons
+  const exchangeReasons = [
+    "Size/fit issue (For Exchanging the product)",
+    "Product not as expected",
+    "Wrong item received",
+    "Damaged/defective product",
+    "Color mismatch",
+    "Quality not as expected",
+  ];
+
+  // Handle status change
+  const handleStatusChange = useCallback((status) => {
+    setExchangeStatus(status);
+    if (status === "accepted") {
+      setShowVendorOptions(true);
+    } else {
+      setShowVendorOptions(false);
+      setShowCourierOptions(false);
+      setVendorAllotted(false);
+      setCourierAllotted(false);
+    }
+  }, []);
+
+  // Handle vendor allotment
+  const handleVendorAllotment = useCallback((allot) => {
+    setVendorAllotted(allot);
+    if (allot) {
+      setShowCourierOptions(true);
+      setShowVendorSelection(true);
+    } else {
+      setShowCourierOptions(false);
+      setCourierAllotted(false);
+      setShowVendorSelection(false);
+      setSelectedVendor("");
+    }
+  }, []);
+
+  // Handle vendor selection
+  const handleVendorSelection = useCallback((vendor) => {
+    setSelectedVendor(vendor);
+  }, []);
+
+  // Handle vendor confirmation
+  const handleVendorConfirm = useCallback(() => {
+    if (selectedVendor) {
+      setShowVendorSelection(false);
+      console.log(`Vendor ${selectedVendor} confirmed for exchange ${exchangeId}`);
+      alert(
+        `Vendor "${selectedVendor}" has been successfully assigned to exchange ${exchangeId}`
+      );
+    }
+  }, [selectedVendor, exchangeId]);
+
+  // Handle courier allotment
+  const handleCourierAllotment = useCallback((allot) => {
+    setCourierAllotted(allot);
+  }, []);
+
+  // Handle send response
+  const handleSendResponse = useCallback(() => {
+    const response = {
+      exchangeId,
+      status: exchangeStatus,
+      vendorAllotted,
+      courierAllotted,
+      explanation,
+      timestamp: new Date().toISOString(),
+    };
+
+    console.log("Exchange response:", response);
+    alert(
+      `Exchange ${exchangeStatus} successfully!\nVendor: ${
+        vendorAllotted ? "Allotted" : "Not allotted"
+      }\nCourier: ${courierAllotted ? "Allotted" : "Not allotted"}`
+    );
+
+    // In a real app, this would make an API call
+    onBack();
+  }, [
+    exchangeId,
+    exchangeStatus,
+    vendorAllotted,
+    courierAllotted,
+    explanation,
+    onBack,
+  ]);
+
+  return (
+    <div className="bg-gray-50 min-h-screen p-4">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center space-x-4">
+            <button
+              onClick={onBack}
+              className="flex items-center space-x-2 text-gray-600 hover:text-gray-800"
+            >
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M10 19l-7-7m0 0l7-7m-7 7h18"
+                />
+              </svg>
+              <span>Back to Exchanges</span>
+            </button>
+          </div>
+          <h1 className="text-2xl font-bold text-gray-900">
+            Exchange Window Screen
+          </h1>
+        </div>
+
+        {/* Main Content */}
+        <div className="bg-white rounded-lg shadow-lg p-6">
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+            {/* Image Preview Section */}
+            <div className="lg:col-span-1">
+              <h3 className="text-lg font-bold text-gray-900 mb-4">
+                Image Preview
+              </h3>
+              <div className="space-y-4">
+                <div className="w-full h-64 bg-gray-100 rounded-lg overflow-hidden">
+                  <div className="w-full h-full bg-blue-200 rounded flex items-center justify-center">
+                    <div
+                      className="w-32 h-32 bg-blue-400 rounded"
+                      aria-label="Product image"
+                    ></div>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  {[1, 2, 3, 4].map((_, index) => (
+                    <div
+                      key={index}
+                      className="w-full h-20 bg-gray-100 rounded overflow-hidden"
+                    >
+                      <div className="w-full h-full bg-blue-200 rounded flex items-center justify-center">
+                        <div
+                          className="w-8 h-8 bg-blue-400 rounded"
+                          aria-label={`Thumbnail ${index + 1}`}
+                        ></div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Reason of Exchange Section */}
+            <div className="lg:col-span-1">
+              <h3 className="text-lg font-bold text-gray-900 mb-4">
+                Reason of exchange
+              </h3>
+              <div className="space-y-1">
+                {exchangeReasons.map((reason, index) => (
+                  <div
+                    key={index}
+                    className={`p-3 border-b border-gray-200 cursor-pointer hover:bg-gray-50 ${
+                      selectedReason === reason
+                        ? "bg-blue-50 border-blue-200"
+                        : ""
+                    }`}
+                    onClick={() => setSelectedReason(reason)}
+                  >
+                    <p className="text-sm text-gray-700">{reason}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Status Section */}
+            <div className="lg:col-span-1">
+              <h3 className="text-lg font-bold text-gray-900 mb-4">Status</h3>
+              <div className="space-y-4">
+                <button
+                  onClick={() => handleStatusChange("accepted")}
+                  className={`w-full px-4 py-2 rounded-lg font-medium ${
+                    exchangeStatus === "accepted"
+                      ? "bg-green-500 text-white"
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  }`}
+                >
+                  Accepted
+                </button>
+                <button
+                  onClick={() => handleStatusChange("rejected")}
+                  className={`w-full px-4 py-2 rounded-lg font-medium ${
+                    exchangeStatus === "rejected"
+                      ? "bg-red-500 text-white"
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  }`}
+                >
+                  Rejected
+                </button>
+              </div>
+
+              {/* Vendor and Courier Allotment (only show if accepted) */}
+              {showVendorOptions && (
+                <div className="mt-6 space-y-4">
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-700 mb-2">
+                      Allot Vendor
+                    </h4>
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => handleVendorAllotment(true)}
+                        className={`flex-1 px-3 py-2 rounded text-sm font-medium ${
+                          vendorAllotted
+                            ? "bg-green-500 text-white"
+                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                        }`}
+                      >
+                        Yes
+                      </button>
+                      <button
+                        onClick={() => handleVendorAllotment(false)}
+                        className={`flex-1 px-3 py-2 rounded text-sm font-medium ${
+                          !vendorAllotted
+                            ? "bg-red-500 text-white"
+                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                        }`}
+                      >
+                        No
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Vendor Selection */}
+                  {showVendorSelection && (
+                    <div className="space-y-3">
+                      <h4 className="text-sm font-medium text-gray-700">
+                        Select Vendor
+                      </h4>
+                      <div className="space-y-2">
+                        {["ven 1", "ven 2", "ven 3"].map((vendor) => (
+                          <label key={vendor} className="flex items-center">
+                            <input
+                              type="radio"
+                              name="vendor"
+                              value={vendor}
+                              checked={selectedVendor === vendor}
+                              onChange={() => handleVendorSelection(vendor)}
+                              className="mr-2"
+                            />
+                            <span className="text-sm text-gray-700">
+                              {vendor}
+                            </span>
+                          </label>
+                        ))}
+                      </div>
+                      <button
+                        onClick={handleVendorConfirm}
+                        disabled={!selectedVendor}
+                        className="w-full px-3 py-2 bg-blue-500 text-white rounded text-sm font-medium hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                      >
+                        Confirm Vendor
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Courier Options */}
+                  {showCourierOptions && (
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-700 mb-2">
+                        Allot Courier
+                      </h4>
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={() => handleCourierAllotment(true)}
+                          className={`flex-1 px-3 py-2 rounded text-sm font-medium ${
+                            courierAllotted
+                              ? "bg-green-500 text-white"
+                              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                          }`}
+                        >
+                          Yes
+                        </button>
+                        <button
+                          onClick={() => handleCourierAllotment(false)}
+                          className={`flex-1 px-3 py-2 rounded text-sm font-medium ${
+                            !courierAllotted
+                              ? "bg-red-500 text-white"
+                              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                          }`}
+                        >
+                          No
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Response Section */}
+            <div className="lg:col-span-2">
+              <h3 className="text-lg font-bold text-gray-900 mb-4">Response</h3>
+              <div className="space-y-4">
+                <textarea
+                  value={explanation}
+                  onChange={(e) => setExplanation(e.target.value)}
+                  placeholder={
+                    exchangeStatus === "rejected"
+                      ? "Provide reason for rejection..."
+                      : "Add any additional notes..."
+                  }
+                  className="w-full h-32 p-3 border-2 border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  rows={6}
+                />
+                <div className="flex justify-center pt-4">
+                  <button
+                    onClick={handleSendResponse}
+                    className="bg-black text-white px-8 py-3 rounded-full font-semibold hover:bg-gray-800 transition-colors"
+                  >
+                    Send Response
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+});
+
+/**
  * Orders Component
  *
  * A comprehensive orders management interface that displays order data in a table format
@@ -1576,6 +1927,10 @@ const Orders = React.memo(() => {
   // New state for return window screen
   const [showReturnWindow, setShowReturnWindow] = useState(false);
   const [selectedReturnId, setSelectedReturnId] = useState(null);
+
+  // New state for exchange window screen
+  const [showExchangeWindow, setShowExchangeWindow] = useState(false);
+  const [selectedExchangeId, setSelectedExchangeId] = useState(null);
 
   // New state for tab management
   const [activeTab, setActiveTab] = useState("orders");
@@ -1821,11 +2176,108 @@ const Orders = React.memo(() => {
     []
   ); // Empty dependency array since this is static data
 
+  /**
+   * Sample exchange requests data
+   * Memoized to prevent unnecessary re-creation on each render
+   */
+  const exchangeRequests = useMemo(
+    () => [
+      {
+        orderId: "1234567892230",
+        paymentStatus: "Paid",
+        image: "/api/placeholder/60/60",
+        productName: "T shirt",
+        name: "Taanish",
+        date: "13 aug 2024",
+        hsn: "45660000",
+        size: ["small", "medium", "large"],
+        sizeQuantity: [5, 10, 115],
+        quantity: 130,
+        price: 4566,
+        salePrice: 4786,
+        sku: "blk/m/inso12244513",
+        barcodeNo: "45660000000000",
+        status: "exchange requested",
+        orderType: "prepaid",
+        slotVendor: "slot vendor",
+        courierAlloted: "NO",
+        delivered: "YES",
+        actions: "Exchange Requested",
+        vendorAllotted: false,
+        allottedVendorName: null,
+        courierTrackingId: null,
+        deliveryStatus: "Exchange Requested",
+        lastUpdated: new Date().toISOString(),
+        exchangeReason: "Size/fit issue (For Exchanging the product)",
+        exchangeStatus: "pending",
+      },
+      {
+        orderId: "1234567892231",
+        paymentStatus: "Paid",
+        image: "/api/placeholder/60/60",
+        productName: "Lower",
+        name: "Taanish",
+        date: "13 aug 2024",
+        hsn: "45660000",
+        size: ["medium", "large"],
+        sizeQuantity: [10, 115],
+        quantity: 125,
+        price: 4566,
+        salePrice: 4554,
+        sku: "blk/m/inso11423",
+        barcodeNo: "45600000000000",
+        status: "exchange accepted",
+        orderType: "prepaid",
+        slotVendor: "slot vendor",
+        courierAlloted: "YES",
+        delivered: "NO",
+        actions: "Exchange Accepted",
+        vendorAllotted: true,
+        allottedVendorName: "ven 1",
+        courierTrackingId: "SP123456792",
+        deliveryStatus: "Exchange In Progress",
+        lastUpdated: new Date().toISOString(),
+        exchangeReason: "Size/fit issue (For Exchanging the product)",
+        exchangeStatus: "accepted",
+      },
+      {
+        orderId: "1234567892232",
+        paymentStatus: "Paid",
+        image: "/api/placeholder/60/60",
+        productName: "Shorts",
+        name: "Taanish",
+        date: "13 aug 2024",
+        hsn: "45660000",
+        size: ["large"],
+        sizeQuantity: [115],
+        quantity: 115,
+        price: 4566,
+        salePrice: 4446,
+        sku: "blk/m/inso1bbb23",
+        barcodeNo: "45660000000000",
+        status: "exchange rejected",
+        orderType: "cod",
+        slotVendor: "vendor 3",
+        courierAlloted: "NO",
+        delivered: "YES",
+        actions: "Exchange Rejected",
+        vendorAllotted: false,
+        allottedVendorName: null,
+        courierTrackingId: null,
+        deliveryStatus: "Exchange Rejected",
+        lastUpdated: new Date().toISOString(),
+        exchangeReason: "Product not as expected",
+        exchangeStatus: "rejected",
+      },
+    ],
+    []
+  ); // Empty dependency array since this is static data
+
   // Initialize allotted vendor names from existing order data
   useEffect(() => {
     const initialAllottedVendors = {};
     const initialSelectedVendors = {};
-    const allData = [...orders, ...returnRequests];
+    const allData = [...orders, ...returnRequests, ...exchangeRequests];
 
     allData.forEach((order) => {
       if (order.allottedVendorName) {
@@ -1838,7 +2290,7 @@ const Orders = React.memo(() => {
 
     setAllottedVendorNames(initialAllottedVendors);
     setSelectedVendors((prev) => ({ ...prev, ...initialSelectedVendors }));
-  }, [orders, returnRequests]);
+  }, [orders, returnRequests, exchangeRequests]);
 
   /**
    * Optimized filter handler using useCallback to prevent unnecessary re-renders
@@ -1961,6 +2413,12 @@ const Orders = React.memo(() => {
     // Show return window screen
     setSelectedReturnId(returnId);
     setShowReturnWindow(true);
+  }, []);
+
+  const handleExchangeIdClick = useCallback((exchangeId) => {
+    // Show exchange window screen
+    setSelectedExchangeId(exchangeId);
+    setShowExchangeWindow(true);
   }, []);
 
   /**
@@ -2141,7 +2599,16 @@ const Orders = React.memo(() => {
    * Optimized filter handlers using useCallback to prevent unnecessary re-renders
    */
   const filteredOrders = useMemo(() => {
-    const currentData = activeTab === "orders" ? orders : returnRequests;
+    let currentData;
+    if (activeTab === "orders") {
+      currentData = orders;
+    } else if (activeTab === "returns") {
+      currentData = returnRequests;
+    } else if (activeTab === "exchanges") {
+      currentData = exchangeRequests;
+    } else {
+      currentData = orders;
+    }
 
     return currentData.filter((order) => {
       // Filter by order status
@@ -2167,16 +2634,24 @@ const Orders = React.memo(() => {
 
       return true;
     });
-  }, [orders, returnRequests, activeTab, orderStatus, orderType, filterBy]);
+  }, [orders, returnRequests, exchangeRequests, activeTab, orderStatus, orderType, filterBy]);
 
   /**
    * Print handler for order list - defined after filteredOrders to avoid initialization error
    */
   const handlePrintOrderList = useCallback(() => {
     // Create a formatted table for printing
-    const currentData =
-      activeTab === "orders" ? filteredOrders : filteredOrders;
-    const title = activeTab === "orders" ? "Orders List" : "Return Requests";
+    const currentData = filteredOrders;
+    let title;
+    if (activeTab === "orders") {
+      title = "Orders List";
+    } else if (activeTab === "returns") {
+      title = "Return Requests";
+    } else if (activeTab === "exchanges") {
+      title = "Exchange Requests";
+    } else {
+      title = "Orders List";
+    }
 
     const printContent = `
       <html>
@@ -2283,6 +2758,16 @@ const Orders = React.memo(() => {
     );
   }
 
+  // If showing exchange window screen, render the ExchangeWindowScreen component
+  if (showExchangeWindow && selectedExchangeId) {
+    return (
+      <ExchangeWindowScreen
+        exchangeId={selectedExchangeId}
+        onBack={() => setShowExchangeWindow(false)}
+      />
+    );
+  }
+
   return (
     <div className="bg-gray-50 min-h-screen p-4">
       <div className="max-w-full mx-0 ml-4">
@@ -2307,6 +2792,16 @@ const Orders = React.memo(() => {
             }`}
           >
             return requests
+          </button>
+          <button
+            onClick={() => handleTabChange("exchanges")}
+            className={`text-xl font-semibold pb-2 ${
+              activeTab === "exchanges"
+                ? "text-black border-b-2 border-black"
+                : "text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            Exchange requests
           </button>
         </div>
 
@@ -2672,6 +3167,7 @@ const Orders = React.memo(() => {
                     getDeliveryStatusColor={getDeliveryStatusColor}
                     onOrderIdClick={handleOrderIdClick}
                     onReturnIdClick={handleReturnIdClick}
+                    onExchangeIdClick={handleExchangeIdClick}
                     onVendorAllotment={handleVendorAllotment}
                     onVendorSelection={handleVendorSelection}
                     onCourierAllotment={handleCourierAllotment}
@@ -2724,6 +3220,7 @@ const OrderRow = React.memo(
     getDeliveryStatusColor,
     onOrderIdClick,
     onReturnIdClick,
+    onExchangeIdClick,
     onVendorAllotment,
     onVendorSelection,
     onCourierAllotment,
@@ -2748,10 +3245,12 @@ const OrderRow = React.memo(
     const handleView = useCallback(() => {
       if (activeTab === "returns") {
         onReturnIdClick(order.orderId);
+      } else if (activeTab === "exchanges") {
+        onExchangeIdClick(order.orderId);
       } else {
         onOrderIdClick(order.orderId);
       }
-    }, [order.orderId, onOrderIdClick, onReturnIdClick, activeTab]);
+    }, [order.orderId, onOrderIdClick, onReturnIdClick, onExchangeIdClick, activeTab]);
 
     const handleEdit = useCallback(() => {
       console.log("Edit order:", order.orderId);
@@ -3119,6 +3618,7 @@ const OrderRow = React.memo(
 // Set display names for debugging
 DocumentViewer.displayName = "DocumentViewer";
 ReturnWindowScreen.displayName = "ReturnWindowScreen";
+ExchangeWindowScreen.displayName = "ExchangeWindowScreen";
 OrderDetails.displayName = "OrderDetails";
 Orders.displayName = "Orders";
 OrderRow.displayName = "OrderRow";
