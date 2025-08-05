@@ -1,5 +1,8 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import TwoFactorAuth from '../components/TwoFactorAuth';
+import DeleteConfirmationModal from '../components/DeleteConfirmationModal';
+import SizeChartModal from '../components/SizeChartModal';
+import SuccessModal from '../components/SuccessModal';
 
 // Enhanced Database Dashboard based on Figma designs
 const DatabaseDashboard = () => {
@@ -8,6 +11,47 @@ const DatabaseDashboard = () => {
   const [showPassword, setShowPassword] = useState({});
   const [documentPreview, setDocumentPreview] = useState(null);
   const [sizeChartPreview, setSizeChartPreview] = useState(null);
+  
+  // Product editing states
+  const [editingProduct, setEditingProduct] = useState(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editFormData, setEditFormData] = useState({});
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [productToDelete, setProductToDelete] = useState(null);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+  const [showSizeChartEditModal, setShowSizeChartEditModal] = useState(false);
+  const [editingSizeCharts, setEditingSizeCharts] = useState([]);
+  
+  // Mock products state (for manipulation)
+  const [products, setProducts] = useState(() => [
+    {
+      id: 1,
+      article: "Summer Midi Dress Collection",
+      image: "/api/placeholder/120/140",
+      variants: [
+        { color: "floral-red", size: "S", sku: "ZARA-DRS-FLR-S-001", stock: 25 },
+        { color: "floral-blue", size: "M", sku: "ZARA-DRS-FLB-M-002", stock: 18 },
+        { color: "solid-black", size: "L", sku: "ZARA-DRS-SLB-L-003", stock: 22 },
+        { color: "floral-pink", size: "L", sku: "ZARA-DRS-FLP-L-004", stock: 14 },
+        { color: "solid-white", size: "XL", sku: "ZARA-DRS-SLW-XL-005", stock: 8 }
+      ],
+      status: "returnable",
+      description: "Elegant midi dress perfect for summer occasions. Features a flowing silhouette with delicate floral prints and breathable fabric. Ideal for both casual outings and semi-formal events.",
+      manufacturingDetails: "Made in Spain with premium European fabrics. 100% Viscose with anti-wrinkle treatment. Eco-friendly dyeing process certified by OEKO-TEX Standard 100.",
+      shippingReturns: "Free shipping on orders above ₹799. 30-day return policy. Free exchange within 15 days. International shipping to Europe and North America.",
+      sizeCharts: [
+        { id: 1, type: "inch", url: "/charts/women_dress_zara_inch.jpg", name: "Women's Dress Size Chart (Inches)" },
+        { id: 2, type: "cm", url: "/charts/women_dress_zara_cm.jpg", name: "Women's Dress Size Chart (CM)" },
+        { id: 3, type: "measurement", url: "/charts/dress_measurement_guide.jpg", name: "How to Measure Guide" }
+      ],
+      category: "women/dress",
+      brand: "Zara",
+      launchDate: "2025-05-20",
+      rating: 4.4,
+      reviewCount: 178
+    }
+  ]);
   
   // 2FA states for password viewing
   const [show2FAModal, setShow2FAModal] = useState(false);
@@ -331,92 +375,6 @@ const DatabaseDashboard = () => {
     }
   ];
 
-  // Mock data for Product Data View (View 3) - Based on Figma Design
-  const mockProducts = [
-    {
-      id: 1,
-      image: "/products/adidas_tshirt_variants.jpg",
-      article: "Adidas Classic Performance T-Shirt",
-      variants: [
-        { color: "red", size: "S", sku: "ADI-TSH-RED-S-001", stock: 45 },
-        { color: "blue", size: "M", sku: "ADI-TSH-BLU-M-002", stock: 32 },
-        { color: "pink", size: "L", sku: "ADI-TSH-PNK-L-003", stock: 28 },
-        { color: "orange", size: "XL", sku: "ADI-TSH-ORG-XL-004", stock: 15 },
-        { color: "red", size: "M", sku: "ADI-TSH-RED-M-005", stock: 52 },
-        { color: "blue", size: "L", sku: "ADI-TSH-BLU-L-006", stock: 38 },
-        { color: "pink", size: "S", sku: "ADI-TSH-PNK-S-007", stock: 41 },
-        { color: "orange", size: "M", sku: "ADI-TSH-ORG-M-008", stock: 29 }
-      ],
-      status: "returnable",
-      description: "Premium cotton blend performance t-shirt with moisture-wicking technology. Features the iconic Adidas three stripes design with a comfortable athletic fit. Perfect for workouts, casual wear, and active lifestyle.",
-      manufacturingDetails: "Made in India, 100% Premium Cotton with moisture-wicking finish. Manufactured at Adidas certified facility in Tamil Nadu. Quality tested for durability and colorfastness.",
-      shippingReturns: "Free shipping on orders above ₹499. 7-day easy return policy. Exchange available within 14 days. International shipping available to 50+ countries.",
-      sizeCharts: [
-        { type: "men", url: "/charts/men_tshirt_adidas.jpg", name: "Men's T-Shirt Size Chart" },
-        { type: "women", url: "/charts/women_tshirt_adidas.jpg", name: "Women's T-Shirt Size Chart" },
-        { type: "kids", url: "/charts/kids_tshirt_adidas.jpg", name: "Kids T-Shirt Size Chart" }
-      ],
-      category: "men/tshirt",
-      brand: "Adidas",
-      launchDate: "2025-06-15",
-      rating: 4.6,
-      reviewCount: 234
-    },
-    {
-      id: 2,
-      image: "/products/nike_running_shoes.jpg",
-      article: "Nike Air Max Revolution Running Shoes",
-      variants: [
-        { color: "black", size: "7", sku: "NIKE-AIR-BLK-7-001", stock: 23 },
-        { color: "white", size: "8", sku: "NIKE-AIR-WHT-8-002", stock: 18 },
-        { color: "grey", size: "9", sku: "NIKE-AIR-GRY-9-003", stock: 31 },
-        { color: "blue", size: "10", sku: "NIKE-AIR-BLU-10-004", stock: 12 },
-        { color: "black", size: "8", sku: "NIKE-AIR-BLK-8-005", stock: 27 },
-        { color: "white", size: "9", sku: "NIKE-AIR-WHT-9-006", stock: 35 }
-      ],
-      status: "non-returnable",
-      description: "Revolutionary running shoes with Nike Air Max technology for superior comfort and performance. Featuring lightweight mesh upper, responsive cushioning, and durable rubber outsole for all-terrain running.",
-      manufacturingDetails: "Manufactured in Vietnam using Nike's sustainable manufacturing process. Made with 20% recycled materials. Quality certified by Nike Global Standards.",
-      shippingReturns: "Free shipping on orders above ₹999. Non-returnable due to hygiene reasons. Exchange available only for manufacturing defects within 48 hours of delivery.",
-      sizeCharts: [
-        { type: "men", url: "/charts/men_shoes_nike.jpg", name: "Men's Shoe Size Chart" },
-        { type: "women", url: "/charts/women_shoes_nike.jpg", name: "Women's Shoe Size Chart" },
-        { type: "kids", url: "/charts/kids_shoes_nike.jpg", name: "Kids Shoe Size Chart" }
-      ],
-      category: "men/shoes",
-      brand: "Nike",
-      launchDate: "2025-07-01",
-      rating: 4.8,
-      reviewCount: 456
-    },
-    {
-      id: 3,
-      image: "/products/zara_summer_dress.jpg",
-      article: "Zara Floral Summer Midi Dress",
-      variants: [
-        { color: "floral-pink", size: "XS", sku: "ZARA-DRS-FLP-XS-001", stock: 16 },
-        { color: "floral-blue", size: "S", sku: "ZARA-DRS-FLB-S-002", stock: 22 },
-        { color: "solid-yellow", size: "M", sku: "ZARA-DRS-SLY-M-003", stock: 19 },
-        { color: "floral-pink", size: "L", sku: "ZARA-DRS-FLP-L-004", stock: 14 },
-        { color: "solid-white", size: "XL", sku: "ZARA-DRS-SLW-XL-005", stock: 8 }
-      ],
-      status: "returnable",
-      description: "Elegant midi dress perfect for summer occasions. Features a flowing silhouette with delicate floral prints and breathable fabric. Ideal for both casual outings and semi-formal events.",
-      manufacturingDetails: "Made in Spain with premium European fabrics. 100% Viscose with anti-wrinkle treatment. Eco-friendly dyeing process certified by OEKO-TEX Standard 100.",
-      shippingReturns: "Free shipping on orders above ₹799. 30-day return policy. Free exchange within 15 days. International shipping to Europe and North America.",
-      sizeCharts: [
-        { type: "women", url: "/charts/women_dress_zara.jpg", name: "Women's Dress Size Chart" },
-        { type: "petite", url: "/charts/petite_dress_zara.jpg", name: "Petite Size Chart" },
-        { type: "plus", url: "/charts/plus_dress_zara.jpg", name: "Plus Size Chart" }
-      ],
-      category: "women/dress",
-      brand: "Zara",
-      launchDate: "2025-05-20",
-      rating: 4.4,
-      reviewCount: 178
-    }
-  ];
-
   // Filter functions
   const filteredUsers = useMemo(() => {
     return mockUsers.filter(user => {
@@ -463,7 +421,7 @@ const DatabaseDashboard = () => {
   }, [searchTerm, filters.orders]);
 
   const filteredProducts = useMemo(() => {
-    return mockProducts.filter(product => {
+    return products.filter(product => {
       // Search filter
       const searchMatch = product.article.toLowerCase().includes(searchTerm.toLowerCase());
       
@@ -486,7 +444,7 @@ const DatabaseDashboard = () => {
       
       return searchMatch && statusMatch && brandMatch && categoryMatch && stockMatch;
     });
-  }, [searchTerm, filters.products]);
+  }, [searchTerm, filters.products, products]);
 
   // Toggle password visibility with 2FA authentication
   const togglePassword = useCallback((userId) => {
@@ -577,6 +535,118 @@ const DatabaseDashboard = () => {
         }, {})
       }
     }));
+  }, []);
+
+  // Product management functions
+  const handleEditProduct = useCallback((product) => {
+    setEditingProduct(product);
+    setEditFormData({
+      article: product.article,
+      description: product.description,
+      manufacturingDetails: product.manufacturingDetails,
+      shippingReturns: product.shippingReturns,
+      status: product.status,
+      brand: product.brand,
+      category: product.category
+    });
+    setShowEditModal(true);
+  }, []);
+
+  const handleDeleteProduct = useCallback((product) => {
+    setProductToDelete(product);
+    setShowDeleteModal(true);
+  }, []);
+
+  const confirmDeleteProduct = useCallback(() => {
+    if (productToDelete) {
+      setProducts(prev => prev.filter(p => p.id !== productToDelete.id));
+      setShowDeleteModal(false);
+      setProductToDelete(null);
+      setSuccessMessage('Product deleted successfully!');
+      setShowSuccessModal(true);
+    }
+  }, [productToDelete]);
+
+  const cancelDeleteProduct = useCallback(() => {
+    setShowDeleteModal(false);
+    setProductToDelete(null);
+  }, []);
+
+  const handleSaveProductChanges = useCallback(() => {
+    if (editingProduct && editFormData) {
+      setProducts(prev => prev.map(p => 
+        p.id === editingProduct.id 
+          ? { ...p, ...editFormData }
+          : p
+      ));
+      setShowEditModal(false);
+      setEditingProduct(null);
+      setEditFormData({});
+      setSuccessMessage('Product updated successfully!');
+      setShowSuccessModal(true);
+    }
+  }, [editingProduct, editFormData]);
+
+  const handleCancelEdit = useCallback(() => {
+    setShowEditModal(false);
+    setEditingProduct(null);
+    setEditFormData({});
+  }, []);
+
+  const handleEditFormChange = useCallback((field, value) => {
+    setEditFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  }, []);
+
+  const handleEditSizeCharts = useCallback((product) => {
+    setEditingProduct(product);
+    setEditingSizeCharts([...product.sizeCharts]);
+    setShowSizeChartEditModal(true);
+  }, []);
+
+  const handleSaveSizeCharts = useCallback(() => {
+    if (editingProduct) {
+      setProducts(prev => prev.map(p => 
+        p.id === editingProduct.id 
+          ? { ...p, sizeCharts: editingSizeCharts }
+          : p
+      ));
+      setShowSizeChartEditModal(false);
+      setEditingProduct(null);
+      setEditingSizeCharts([]);
+      setSuccessMessage('Size charts updated successfully!');
+      setShowSuccessModal(true);
+    }
+  }, [editingProduct, editingSizeCharts]);
+
+  const handleCancelSizeChartEdit = useCallback(() => {
+    setShowSizeChartEditModal(false);
+    setEditingProduct(null);
+    setEditingSizeCharts([]);
+  }, []);
+
+  const handleAddSizeChart = useCallback(() => {
+    const newChart = {
+      id: Date.now(),
+      type: "cm",
+      url: "/api/placeholder/600/800",
+      name: "New Size Chart"
+    };
+    setEditingSizeCharts(prev => [...prev, newChart]);
+  }, []);
+
+  const handleRemoveSizeChart = useCallback((chartId) => {
+    setEditingSizeCharts(prev => prev.filter(chart => chart.id !== chartId));
+  }, []);
+
+  const handleSizeChartChange = useCallback((chartId, field, value) => {
+    setEditingSizeCharts(prev => prev.map(chart => 
+      chart.id === chartId 
+        ? { ...chart, [field]: value }
+        : chart
+    ));
   }, []);
 
   return (
@@ -1724,51 +1794,60 @@ const DatabaseDashboard = () => {
                             gap: '6px'
                           }}
                         >
-                          📏 Size Charts ({product.sizeCharts.length})
+                          📏 View Size Charts ({product.sizeCharts.length})
                         </button>
-                        <button style={{
-                          padding: '10px 16px',
-                          backgroundColor: '#f59e0b',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '6px',
-                          cursor: 'pointer',
-                          fontSize: '12px',
-                          fontWeight: '600',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '6px'
-                        }}>
+                        <button 
+                          onClick={() => handleEditSizeCharts(product)}
+                          style={{
+                            padding: '10px 16px',
+                            backgroundColor: '#06b6d4',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '6px',
+                            cursor: 'pointer',
+                            fontSize: '12px',
+                            fontWeight: '600',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px'
+                          }}
+                        >
+                          📏 Edit Size Charts
+                        </button>
+                        <button 
+                          onClick={() => handleEditProduct(product)}
+                          style={{
+                            padding: '10px 16px',
+                            backgroundColor: '#f59e0b',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '6px',
+                            cursor: 'pointer',
+                            fontSize: '12px',
+                            fontWeight: '600',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px'
+                          }}
+                        >
                           ✏️ Edit Product
                         </button>
-                        <button style={{
-                          padding: '10px 16px',
-                          backgroundColor: '#10b981',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '6px',
-                          cursor: 'pointer',
-                          fontSize: '12px',
-                          fontWeight: '600',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '6px'
-                        }}>
-                          📋 Manage Variants
-                        </button>
-                        <button style={{
-                          padding: '10px 16px',
-                          backgroundColor: '#ef4444',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '6px',
-                          cursor: 'pointer',
-                          fontSize: '12px',
-                          fontWeight: '600',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '6px'
-                        }}>
+                        <button 
+                          onClick={() => handleDeleteProduct(product)}
+                          style={{
+                            padding: '10px 16px',
+                            backgroundColor: '#ef4444',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '6px',
+                            cursor: 'pointer',
+                            fontSize: '12px',
+                            fontWeight: '600',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px'
+                          }}
+                        >
                           🗑️ Delete Product
                         </button>
                       </div>
@@ -2076,6 +2155,421 @@ const DatabaseDashboard = () => {
             </button>
           </div>
         </div>
+      )}
+
+      {/* Product Edit Modal */}
+      {showEditModal && editingProduct && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0,0,0,0.7)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '8px',
+            padding: '30px',
+            maxWidth: '800px',
+            width: '90%',
+            maxHeight: '80vh',
+            overflowY: 'auto',
+            boxShadow: '0px 4px 120px 2px rgba(0,0,0,0.25)'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px' }}>
+              <h3 style={{ margin: 0, fontSize: '24px', fontWeight: '600' }}>✏️ Edit Product</h3>
+              <button
+                onClick={handleCancelEdit}
+                style={{
+                  padding: '8px 12px',
+                  backgroundColor: '#ef4444',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontWeight: '600'
+                }}
+              >
+                ✕ Cancel
+              </button>
+            </div>
+            
+            <div style={{ display: 'grid', gap: '20px' }}>
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>Article Name</label>
+                <input
+                  type="text"
+                  value={editFormData.article || ''}
+                  onChange={(e) => handleEditFormChange('article', e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '6px',
+                    fontSize: '14px'
+                  }}
+                />
+              </div>
+              
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>Description</label>
+                <textarea
+                  value={editFormData.description || ''}
+                  onChange={(e) => handleEditFormChange('description', e.target.value)}
+                  rows="4"
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '6px',
+                    fontSize: '14px',
+                    resize: 'vertical'
+                  }}
+                />
+              </div>
+              
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>Manufacturing Details</label>
+                <textarea
+                  value={editFormData.manufacturingDetails || ''}
+                  onChange={(e) => handleEditFormChange('manufacturingDetails', e.target.value)}
+                  rows="3"
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '6px',
+                    fontSize: '14px',
+                    resize: 'vertical'
+                  }}
+                />
+              </div>
+              
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>Shipping & Returns</label>
+                <textarea
+                  value={editFormData.shippingReturns || ''}
+                  onChange={(e) => handleEditFormChange('shippingReturns', e.target.value)}
+                  rows="3"
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '6px',
+                    fontSize: '14px',
+                    resize: 'vertical'
+                  }}
+                />
+              </div>
+              
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px' }}>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>Status</label>
+                  <select
+                    value={editFormData.status || ''}
+                    onChange={(e) => handleEditFormChange('status', e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '12px',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '6px',
+                      fontSize: '14px'
+                    }}
+                  >
+                    <option value="returnable">Returnable</option>
+                    <option value="non-returnable">Non-Returnable</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>Brand</label>
+                  <input
+                    type="text"
+                    value={editFormData.brand || ''}
+                    onChange={(e) => handleEditFormChange('brand', e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '12px',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '6px',
+                      fontSize: '14px'
+                    }}
+                  />
+                </div>
+                
+                <div>
+                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>Category</label>
+                  <input
+                    type="text"
+                    value={editFormData.category || ''}
+                    onChange={(e) => handleEditFormChange('category', e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '12px',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '6px',
+                      fontSize: '14px'
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+            
+            <div style={{ 
+              display: 'flex', 
+              gap: '12px', 
+              marginTop: '30px',
+              justifyContent: 'flex-end'
+            }}>
+              <button
+                onClick={handleCancelEdit}
+                style={{
+                  padding: '12px 24px',
+                  backgroundColor: '#6b7280',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontWeight: '600'
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveProductChanges}
+                style={{
+                  padding: '12px 24px',
+                  backgroundColor: '#059669',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontWeight: '600'
+                }}
+              >
+                💾 Save Changes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Size Chart Edit Modal */}
+      {showSizeChartEditModal && editingProduct && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0,0,0,0.7)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '8px',
+            padding: '30px',
+            maxWidth: '900px',
+            width: '90%',
+            maxHeight: '80vh',
+            overflowY: 'auto',
+            boxShadow: '0px 4px 120px 2px rgba(0,0,0,0.25)'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px' }}>
+              <h3 style={{ margin: 0, fontSize: '24px', fontWeight: '600' }}>📏 Edit Size Charts</h3>
+              <button
+                onClick={handleCancelSizeChartEdit}
+                style={{
+                  padding: '8px 12px',
+                  backgroundColor: '#ef4444',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontWeight: '600'
+                }}
+              >
+                ✕ Cancel
+              </button>
+            </div>
+            
+            <div style={{ marginBottom: '20px' }}>
+              <button
+                onClick={handleAddSizeChart}
+                style={{
+                  padding: '10px 16px',
+                  backgroundColor: '#3b82f6',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  fontSize: '12px',
+                  fontWeight: '600',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+              >
+                ➕ Add Size Chart
+              </button>
+            </div>
+            
+            <div style={{ display: 'grid', gap: '20px' }}>
+              {editingSizeCharts.map((chart, index) => (
+                <div key={chart.id} style={{
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '8px',
+                  padding: '20px',
+                  backgroundColor: '#f9fafb'
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+                    <h4 style={{ margin: 0, fontSize: '16px', fontWeight: '600' }}>Size Chart {index + 1}</h4>
+                    <button
+                      onClick={() => handleRemoveSizeChart(chart.id)}
+                      style={{
+                        padding: '6px 10px',
+                        backgroundColor: '#ef4444',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        fontSize: '12px'
+                      }}
+                    >
+                      🗑️ Remove
+                    </button>
+                  </div>
+                  
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px' }}>
+                    <div>
+                      <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>Chart Type</label>
+                      <select
+                        value={chart.type}
+                        onChange={(e) => handleSizeChartChange(chart.id, 'type', e.target.value)}
+                        style={{
+                          width: '100%',
+                          padding: '10px',
+                          border: '1px solid #d1d5db',
+                          borderRadius: '6px',
+                          fontSize: '14px'
+                        }}
+                      >
+                        <option value="inch">Inches</option>
+                        <option value="cm">Centimeters</option>
+                        <option value="measurement">Measurement Guide</option>
+                      </select>
+                    </div>
+                    
+                    <div>
+                      <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>Chart Name</label>
+                      <input
+                        type="text"
+                        value={chart.name}
+                        onChange={(e) => handleSizeChartChange(chart.id, 'name', e.target.value)}
+                        style={{
+                          width: '100%',
+                          padding: '10px',
+                          border: '1px solid #d1d5db',
+                          borderRadius: '6px',
+                          fontSize: '14px'
+                        }}
+                      />
+                    </div>
+                    
+                    <div>
+                      <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>Image URL</label>
+                      <input
+                        type="text"
+                        value={chart.url}
+                        onChange={(e) => handleSizeChartChange(chart.id, 'url', e.target.value)}
+                        placeholder="/charts/size_chart.jpg"
+                        style={{
+                          width: '100%',
+                          padding: '10px',
+                          border: '1px solid #d1d5db',
+                          borderRadius: '6px',
+                          fontSize: '14px'
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            <div style={{ 
+              display: 'flex', 
+              gap: '12px', 
+              marginTop: '30px',
+              justifyContent: 'flex-end'
+            }}>
+              <button
+                onClick={handleCancelSizeChartEdit}
+                style={{
+                  padding: '12px 24px',
+                  backgroundColor: '#6b7280',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontWeight: '600'
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveSizeCharts}
+                style={{
+                  padding: '12px 24px',
+                  backgroundColor: '#059669',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontWeight: '600'
+                }}
+              >
+                📏 Save Size Charts
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmationModal
+        isOpen={showDeleteModal}
+        onConfirm={confirmDeleteProduct}
+        onCancel={cancelDeleteProduct}
+        title={`Are you sure you want to delete "${productToDelete?.article}"?`}
+        itemName={productToDelete?.article}
+      />
+
+      {/* Success Modal */}
+      <SuccessModal
+        isOpen={showSuccessModal}
+        onClose={() => setShowSuccessModal(false)}
+        title={successMessage}
+      />
+
+      {/* Enhanced Size Chart Modal */}
+      {sizeChartPreview && (
+        <SizeChartModal
+          charts={sizeChartPreview}
+          onClose={() => setSizeChartPreview(null)}
+        />
       )}
     </div>
   );
