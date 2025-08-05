@@ -44,6 +44,7 @@ import DateComponentsDemo from "./pages/DateComponentsDemo";
 import TwoFactorDemoPage from "./pages/TwoFactorDemoPage";
 import DeleteConfirmationDemo from "./components/DeleteConfirmationDemo";
 import SuccessModalDemo from "./components/SuccessModalDemo";
+import ExportDemo from "./components/ExportDemo";
 
 const App = () => {
   return (
@@ -60,6 +61,7 @@ const App = () => {
           <Route path="/2-factor" element={<TwoFactorDemoPage />} />
           <Route path="/delete-confirmation-demo" element={<DeleteConfirmationDemo />} />
           <Route path="/success-modal-demo" element={<SuccessModalDemo />} />
+          <Route path="/export-demo" element={<ExportDemo />} />
           
           {/* ===== ORDER MANAGEMENT ===== */}
           <Route path="/orders" element={<Orders />} />

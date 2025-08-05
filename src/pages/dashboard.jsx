@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback, memo } from "react";
+import React, { useState, useMemo, useCallback, memo, useRef, useEffect } from "react";
 import {
   Search,
   Filter,
@@ -18,8 +18,49 @@ import {
   // Plus,
   BarChart3,
   RefreshCw,
+  FileSpreadsheet,
+  ChevronDown,
+  CalendarRange,
   // Info,
 } from "lucide-react";
+import * as XLSX from 'xlsx';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
+
+// Add custom styles for date picker
+const datePickerStyles = `
+  .date-picker-dropdown {
+    animation: slideDown 0.2s ease-out;
+  }
+  
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .date-picker-option:hover {
+    background-color: #f8fafc;
+  }
+  
+  .date-picker-option.selected {
+    background-color: #dbeafe;
+    color: #1d4ed8;
+  }
+`;
+
+// Inject styles
+if (typeof document !== 'undefined') {
+  const styleSheet = document.createElement("style");
+  styleSheet.type = "text/css";
+  styleSheet.innerText = datePickerStyles;
+  document.head.appendChild(styleSheet);
+}
 
 /**
  * Unified Database & Dashboard Component - Performance Optimized
@@ -63,6 +104,20 @@ const FILTER_OPTIONS = {
   filterBy: ["category", "status"],
   dates: ["today", "week"],
 };
+
+// Date Range Options
+const DATE_RANGE_OPTIONS = [
+  { label: "Today", value: "today", days: 0 },
+  { label: "Yesterday", value: "yesterday", days: 1 },
+  { label: "Last 7 Days", value: "7days", days: 7 },
+  { label: "Last 14 Days", value: "14days", days: 14 },
+  { label: "Last 30 Days", value: "30days", days: 30 },
+  { label: "Last 90 Days", value: "90days", days: 90 },
+  { label: "This Month", value: "thisMonth", days: null },
+  { label: "Last Month", value: "lastMonth", days: null },
+  { label: "This Year", value: "thisYear", days: null },
+  { label: "Custom Range", value: "custom", days: null },
+];
 
 const TIME_PERIODS = ["07 Days", "30 Days", "6 Months", "7 Days"];
 const MONTHS = [
@@ -274,12 +329,172 @@ const HourDropdown = ({ value, onChange, label }) => (
   </div>
 );
 
+// Date Range Picker Component
+const DateRangePicker = memo(({ selectedRange, onRangeChange, dateRange }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [showCustomPicker, setShowCustomPicker] = useState(false);
+  const [customStartDate, setCustomStartDate] = useState("");
+  const [customEndDate, setCustomEndDate] = useState("");
+  const dropdownRef = useRef(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+        setShowCustomPicker(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleRangeSelect = (option) => {
+    if (option.value === "custom") {
+      setShowCustomPicker(true);
+    } else {
+      onRangeChange(option);
+      setIsOpen(false);
+      setShowCustomPicker(false);
+    }
+  };
+
+  const handleCustomRangeApply = () => {
+    if (customStartDate && customEndDate) {
+      const customOption = {
+        label: "Custom Range",
+        value: "custom",
+        startDate: customStartDate,
+        endDate: customEndDate,
+      };
+      onRangeChange(customOption);
+      setIsOpen(false);
+      setShowCustomPicker(false);
+    }
+  };
+
+  const formatDateRange = () => {
+    if (selectedRange.value === "custom" && selectedRange.startDate && selectedRange.endDate) {
+      const start = new Date(selectedRange.startDate).toLocaleDateString('en-US', { 
+        month: 'short', 
+        day: 'numeric' 
+      });
+      const end = new Date(selectedRange.endDate).toLocaleDateString('en-US', { 
+        month: 'short', 
+        day: 'numeric', 
+        year: 'numeric' 
+      });
+      return `${start} – ${end}`;
+    }
+    return dateRange;
+  };
+
+  return (
+    <div className="relative" ref={dropdownRef}>
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center gap-2 text-sm text-black bg-gray-100 px-4 py-2 rounded-lg shadow-inner border border-slate-200 hover:bg-gray-200 transition-colors duration-200"
+      >
+        <CalendarRange className="h-4 w-4" />
+        <span className="font-medium tracking-wide">
+          {formatDateRange()}
+        </span>
+        <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+      </button>
+
+      {isOpen && (
+        <div className="absolute right-0 top-full mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-50 min-w-[280px] date-picker-dropdown">
+          {!showCustomPicker ? (
+            <div className="p-2">
+              {DATE_RANGE_OPTIONS.map((option) => (
+                <button
+                  key={option.value}
+                  onClick={() => handleRangeSelect(option)}
+                  className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors duration-150 date-picker-option ${
+                    selectedRange.value === option.value 
+                      ? 'selected font-medium' 
+                      : 'text-gray-700 hover:bg-gray-50'
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div className="p-4">
+              <h4 className="text-sm font-medium text-gray-900 mb-3">Select Custom Range</h4>
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                    Start Date
+                  </label>
+                  <input
+                    type="date"
+                    value={customStartDate}
+                    onChange={(e) => setCustomStartDate(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                    End Date
+                  </label>
+                  <input
+                    type="date"
+                    value={customEndDate}
+                    onChange={(e) => setCustomEndDate(e.target.value)}
+                    min={customStartDate}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                <div className="flex gap-2 pt-2">
+                  <button
+                    onClick={() => setShowCustomPicker(false)}
+                    className="flex-1 px-3 py-2 text-sm text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors duration-150"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleCustomRangeApply}
+                    disabled={!customStartDate || !customEndDate}
+                    className="flex-1 px-3 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
+                  >
+                    Apply
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+});
+
+DateRangePicker.displayName = "DateRangePicker";
+
 // Main Database Component
 const Database = () => {
   // State management for UI interactions
   const [activeTab, setActiveTab] = useState("dashboard");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTimeRange, setSelectedTimeRange] = useState("07 Days");
+  const [selectedDateRange, setSelectedDateRange] = useState({
+    label: "Last 7 Days",
+    value: "7days",
+    days: 7
+  });
+  const [dateRange, setDateRange] = useState("Nov 11, 2025 – Nov 27, 2025");
+  
+  // Sales date range state
+  const [selectedSalesDateRange, setSelectedSalesDateRange] = useState({
+    label: "Last 7 Days",
+    value: "7days",
+    days: 7
+  });
+  const [salesDateRange, setSalesDateRange] = useState("Nov 11, 2025 – Nov 27, 2025");
+  
   const [filters, setFilters] = useState({
     category: "",
     subcategory: "",
@@ -348,6 +563,150 @@ const Database = () => {
     setSearchTerm("");
   }, []);
 
+  // Date range change handler
+  const handleDateRangeChange = useCallback((rangeOption) => {
+    setSelectedDateRange(rangeOption);
+    
+    // Calculate actual dates based on selection
+    const today = new Date();
+    let startDate, endDate;
+    
+    if (rangeOption.value === "custom" && rangeOption.startDate && rangeOption.endDate) {
+      startDate = new Date(rangeOption.startDate);
+      endDate = new Date(rangeOption.endDate);
+    } else {
+      switch (rangeOption.value) {
+        case "today":
+          startDate = endDate = new Date(today);
+          break;
+        case "yesterday":
+          startDate = endDate = new Date(today.getTime() - 24 * 60 * 60 * 1000);
+          break;
+        case "7days":
+          startDate = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+          endDate = new Date(today);
+          break;
+        case "14days":
+          startDate = new Date(today.getTime() - 14 * 24 * 60 * 60 * 1000);
+          endDate = new Date(today);
+          break;
+        case "30days":
+          startDate = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+          endDate = new Date(today);
+          break;
+        case "90days":
+          startDate = new Date(today.getTime() - 90 * 24 * 60 * 60 * 1000);
+          endDate = new Date(today);
+          break;
+        case "thisMonth":
+          startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+          endDate = new Date(today);
+          break;
+        case "lastMonth":
+          startDate = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+          endDate = new Date(today.getFullYear(), today.getMonth(), 0);
+          break;
+        case "thisYear":
+          startDate = new Date(today.getFullYear(), 0, 1);
+          endDate = new Date(today);
+          break;
+        default:
+          startDate = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+          endDate = new Date(today);
+      }
+    }
+    
+    // Format the date range for display
+    const formatDate = (date) => {
+      return date.toLocaleDateString('en-US', { 
+        month: 'short', 
+        day: 'numeric', 
+        year: 'numeric' 
+      });
+    };
+    
+    const formattedRange = startDate.toDateString() === endDate.toDateString() 
+      ? formatDate(startDate)
+      : `${formatDate(startDate)} – ${formatDate(endDate)}`;
+    
+    setDateRange(formattedRange);
+    
+    // Here you would typically trigger data refetch with the new date range
+    console.log('Date range changed:', { startDate, endDate, range: formattedRange });
+  }, []);
+
+  // Sales date range change handler
+  const handleSalesDateRangeChange = useCallback((rangeOption) => {
+    setSelectedSalesDateRange(rangeOption);
+    
+    // Calculate actual dates based on selection
+    const today = new Date();
+    let startDate, endDate;
+    
+    if (rangeOption.value === "custom" && rangeOption.startDate && rangeOption.endDate) {
+      startDate = new Date(rangeOption.startDate);
+      endDate = new Date(rangeOption.endDate);
+    } else {
+      switch (rangeOption.value) {
+        case "today":
+          startDate = endDate = new Date(today);
+          break;
+        case "yesterday":
+          startDate = endDate = new Date(today.getTime() - 24 * 60 * 60 * 1000);
+          break;
+        case "7days":
+          startDate = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+          endDate = new Date(today);
+          break;
+        case "14days":
+          startDate = new Date(today.getTime() - 14 * 24 * 60 * 60 * 1000);
+          endDate = new Date(today);
+          break;
+        case "30days":
+          startDate = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+          endDate = new Date(today);
+          break;
+        case "90days":
+          startDate = new Date(today.getTime() - 90 * 24 * 60 * 60 * 1000);
+          endDate = new Date(today);
+          break;
+        case "thisMonth":
+          startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+          endDate = new Date(today);
+          break;
+        case "lastMonth":
+          startDate = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+          endDate = new Date(today.getFullYear(), today.getMonth(), 0);
+          break;
+        case "thisYear":
+          startDate = new Date(today.getFullYear(), 0, 1);
+          endDate = new Date(today);
+          break;
+        default:
+          startDate = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+          endDate = new Date(today);
+      }
+    }
+    
+    // Format the date range for display
+    const formatDate = (date) => {
+      return date.toLocaleDateString('en-US', { 
+        month: 'short', 
+        day: 'numeric', 
+        year: 'numeric' 
+      });
+    };
+    
+    const formattedRange = startDate.toDateString() === endDate.toDateString() 
+      ? formatDate(startDate)
+      : `${formatDate(startDate)} – ${formatDate(endDate)}`;
+    
+    setSalesDateRange(formattedRange);
+    
+    // Here you would typically trigger sales data refetch with the new date range
+    console.log('Sales date range changed:', { startDate, endDate, range: formattedRange });
+  }, []);
+
   // Action handlers with useCallback for performance
   const handleEdit = useCallback((productId) => {
     console.log("Edit product:", productId);
@@ -364,6 +723,170 @@ const Database = () => {
     // Add download functionality here
   }, []);
 
+  // Export handlers for Views Report section
+  const handleExportPDF = useCallback(() => {
+    try {
+      const doc = new jsPDF();
+      
+      // Add title
+      doc.setFontSize(20);
+      doc.text('Views Report', 20, 30);
+      
+      // Add date range
+      doc.setFontSize(12);
+      doc.text(`Date Range: ${selectedDateRange.label}`, 20, 45);
+      doc.text(`Period: ${dateRange}`, 20, 55);
+      doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 20, 65);
+      
+      // Add analytics data section
+      doc.setFontSize(14);
+      doc.text('Analytics Summary', 20, 85);
+      
+      // Prepare table data
+      const tableData = analyticsData.map((item, index) => [
+        item.title,
+        item.value,
+        item.growth ? `${item.growth}%` : 'N/A',
+        item.growthType ? item.growthType.toUpperCase() : 'N/A'
+      ]);
+      
+      // Add table
+      doc.autoTable({
+        startY: 95,
+        head: [['Metric', 'Value', 'Growth', 'Trend']],
+        body: tableData,
+        theme: 'grid',
+        styles: {
+          fontSize: 10,
+          cellPadding: 5,
+        },
+        headStyles: {
+          fillColor: [59, 130, 246], // Blue color
+          textColor: [255, 255, 255]
+        }
+      });
+      
+      // Add marketplace sync summary
+      const finalY = doc.lastAutoTable.finalY + 20;
+      doc.setFontSize(14);
+      doc.text('Marketplace Status Summary', 20, finalY);
+      
+      const marketplaceData = marketplaces.map(mp => [
+        mp.name,
+        mp.status,
+        mp.sellerId || 'Not connected',
+        mp.lastSync || 'Never'
+      ]);
+      
+      doc.autoTable({
+        startY: finalY + 10,
+        head: [['Marketplace', 'Status', 'Seller ID', 'Last Sync']],
+        body: marketplaceData,
+        theme: 'grid',
+        styles: {
+          fontSize: 10,
+          cellPadding: 5,
+        },
+        headStyles: {
+          fillColor: [34, 197, 94], // Green color
+          textColor: [255, 255, 255]
+        }
+      });
+      
+      // Save the PDF
+      doc.save(`views-report-${selectedDateRange.value}-${new Date().toISOString().split('T')[0]}.pdf`);
+      
+      console.log('PDF report exported successfully');
+    } catch (error) {
+      console.error('Error exporting PDF:', error);
+      alert('Error generating PDF report. Please try again.');
+    }
+  }, [analyticsData, selectedDateRange, dateRange, marketplaces]);
+
+  const handleExportExcel = useCallback(() => {
+    try {
+      // Create a new workbook
+      const wb = XLSX.utils.book_new();
+      
+      // Analytics data worksheet
+      const analyticsWS = XLSX.utils.json_to_sheet(
+        analyticsData.map((item, index) => ({
+          'Metric': item.title,
+          'Value': item.value,
+          'Growth (%)': item.growth || 'N/A',
+          'Trend': item.growthType || 'N/A'
+        }))
+      );
+      
+      // Marketplace data worksheet
+      const marketplaceWS = XLSX.utils.json_to_sheet(
+        marketplaces.map(mp => ({
+          'Marketplace': mp.name,
+          'Status': mp.status,
+          'Seller ID': mp.sellerId || 'Not connected',
+          'Last Sync': mp.lastSync || 'Never'
+        }))
+      );
+      
+      // Sync logs worksheet
+      const syncLogsWS = XLSX.utils.json_to_sheet(
+        syncLogs.map(log => ({
+          'Date': log.date,
+          'Operation': log.operation,
+          'Marketplace': log.marketplace,
+          'Status': log.status,
+          'Error Message': log.error || 'No errors'
+        }))
+      );
+      
+      // Product sync data worksheet
+      const productSyncWS = XLSX.utils.json_to_sheet(
+        productSyncData.map(product => ({
+          'Product Name': product.name,
+          'Price': product.price,
+          'SKU': product.sku,
+          'Barcode': product.barcode,
+          'Synced': product.synced,
+          'Marketplace': product.marketplace,
+          'Status': product.status,
+          'Error': product.error || 'No errors'
+        }))
+      );
+      
+      // Add worksheets to workbook
+      XLSX.utils.book_append_sheet(wb, analyticsWS, 'Analytics Summary');
+      XLSX.utils.book_append_sheet(wb, marketplaceWS, 'Marketplace Status');
+      XLSX.utils.book_append_sheet(wb, syncLogsWS, 'Sync Logs');
+      XLSX.utils.book_append_sheet(wb, productSyncWS, 'Product Sync Data');
+      
+      // Generate report info sheet
+      const reportInfoWS = XLSX.utils.json_to_sheet([
+        {
+          'Report Type': 'Views Report',
+          'Date Range': selectedDateRange.label,
+          'Period': dateRange,
+          'Generated On': new Date().toLocaleDateString(),
+          'Generated At': new Date().toLocaleTimeString(),
+          'Total Marketplaces': marketplaces.length,
+          'Connected Marketplaces': marketplaces.filter(mp => mp.status === 'connected').length,
+          'Total Products': productSyncData.length,
+          'Synced Products': productSyncData.filter(p => p.synced === 'Yes').length
+        }
+      ]);
+      
+      XLSX.utils.book_append_sheet(wb, reportInfoWS, 'Report Info');
+      
+      // Write the file
+      const fileName = `views-report-${selectedDateRange.value}-${new Date().toISOString().split('T')[0]}.xlsx`;
+      XLSX.writeFile(wb, fileName);
+      
+      console.log('Excel report exported successfully');
+    } catch (error) {
+      console.error('Error exporting Excel:', error);
+      alert('Error generating Excel report. Please try again.');
+    }
+  }, [analyticsData, selectedDateRange, dateRange, marketplaces, syncLogs, productSyncData]);
+
   return (
     <div className="bg-gray-50 min-h-screen">
       {/* Header with Tab Navigation */}
@@ -372,12 +895,11 @@ const Database = () => {
           <h1 className="text-4xl font-bold text-gray-900 tracking-tight">
             Dashboard
           </h1>
-          <div className="flex items-center gap-2 text-sm text-black bg-gray-100 px-4 py-2 rounded-lg shadow-inner border border-slate-200">
-            <Calendar className="h-4 w-4" />
-            <span className="font-medium tracking-wide">
-              Nov 11, 2025 – Nov 27, 2025
-            </span>
-          </div>
+          <DateRangePicker 
+            selectedRange={selectedDateRange}
+            onRangeChange={handleDateRangeChange}
+            dateRange={dateRange}
+          />
         </div>
 
         {/* Tab Navigation */}
@@ -414,6 +936,11 @@ const Database = () => {
             analyticsData={analyticsData}
             selectedTimeRange={selectedTimeRange}
             onTimeRangeChange={handleTimeRangeChange}
+            onExportPDF={handleExportPDF}
+            onExportExcel={handleExportExcel}
+            selectedSalesDateRange={selectedSalesDateRange}
+            onSalesDateRangeChange={handleSalesDateRangeChange}
+            salesDateRange={salesDateRange}
           />
         )}
 
@@ -471,6 +998,11 @@ const DashboardTab = memo(
     analyticsData,
     selectedTimeRange,
     onTimeRangeChange,
+    onExportPDF,
+    onExportExcel,
+    selectedSalesDateRange,
+    onSalesDateRangeChange,
+    salesDateRange,
   }) => (
     <div className="space-y-6">
       <StatsGrid stats={stats} />
@@ -479,6 +1011,11 @@ const DashboardTab = memo(
         analyticsData={analyticsData}
         selectedTimeRange={selectedTimeRange}
         onTimeRangeChange={onTimeRangeChange}
+        onExportPDF={onExportPDF}
+        onExportExcel={onExportExcel}
+        selectedSalesDateRange={selectedSalesDateRange}
+        onSalesDateRangeChange={onSalesDateRangeChange}
+        salesDateRange={salesDateRange}
       />
       <MarketplaceSettingsSection />
     </div>
@@ -1268,11 +1805,153 @@ const SMSStatsSection = memo(({ smsStats }) => (
 SMSStatsSection.displayName = "SMSStatsSection";
 
 const SalesAnalyticsSection = memo(
-  ({ analyticsData, selectedTimeRange, onTimeRangeChange }) => (
+  ({ analyticsData, selectedTimeRange, onTimeRangeChange, onExportPDF, onExportExcel, selectedSalesDateRange, onSalesDateRangeChange, salesDateRange }) => {
+    // State for sales date range picker
+    const [isSalesDatePickerOpen, setIsSalesDatePickerOpen] = useState(false);
+    const [showSalesCustomPicker, setShowSalesCustomPicker] = useState(false);
+    const [salesCustomStartDate, setSalesCustomStartDate] = useState("");
+    const [salesCustomEndDate, setSalesCustomEndDate] = useState("");
+    const salesDatePickerRef = useRef(null);
+
+    // Close dropdown when clicking outside
+    useEffect(() => {
+      const handleClickOutside = (event) => {
+        if (salesDatePickerRef.current && !salesDatePickerRef.current.contains(event.target)) {
+          setIsSalesDatePickerOpen(false);
+          setShowSalesCustomPicker(false);
+        }
+      };
+
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
+    const handleSalesRangeSelect = (option) => {
+      if (option.value === "custom") {
+        setShowSalesCustomPicker(true);
+      } else {
+        onSalesDateRangeChange(option);
+        setIsSalesDatePickerOpen(false);
+        setShowSalesCustomPicker(false);
+      }
+    };
+
+    const handleSalesCustomRangeApply = () => {
+      if (salesCustomStartDate && salesCustomEndDate) {
+        const customOption = {
+          label: "Custom Range",
+          value: "custom",
+          startDate: salesCustomStartDate,
+          endDate: salesCustomEndDate,
+        };
+        onSalesDateRangeChange(customOption);
+        setIsSalesDatePickerOpen(false);
+        setShowSalesCustomPicker(false);
+      }
+    };
+
+    const formatSalesDateRange = () => {
+      if (selectedSalesDateRange.value === "custom" && selectedSalesDateRange.startDate && selectedSalesDateRange.endDate) {
+        const start = new Date(selectedSalesDateRange.startDate).toLocaleDateString('en-US', { 
+          month: 'short', 
+          day: 'numeric' 
+        });
+        const end = new Date(selectedSalesDateRange.endDate).toLocaleDateString('en-US', { 
+          month: 'short', 
+          day: 'numeric', 
+          year: 'numeric' 
+        });
+        return `${start} – ${end}`;
+      }
+      return salesDateRange;
+    };
+
+    return (
     <div className="bg-white rounded-2xl shadow-md p-8">
       <div className="flex justify-between items-center mb-8">
         <h3 className="text-2xl font-bold text-gray-900">Sales Details</h3>
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-4">
+          {/* Sales Date Range Picker */}
+          <div className="relative" ref={salesDatePickerRef}>
+            <button
+              onClick={() => setIsSalesDatePickerOpen(!isSalesDatePickerOpen)}
+              className="flex items-center gap-2 text-sm text-black bg-gray-100 px-4 py-2 rounded-lg shadow-inner border border-slate-200 hover:bg-gray-200 transition-colors duration-200"
+            >
+              <CalendarRange className="h-4 w-4" />
+              <span className="font-medium tracking-wide">
+                {formatSalesDateRange()}
+              </span>
+              <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isSalesDatePickerOpen ? 'rotate-180' : ''}`} />
+            </button>
+
+            {isSalesDatePickerOpen && (
+              <div className="absolute right-0 top-full mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-50 min-w-[280px] date-picker-dropdown">
+                {!showSalesCustomPicker ? (
+                  <div className="p-2">
+                    {DATE_RANGE_OPTIONS.map((option) => (
+                      <button
+                        key={option.value}
+                        onClick={() => handleSalesRangeSelect(option)}
+                        className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors duration-150 date-picker-option ${
+                          selectedSalesDateRange.value === option.value 
+                            ? 'selected font-medium' 
+                            : 'text-gray-700 hover:bg-gray-50'
+                        }`}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="p-4">
+                    <h4 className="text-sm font-medium text-gray-900 mb-3">Select Custom Range</h4>
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">
+                          Start Date
+                        </label>
+                        <input
+                          type="date"
+                          value={salesCustomStartDate}
+                          onChange={(e) => setSalesCustomStartDate(e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">
+                          End Date
+                        </label>
+                        <input
+                          type="date"
+                          value={salesCustomEndDate}
+                          onChange={(e) => setSalesCustomEndDate(e.target.value)}
+                          min={salesCustomStartDate}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                      </div>
+                      <div className="flex gap-2 pt-2">
+                        <button
+                          onClick={() => setShowSalesCustomPicker(false)}
+                          className="flex-1 px-3 py-2 text-sm text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors duration-150"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          onClick={handleSalesCustomRangeApply}
+                          disabled={!salesCustomStartDate || !salesCustomEndDate}
+                          className="flex-1 px-3 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
+                        >
+                          Apply
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+          
+          {/* Month selector */}
           <select className="border border-gray-200 rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50/50 hover:bg-gray-50 transition-colors duration-200">
             {MONTHS.map((month) => (
               <option key={month} value={month}>
@@ -1339,13 +2018,24 @@ const SalesAnalyticsSection = memo(
               {period}
             </button>
           ))}
-          <button className="px-5 py-2.5 rounded-xl text-sm font-semibold bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700 shadow-md hover:shadow-lg transition-all duration-200">
+          <button 
+            onClick={onExportPDF}
+            className="px-5 py-2.5 rounded-xl text-sm font-semibold bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700 shadow-md hover:shadow-lg transition-all duration-200"
+          >
             Export PDF
+          </button>
+          <button 
+            onClick={onExportExcel}
+            className="px-5 py-2.5 rounded-xl text-sm font-semibold bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700 shadow-md hover:shadow-lg transition-all duration-200 flex items-center gap-2"
+          >
+            <FileSpreadsheet className="h-4 w-4" />
+            Export Excel
           </button>
         </div>
       </div>
     </div>
-  )
+    );
+  }
 );
 
 SalesAnalyticsSection.displayName = "SalesAnalyticsSection";
