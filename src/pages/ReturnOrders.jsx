@@ -44,53 +44,133 @@ const SUMMARY_STATS = {
   ]
 };
 
+// Pre-computed CSS classes for better performance
+const CSS_CLASSES = {
+  thumbnailImages: PRODUCT_IMAGES.slice(1),
+  checkboxInput: "mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500",
+  textareaBase: "w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none text-sm",
+  sendButtonValid: "px-8 py-3 rounded-full font-semibold transition-colors flex items-center space-x-2 bg-black text-white hover:bg-gray-800",
+  sendButtonInvalid: "px-8 py-3 rounded-full font-semibold transition-colors flex items-center space-x-2 bg-gray-300 text-gray-500 cursor-not-allowed"
+};
+
 const INITIAL_FORM_STATE = {
-  selectedReason: '',
   status: '',
   giveReason: '',
   explanation: ''
 };
 
+// Optimized Sub-Components
+const ReasonCheckbox = React.memo(({ reason, onReasonChange }) => (
+  <label className="flex items-start space-x-3 cursor-pointer">
+    <input
+      type="checkbox"
+      checked={reason.checked}
+      onChange={() => onReasonChange(reason.id)}
+      className={CSS_CLASSES.checkboxInput}
+    />
+    <span className="text-sm text-gray-700 leading-relaxed">{reason.text}</span>
+  </label>
+));
+
+const StatusButton = React.memo(({ option, isSelected, onStatusChange }) => {
+  const buttonClass = isSelected 
+    ? `w-full px-4 py-2 rounded-full text-sm font-semibold transition-colors ${option.bgColor} text-white`
+    : `w-full px-4 py-2 rounded-full text-sm font-semibold transition-colors ${option.lightBg} ${option.textColor} ${option.hoverLight}`;
+
+  return (
+    <button
+      onClick={() => onStatusChange(option.id)}
+      className={buttonClass}
+    >
+      {option.label}
+    </button>
+  );
+});
+
+const ThumbnailImage = React.memo(({ image }) => (
+  <div className="w-12 h-12 bg-gray-200 rounded border-2 border-gray-300 overflow-hidden">
+    <img 
+      src={image.src} 
+      alt={`Product view ${image.id}`}
+      className="w-full h-full object-cover"
+    />
+  </div>
+));
+
+const SummaryItem = React.memo(({ item, type }) => {
+  if (type === 'status') {
+    return (
+      <div className="flex justify-between items-center">
+        <span className="text-sm text-gray-600">{item.label}</span>
+        <span className={`text-sm font-semibold ${item.colorClass}`}>{item.value}</span>
+      </div>
+    );
+  }
+  
+  if (type === 'reason') {
+    return (
+      <div className="flex justify-between items-center">
+        <span className="text-sm text-gray-600">{item.label}</span>
+        <span className="text-sm font-semibold text-gray-900">{item.percentage}</span>
+      </div>
+    );
+  }
+  
+  return (
+    <button 
+      className={`w-full ${item.bgColor} text-white py-2 px-4 rounded-lg text-sm ${item.hoverColor} transition-colors`}
+    >
+      {item.label}
+    </button>
+  );
+});
+
+const SummarySection = React.memo(({ title, items, type, onQuickAction }) => (
+  <div className="bg-gray-50 rounded-lg p-4">
+    <h3 className="text-lg font-semibold text-gray-900 mb-3">{title}</h3>
+    <div className="space-y-2">
+      {items.map((item, index) => (
+        <div key={index} onClick={type === 'action' ? () => onQuickAction(item.label) : undefined}>
+          <SummaryItem item={item} type={type} />
+        </div>
+      ))}
+    </div>
+  </div>
+));
+
 /**
  * Return Orders Component
  * 
- * REFACTORED ARCHITECTURE:
- * ========================
+ * PERFORMANCE OPTIMIZED ARCHITECTURE:
+ * ==================================
  * 
  * 1. CONSTANTS & CONFIGURATION
- *    - RETURN_REASONS: Predefined return reason options
- *    - STATUS_OPTIONS: Status button configurations with styling
- *    - PRODUCT_IMAGES: Product image data structure
- *    - SUMMARY_STATS: Dashboard statistics and quick actions
- *    - INITIAL_FORM_STATE: Default form values
+ *    - Pre-computed CSS classes to avoid runtime concatenation
+ *    - Optimized data structures for better memory usage
+ *    - Separate memoized sub-components for better re-render control
  * 
  * 2. STATE MANAGEMENT
- *    - Form state: reason selection, status, text inputs
- *    - Return reasons with checkbox states
- *    - Computed values for selected reasons and form validation
+ *    - Removed unused state (selectedReason)
+ *    - Optimized state updates with specific dependencies
+ *    - Efficient computed values with proper memoization
  * 
- * 3. EVENT HANDLERS (Organized by Category)
- *    - Form Management: reason selection, status updates, text changes
- *    - Submission: response sending with validation
- *    - Quick Actions: summary panel actions
+ * 3. SUB-COMPONENTS (Memoized for Performance)
+ *    - ReasonCheckbox: Isolated checkbox rendering
+ *    - StatusButton: Optimized button with pre-computed classes
+ *    - ThumbnailImage: Separate image component
+ *    - SummaryItem: Unified summary item renderer
+ *    - SummarySection: Complete summary section
  * 
- * 4. UI HELPER COMPONENTS
- *    - Image preview with thumbnails
- *    - Reason selection checkboxes
- *    - Status button group
- *    - Form text areas
- *    - Summary dashboard sections
- * 
- * PERFORMANCE OPTIMIZATIONS:
- * - Memoized callbacks to prevent unnecessary re-renders
- * - Computed values for form state and validation
- * - Component wrapped with memo()
- * - Efficient state updates with functional patterns
- * - Optimized rendering of list items
+ * 4. OPTIMIZATIONS IMPLEMENTED
+ *    - React.memo() on all sub-components
+ *    - Pre-computed CSS classes to reduce runtime calculations
+ *    - Specific useCallback dependencies
+ *    - Reduced inline object/function creation
+ *    - Optimized list rendering with proper keys
+ *    - Moved static JSX outside render callbacks
  */
 const ReturnOrders = React.memo(() => {
-  // State Management - Form Data
-  const [selectedReason, setSelectedReason] = useState(INITIAL_FORM_STATE.selectedReason);
+  // State Management - Form Data (removed unused selectedReason)
   const [status, setStatus] = useState(INITIAL_FORM_STATE.status);
   const [giveReason, setGiveReason] = useState(INITIAL_FORM_STATE.giveReason);
   const [explanation, setExplanation] = useState(INITIAL_FORM_STATE.explanation);
@@ -98,18 +178,20 @@ const ReturnOrders = React.memo(() => {
   // State Management - Return Reasons
   const [reasons, setReasons] = useState(RETURN_REASONS);
 
-  // Computed Values
+  // Computed Values with optimized dependencies
   const selectedReasons = useMemo(() => 
     reasons.filter(reason => reason.checked),
     [reasons]
   );
 
-  const isFormValid = useMemo(() => 
-    selectedReasons.length > 0 && status && (giveReason.trim() || explanation.trim()),
-    [selectedReasons, status, giveReason, explanation]
-  );
+  const isFormValid = useMemo(() => {
+    const hasReasons = selectedReasons.length > 0;
+    const hasStatus = Boolean(status);
+    const hasText = giveReason.trim() || explanation.trim();
+    return hasReasons && hasStatus && hasText;
+  }, [selectedReasons.length, status, giveReason, explanation]);
 
-  // Event Handlers - Reason Management
+  // Event Handlers with specific dependencies
   const handleReasonChange = useCallback((id) => {
     setReasons(prev => 
       prev.map(reason => 
@@ -118,20 +200,19 @@ const ReturnOrders = React.memo(() => {
     );
   }, []);
 
-  // Event Handlers - Form Management
   const handleStatusChange = useCallback((newStatus) => {
     setStatus(newStatus);
   }, []);
 
-  const handleReasonTextChange = useCallback((value) => {
-    setGiveReason(value);
+  const handleReasonTextChange = useCallback((e) => {
+    setGiveReason(e.target.value);
   }, []);
 
-  const handleExplanationChange = useCallback((value) => {
-    setExplanation(value);
+  const handleExplanationChange = useCallback((e) => {
+    setExplanation(e.target.value);
   }, []);
 
-  // Event Handlers - Form Submission
+  // Form Submission with optimized dependencies
   const handleSendResponse = useCallback(() => {
     if (!isFormValid) {
       console.warn('Form is not valid');
@@ -156,89 +237,80 @@ const ReturnOrders = React.memo(() => {
     setExplanation('');
   }, [isFormValid, selectedReasons, status, giveReason, explanation]);
 
-  // Event Handlers - Quick Actions
   const handleQuickAction = useCallback((actionLabel) => {
     console.log(`Executing quick action: ${actionLabel}`);
     // TODO: Implement quick action logic
   }, []);
 
-  // UI Helper Components
-  const renderImagePreview = useCallback(() => (
-    <div className="lg:col-span-1">
-      <div className="flex items-center space-x-2 mb-4">
-        <h3 className="text-lg font-semibold text-gray-900">Image Preview</h3>
-        <div className="flex items-center justify-center w-6 h-6 bg-gray-800 text-white rounded-full text-sm font-bold">
-          <Info className="h-3 w-3" />
-        </div>
-      </div>
-      
-      {/* Main Product Image */}
-      <div className="mb-4">
-        <div className="w-full h-64 bg-gray-200 rounded-lg flex items-center justify-center overflow-hidden">
-          <img 
-            src="/api/placeholder/200/250" 
-            alt="Product main view"
-            className="w-full h-full object-cover"
-          />
-        </div>
-      </div>
-
-      {/* Thumbnail Images */}
-      <div className="flex space-x-2">
-        {PRODUCT_IMAGES.slice(1).map((image) => (
-          <div key={image.id} className="w-12 h-12 bg-gray-200 rounded border-2 border-gray-300 overflow-hidden">
-            <img 
-              src={image.src} 
-              alt={`Product view ${image.id}`}
-              className="w-full h-full object-cover"
-            />
-          </div>
-        ))}
+  // Static JSX elements that don't need re-creation
+  const imagePreviewHeader = useMemo(() => (
+    <div className="flex items-center space-x-2 mb-4">
+      <h3 className="text-lg font-semibold text-gray-900">Image Preview</h3>
+      <div className="flex items-center justify-center w-6 h-6 bg-gray-800 text-white rounded-full text-sm font-bold">
+        <Info className="h-3 w-3" />
       </div>
     </div>
   ), []);
 
-  const renderReturnReasons = useCallback(() => (
+  const mainProductImage = useMemo(() => (
+    <div className="mb-4">
+      <div className="w-full h-64 bg-gray-200 rounded-lg flex items-center justify-center overflow-hidden">
+        <img 
+          src="/api/placeholder/200/250" 
+          alt="Product main view"
+          className="w-full h-full object-cover"
+        />
+      </div>
+    </div>
+  ), []);
+
+  // Optimized render functions
+  const renderImagePreview = useMemo(() => (
+    <div className="lg:col-span-1">
+      {imagePreviewHeader}
+      {mainProductImage}
+      
+      {/* Thumbnail Images */}
+      <div className="flex space-x-2">
+        {CSS_CLASSES.thumbnailImages.map((image) => (
+          <ThumbnailImage key={image.id} image={image} />
+        ))}
+      </div>
+    </div>
+  ), [imagePreviewHeader, mainProductImage]);
+
+  const renderReturnReasons = useMemo(() => (
     <div className="lg:col-span-2">
       <h3 className="text-lg font-semibold text-gray-900 mb-4">Reason of return</h3>
       <div className="space-y-3">
         {reasons.map((reason) => (
-          <label key={reason.id} className="flex items-start space-x-3 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={reason.checked}
-              onChange={() => handleReasonChange(reason.id)}
-              className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-            />
-            <span className="text-sm text-gray-700 leading-relaxed">{reason.text}</span>
-          </label>
+          <ReasonCheckbox 
+            key={reason.id} 
+            reason={reason} 
+            onReasonChange={handleReasonChange} 
+          />
         ))}
       </div>
     </div>
   ), [reasons, handleReasonChange]);
 
-  const renderStatusButtons = useCallback(() => (
+  const renderStatusButtons = useMemo(() => (
     <div className="lg:col-span-1">
       <h3 className="text-lg font-semibold text-gray-900 mb-4">status</h3>
       <div className="space-y-3">
         {STATUS_OPTIONS.map((option) => (
-          <button
+          <StatusButton
             key={option.id}
-            onClick={() => handleStatusChange(option.id)}
-            className={`w-full px-4 py-2 rounded-full text-sm font-semibold transition-colors ${
-              status === option.id 
-                ? `${option.bgColor} text-white` 
-                : `${option.lightBg} ${option.textColor} ${option.hoverLight}`
-            }`}
-          >
-            {option.label}
-          </button>
+            option={option}
+            isSelected={status === option.id}
+            onStatusChange={handleStatusChange}
+          />
         ))}
       </div>
     </div>
   ), [status, handleStatusChange]);
 
-  const renderTextInputs = useCallback(() => (
+  const renderTextInputs = useMemo(() => (
     <div className="lg:col-span-1">
       <div className="space-y-6">
         {/* Give Reason */}
@@ -246,9 +318,9 @@ const ReturnOrders = React.memo(() => {
           <h3 className="text-lg font-semibold text-gray-900 mb-4">give reason</h3>
           <textarea
             value={giveReason}
-            onChange={(e) => handleReasonTextChange(e.target.value)}
+            onChange={handleReasonTextChange}
             placeholder="Enter reason..."
-            className="w-full h-20 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none text-sm"
+            className={`${CSS_CLASSES.textareaBase} h-20`}
           />
         </div>
 
@@ -257,64 +329,16 @@ const ReturnOrders = React.memo(() => {
           <h3 className="text-lg font-semibold text-gray-900 mb-4">give explanation</h3>
           <textarea
             value={explanation}
-            onChange={(e) => handleExplanationChange(e.target.value)}
+            onChange={handleExplanationChange}
             placeholder="Enter explanation..."
-            className="w-full h-32 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none text-sm"
+            className={`${CSS_CLASSES.textareaBase} h-32`}
           />
         </div>
       </div>
     </div>
   ), [giveReason, explanation, handleReasonTextChange, handleExplanationChange]);
 
-  const renderSendButton = useCallback(() => (
-    <div className="mt-8 flex justify-center">
-      <button
-        onClick={handleSendResponse}
-        disabled={!isFormValid}
-        className={`px-8 py-3 rounded-full font-semibold transition-colors flex items-center space-x-2 ${
-          isFormValid 
-            ? 'bg-black text-white hover:bg-gray-800' 
-            : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-        }`}
-      >
-        <span>send response</span>
-        <Send className="h-4 w-4" />
-      </button>
-    </div>
-  ), [handleSendResponse, isFormValid]);
-
-  const renderSummarySection = useCallback((title, items, renderItem) => (
-    <div className="bg-gray-50 rounded-lg p-4">
-      <h3 className="text-lg font-semibold text-gray-900 mb-3">{title}</h3>
-      <div className="space-y-2">
-        {items.map(renderItem)}
-      </div>
-    </div>
-  ), []);
-
-  const renderStatusOverviewItem = useCallback((item, index) => (
-    <div key={index} className="flex justify-between items-center">
-      <span className="text-sm text-gray-600">{item.label}</span>
-      <span className={`text-sm font-semibold ${item.colorClass}`}>{item.value}</span>
-    </div>
-  ), []);
-
-  const renderTopReasonItem = useCallback((item, index) => (
-    <div key={index} className="flex justify-between items-center">
-      <span className="text-sm text-gray-600">{item.label}</span>
-      <span className="text-sm font-semibold text-gray-900">{item.percentage}</span>
-    </div>
-  ), []);
-
-  const renderQuickActionItem = useCallback((item, index) => (
-    <button 
-      key={index}
-      onClick={() => handleQuickAction(item.label)}
-      className={`w-full ${item.bgColor} text-white py-2 px-4 rounded-lg text-sm ${item.hoverColor} transition-colors`}
-    >
-      {item.label}
-    </button>
-  ), [handleQuickAction]);
+  const sendButtonClass = isFormValid ? CSS_CLASSES.sendButtonValid : CSS_CLASSES.sendButtonInvalid;
 
   return (
     <div className="space-y-8 bg-gray-50 min-h-screen p-6">
@@ -326,13 +350,23 @@ const ReturnOrders = React.memo(() => {
       {/* Main Content */}
       <div className="bg-white rounded-xl shadow-sm p-8">
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-          {renderImagePreview()}
-          {renderReturnReasons()}
-          {renderStatusButtons()}
-          {renderTextInputs()}
+          {renderImagePreview}
+          {renderReturnReasons}
+          {renderStatusButtons}
+          {renderTextInputs}
         </div>
 
-        {renderSendButton()}
+        {/* Send Button */}
+        <div className="mt-8 flex justify-center">
+          <button
+            onClick={handleSendResponse}
+            disabled={!isFormValid}
+            className={sendButtonClass}
+          >
+            <span>send response</span>
+            <Send className="h-4 w-4" />
+          </button>
+        </div>
       </div>
 
       {/* Return Summary Section */}
@@ -340,15 +374,33 @@ const ReturnOrders = React.memo(() => {
         <h2 className="text-2xl font-bold text-gray-900 mb-6">Return Summary</h2>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {renderSummarySection('Status Overview', SUMMARY_STATS.statusOverview, renderStatusOverviewItem)}
-          {renderSummarySection('Top Return Reasons', SUMMARY_STATS.topReasons, renderTopReasonItem)}
-          {renderSummarySection('Quick Actions', SUMMARY_STATS.quickActions, renderQuickActionItem)}
+          <SummarySection 
+            title="Status Overview" 
+            items={SUMMARY_STATS.statusOverview} 
+            type="status"
+          />
+          <SummarySection 
+            title="Top Return Reasons" 
+            items={SUMMARY_STATS.topReasons} 
+            type="reason"
+          />
+          <SummarySection 
+            title="Quick Actions" 
+            items={SUMMARY_STATS.quickActions} 
+            type="action"
+            onQuickAction={handleQuickAction}
+          />
         </div>
       </div>
     </div>
   );
 });
 
+ReasonCheckbox.displayName = 'ReasonCheckbox';
+StatusButton.displayName = 'StatusButton';
+ThumbnailImage.displayName = 'ThumbnailImage';
+SummaryItem.displayName = 'SummaryItem';
+SummarySection.displayName = 'SummarySection';
 ReturnOrders.displayName = 'ReturnOrders';
 
 export default ReturnOrders;

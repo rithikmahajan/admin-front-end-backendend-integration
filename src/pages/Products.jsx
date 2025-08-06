@@ -1,90 +1,189 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { Search, Plus, Edit, Trash2, Eye, Filter } from 'lucide-react';
 import { useResponsive } from '../hooks/useResponsive';
 import { getTailwindClasses } from '../constants/styleUtils';
 
+// Move static data and functions outside component to prevent recreation
+const INITIAL_PRODUCTS = [
+  {
+    id: 1,
+    name: 'Wireless Headphones',
+    category: 'Electronics',
+    price: 299.99,
+    stock: 45,
+    status: 'Active',
+    image: 'WH',
+    created: '2024-01-15'
+  },
+  {
+    id: 2,
+    name: 'Running Shoes',
+    category: 'Sports',
+    price: 129.99,
+    stock: 23,
+    status: 'Active',
+    image: 'RS',
+    created: '2024-02-10'
+  },
+  {
+    id: 3,
+    name: 'Coffee Maker',
+    category: 'Kitchen',
+    price: 89.99,
+    stock: 0,
+    status: 'Out of Stock',
+    image: 'CM',
+    created: '2024-03-05'
+  },
+  {
+    id: 4,
+    name: 'Smartphone Case',
+    category: 'Electronics',
+    price: 24.99,
+    stock: 156,
+    status: 'Active',
+    image: 'SC',
+    created: '2024-01-20'
+  },
+  {
+    id: 5,
+    name: 'Yoga Mat',
+    category: 'Sports',
+    price: 39.99,
+    stock: 78,
+    status: 'Active',
+    image: 'YM',
+    created: '2024-02-28'
+  }
+];
+
+// Memoized status color mapping
+const STATUS_COLORS = {
+  'Active': 'bg-green-100 text-green-800',
+  'Out of Stock': 'bg-red-100 text-red-800',
+  'Inactive': 'bg-gray-100 text-gray-800'
+};
+
+const getStatusColor = (status) => STATUS_COLORS[status] || 'bg-gray-100 text-gray-800';
+
+const getStockColor = (stock) => {
+  if (stock === 0) return 'text-red-600';
+  if (stock < 20) return 'text-yellow-600';
+  return 'text-green-600';
+};
+
 const Products = () => {
   const responsive = useResponsive();
-  
-  // Sample product data
-  const [products] = useState([
-    {
-      id: 1,
-      name: 'Wireless Headphones',
-      category: 'Electronics',
-      price: 299.99,
-      stock: 45,
-      status: 'Active',
-      image: 'WH',
-      created: '2024-01-15'
-    },
-    {
-      id: 2,
-      name: 'Running Shoes',
-      category: 'Sports',
-      price: 129.99,
-      stock: 23,
-      status: 'Active',
-      image: 'RS',
-      created: '2024-02-10'
-    },
-    {
-      id: 3,
-      name: 'Coffee Maker',
-      category: 'Kitchen',
-      price: 89.99,
-      stock: 0,
-      status: 'Out of Stock',
-      image: 'CM',
-      created: '2024-03-05'
-    },
-    {
-      id: 4,
-      name: 'Smartphone Case',
-      category: 'Electronics',
-      price: 24.99,
-      stock: 156,
-      status: 'Active',
-      image: 'SC',
-      created: '2024-01-20'
-    },
-    {
-      id: 5,
-      name: 'Yoga Mat',
-      category: 'Sports',
-      price: 39.99,
-      stock: 78,
-      status: 'Active',
-      image: 'YM',
-      created: '2024-02-28'
-    }
-  ]);
-
+  const [products] = useState(INITIAL_PRODUCTS);
   const [searchTerm, setSearchTerm] = useState('');
 
-  const filteredProducts = products.filter(product =>
-    product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    product.category.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Memoize filtered products to prevent recalculation on every render
+  const filteredProducts = useMemo(() => {
+    if (!searchTerm) return products;
+    const lowerSearchTerm = searchTerm.toLowerCase();
+    return products.filter(product =>
+      product.name.toLowerCase().includes(lowerSearchTerm) ||
+      product.category.toLowerCase().includes(lowerSearchTerm)
+    );
+  }, [products, searchTerm]);
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'Active':
-        return 'bg-green-100 text-green-800';
-      case 'Out of Stock':
-        return 'bg-red-100 text-red-800';
-      case 'Inactive':
-        return 'bg-gray-100 text-gray-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
+  // Memoize statistics calculations
+  const stats = useMemo(() => ({
+    total: products.length,
+    active: products.filter(p => p.status === 'Active').length,
+    outOfStock: products.filter(p => p.stock === 0).length,
+    lowStock: products.filter(p => p.stock > 0 && p.stock < 20).length
+  }), [products]);
 
-  const getStockColor = (stock) => {
-    if (stock === 0) return 'text-red-600';
-    if (stock < 20) return 'text-yellow-600';
-    return 'text-green-600';
-  };
+  // Use useCallback for event handlers to prevent child re-renders
+  const handleSearchChange = useCallback((e) => {
+    setSearchTerm(e.target.value);
+  }, []);
+
+  // Memoized table row component
+  const TableRow = React.memo(({ product }) => (
+    <tr className="hover:bg-gray-50">
+      <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
+        <div className="flex items-center">
+          <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-200 rounded-lg flex items-center justify-center text-gray-600 font-bold text-xs sm:text-sm">
+            {product.image}
+          </div>
+          <div className="ml-3 sm:ml-4">
+            <div className="text-sm font-medium text-gray-900">{product.name}</div>
+            <div className="text-xs sm:text-sm text-gray-500">Created: {product.created}</div>
+          </div>
+        </div>
+      </td>
+      <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
+        <div className="text-sm text-gray-900">{product.category}</div>
+      </td>
+      <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
+        <div className="text-sm font-medium text-gray-900">${product.price}</div>
+      </td>
+      <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
+        <div className={`text-sm font-medium ${getStockColor(product.stock)}`}>
+          {product.stock} units
+        </div>
+      </td>
+      <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
+        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(product.status)}`}>
+          {product.status}
+        </span>
+      </td>
+      <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
+        <div className="flex space-x-1 sm:space-x-2">
+          <button className="text-blue-600 hover:text-blue-900 p-1 rounded hover:bg-blue-50">
+            <Eye size={16} />
+          </button>
+          <button className="text-green-600 hover:text-green-900 p-1 rounded hover:bg-green-50">
+            <Edit size={16} />
+          </button>
+          <button className="text-red-600 hover:text-red-900 p-1 rounded hover:bg-red-50">
+            <Trash2 size={16} />
+          </button>
+        </div>
+      </td>
+    </tr>
+  ));
+
+  // Memoized card component
+  const ProductCard = React.memo(({ product }) => (
+    <div className="p-4 hover:bg-gray-50">
+      <div className="flex items-start space-x-3">
+        <div className="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center text-gray-600 font-bold flex-shrink-0">
+          {product.image}
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <h3 className="text-sm font-medium text-gray-900 truncate">{product.name}</h3>
+              <p className="text-xs text-gray-500 mt-1">{product.category}</p>
+              <div className="flex items-center space-x-4 mt-2">
+                <span className="text-sm font-medium text-gray-900">${product.price}</span>
+                <span className={`text-xs font-medium ${getStockColor(product.stock)}`}>
+                  {product.stock} units
+                </span>
+                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(product.status)}`}>
+                  {product.status}
+                </span>
+              </div>
+            </div>
+            <div className="flex space-x-1">
+              <button className="text-blue-600 hover:text-blue-900 p-1.5 rounded hover:bg-blue-50">
+                <Eye size={16} />
+              </button>
+              <button className="text-green-600 hover:text-green-900 p-1.5 rounded hover:bg-green-50">
+                <Edit size={16} />
+              </button>
+              <button className="text-red-600 hover:text-red-900 p-1.5 rounded hover:bg-red-50">
+                <Trash2 size={16} />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  ));
 
   return (
     <div className={`${getTailwindClasses.spacing.container} space-y-4 sm:space-y-6`}>
@@ -104,25 +203,19 @@ const Products = () => {
       <div className={`${getTailwindClasses.grid.responsive4} ${getTailwindClasses.grid.gap}`}>
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
           <h3 className={`${getTailwindClasses.text.small} font-medium text-gray-500`}>Total Products</h3>
-          <p className="text-xl sm:text-2xl font-bold text-gray-900 mt-1">{products.length}</p>
+          <p className="text-xl sm:text-2xl font-bold text-gray-900 mt-1">{stats.total}</p>
         </div>
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
           <h3 className={`${getTailwindClasses.text.small} font-medium text-gray-500`}>Active Products</h3>
-          <p className="text-xl sm:text-2xl font-bold text-green-600 mt-1">
-            {products.filter(p => p.status === 'Active').length}
-          </p>
+          <p className="text-xl sm:text-2xl font-bold text-green-600 mt-1">{stats.active}</p>
         </div>
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
           <h3 className={`${getTailwindClasses.text.small} font-medium text-gray-500`}>Out of Stock</h3>
-          <p className="text-xl sm:text-2xl font-bold text-red-600 mt-1">
-            {products.filter(p => p.stock === 0).length}
-          </p>
+          <p className="text-xl sm:text-2xl font-bold text-red-600 mt-1">{stats.outOfStock}</p>
         </div>
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
           <h3 className={`${getTailwindClasses.text.small} font-medium text-gray-500`}>Low Stock</h3>
-          <p className="text-xl sm:text-2xl font-bold text-yellow-600 mt-1">
-            {products.filter(p => p.stock > 0 && p.stock < 20).length}
-          </p>
+          <p className="text-xl sm:text-2xl font-bold text-yellow-600 mt-1">{stats.lowStock}</p>
         </div>
       </div>
 
@@ -135,7 +228,7 @@ const Products = () => {
               type="text"
               placeholder="Search products..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={handleSearchChange}
               className={`pl-8 sm:pl-10 w-full border border-gray-300 rounded-lg px-3 sm:px-4 py-2 text-sm sm:text-base focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
             />
           </div>
@@ -192,48 +285,7 @@ const Products = () => {
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredProducts.map((product) => (
-                  <tr key={product.id} className="hover:bg-gray-50">
-                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-200 rounded-lg flex items-center justify-center text-gray-600 font-bold text-xs sm:text-sm">
-                          {product.image}
-                        </div>
-                        <div className="ml-3 sm:ml-4">
-                          <div className="text-sm font-medium text-gray-900">{product.name}</div>
-                          <div className="text-xs sm:text-sm text-gray-500">Created: {product.created}</div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{product.category}</div>
-                    </td>
-                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">${product.price}</div>
-                    </td>
-                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
-                      <div className={`text-sm font-medium ${getStockColor(product.stock)}`}>
-                        {product.stock} units
-                      </div>
-                    </td>
-                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(product.status)}`}>
-                        {product.status}
-                      </span>
-                    </td>
-                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
-                      <div className="flex space-x-1 sm:space-x-2">
-                        <button className="text-blue-600 hover:text-blue-900 p-1 rounded hover:bg-blue-50">
-                          <Eye size={16} />
-                        </button>
-                        <button className="text-green-600 hover:text-green-900 p-1 rounded hover:bg-green-50">
-                          <Edit size={16} />
-                        </button>
-                        <button className="text-red-600 hover:text-red-900 p-1 rounded hover:bg-red-50">
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
+                  <TableRow key={product.id} product={product} />
                 ))}
               </tbody>
             </table>
@@ -242,41 +294,7 @@ const Products = () => {
           // Mobile/Tablet card view
           <div className="divide-y divide-gray-200">
             {filteredProducts.map((product) => (
-              <div key={product.id} className="p-4 hover:bg-gray-50">
-                <div className="flex items-start space-x-3">
-                  <div className="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center text-gray-600 font-bold flex-shrink-0">
-                    {product.image}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <h3 className="text-sm font-medium text-gray-900 truncate">{product.name}</h3>
-                        <p className="text-xs text-gray-500 mt-1">{product.category}</p>
-                        <div className="flex items-center space-x-4 mt-2">
-                          <span className="text-sm font-medium text-gray-900">${product.price}</span>
-                          <span className={`text-xs font-medium ${getStockColor(product.stock)}`}>
-                            {product.stock} units
-                          </span>
-                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(product.status)}`}>
-                            {product.status}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="flex space-x-1">
-                        <button className="text-blue-600 hover:text-blue-900 p-1.5 rounded hover:bg-blue-50">
-                          <Eye size={16} />
-                        </button>
-                        <button className="text-green-600 hover:text-green-900 p-1.5 rounded hover:bg-green-50">
-                          <Edit size={16} />
-                        </button>
-                        <button className="text-red-600 hover:text-red-900 p-1.5 rounded hover:bg-red-50">
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <ProductCard key={product.id} product={product} />
             ))}
           </div>
         )}

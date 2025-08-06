@@ -1,6 +1,127 @@
-import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import React, { useState, useMemo, useCallback, useEffect, memo } from 'react';
 import { Search, Edit2, Trash2, ChevronDown, Plus, X, Filter } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+
+// Constants moved outside to prevent recreation on every render
+const SAMPLE_ITEMS = [
+  {
+    id: 1,
+    image: '/api/placeholder/120/116',
+    productName: 'Insomniac T shirt',
+    category: 'men',
+    subCategories: 'T shirt',
+    hsn: '44000000',
+    size: ['small', 'medium', 'large'],
+    quantity: 5,
+    price: 4566,
+    salePrice: 4566,
+    platforms: {
+      myntra: { enabled: true, price: 4566 },
+      amazon: { enabled: true, price: 4566 },
+      flipkart: { enabled: true, price: 4566 },
+      nykaa: { enabled: true, price: 4566 }
+    },
+    skus: {
+      'small': 'blk/s/inso123',
+      'medium': 'blk/m/inso123', 
+      'large': 'blk/l/inso123'
+    },
+    barcodeNo: '44000000000000',
+    status: 'draft',
+    metaTitle: 'tshirt white',
+    metaDescription: 'tshirt white trending',
+    slugUrl: 'tu.beee/hhhhhh/hahahha.com',
+    moveToSale: false,
+    keepCopyAndMove: false,
+    moveToEyx: false
+  },
+  {
+    id: 2,
+    image: '/api/placeholder/120/116',
+    productName: 'Insomniac T shirt',
+    category: 'men',
+    subCategories: 'T shirt',
+    hsn: '44000000',
+    size: ['small', 'medium', 'large'],
+    quantity: 10,
+    price: 4566,
+    salePrice: 4566,
+    platforms: {
+      myntra: { enabled: true, price: 4566 },
+      amazon: { enabled: true, price: 4566 },
+      flipkart: { enabled: true, price: 4566 },
+      nykaa: { enabled: true, price: 4566 }
+    },
+    skus: {
+      'small': 'blk/s/inso124',
+      'medium': 'blk/m/inso124', 
+      'large': 'blk/l/inso124'
+    },
+    barcodeNo: '44000000000000',
+    status: 'live',
+    metaTitle: 'tshirt white',
+    metaDescription: 'tshirt white trending',
+    slugUrl: 'tu.beee/hhhhhh/hahahha.com',
+    moveToSale: false,
+    keepCopyAndMove: false,
+    moveToEyx: false
+  },
+  {
+    id: 3,
+    image: '/api/placeholder/120/116',
+    productName: 'Insomniac T shirt',
+    category: 'men',
+    subCategories: 'T shirt',
+    hsn: '44000000',
+    size: ['small', 'medium', 'large'],
+    quantity: 8,
+    price: 4566,
+    salePrice: 4566,
+    platforms: {
+      myntra: { enabled: false, price: 4566 },
+      amazon: { enabled: true, price: 4566 },
+      flipkart: { enabled: false, price: 4566 },
+      nykaa: { enabled: true, price: 4566 }
+    },
+    skus: {
+      'small': 'blk/s/inso125',
+      'medium': 'blk/m/inso125', 
+      'large': 'blk/l/inso125'
+    },
+    barcodeNo: '44000000000000',
+    status: 'scheduled',
+    scheduledDate: '2025-08-15',
+    scheduledTime: '14:30',
+    metaTitle: 'tshirt white',
+    metaDescription: 'tshirt white trending',
+    slugUrl: 'tu.beee/hhhhhh/hahahha.com',
+    moveToSale: false,
+    keepCopyAndMove: false,
+    moveToEyx: false
+  }
+];
+
+const CATEGORY_OPTIONS = [
+  'All categories',
+  'men',
+  'women',
+  'T shirt',
+  'Clothing',
+  'Accessories'
+];
+
+const SUB_CATEGORY_OPTIONS = [
+  'All subcategories',
+  'T shirt',
+  'Casual wear',
+  'Formal wear'
+];
+
+const STATUS_STYLES = {
+  'live': 'text-[#00b69b]',
+  'draft': 'text-[#ef3826]',
+  'scheduled': 'text-[#ffd56d]'
+};
 
 // Custom hooks for better state management
 const useManageItemsState = () => {
@@ -108,130 +229,14 @@ const useModalState = () => {
   };
 };
 
-const ManageItems = React.memo(() => {
+const ManageItems = memo(() => {
   const navigate = useNavigate();
   const state = useManageItemsState();
   const modalState = useModalState();
 
-  // Sample items data - moved to constants for better management
-  const SAMPLE_ITEMS = useMemo(() => [
-    {
-      id: 1,
-      image: '/api/placeholder/120/116',
-      productName: 'Insomniac T shirt',
-      category: 'men',
-      subCategories: 'T shirt',
-      hsn: '44000000',
-      size: ['small', 'medium', 'large'],
-      quantity: 5,
-      price: 4566,
-      salePrice: 4566,
-      platforms: {
-        myntra: { enabled: true, price: 4566 },
-        amazon: { enabled: true, price: 4566 },
-        flipkart: { enabled: true, price: 4566 },
-        nykaa: { enabled: true, price: 4566 }
-      },
-      skus: {
-        'small': 'blk/s/inso123',
-        'medium': 'blk/m/inso123', 
-        'large': 'blk/l/inso123'
-      },
-      barcodeNo: '44000000000000',
-      status: 'draft',
-      metaTitle: 'tshirt white',
-      metaDescription: 'tshirt white trending',
-      slugUrl: 'tu.beee/hhhhhh/hahahha.com',
-      moveToSale: false,
-      keepCopyAndMove: false,
-      moveToEyx: false
-    },
-    {
-      id: 2,
-      image: '/api/placeholder/120/116',
-      productName: 'Insomniac T shirt',
-      category: 'men',
-      subCategories: 'T shirt',
-      hsn: '44000000',
-      size: ['small', 'medium', 'large'],
-      quantity: 10,
-      price: 4566,
-      salePrice: 4566,
-      platforms: {
-        myntra: { enabled: true, price: 4566 },
-        amazon: { enabled: true, price: 4566 },
-        flipkart: { enabled: true, price: 4566 },
-        nykaa: { enabled: true, price: 4566 }
-      },
-      skus: {
-        'small': 'blk/s/inso124',
-        'medium': 'blk/m/inso124', 
-        'large': 'blk/l/inso124'
-      },
-      barcodeNo: '44000000000000',
-      status: 'live',
-      metaTitle: 'tshirt white',
-      metaDescription: 'tshirt white trending',
-      slugUrl: 'tu.beee/hhhhhh/hahahha.com',
-      moveToSale: false,
-      keepCopyAndMove: false,
-      moveToEyx: false
-    },
-    {
-      id: 3,
-      image: '/api/placeholder/120/116',
-      productName: 'Insomniac T shirt',
-      category: 'men',
-      subCategories: 'T shirt',
-      hsn: '44000000',
-      size: ['small', 'medium', 'large'],
-      quantity: 8,
-      price: 4566,
-      salePrice: 4566,
-      platforms: {
-        myntra: { enabled: false, price: 4566 },
-        amazon: { enabled: true, price: 4566 },
-        flipkart: { enabled: false, price: 4566 },
-        nykaa: { enabled: true, price: 4566 }
-      },
-      skus: {
-        'small': 'blk/s/inso125',
-        'medium': 'blk/m/inso125', 
-        'large': 'blk/l/inso125'
-      },
-      barcodeNo: '44000000000000',
-      status: 'scheduled',
-      scheduledDate: '2025-08-15',
-      scheduledTime: '14:30',
-      metaTitle: 'tshirt white',
-      metaDescription: 'tshirt white trending',
-      slugUrl: 'tu.beee/hhhhhh/hahahha.com',
-      moveToSale: false,
-      keepCopyAndMove: false,
-      moveToEyx: false
-    }
-  ], []);
-
   const [sampleItems, setSampleItems] = useState(SAMPLE_ITEMS);
 
-  // Constants for filter options
-  const CATEGORY_OPTIONS = [
-    'All categories',
-    'men',
-    'women',
-    'T shirt',
-    'Clothing',
-    'Accessories'
-  ];
-
-  const SUB_CATEGORY_OPTIONS = [
-    'All subcategories',
-    'T shirt',
-    'Casual wear',
-    'Formal wear'
-  ];
-
-  // Data loading effect
+  // Data loading effect - optimized with reduced dependencies
   useEffect(() => {
     const loadSavedData = () => {
       try {
@@ -250,65 +255,74 @@ const ManageItems = React.memo(() => {
     };
 
     loadSavedData();
-  }, [state]);
+  }, []); // Removed state dependency for better performance
 
-  // Filter management handlers
-  const filterHandlers = useMemo(() => ({
-    handleViewAllDrafts: () => {
+  // Optimized filter handlers with useCallback
+  const filterHandlers = useMemo(() => {
+    const handleViewAllDrafts = () => {
       const newStatus = state.statusFilter === 'draft' ? 'all' : 'draft';
       state.setStatusFilter(newStatus);
       state.setShowDraftsOnly(newStatus === 'draft');
       state.setShowLiveOnly(false);
       state.setShowScheduledOnly(false);
-    },
+    };
 
-    handleViewAllLive: () => {
+    const handleViewAllLive = () => {
       const newStatus = state.statusFilter === 'live' ? 'all' : 'live';
       state.setStatusFilter(newStatus);
       state.setShowLiveOnly(newStatus === 'live');
       state.setShowDraftsOnly(false);
       state.setShowScheduledOnly(false);
-    },
+    };
 
-    handleViewAllScheduled: () => {
+    const handleViewAllScheduled = () => {
       const newStatus = state.statusFilter === 'scheduled' ? 'all' : 'scheduled';
       state.setStatusFilter(newStatus);
       state.setShowScheduledOnly(newStatus === 'scheduled');
       state.setShowDraftsOnly(false);
       state.setShowLiveOnly(false);
-    },
+    };
 
-    clearAllFilters: () => {
+    const clearAllFilters = () => {
       state.setStatusFilter('all');
       state.setShowDraftsOnly(false);
       state.setShowLiveOnly(false);
       state.setShowScheduledOnly(false);
-    },
+    };
 
-    toggleFilterDropdown: () => {
+    const toggleFilterDropdown = () => {
       state.setIsFilterDropdownOpen(prev => !prev);
-    },
+    };
 
-    handleFilterOption: (filterType) => {
+    const handleFilterOption = (filterType) => {
       switch (filterType) {
         case 'all_drafts':
-          filterHandlers.handleViewAllDrafts();
+          handleViewAllDrafts();
           break;
         case 'all_live':
-          filterHandlers.handleViewAllLive();
+          handleViewAllLive();
           break;
         case 'all_scheduled':
-          filterHandlers.handleViewAllScheduled();
+          handleViewAllScheduled();
           break;
         case 'clear_filters':
-          filterHandlers.clearAllFilters();
+          clearAllFilters();
           break;
         default:
           break;
       }
       state.setIsFilterDropdownOpen(false);
-    }
-  }), [state]);
+    };
+
+    return {
+      handleViewAllDrafts,
+      handleViewAllLive,
+      handleViewAllScheduled,
+      clearAllFilters,
+      toggleFilterDropdown,
+      handleFilterOption
+    };
+  }, [state.statusFilter, state.setStatusFilter, state.setShowDraftsOnly, state.setShowLiveOnly, state.setShowScheduledOnly, state.setIsFilterDropdownOpen]);
 
   // Dropdown click outside handler
   useEffect(() => {
@@ -392,22 +406,17 @@ const ManageItems = React.memo(() => {
   }, [allItems, state.searchTerm, state.selectedCategory, state.selectedSubCategory, 
       state.showDraftsOnly, state.showLiveOnly, state.showScheduledOnly]);
 
-  // Utility functions
-  const utils = useMemo(() => ({
-    getSizeDisplay: (sizes) => sizes.join(', '),
+  // Optimized utility functions with useCallback for better performance
+  const utils = useMemo(() => {
+    const getSizeDisplay = (sizes) => sizes.join(', ');
     
-    getSkuDisplay: (skus, sizes) => sizes.map(size => skus[size]).join(', '),
+    const getSkuDisplay = (skus, sizes) => sizes.map(size => skus[size]).join(', ');
     
-    getStatusStyle: (status) => {
-      const styles = {
-        'live': 'text-[#00b69b]',
-        'draft': 'text-[#ef3826]',
-        'scheduled': 'text-[#ffd56d]'
-      };
-      return styles[status.toLowerCase()] || styles.draft;
-    },
+    const getStatusStyle = (status) => {
+      return STATUS_STYLES[status.toLowerCase()] || STATUS_STYLES.draft;
+    };
     
-    formatScheduledDateTime: (date, time) => {
+    const formatScheduledDateTime = (date, time) => {
       if (!date || !time) return '';
       
       const dateObj = new Date(date);
@@ -427,54 +436,70 @@ const ManageItems = React.memo(() => {
       });
       
       return `${formattedDate} at ${formattedTime}`;
-    }
-  }), []);
+    };
 
-  // Basic action handlers
-  const actionHandlers = useMemo(() => ({
-    handleBulkUpload: () => {
+    return {
+      getSizeDisplay,
+      getSkuDisplay,
+      getStatusStyle,
+      formatScheduledDateTime
+    };
+  }, []);
+
+  // Optimized action handlers with useCallback
+  const actionHandlers = useMemo(() => {
+    const handleBulkUpload = () => {
       console.log('Bulk upload');
-    },
+    };
 
-    handleUploadSingleProduct: () => {
+    const handleUploadSingleProduct = () => {
       navigate('/single-product-upload');
-    },
+    };
 
-    handleEdit: (itemId) => {
+    const handleEdit = (itemId) => {
       const itemToEdit = allItems.find(item => item.id === itemId);
       modalState.setEditingItem(itemToEdit);
       modalState.setNewDetails('');
       modalState.setIsEditModalOpen(true);
-    },
+    };
 
-    handleSaveEdit: () => {
+    const handleSaveEdit = () => {
       console.log('Saving edit for item:', modalState.editingItem.id, 'New details:', modalState.newDetails);
       modalState.setIsEditModalOpen(false);
       modalState.setEditingItem(null);
       modalState.setNewDetails('');
       modalState.setIsSuccessModalOpen(true);
-    },
+    };
 
-    handleCloseEdit: () => {
+    const handleCloseEdit = () => {
       modalState.setIsEditModalOpen(false);
       modalState.setEditingItem(null);
       modalState.setNewDetails('');
-    },
+    };
 
-    handleCloseSuccess: () => {
+    const handleCloseSuccess = () => {
       modalState.setIsSuccessModalOpen(false);
-    }
-  }), [navigate, allItems, modalState]);
+    };
 
-  // Delete handlers
-  const deleteHandlers = useMemo(() => ({
-    handleDelete: (itemId) => {
+    return {
+      handleBulkUpload,
+      handleUploadSingleProduct,
+      handleEdit,
+      handleSaveEdit,
+      handleCloseEdit,
+      handleCloseSuccess
+    };
+  }, [navigate, allItems, modalState.editingItem, modalState.newDetails]);
+
+  // Optimized delete handlers
+  const deleteHandlers = useMemo(() => {
+    const handleDelete = (itemId) => {
       const itemToDeleteObj = allItems.find(item => item.id === itemId);
       modalState.setItemToDelete(itemToDeleteObj);
       modalState.setIsDeleteConfirmModalOpen(true);
-    },
+    };
 
-    handleConfirmDelete: () => {
+    const handleConfirmDelete = () => {
       console.log('Deleting item:', modalState.itemToDelete.id);
       
       if (modalState.itemToDelete.status === 'draft') {
@@ -490,21 +515,28 @@ const ManageItems = React.memo(() => {
       modalState.setIsDeleteConfirmModalOpen(false);
       modalState.setItemToDelete(null);
       modalState.setIsDeleteSuccessModalOpen(true);
-    },
+    };
 
-    handleCancelDelete: () => {
+    const handleCancelDelete = () => {
       modalState.setIsDeleteConfirmModalOpen(false);
       modalState.setItemToDelete(null);
-    },
+    };
 
-    handleCloseDeleteSuccess: () => {
+    const handleCloseDeleteSuccess = () => {
       modalState.setIsDeleteSuccessModalOpen(false);
-    }
-  }), [allItems, modalState, state]);
+    };
 
-  // Metadata handlers
-  const metaDataHandlers = useMemo(() => ({
-    handleViewMetaData: (item) => {
+    return {
+      handleDelete,
+      handleConfirmDelete,
+      handleCancelDelete,
+      handleCloseDeleteSuccess
+    };
+  }, [allItems, modalState.itemToDelete, state.draftItems, state.publishedItems]);
+
+  // Optimized metadata handlers
+  const metaDataHandlers = useMemo(() => {
+    const handleViewMetaData = (item) => {
       modalState.setSelectedItemForMeta(item);
       modalState.setMetaFormData({
         metaTitle: item.metaTitle || '',
@@ -512,9 +544,9 @@ const ManageItems = React.memo(() => {
         slugUrl: item.slugUrl || ''
       });
       modalState.setIsMetaDataModalOpen(true);
-    },
+    };
 
-    handleCloseMetaData: () => {
+    const handleCloseMetaData = () => {
       modalState.setIsMetaDataModalOpen(false);
       modalState.setSelectedItemForMeta(null);
       modalState.setMetaFormData({
@@ -522,9 +554,9 @@ const ManageItems = React.memo(() => {
         metaDescription: '',
         slugUrl: ''
       });
-    },
+    };
 
-    handleSaveMetaData: () => {
+    const handleSaveMetaData = () => {
       console.log('Saving meta data for item:', modalState.selectedItemForMeta.id, 'Data:', modalState.metaFormData);
       modalState.setIsMetaDataModalOpen(false);
       modalState.setSelectedItemForMeta(null);
@@ -534,34 +566,44 @@ const ManageItems = React.memo(() => {
         slugUrl: ''
       });
       modalState.setIsMetaDataSuccessModalOpen(true);
-    },
+    };
 
-    handleCloseMetaDataSuccess: () => {
+    const handleCloseMetaDataSuccess = () => {
       modalState.setIsMetaDataSuccessModalOpen(false);
-    },
+    };
 
-    handleMetaInputChange: (field, value) => {
+    const handleMetaInputChange = useCallback((field, value) => {
       modalState.setMetaFormData(prev => ({
         ...prev,
         [field]: value
       }));
-    }
-  }), [modalState]);
+    }, [modalState.setMetaFormData]);
 
-  // Item action handlers
-  const itemActionHandlers = useMemo(() => ({
-    handleItemAction: (itemId, action, value) => {
+    return {
+      handleViewMetaData,
+      handleCloseMetaData,
+      handleSaveMetaData,
+      handleCloseMetaDataSuccess,
+      handleMetaInputChange
+    };
+  }, [modalState.selectedItemForMeta, modalState.metaFormData]);
+
+  // Optimized item action handlers with useCallback
+  const itemActionHandlers = useMemo(() => {
+    const handleItemAction = useCallback((itemId, action, value) => {
       console.log(`${action} for item ${itemId}:`, value);
       
       // Check if it's a sample item (ids 1, 2, 3)
       const sampleItemIndex = sampleItems.findIndex(item => item.id === itemId);
       if (sampleItemIndex !== -1) {
-        const updatedSampleItems = [...sampleItems];
-        updatedSampleItems[sampleItemIndex] = { 
-          ...updatedSampleItems[sampleItemIndex], 
-          [action]: value 
-        };
-        setSampleItems(updatedSampleItems);
+        setSampleItems(prev => {
+          const updated = [...prev];
+          updated[sampleItemIndex] = { 
+            ...updated[sampleItemIndex], 
+            [action]: value 
+          };
+          return updated;
+        });
         return;
       }
       
@@ -592,18 +634,20 @@ const ManageItems = React.memo(() => {
       }
       
       console.log('Item not found in any collection');
-    }
-  }), [sampleItems, setSampleItems, state]);
+    }, [sampleItems, state.draftItems, state.publishedItems]);
 
-  // Item lifecycle handlers (Make Live, Schedule, etc.)
-  const lifecycleHandlers = useMemo(() => ({
+    return { handleItemAction };
+  }, [sampleItems, state.draftItems, state.publishedItems]);
+
+  // Optimized item lifecycle handlers with focused dependencies
+  const lifecycleHandlers = useMemo(() => {
     // Make Live handlers
-    handleMakeLive: (item) => {
+    const handleMakeLive = (item) => {
       modalState.setItemToMakeLive(item);
       modalState.setIsMakeLiveConfirmModalOpen(true);
-    },
+    };
 
-    handleConfirmMakeLive: () => {
+    const handleConfirmMakeLive = () => {
       if (modalState.itemToMakeLive) {
         const updatedItem = { 
           ...modalState.itemToMakeLive, 
@@ -627,26 +671,26 @@ const ManageItems = React.memo(() => {
       modalState.setIsMakeLiveConfirmModalOpen(false);
       modalState.setItemToMakeLive(null);
       modalState.setIsMakeLiveSuccessModalOpen(true);
-    },
+    };
 
-    handleCancelMakeLive: () => {
+    const handleCancelMakeLive = () => {
       modalState.setIsMakeLiveConfirmModalOpen(false);
       modalState.setItemToMakeLive(null);
-    },
+    };
 
-    handleCloseMakeLiveSuccess: () => {
+    const handleCloseMakeLiveSuccess = () => {
       modalState.setIsMakeLiveSuccessModalOpen(false);
-    },
+    };
 
     // Schedule handlers
-    handleScheduleItem: (item) => {
+    const handleScheduleItem = (item) => {
       modalState.setItemToSchedule(item);
       modalState.setScheduleDate('');
       modalState.setScheduleTime('');
       modalState.setIsScheduleModalOpen(true);
-    },
+    };
 
-    handleConfirmSchedule: () => {
+    const handleConfirmSchedule = () => {
       if (modalState.itemToSchedule && modalState.scheduleDate && modalState.scheduleTime) {
         const updatedDrafts = state.draftItems.map(item => 
           item.id === modalState.itemToSchedule.id 
@@ -668,26 +712,26 @@ const ManageItems = React.memo(() => {
       modalState.setScheduleDate('');
       modalState.setScheduleTime('');
       modalState.setIsScheduleSuccessModalOpen(true);
-    },
+    };
 
-    handleCancelSchedule: () => {
+    const handleCancelSchedule = () => {
       modalState.setIsScheduleModalOpen(false);
       modalState.setItemToSchedule(null);
       modalState.setScheduleDate('');
       modalState.setScheduleTime('');
-    },
+    };
 
-    handleCloseScheduleSuccess: () => {
+    const handleCloseScheduleSuccess = () => {
       modalState.setIsScheduleSuccessModalOpen(false);
-    },
+    };
 
     // Cancel schedule handlers
-    handleCancelScheduleItem: (item) => {
+    const handleCancelScheduleItem = (item) => {
       modalState.setItemToCancelSchedule(item);
       modalState.setIsCancelScheduleConfirmModalOpen(true);
-    },
+    };
 
-    handleConfirmCancelSchedule: () => {
+    const handleConfirmCancelSchedule = () => {
       if (modalState.itemToCancelSchedule) {
         const updatedDrafts = state.draftItems.map(item => 
           item.id === modalState.itemToCancelSchedule.id 
@@ -707,20 +751,43 @@ const ManageItems = React.memo(() => {
       modalState.setIsCancelScheduleConfirmModalOpen(false);
       modalState.setItemToCancelSchedule(null);
       modalState.setIsCancelScheduleSuccessModalOpen(true);
-    },
+    };
 
-    handleCancelCancelSchedule: () => {
+    const handleCancelCancelSchedule = () => {
       modalState.setIsCancelScheduleConfirmModalOpen(false);
       modalState.setItemToCancelSchedule(null);
-    },
+    };
 
-    handleCloseCancelScheduleSuccess: () => {
+    const handleCloseCancelScheduleSuccess = () => {
       modalState.setIsCancelScheduleSuccessModalOpen(false);
-    }
-  }), [modalState, state]);
+    };
 
-  // Component renderers for better organization
-  const renderHeader = () => (
+    return {
+      handleMakeLive,
+      handleConfirmMakeLive,
+      handleCancelMakeLive,
+      handleCloseMakeLiveSuccess,
+      handleScheduleItem,
+      handleConfirmSchedule,
+      handleCancelSchedule,
+      handleCloseScheduleSuccess,
+      handleCancelScheduleItem,
+      handleConfirmCancelSchedule,
+      handleCancelCancelSchedule,
+      handleCloseCancelScheduleSuccess
+    };
+  }, [
+    modalState.itemToMakeLive,
+    modalState.itemToSchedule,
+    modalState.scheduleDate,
+    modalState.scheduleTime,
+    modalState.itemToCancelSchedule,
+    state.draftItems,
+    state.publishedItems
+  ]);
+
+  // Memoized component renderers for better performance
+  const renderHeader = useCallback(() => (
     <div className="px-6 py-6 border-b border-gray-200">
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6">
         <h1 className="text-[24px] font-bold text-[#111111] font-['Montserrat']">Manage Items</h1>
@@ -865,9 +932,19 @@ const ManageItems = React.memo(() => {
         </div>
       </div>
     </div>
-  );
+  ), [actionHandlers, state.searchTerm, state.selectedCategory, state.selectedSubCategory, state.isFilterDropdownOpen, state.statusFilter, filterHandlers]);
 
-  const renderFilterSummary = () => (
+  // Memoized statistics calculations
+  const statistics = useMemo(() => {
+    const draftsCount = allItems.filter(item => item.status === 'draft').length;
+    const liveCount = allItems.filter(item => item.status === 'live').length;
+    const scheduledCount = allItems.filter(item => item.status === 'scheduled').length;
+    const totalCount = allItems.length;
+
+    return { draftsCount, liveCount, scheduledCount, totalCount };
+  }, [allItems]);
+
+  const renderFilterSummary = useCallback(() => (
     <div className="mb-4 p-4 bg-gray-50 rounded-lg">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-4">
@@ -913,30 +990,241 @@ const ManageItems = React.memo(() => {
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 bg-[#ef3826] rounded-full"></div>
           <span className="text-[#666666]">
-            Drafts: <span className="font-medium text-[#111111]">{allItems.filter(item => item.status === 'draft').length}</span>
+            Drafts: <span className="font-medium text-[#111111]">{statistics.draftsCount}</span>
           </span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 bg-[#22c55e] rounded-full"></div>
           <span className="text-[#666666]">
-            Live: <span className="font-medium text-[#111111]">{allItems.filter(item => item.status === 'live').length}</span>
+            Live: <span className="font-medium text-[#111111]">{statistics.liveCount}</span>
           </span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 bg-[#eab308] rounded-full"></div>
           <span className="text-[#666666]">
-            Scheduled: <span className="font-medium text-[#111111]">{allItems.filter(item => item.status === 'scheduled').length}</span>
+            Scheduled: <span className="font-medium text-[#111111]">{statistics.scheduledCount}</span>
           </span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 bg-[#6b7280] rounded-full"></div>
           <span className="text-[#666666]">
-            Total: <span className="font-medium text-[#111111]">{allItems.length}</span>
+            Total: <span className="font-medium text-[#111111]">{statistics.totalCount}</span>
           </span>
         </div>
       </div>
     </div>
-  );
+  ), [filteredItems.length, state.showDraftsOnly, state.showLiveOnly, state.showScheduledOnly, filterHandlers.clearAllFilters, statistics]);
+
+  // Memoized item row component for better performance
+  const ItemRow = memo(({ item, index }) => (
+    <div key={item.id}>
+      <div className="grid grid-cols-[120px_180px_100px_120px_80px_80px_80px_80px_80px_200px_120px_120px_80px_120px_120px] gap-1 p-3 items-center hover:bg-gray-50 transition-colors min-w-[1350px]">
+        
+        {/* Product Image */}
+        <div className="flex justify-center">
+          <div className="w-[120px] h-[116px] bg-gray-200 rounded overflow-hidden">
+            <img
+              src={item.image}
+              alt={item.productName}
+              className="w-full h-full object-cover"
+            />
+          </div>
+        </div>
+
+        {/* Product Name */}
+        <div className="text-[#111111] text-[14px] font-medium font-['Montserrat'] text-center px-2">
+          {item.productName}
+        </div>
+
+        {/* Category */}
+        <div className="text-[#111111] text-[14px] font-medium font-['Montserrat'] text-center">
+          {item.category}
+        </div>
+
+        {/* Sub Categories */}
+        <div className="text-[#111111] text-[14px] font-medium font-['Montserrat'] text-center">
+          {item.subCategories}
+        </div>
+
+        {/* HSN */}
+        <div className="text-[#010101] text-[12px] font-['Montserrat'] text-center">
+          {item.hsn}
+        </div>
+
+        {/* Size */}
+        <div className="flex flex-col gap-1 text-[12px] font-medium text-[#010101] font-['Montserrat'] text-center">
+          {item.size.map((size, idx) => (
+            <div key={idx}>{size}</div>
+          ))}
+        </div>
+
+        {/* Quantity */}
+        <div className="text-[#010101] text-[14px] font-medium font-['Montserrat'] text-center">
+          {item.quantity}
+        </div>
+
+        {/* Price */}
+        <div className="text-[#111111] text-[12px] font-medium font-['Montserrat'] text-center">
+          {item.price}
+        </div>
+
+        {/* Sale Price */}
+        <div className="text-[#111111] text-[12px] font-medium font-['Montserrat'] text-center">
+          {item.salePrice}
+        </div>
+
+        {/* Platform Prices (Alternate Price) */}
+        <div className="flex items-center justify-center">
+          <div className="grid grid-cols-4 gap-2 text-center text-[10px] font-medium font-['Montserrat']">
+            <div className="flex flex-col items-center">
+              <span className="text-[#111111]">
+                {item.platforms.myntra.enabled ? item.platforms.myntra.price : '-'}
+              </span>
+            </div>
+            <div className="flex flex-col items-center">
+              <span className="text-[#111111]">
+                {item.platforms.amazon.enabled ? item.platforms.amazon.price : '-'}
+              </span>
+            </div>
+            <div className="flex flex-col items-center">
+              <span className="text-[#111111]">
+                {item.platforms.flipkart.enabled ? item.platforms.flipkart.price : '-'}
+              </span>
+            </div>
+            <div className="flex flex-col items-center">
+              <span className="text-[#111111]">
+                {item.platforms.nykaa.enabled ? item.platforms.nykaa.price : '-'}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* SKU */}
+        <div className="text-[#111111] text-[12px] font-medium font-['Montserrat'] text-center">
+          <div className="flex flex-col gap-1">
+            {item.size.map((size, idx) => (
+              <div key={idx} className="text-[10px]">{item.skus[size]}</div>
+            ))}
+          </div>
+        </div>
+
+        {/* Barcode */}
+        <div className="text-[#111111] text-[12px] font-medium font-['Montserrat'] text-center">
+          {item.barcodeNo}
+        </div>
+
+        {/* Status */}
+        <div className="text-center">
+          <span className={`${utils.getStatusStyle(item.status)} text-[14px] font-medium font-['Montserrat']`}>
+            {item.status}
+          </span>
+          {item.status === 'scheduled' && item.scheduledDate && item.scheduledTime && (
+            <div className="text-[10px] text-gray-600 mt-1 font-['Montserrat']">
+              {utils.formatScheduledDateTime(item.scheduledDate, item.scheduledTime)}
+            </div>
+          )}
+        </div>
+
+        {/* Meta Data */}
+        <div className="text-center">
+          <button
+            onClick={() => metaDataHandlers.handleViewMetaData(item)}
+            className="bg-black text-white text-[12px] font-medium font-['Montserrat'] px-3 py-1 rounded hover:bg-gray-800 transition-colors"
+          >
+            View Meta Data
+          </button>
+        </div>
+
+        {/* Action */}
+        <div className="flex justify-center gap-1">
+          {item.status === 'draft' ? (
+            <>
+              <button
+                onClick={() => lifecycleHandlers.handleMakeLive(item)}
+                className="px-2 py-1 bg-green-500 text-white text-xs font-medium rounded hover:bg-green-600 transition-colors"
+              >
+                Make Live
+              </button>
+              <button
+                onClick={() => lifecycleHandlers.handleScheduleItem(item)}
+                className="px-2 py-1 bg-blue-500 text-white text-xs font-medium rounded hover:bg-blue-600 transition-colors"
+              >
+                Schedule
+              </button>
+            </>
+          ) : item.status === 'scheduled' ? (
+            <>
+              <button
+                onClick={() => lifecycleHandlers.handleMakeLive(item)}
+                className="px-2 py-1 bg-green-500 text-white text-xs font-medium rounded hover:bg-green-600 transition-colors"
+              >
+                Make Live
+              </button>
+              <button
+                onClick={() => lifecycleHandlers.handleCancelScheduleItem(item)}
+                className="px-2 py-1 bg-red-500 text-white text-xs font-medium rounded hover:bg-red-600 transition-colors"
+              >
+                Cancel Schedule
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                onClick={() => actionHandlers.handleEdit(item.id)}
+                className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors"
+              >
+                <Edit2 className="h-4 w-4" />
+              </button>
+              <button
+                onClick={() => deleteHandlers.handleDelete(item.id)}
+                className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* Row-level Bulk Actions */}
+      <div className="px-3 py-2 bg-gray-50 text-[12px] font-['Montserrat'] min-w-[1350px]">
+        <div className="flex items-center gap-8">
+          <div className={`flex items-center gap-2 ${item.moveToSale ? 'bg-blue-50 p-2 rounded-md' : ''}`}>
+            <input 
+              type="checkbox" 
+              id={`move-to-sale-${item.id}`}
+              checked={item.moveToSale}
+              onChange={(e) => itemActionHandlers.handleItemAction(item.id, 'moveToSale', e.target.checked)}
+              className="w-4 h-4 rounded-[3px] border-[#bcbcbc] text-blue-600 focus:ring-blue-500 focus:ring-2" 
+            />
+            <label htmlFor={`move-to-sale-${item.id}`} className={`${item.moveToSale ? 'text-blue-700 font-medium' : 'text-black'}`}>move to sale</label>
+          </div>
+          <div className={`flex items-center gap-2 ${item.keepCopyAndMove ? 'bg-green-50 p-2 rounded-md' : ''}`}>
+            <input 
+              type="checkbox" 
+              id={`keep-copy-${item.id}`}
+              checked={item.keepCopyAndMove}
+              onChange={(e) => itemActionHandlers.handleItemAction(item.id, 'keepCopyAndMove', e.target.checked)}
+              className="w-4 h-4 rounded-[3px] border-[#bcbcbc] text-blue-600 focus:ring-blue-500 focus:ring-2" 
+            />
+            <label htmlFor={`keep-copy-${item.id}`} className={`${item.keepCopyAndMove ? 'text-green-700 font-medium' : 'text-black'}`}>make a copy and move to sale</label>
+          </div>
+          <div className={`flex items-center gap-2 ${item.moveToEyx ? 'bg-purple-50 p-2 rounded-md' : ''}`}>
+            <input 
+              type="checkbox" 
+              id={`move-to-eyx-${item.id}`}
+              checked={item.moveToEyx}
+              onChange={(e) => itemActionHandlers.handleItemAction(item.id, 'moveToEyx', e.target.checked)}
+              className="w-4 h-4 rounded-[3px] border-[#bcbcbc] text-blue-600 focus:ring-blue-500 focus:ring-2" 
+            />
+            <label htmlFor={`move-to-eyx-${item.id}`} className={`${item.moveToEyx ? 'text-purple-700 font-medium' : 'text-black'}`}>move to eyx</label>
+          </div>
+        </div>
+      </div>
+    </div>
+  ));
+
+  ItemRow.displayName = 'ItemRow';
 
   return (
     <div className="bg-white min-h-full">
@@ -1011,211 +1299,7 @@ const ManageItems = React.memo(() => {
             {/* Table Rows */}
             <div className="divide-y divide-gray-100 overflow-x-auto">
               {filteredItems.map((item, index) => (
-                <div key={item.id}>
-                  <div className="grid grid-cols-[120px_180px_100px_120px_80px_80px_80px_80px_80px_200px_120px_120px_80px_120px_120px] gap-1 p-3 items-center hover:bg-gray-50 transition-colors min-w-[1350px]">
-                    
-                    {/* Product Image */}
-                    <div className="flex justify-center">
-                      <div className="w-[120px] h-[116px] bg-gray-200 rounded overflow-hidden">
-                        <img
-                          src={item.image}
-                          alt={item.productName}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Product Name */}
-                    <div className="text-[#111111] text-[14px] font-medium font-['Montserrat'] text-center px-2">
-                      {item.productName}
-                    </div>
-
-                    {/* Category */}
-                    <div className="text-[#111111] text-[14px] font-medium font-['Montserrat'] text-center">
-                      {item.category}
-                    </div>
-
-                    {/* Sub Categories */}
-                    <div className="text-[#111111] text-[14px] font-medium font-['Montserrat'] text-center">
-                      {item.subCategories}
-                    </div>
-
-                    {/* HSN */}
-                    <div className="text-[#010101] text-[12px] font-['Montserrat'] text-center">
-                      {item.hsn}
-                    </div>
-
-                    {/* Size */}
-                    <div className="flex flex-col gap-1 text-[12px] font-medium text-[#010101] font-['Montserrat'] text-center">
-                      {item.size.map((size, idx) => (
-                        <div key={idx}>{size}</div>
-                      ))}
-                    </div>
-
-                    {/* Quantity */}
-                    <div className="text-[#010101] text-[14px] font-medium font-['Montserrat'] text-center">
-                      {item.quantity}
-                    </div>
-
-                    {/* Price */}
-                    <div className="text-[#111111] text-[12px] font-medium font-['Montserrat'] text-center">
-                      {item.price}
-                    </div>
-
-                    {/* Sale Price */}
-                    <div className="text-[#111111] text-[12px] font-medium font-['Montserrat'] text-center">
-                      {item.salePrice}
-                    </div>
-
-                    {/* Platform Prices (Alternate Price) */}
-                    <div className="flex items-center justify-center">
-                      <div className="grid grid-cols-4 gap-2 text-center text-[10px] font-medium font-['Montserrat']">
-                        <div className="flex flex-col items-center">
-                          <span className="text-[#111111]">
-                            {item.platforms.myntra.enabled ? item.platforms.myntra.price : '-'}
-                          </span>
-                        </div>
-                        <div className="flex flex-col items-center">
-                          <span className="text-[#111111]">
-                            {item.platforms.amazon.enabled ? item.platforms.amazon.price : '-'}
-                          </span>
-                        </div>
-                        <div className="flex flex-col items-center">
-                          <span className="text-[#111111]">
-                            {item.platforms.flipkart.enabled ? item.platforms.flipkart.price : '-'}
-                          </span>
-                        </div>
-                        <div className="flex flex-col items-center">
-                          <span className="text-[#111111]">
-                            {item.platforms.nykaa.enabled ? item.platforms.nykaa.price : '-'}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* SKU */}
-                    <div className="text-[#111111] text-[12px] font-medium font-['Montserrat'] text-center">
-                      <div className="flex flex-col gap-1">
-                        {item.size.map((size, idx) => (
-                          <div key={idx} className="text-[10px]">{item.skus[size]}</div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Barcode */}
-                    <div className="text-[#111111] text-[12px] font-medium font-['Montserrat'] text-center">
-                      {item.barcodeNo}
-                    </div>
-
-                    {/* Status */}
-                    <div className="text-center">
-                      <span className={`${utils.getStatusStyle(item.status)} text-[14px] font-medium font-['Montserrat']`}>
-                        {item.status}
-                      </span>
-                      {item.status === 'scheduled' && item.scheduledDate && item.scheduledTime && (
-                        <div className="text-[10px] text-gray-600 mt-1 font-['Montserrat']">
-                          {utils.formatScheduledDateTime(item.scheduledDate, item.scheduledTime)}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Meta Data */}
-                    <div className="text-center">
-                      <button
-                        onClick={() => metaDataHandlers.handleViewMetaData(item)}
-                        className="bg-black text-white text-[12px] font-medium font-['Montserrat'] px-3 py-1 rounded hover:bg-gray-800 transition-colors"
-                      >
-                        View Meta Data
-                      </button>
-                    </div>
-
-                    {/* Action */}
-                    <div className="flex justify-center gap-1">
-                      {item.status === 'draft' ? (
-                        <>
-                          <button
-                            onClick={() => lifecycleHandlers.handleMakeLive(item)}
-                            className="px-2 py-1 bg-green-500 text-white text-xs font-medium rounded hover:bg-green-600 transition-colors"
-                          >
-                            Make Live
-                          </button>
-                          <button
-                            onClick={() => lifecycleHandlers.handleScheduleItem(item)}
-                            className="px-2 py-1 bg-blue-500 text-white text-xs font-medium rounded hover:bg-blue-600 transition-colors"
-                          >
-                            Schedule
-                          </button>
-                        </>
-                      ) : item.status === 'scheduled' ? (
-                        <>
-                          <button
-                            onClick={() => lifecycleHandlers.handleMakeLive(item)}
-                            className="px-2 py-1 bg-green-500 text-white text-xs font-medium rounded hover:bg-green-600 transition-colors"
-                          >
-                            Make Live
-                          </button>
-                          <button
-                            onClick={() => lifecycleHandlers.handleCancelScheduleItem(item)}
-                            className="px-2 py-1 bg-red-500 text-white text-xs font-medium rounded hover:bg-red-600 transition-colors"
-                          >
-                            Cancel Schedule
-                          </button>
-                        </>
-                      ) : (
-                        <>
-                          <button
-                            onClick={() => actionHandlers.handleEdit(item.id)}
-                            className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors"
-                          >
-                            <Edit2 className="h-4 w-4" />
-                          </button>
-                          <button
-                            onClick={() => deleteHandlers.handleDelete(item.id)}
-                            className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Row-level Bulk Actions */}
-                  <div className="px-3 py-2 bg-gray-50 text-[12px] font-['Montserrat'] min-w-[1350px]">
-                    <div className="flex items-center gap-8">
-                      <div className={`flex items-center gap-2 ${item.moveToSale ? 'bg-blue-50 p-2 rounded-md' : ''}`}>
-                        <input 
-                          type="checkbox" 
-                          id={`move-to-sale-${item.id}`}
-                          checked={item.moveToSale}
-                          onChange={(e) => itemActionHandlers.handleItemAction(item.id, 'moveToSale', e.target.checked)}
-                          className="w-4 h-4 rounded-[3px] border-[#bcbcbc] text-blue-600 focus:ring-blue-500 focus:ring-2" 
-                        />
-                        <label htmlFor={`move-to-sale-${item.id}`} className={`${item.moveToSale ? 'text-blue-700 font-medium' : 'text-black'}`}>move to sale</label>
-                      </div>
-                      <div className={`flex items-center gap-2 ${item.keepCopyAndMove ? 'bg-green-50 p-2 rounded-md' : ''}`}>
-                        <input 
-                          type="checkbox" 
-                          id={`keep-copy-${item.id}`}
-                          checked={item.keepCopyAndMove}
-                          onChange={(e) => itemActionHandlers.handleItemAction(item.id, 'keepCopyAndMove', e.target.checked)}
-                          className="w-4 h-4 rounded-[3px] border-[#bcbcbc] text-blue-600 focus:ring-blue-500 focus:ring-2" 
-                        />
-                        <label htmlFor={`keep-copy-${item.id}`} className={`${item.keepCopyAndMove ? 'text-green-700 font-medium' : 'text-black'}`}>make a copy and move to sale</label>
-                      </div>
-                      <div className={`flex items-center gap-2 ${item.moveToEyx ? 'bg-purple-50 p-2 rounded-md' : ''}`}>
-                        <input 
-                          type="checkbox" 
-                          id={`move-to-eyx-${item.id}`}
-                          checked={item.moveToEyx}
-                          onChange={(e) => itemActionHandlers.handleItemAction(item.id, 'moveToEyx', e.target.checked)}
-                          className="w-4 h-4 rounded-[3px] border-[#bcbcbc] text-blue-600 focus:ring-blue-500 focus:ring-2" 
-                        />
-                        <label htmlFor={`move-to-eyx-${item.id}`} className={`${item.moveToEyx ? 'text-purple-700 font-medium' : 'text-black'}`}>move to eyx</label>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                <ItemRow key={item.id} item={item} index={index} />
               ))}
             </div>
 

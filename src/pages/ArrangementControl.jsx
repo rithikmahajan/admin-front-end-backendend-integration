@@ -23,10 +23,11 @@
  *    - Improved readability with consistent naming conventions
  */
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, memo } from 'react';
 import PropTypes from 'prop-types';
 import { ChevronDown, Move, GripVertical, Eye, RotateCcw, ChevronRight } from 'lucide-react';
-import { SaveArrangementModal, SaveSuccessModal } from '../components';
+import SaveArrangementModal from '../components/SaveArrangementModal';
+import SaveSuccessModal from '../components/SaveSuccessModal';
 
 // Constants
 const VIEW_MODES = {
@@ -59,7 +60,399 @@ const CLOTHING_SUBCATEGORIES = [
   { id: 'accessories', name: 'Accessories', icon: '🎒' }
 ];
 
-// Custom hook for drag and drop functionality
+// Memoized Component: Category Selection Dropdown
+const CategoryDropdown = memo(({ value, onChange, options, placeholder, disabled = false }) => (
+  <div className="relative">
+    <select
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      className="appearance-none bg-white border border-[#979797] rounded-xl px-4 py-3 pr-10 text-black text-[15px] font-montserrat focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-80 h-[47px] tracking-[-0.375px]"
+      disabled={disabled}
+    >
+      <option value="">{placeholder}</option>
+      {options.map((option, index) => (
+        <option key={index} value={option}>
+          {option}
+        </option>
+      ))}
+    </select>
+    <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
+  </div>
+));
+
+CategoryDropdown.displayName = 'CategoryDropdown';
+CategoryDropdown.propTypes = {
+  value: PropTypes.string.isRequired,
+  onChange: PropTypes.func.isRequired,
+  options: PropTypes.arrayOf(PropTypes.string).isRequired,
+  placeholder: PropTypes.string.isRequired,
+  disabled: PropTypes.bool
+};
+
+// Memoized Component: View Mode Toggle
+const ViewModeToggle = memo(({ viewMode, setViewMode }) => (
+  <div className="flex bg-gray-100 rounded-lg p-1 border border-black">
+    <button
+      onClick={() => setViewMode(VIEW_MODES.LIST)}
+      className={`p-2 rounded ${viewMode === VIEW_MODES.LIST ? 'bg-white shadow-sm' : ''}`}
+    >
+      <div className="grid grid-cols-1 gap-1 w-4 h-4">
+        <div className="bg-black h-1 rounded"></div>
+        <div className="bg-black h-1 rounded"></div>
+        <div className="bg-black h-1 rounded"></div>
+      </div>
+    </button>
+    <button
+      onClick={() => setViewMode(VIEW_MODES.GRID)}
+      className={`p-2 rounded ${viewMode === VIEW_MODES.GRID ? 'bg-white shadow-sm' : ''}`}
+    >
+      <div className="grid grid-cols-3 gap-1 w-4 h-4">
+        {[...Array(9)].map((_, i) => (
+          <div key={i} className="bg-black h-1 rounded"></div>
+        ))}
+      </div>
+    </button>
+    <button
+      onClick={() => setViewMode(VIEW_MODES.TILE)}
+      className={`p-2 rounded ${viewMode === VIEW_MODES.TILE ? 'bg-black text-white' : ''}`}
+    >
+      <div className="grid grid-cols-2 gap-1 w-4 h-4">
+        {[...Array(6)].map((_, i) => (
+          <div key={i} className={`h-1 rounded ${viewMode === VIEW_MODES.TILE ? 'bg-white' : 'bg-black'}`}></div>
+        ))}
+      </div>
+    </button>
+  </div>
+));
+
+ViewModeToggle.displayName = 'ViewModeToggle';
+ViewModeToggle.propTypes = {
+  viewMode: PropTypes.string.isRequired,
+  setViewMode: PropTypes.func.isRequired
+};
+
+// Memoized Component: Draggable Item
+const DraggableItem = memo(({ 
+  item, 
+  index, 
+  draggedItem, 
+  dragOverIndex, 
+  onDragStart, 
+  onDragEnd, 
+  onDragOver, 
+  onDragEnter, 
+  onDragLeave, 
+  onDrop 
+}) => {
+  const isDraggedItem = draggedItem?.index === index;
+  const isDragOver = dragOverIndex === index && draggedItem?.index !== index;
+  const isOtherDraggedItem = draggedItem && draggedItem.index !== index;
+
+  const className = useMemo(() => {
+    let classes = "bg-white rounded-xl shadow-lg p-4 cursor-move transition-all duration-200 border-2 transform ";
+    
+    if (isDragOver) {
+      classes += "border-blue-500 bg-blue-50 scale-105 shadow-2xl ";
+    } else {
+      classes += "border-gray-200 hover:shadow-xl hover:scale-105 ";
+    }
+    
+    if (isDraggedItem) {
+      classes += "opacity-30 scale-95 rotate-2 ";
+    }
+    
+    if (isOtherDraggedItem) {
+      classes += "hover:border-blue-300 ";
+    }
+    
+    return classes;
+  }, [isDraggedItem, isDragOver, isOtherDraggedItem]);
+
+  const style = useMemo(() => ({
+    zIndex: isDraggedItem ? 1000 : 1
+  }), [isDraggedItem]);
+
+  const gripIconColor = useMemo(() => 
+    draggedItem ? 'text-blue-500' : 'text-gray-400 hover:text-gray-600'
+  , [draggedItem]);
+
+  return (
+    <div
+      key={item.id}
+      draggable
+      onDragStart={(e) => onDragStart(e, item, index)}
+      onDragEnd={onDragEnd}
+      onDragOver={onDragOver}
+      onDragEnter={(e) => onDragEnter(e, index)}
+      onDragLeave={onDragLeave}
+      onDrop={(e) => onDrop(e, index)}
+      className={className}
+      style={style}
+    >
+      <div className="flex items-start space-x-4">
+        <div className="flex-shrink-0">
+          <img
+            src={item.image}
+            alt="Product"
+            className="w-16 h-16 rounded-lg object-cover"
+            draggable={false}
+          />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-[16px] text-black line-clamp-3 leading-[1.2] font-montserrat">
+            {item.title}
+          </p>
+        </div>
+        <div className="flex-shrink-0">
+          <GripVertical className={`h-5 w-5 transition-colors ${gripIconColor}`} />
+        </div>
+      </div>
+      
+      {/* Drop indicator */}
+      {isDragOver && (
+        <div className="absolute inset-0 border-2 border-dashed border-blue-400 rounded-xl bg-blue-100 bg-opacity-50 flex items-center justify-center">
+          <span className="text-blue-600 font-semibold">Drop here</span>
+        </div>
+      )}
+    </div>
+  );
+});
+
+DraggableItem.displayName = 'DraggableItem';
+DraggableItem.propTypes = {
+  item: PropTypes.shape({
+    id: PropTypes.number.isRequired,
+    title: PropTypes.string.isRequired,
+    image: PropTypes.string.isRequired,
+    category: PropTypes.string,
+    subcategory: PropTypes.string,
+    order: PropTypes.number
+  }).isRequired,
+  index: PropTypes.number.isRequired,
+  draggedItem: PropTypes.object,
+  dragOverIndex: PropTypes.number,
+  onDragStart: PropTypes.func.isRequired,
+  onDragEnd: PropTypes.func.isRequired,
+  onDragOver: PropTypes.func.isRequired,
+  onDragEnter: PropTypes.func.isRequired,
+  onDragLeave: PropTypes.func.isRequired,
+  onDrop: PropTypes.func.isRequired
+};
+
+// Memoized Component: Draggable Preview Product Card
+const DraggablePreviewProductCard = memo(({ 
+  product, 
+  index, 
+  draggedItem, 
+  dragOverIndex, 
+  onDragStart, 
+  onDragEnd, 
+  onDragOver, 
+  onDragEnter, 
+  onDragLeave, 
+  onDrop 
+}) => {
+  const isDraggedItem = draggedItem?.index === index;
+  const isDragOver = dragOverIndex === index && draggedItem?.index !== index;
+
+  const className = useMemo(() => {
+    let classes = "bg-white rounded-lg overflow-hidden cursor-move transition-all duration-200 relative ";
+    
+    if (isDragOver) {
+      classes += "scale-105 shadow-lg border-2 border-blue-500 ";
+    } else {
+      classes += "hover:shadow-md ";
+    }
+    
+    if (isDraggedItem) {
+      classes += "opacity-50 scale-95 ";
+    }
+    
+    return classes;
+  }, [isDraggedItem, isDragOver]);
+
+  return (
+    <div
+      key={product.id}
+      draggable
+      onDragStart={(e) => onDragStart(e, product, index)}
+      onDragEnd={onDragEnd}
+      onDragOver={onDragOver}
+      onDragEnter={(e) => onDragEnter(e, index)}
+      onDragLeave={onDragLeave}
+      onDrop={(e) => onDrop(e, index)}
+      className={className}
+    >
+      <div className="relative bg-white p-4">
+        <div className="aspect-square flex items-center justify-center">
+          <img 
+            src={product.image} 
+            alt={product.name} 
+            className="w-full h-full object-contain"
+            draggable={false}
+          />
+        </div>
+        <button className="absolute top-3 right-3 w-7 h-7 flex items-center justify-center">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M8 14C8 14 14 10 14 6C14 3.79086 12.2091 2 10 2C9.0815 2 8.2451 2.37764 7.6 3C6.95493 2.37764 6.1185 2 5.2 2C2.99086 2 1.2 3.79086 1.2 6C1.2 10 8 14 8 14Z" stroke="black" strokeWidth="1.2" fill="none"/>
+          </svg>
+        </button>
+        {/* Drag indicator */}
+        <div className="absolute top-3 left-3 opacity-60">
+          <GripVertical className="h-4 w-4 text-gray-500" />
+        </div>
+      </div>
+      <div className="px-4 pb-4">
+        <div className="flex items-start justify-between mb-3">
+          {/* Color swatches */}
+          <div className="flex space-x-1">
+            {product.colors.map((color, colorIndex) => (
+              <div 
+                key={colorIndex}
+                className="w-4 h-4 rounded-full" 
+                style={{ backgroundColor: color, border: color === '#FFFFFF' ? '1px solid #E5E5E5' : 'none' }}
+              ></div>
+            ))}
+          </div>
+          {/* Shopping bag icon */}
+          <button className="w-6 h-6 flex items-center justify-center">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M3 5h10l-1 6H4L3 5ZM3 5L2 3H1M6 8h4" stroke="black" strokeWidth="1.2" fill="none"/>
+              <path d="M6 5V4a2 2 0 0 1 2-2v0a2 2 0 0 1 2 2v1" stroke="black" strokeWidth="1.2" fill="none"/>
+            </svg>
+          </button>
+        </div>
+        <h4 className="text-sm font-semibold text-black leading-tight mb-1">{product.name}</h4>
+        <p className="text-xs text-gray-500 mb-2">{product.description}</p>
+        <p className="text-sm font-bold text-black">{product.price}</p>
+      </div>
+      
+      {/* Drop indicator */}
+      {isDragOver && (
+        <div className="absolute inset-0 border-2 border-dashed border-blue-400 rounded-lg bg-blue-100 bg-opacity-50 flex items-center justify-center">
+          <span className="text-blue-600 font-semibold text-xs">Drop here</span>
+        </div>
+      )}
+    </div>
+  );
+});
+
+DraggablePreviewProductCard.displayName = 'DraggablePreviewProductCard';
+DraggablePreviewProductCard.propTypes = {
+  product: PropTypes.shape({
+    id: PropTypes.number.isRequired,
+    name: PropTypes.string.isRequired,
+    description: PropTypes.string.isRequired,
+    price: PropTypes.string.isRequired,
+    image: PropTypes.string.isRequired,
+    colors: PropTypes.arrayOf(PropTypes.string).isRequired
+  }).isRequired,
+  index: PropTypes.number.isRequired,
+  draggedItem: PropTypes.object,
+  dragOverIndex: PropTypes.number,
+  onDragStart: PropTypes.func.isRequired,
+  onDragEnd: PropTypes.func.isRequired,
+  onDragOver: PropTypes.func.isRequired,
+  onDragEnter: PropTypes.func.isRequired,
+  onDragLeave: PropTypes.func.isRequired,
+  onDrop: PropTypes.func.isRequired
+};
+
+// Memoized Component: Simple Draggable Grid Item (for Views 2 and 3)
+const DraggableGridItem = memo(({ 
+  product, 
+  index, 
+  draggedItem, 
+  dragOverIndex, 
+  onDragStart, 
+  onDragEnd, 
+  onDragOver, 
+  onDragEnter, 
+  onDragLeave, 
+  onDrop,
+  className = "",
+  showHeartIcon = false
+}) => {
+  const isDraggedItem = draggedItem?.index === index;
+  const isDragOver = dragOverIndex === index && draggedItem?.index !== index;
+
+  const combinedClassName = useMemo(() => {
+    let classes = "bg-white rounded-lg overflow-hidden shadow-sm cursor-move transition-all duration-200 relative ";
+    
+    if (isDragOver) {
+      classes += "scale-105 shadow-lg border-2 border-blue-500 ";
+    } else {
+      classes += "hover:shadow-md ";
+    }
+    
+    if (isDraggedItem) {
+      classes += "opacity-50 scale-95 ";
+    }
+    
+    classes += className;
+    
+    return classes;
+  }, [isDraggedItem, isDragOver, className]);
+
+  return (
+    <div
+      key={product.id}
+      draggable
+      onDragStart={(e) => onDragStart(e, product, index)}
+      onDragEnd={onDragEnd}
+      onDragOver={onDragOver}
+      onDragEnter={(e) => onDragEnter(e, index)}
+      onDragLeave={onDragLeave}
+      onDrop={(e) => onDrop(e, index)}
+      className={combinedClassName}
+    >
+      <div className="relative bg-gray-100">
+        <img 
+          src={product.image || '/api/placeholder/120/160'} 
+          alt="Fashion item" 
+          className="w-full h-full object-cover"
+          draggable={false}
+        />
+        {showHeartIcon && index === 0 && (
+          <button className="absolute top-2 left-2 w-6 h-6 bg-white rounded-full flex items-center justify-center shadow-sm">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <path d="M6 10C6 10 10 7.5 10 4.5C10 2.84315 8.65685 1.5 7 1.5C6.3111 1.5 5.68375 1.78323 5.25 2.25C4.81625 1.78323 4.1889 1.5 3.5 1.5C1.84315 1.5 0.5 2.84315 0.5 4.5C0.5 7.5 6 10 6 10Z" stroke="black" strokeWidth="1"/>
+            </svg>
+          </button>
+        )}
+        {/* Drag indicator */}
+        <div className="absolute top-1 right-1 opacity-60 bg-white bg-opacity-75 rounded p-1">
+          <GripVertical className="h-3 w-3 text-gray-500" />
+        </div>
+      </div>
+      
+      {/* Drop indicator */}
+      {isDragOver && (
+        <div className="absolute inset-0 border-2 border-dashed border-blue-400 rounded-lg bg-blue-100 bg-opacity-50 flex items-center justify-center">
+          <span className="text-blue-600 font-semibold text-xs">Drop here</span>
+        </div>
+      )}
+    </div>
+  );
+});
+
+DraggableGridItem.displayName = 'DraggableGridItem';
+DraggableGridItem.propTypes = {
+  product: PropTypes.object.isRequired,
+  index: PropTypes.number.isRequired,
+  draggedItem: PropTypes.object,
+  dragOverIndex: PropTypes.number,
+  onDragStart: PropTypes.func.isRequired,
+  onDragEnd: PropTypes.func.isRequired,
+  onDragOver: PropTypes.func.isRequired,
+  onDragEnter: PropTypes.func.isRequired,
+  onDragLeave: PropTypes.func.isRequired,
+  onDrop: PropTypes.func.isRequired,
+  className: PropTypes.string,
+  showHeartIcon: PropTypes.bool
+};
+
+// Custom hook for drag and drop functionality - Optimized version
 const useDragAndDrop = (initialItems) => {
   const [items, setItems] = useState(initialItems);
   const [draggedItem, setDraggedItem] = useState(null);
@@ -102,21 +495,26 @@ const useDragAndDrop = (initialItems) => {
       return;
     }
 
-    const newItems = [...items];
-    const draggedItemData = newItems[draggedItem.index];
+    setItems(prevItems => {
+      const newItems = [...prevItems];
+      const draggedItemData = newItems[draggedItem.index];
+      
+      newItems.splice(draggedItem.index, 1);
+      newItems.splice(targetIndex, 0, draggedItemData);
+      
+      return newItems;
+    });
     
-    newItems.splice(draggedItem.index, 1);
-    newItems.splice(targetIndex, 0, draggedItemData);
-    
-    setItems(newItems);
     setDraggedItem(null);
     setDragOverIndex(null);
-  }, [draggedItem, items]);
+  }, [draggedItem]);
 
   const resetItems = useCallback(() => {
-    const resetItems = [...items].sort((a, b) => a.id - b.id);
-    setItems(resetItems);
-  }, [items]);
+    setItems(prevItems => {
+      const resetItems = [...prevItems].sort((a, b) => a.id - b.id);
+      return resetItems;
+    });
+  }, []);
 
   return {
     items,
@@ -133,7 +531,7 @@ const useDragAndDrop = (initialItems) => {
   };
 };
 
-const ArrangementControl = () => {
+const ArrangementControl = memo(() => {
   // Selection state
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedItem, setSelectedItem] = useState('');
@@ -275,6 +673,21 @@ const ArrangementControl = () => {
       colors: ['#FFFFFF', '#F5F5F5', '#E8E8E8', '#CCCCCC', '#999999', '#666666']
     }
   ], []);
+
+  // Memoized view 2 grid array generation
+  const view2GridArray = useMemo(() => Array.from({ length: 12 }, (_, index) => index), []);
+  
+  // Memoized view 3 grid indices
+  const view3GridIndices = useMemo(() => [0, 1, 2, 3, 0, 1], []);
+
+  // Memoized category display items for landing view
+  const categoryDisplayItems = useMemo(() => 
+    CLOTHING_SUBCATEGORIES.slice(0, 2)
+  , []);
+
+  // Memoized trending and featured product slices
+  const trendingProducts = useMemo(() => getPreviewProducts().slice(0, 2), [getPreviewProducts]);
+  const featuredProducts = useMemo(() => getPreviewProducts().slice(2, 5), [getPreviewProducts]);
 
   const {
     items: previewProducts,
@@ -463,8 +876,8 @@ const ArrangementControl = () => {
     setShowSaveSuccessModal(false);
   }, []);
 
-  // Get content based on active tab and selected subcategory
-  const getTabContent = useCallback(() => {
+  // Get content based on active tab and selected subcategory - Optimized
+  const tabContent = useMemo(() => {
     const filteredProducts = products.filter(product => {
       const matchesTab = product.category === activeTab;
       const matchesSubcategory = !selectedSubcategory || product.subcategory === selectedSubcategory;
@@ -477,8 +890,6 @@ const ArrangementControl = () => {
       allProducts: products.filter(product => product.category === activeTab)
     };
   }, [activeTab, selectedSubcategory, products]);
-
-  const tabContent = useMemo(() => getTabContent(), [getTabContent]);
 
   const handleSportCategorySelect = useCallback((categoryId) => {
     setSelectedSportCategory(categoryId);
@@ -510,342 +921,6 @@ const ArrangementControl = () => {
       ? categories.find(cat => cat.name === selectedCategory)?.subcategories || []
       : [];
   }, [selectedCategory, categories]);
-
-  // Component: Category Selection Dropdown
-  const CategoryDropdown = ({ value, onChange, options, placeholder, disabled = false }) => (
-    <div className="relative">
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="appearance-none bg-white border border-[#979797] rounded-xl px-4 py-3 pr-10 text-black text-[15px] font-montserrat focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-80 h-[47px] tracking-[-0.375px]"
-        disabled={disabled}
-      >
-        <option value="">{placeholder}</option>
-        {options.map((option, index) => (
-          <option key={index} value={option}>
-            {option}
-          </option>
-        ))}
-      </select>
-      <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
-    </div>
-  );
-
-  CategoryDropdown.propTypes = {
-    value: PropTypes.string.isRequired,
-    onChange: PropTypes.func.isRequired,
-    options: PropTypes.arrayOf(PropTypes.string).isRequired,
-    placeholder: PropTypes.string.isRequired,
-    disabled: PropTypes.bool
-  };
-
-  // Component: View Mode Toggle
-  const ViewModeToggle = ({ viewMode, setViewMode }) => (
-    <div className="flex bg-gray-100 rounded-lg p-1 border border-black">
-      <button
-        onClick={() => setViewMode(VIEW_MODES.LIST)}
-        className={`p-2 rounded ${viewMode === VIEW_MODES.LIST ? 'bg-white shadow-sm' : ''}`}
-      >
-        <div className="grid grid-cols-1 gap-1 w-4 h-4">
-          <div className="bg-black h-1 rounded"></div>
-          <div className="bg-black h-1 rounded"></div>
-          <div className="bg-black h-1 rounded"></div>
-        </div>
-      </button>
-      <button
-        onClick={() => setViewMode(VIEW_MODES.GRID)}
-        className={`p-2 rounded ${viewMode === VIEW_MODES.GRID ? 'bg-white shadow-sm' : ''}`}
-      >
-        <div className="grid grid-cols-3 gap-1 w-4 h-4">
-          {[...Array(9)].map((_, i) => (
-            <div key={i} className="bg-black h-1 rounded"></div>
-          ))}
-        </div>
-      </button>
-      <button
-        onClick={() => setViewMode(VIEW_MODES.TILE)}
-        className={`p-2 rounded ${viewMode === VIEW_MODES.TILE ? 'bg-black text-white' : ''}`}
-      >
-        <div className="grid grid-cols-2 gap-1 w-4 h-4">
-          {[...Array(6)].map((_, i) => (
-            <div key={i} className={`h-1 rounded ${viewMode === VIEW_MODES.TILE ? 'bg-white' : 'bg-black'}`}></div>
-          ))}
-        </div>
-      </button>
-    </div>
-  );
-
-  ViewModeToggle.propTypes = {
-    viewMode: PropTypes.string.isRequired,
-    setViewMode: PropTypes.func.isRequired
-  };
-
-  // Component: Draggable Item
-  const DraggableItem = ({ 
-    item, 
-    index, 
-    draggedItem, 
-    dragOverIndex, 
-    onDragStart, 
-    onDragEnd, 
-    onDragOver, 
-    onDragEnter, 
-    onDragLeave, 
-    onDrop 
-  }) => (
-    <div
-      key={item.id}
-      draggable
-      onDragStart={(e) => onDragStart(e, item, index)}
-      onDragEnd={onDragEnd}
-      onDragOver={onDragOver}
-      onDragEnter={(e) => onDragEnter(e, index)}
-      onDragLeave={onDragLeave}
-      onDrop={(e) => onDrop(e, index)}
-      className={`
-        bg-white rounded-xl shadow-lg p-4 cursor-move transition-all duration-200 border-2 transform
-        ${dragOverIndex === index && draggedItem?.index !== index 
-          ? 'border-blue-500 bg-blue-50 scale-105 shadow-2xl' 
-          : 'border-gray-200 hover:shadow-xl hover:scale-105'
-        }
-        ${draggedItem?.index === index ? 'opacity-30 scale-95 rotate-2' : ''}
-        ${draggedItem && draggedItem.index !== index ? 'hover:border-blue-300' : ''}
-      `}
-      style={{
-        zIndex: draggedItem?.index === index ? 1000 : 1
-      }}
-    >
-      <div className="flex items-start space-x-4">
-        <div className="flex-shrink-0">
-          <img
-            src={item.image}
-            alt="Product"
-            className="w-16 h-16 rounded-lg object-cover"
-            draggable={false}
-          />
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-[16px] text-black line-clamp-3 leading-[1.2] font-montserrat">
-            {item.title}
-          </p>
-        </div>
-        <div className="flex-shrink-0">
-          <GripVertical className={`h-5 w-5 transition-colors ${
-            draggedItem ? 'text-blue-500' : 'text-gray-400 hover:text-gray-600'
-          }`} />
-        </div>
-      </div>
-      
-      {/* Drop indicator */}
-      {dragOverIndex === index && draggedItem?.index !== index && (
-        <div className="absolute inset-0 border-2 border-dashed border-blue-400 rounded-xl bg-blue-100 bg-opacity-50 flex items-center justify-center">
-          <span className="text-blue-600 font-semibold">Drop here</span>
-        </div>
-      )}
-    </div>
-  );
-
-  DraggableItem.propTypes = {
-    item: PropTypes.shape({
-      id: PropTypes.number.isRequired,
-      title: PropTypes.string.isRequired,
-      image: PropTypes.string.isRequired,
-      category: PropTypes.string,
-      subcategory: PropTypes.string,
-      order: PropTypes.number
-    }).isRequired,
-    index: PropTypes.number.isRequired,
-    draggedItem: PropTypes.object,
-    dragOverIndex: PropTypes.number,
-    onDragStart: PropTypes.func.isRequired,
-    onDragEnd: PropTypes.func.isRequired,
-    onDragOver: PropTypes.func.isRequired,
-    onDragEnter: PropTypes.func.isRequired,
-    onDragLeave: PropTypes.func.isRequired,
-    onDrop: PropTypes.func.isRequired
-  };
-
-  // Component: Draggable Preview Product Card
-  const DraggablePreviewProductCard = ({ 
-    product, 
-    index, 
-    draggedItem, 
-    dragOverIndex, 
-    onDragStart, 
-    onDragEnd, 
-    onDragOver, 
-    onDragEnter, 
-    onDragLeave, 
-    onDrop 
-  }) => (
-    <div
-      key={product.id}
-      draggable
-      onDragStart={(e) => onDragStart(e, product, index)}
-      onDragEnd={onDragEnd}
-      onDragOver={onDragOver}
-      onDragEnter={(e) => onDragEnter(e, index)}
-      onDragLeave={onDragLeave}
-      onDrop={(e) => onDrop(e, index)}
-      className={`
-        bg-white rounded-lg overflow-hidden cursor-move transition-all duration-200 relative
-        ${dragOverIndex === index && draggedItem?.index !== index 
-          ? 'scale-105 shadow-lg border-2 border-blue-500' 
-          : 'hover:shadow-md'
-        }
-        ${draggedItem?.index === index ? 'opacity-50 scale-95' : ''}
-      `}
-    >
-      <div className="relative bg-white p-4">
-        <div className="aspect-square flex items-center justify-center">
-          <img 
-            src={product.image} 
-            alt={product.name} 
-            className="w-full h-full object-contain"
-            draggable={false}
-          />
-        </div>
-        <button className="absolute top-3 right-3 w-7 h-7 flex items-center justify-center">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-            <path d="M8 14C8 14 14 10 14 6C14 3.79086 12.2091 2 10 2C9.0815 2 8.2451 2.37764 7.6 3C6.95493 2.37764 6.1185 2 5.2 2C2.99086 2 1.2 3.79086 1.2 6C1.2 10 8 14 8 14Z" stroke="black" strokeWidth="1.2" fill="none"/>
-          </svg>
-        </button>
-        {/* Drag indicator */}
-        <div className="absolute top-3 left-3 opacity-60">
-          <GripVertical className="h-4 w-4 text-gray-500" />
-        </div>
-      </div>
-      <div className="px-4 pb-4">
-        <div className="flex items-start justify-between mb-3">
-          {/* Color swatches */}
-          <div className="flex space-x-1">
-            {product.colors.map((color, colorIndex) => (
-              <div 
-                key={colorIndex}
-                className="w-4 h-4 rounded-full" 
-                style={{ backgroundColor: color, border: color === '#FFFFFF' ? '1px solid #E5E5E5' : 'none' }}
-              ></div>
-            ))}
-          </div>
-          {/* Shopping bag icon */}
-          <button className="w-6 h-6 flex items-center justify-center">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path d="M3 5h10l-1 6H4L3 5ZM3 5L2 3H1M6 8h4" stroke="black" strokeWidth="1.2" fill="none"/>
-              <path d="M6 5V4a2 2 0 0 1 2-2v0a2 2 0 0 1 2 2v1" stroke="black" strokeWidth="1.2" fill="none"/>
-            </svg>
-          </button>
-        </div>
-        <h4 className="text-sm font-semibold text-black leading-tight mb-1">{product.name}</h4>
-        <p className="text-xs text-gray-500 mb-2">{product.description}</p>
-        <p className="text-sm font-bold text-black">{product.price}</p>
-      </div>
-      
-      {/* Drop indicator */}
-      {dragOverIndex === index && draggedItem?.index !== index && (
-        <div className="absolute inset-0 border-2 border-dashed border-blue-400 rounded-lg bg-blue-100 bg-opacity-50 flex items-center justify-center">
-          <span className="text-blue-600 font-semibold text-xs">Drop here</span>
-        </div>
-      )}
-    </div>
-  );
-
-  DraggablePreviewProductCard.propTypes = {
-    product: PropTypes.shape({
-      id: PropTypes.number.isRequired,
-      name: PropTypes.string.isRequired,
-      description: PropTypes.string.isRequired,
-      price: PropTypes.string.isRequired,
-      image: PropTypes.string.isRequired,
-      colors: PropTypes.arrayOf(PropTypes.string).isRequired
-    }).isRequired,
-    index: PropTypes.number.isRequired,
-    draggedItem: PropTypes.object,
-    dragOverIndex: PropTypes.number,
-    onDragStart: PropTypes.func.isRequired,
-    onDragEnd: PropTypes.func.isRequired,
-    onDragOver: PropTypes.func.isRequired,
-    onDragEnter: PropTypes.func.isRequired,
-    onDragLeave: PropTypes.func.isRequired,
-    onDrop: PropTypes.func.isRequired
-  };
-
-  // Component: Simple Draggable Grid Item (for Views 2 and 3)
-  const DraggableGridItem = ({ 
-    product, 
-    index, 
-    draggedItem, 
-    dragOverIndex, 
-    onDragStart, 
-    onDragEnd, 
-    onDragOver, 
-    onDragEnter, 
-    onDragLeave, 
-    onDrop,
-    className = "",
-    showHeartIcon = false
-  }) => (
-    <div
-      key={product.id}
-      draggable
-      onDragStart={(e) => onDragStart(e, product, index)}
-      onDragEnd={onDragEnd}
-      onDragOver={onDragOver}
-      onDragEnter={(e) => onDragEnter(e, index)}
-      onDragLeave={onDragLeave}
-      onDrop={(e) => onDrop(e, index)}
-      className={`
-        bg-white rounded-lg overflow-hidden shadow-sm cursor-move transition-all duration-200 relative
-        ${dragOverIndex === index && draggedItem?.index !== index 
-          ? 'scale-105 shadow-lg border-2 border-blue-500' 
-          : 'hover:shadow-md'
-        }
-        ${draggedItem?.index === index ? 'opacity-50 scale-95' : ''}
-        ${className}
-      `}
-    >
-      <div className="relative bg-gray-100">
-        <img 
-          src={product.image || '/api/placeholder/120/160'} 
-          alt="Fashion item" 
-          className="w-full h-full object-cover"
-          draggable={false}
-        />
-        {showHeartIcon && index === 0 && (
-          <button className="absolute top-2 left-2 w-6 h-6 bg-white rounded-full flex items-center justify-center shadow-sm">
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-              <path d="M6 10C6 10 10 7.5 10 4.5C10 2.84315 8.65685 1.5 7 1.5C6.3111 1.5 5.68375 1.78323 5.25 2.25C4.81625 1.78323 4.1889 1.5 3.5 1.5C1.84315 1.5 0.5 2.84315 0.5 4.5C0.5 7.5 6 10 6 10Z" stroke="black" strokeWidth="1"/>
-            </svg>
-          </button>
-        )}
-        {/* Drag indicator */}
-        <div className="absolute top-1 right-1 opacity-60 bg-white bg-opacity-75 rounded p-1">
-          <GripVertical className="h-3 w-3 text-gray-500" />
-        </div>
-      </div>
-      
-      {/* Drop indicator */}
-      {dragOverIndex === index && draggedItem?.index !== index && (
-        <div className="absolute inset-0 border-2 border-dashed border-blue-400 rounded-lg bg-blue-100 bg-opacity-50 flex items-center justify-center">
-          <span className="text-blue-600 font-semibold text-xs">Drop here</span>
-        </div>
-      )}
-    </div>
-  );
-
-  DraggableGridItem.propTypes = {
-    product: PropTypes.object.isRequired,
-    index: PropTypes.number.isRequired,
-    draggedItem: PropTypes.object,
-    dragOverIndex: PropTypes.number,
-    onDragStart: PropTypes.func.isRequired,
-    onDragEnd: PropTypes.func.isRequired,
-    onDragOver: PropTypes.func.isRequired,
-    onDragEnter: PropTypes.func.isRequired,
-    onDragLeave: PropTypes.func.isRequired,
-    onDrop: PropTypes.func.isRequired,
-    className: PropTypes.string,
-    showHeartIcon: PropTypes.bool
-  };
 
   return (
     <div className="min-h-screen bg-gray-50 font-montserrat">
@@ -1128,15 +1203,17 @@ const ArrangementControl = () => {
               {/* Tab Navigation - Horizontal */}
               <div className="bg-white px-4 py-3 border-b border-gray-100">
                 <div className="flex space-x-6">
-                  {[activeTab, ...TABS.filter(tab => tab !== activeTab)].map((tab, index) => (
+                  <button
+                    onClick={() => handleTabChange(activeTab)}
+                    className="text-sm font-medium pb-2 border-b-2 text-black border-black"
+                  >
+                    {activeTab}
+                  </button>
+                  {TABS.filter(tab => tab !== activeTab).map((tab) => (
                     <button
                       key={tab}
                       onClick={() => handleTabChange(tab)}
-                      className={`text-sm font-medium pb-2 border-b-2 transition-all duration-200 ${
-                        activeTab === tab
-                          ? 'text-black border-black'
-                          : 'text-gray-400 border-transparent hover:text-gray-600'
-                      }`}
+                      className="text-sm font-medium pb-2 border-b-2 text-gray-400 border-transparent hover:text-gray-600"
                     >
                       {tab}
                     </button>
@@ -1151,7 +1228,7 @@ const ArrangementControl = () => {
                 {currentView === 'landing' && (
                   <div className="p-4 space-y-4">
                     {/* Category Items */}
-                    {CLOTHING_SUBCATEGORIES.slice(0, 2).map((category, index) => (
+                    {categoryDisplayItems.map((category, index) => (
                       <div key={category.id} className="bg-white rounded-lg p-4 flex items-center justify-between shadow-sm">
                         <div className="flex items-center space-x-3">
                           <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
@@ -1192,7 +1269,7 @@ const ArrangementControl = () => {
                     <div className="mt-6">
                       <h3 className="text-lg font-semibold text-black mb-3">Trending now</h3>
                       <div className="flex space-x-3 overflow-x-auto">
-                        {getPreviewProducts().slice(0, 2).map((product) => (
+                        {trendingProducts.map((product) => (
                           <div key={product.id} className="flex-shrink-0 w-32 bg-white rounded-lg shadow-sm">
                             <div className="aspect-square bg-gray-100 rounded-t-lg">
                               <img src={product.image} alt={product.name} className="w-full h-full object-cover rounded-t-lg" />
@@ -1210,7 +1287,7 @@ const ArrangementControl = () => {
                     <div className="mt-6">
                       <h3 className="text-lg font-semibold text-black mb-3">Featured</h3>
                       <div className="flex space-x-3 overflow-x-auto">
-                        {getPreviewProducts().slice(2, 5).map((product) => (
+                        {featuredProducts.map((product) => (
                           <div key={product.id} className="flex-shrink-0 w-24 bg-white rounded-lg shadow-sm">
                             <div className="aspect-[3/4] bg-gray-100 rounded-t-lg">
                               <img src={product.image} alt={product.name} className="w-full h-full object-cover rounded-t-lg" />
@@ -1326,7 +1403,7 @@ const ArrangementControl = () => {
 
                     {/* Fashion Grid - Now with Drag & Drop */}
                     <div className="grid grid-cols-3 gap-2">
-                      {Array.from({ length: 12 }, (_, index) => {
+                      {view2GridArray.map((index) => {
                         const product = getPreviewProducts()[index % getPreviewProducts().length];
                         return (
                           <DraggableGridItem
@@ -1385,89 +1462,43 @@ const ArrangementControl = () => {
                     <div className="grid grid-cols-2 gap-3">
                       {/* Left Column */}
                       <div className="space-y-3">
-                        <DraggableGridItem
-                          product={getPreviewProducts()[0]}
-                          index={0}
-                          draggedItem={previewDraggedItem}
-                          dragOverIndex={previewDragOverIndex}
-                          onDragStart={previewHandleDragStart}
-                          onDragEnd={previewHandleDragEnd}
-                          onDragOver={previewHandleDragOver}
-                          onDragEnter={previewHandleDragEnter}
-                          onDragLeave={previewHandleDragLeave}
-                          onDrop={previewHandleDrop}
-                          className="aspect-[3/4]"
-                          showHeartIcon={true}
-                        />
-                        <DraggableGridItem
-                          product={getPreviewProducts()[1]}
-                          index={1}
-                          draggedItem={previewDraggedItem}
-                          dragOverIndex={previewDragOverIndex}
-                          onDragStart={previewHandleDragStart}
-                          onDragEnd={previewHandleDragEnd}
-                          onDragOver={previewHandleDragOver}
-                          onDragEnter={previewHandleDragEnter}
-                          onDragLeave={previewHandleDragLeave}
-                          onDrop={previewHandleDrop}
-                          className="aspect-square"
-                        />
-                        <DraggableGridItem
-                          product={getPreviewProducts()[2]}
-                          index={2}
-                          draggedItem={previewDraggedItem}
-                          dragOverIndex={previewDragOverIndex}
-                          onDragStart={previewHandleDragStart}
-                          onDragEnd={previewHandleDragEnd}
-                          onDragOver={previewHandleDragOver}
-                          onDragEnter={previewHandleDragEnter}
-                          onDragLeave={previewHandleDragLeave}
-                          onDrop={previewHandleDrop}
-                          className="aspect-[3/4]"
-                        />
+                        {[0, 1, 2].map((productIndex, index) => (
+                          <DraggableGridItem
+                            key={`view3-left-${index}`}
+                            product={getPreviewProducts()[productIndex]}
+                            index={index}
+                            draggedItem={previewDraggedItem}
+                            dragOverIndex={previewDragOverIndex}
+                            onDragStart={previewHandleDragStart}
+                            onDragEnd={previewHandleDragEnd}
+                            onDragOver={previewHandleDragOver}
+                            onDragEnter={previewHandleDragEnter}
+                            onDragLeave={previewHandleDragLeave}
+                            onDrop={previewHandleDrop}
+                            className={index === 1 ? "aspect-square" : "aspect-[3/4]"}
+                            showHeartIcon={index === 0}
+                          />
+                        ))}
                       </div>
 
                       {/* Right Column */}
                       <div className="space-y-3">
-                        <DraggableGridItem
-                          product={getPreviewProducts()[3]}
-                          index={3}
-                          draggedItem={previewDraggedItem}
-                          dragOverIndex={previewDragOverIndex}
-                          onDragStart={previewHandleDragStart}
-                          onDragEnd={previewHandleDragEnd}
-                          onDragOver={previewHandleDragOver}
-                          onDragEnter={previewHandleDragEnter}
-                          onDragLeave={previewHandleDragLeave}
-                          onDrop={previewHandleDrop}
-                          className="aspect-square"
-                        />
-                        <DraggableGridItem
-                          product={getPreviewProducts()[0]}
-                          index={4}
-                          draggedItem={previewDraggedItem}
-                          dragOverIndex={previewDragOverIndex}
-                          onDragStart={previewHandleDragStart}
-                          onDragEnd={previewHandleDragEnd}
-                          onDragOver={previewHandleDragOver}
-                          onDragEnter={previewHandleDragEnter}
-                          onDragLeave={previewHandleDragLeave}
-                          onDrop={previewHandleDrop}
-                          className="aspect-[4/5]"
-                        />
-                        <DraggableGridItem
-                          product={getPreviewProducts()[1]}
-                          index={5}
-                          draggedItem={previewDraggedItem}
-                          dragOverIndex={previewDragOverIndex}
-                          onDragStart={previewHandleDragStart}
-                          onDragEnd={previewHandleDragEnd}
-                          onDragOver={previewHandleDragOver}
-                          onDragEnter={previewHandleDragEnter}
-                          onDragLeave={previewHandleDragLeave}
-                          onDrop={previewHandleDrop}
-                          className="aspect-square"
-                        />
+                        {view3GridIndices.slice(3).map((productIndex, index) => (
+                          <DraggableGridItem
+                            key={`view3-right-${index}`}
+                            product={getPreviewProducts()[productIndex]}
+                            index={index + 3}
+                            draggedItem={previewDraggedItem}
+                            dragOverIndex={previewDragOverIndex}
+                            onDragStart={previewHandleDragStart}
+                            onDragEnd={previewHandleDragEnd}
+                            onDragOver={previewHandleDragOver}
+                            onDragEnter={previewHandleDragEnter}
+                            onDragLeave={previewHandleDragLeave}
+                            onDrop={previewHandleDrop}
+                            className={index === 0 ? "aspect-square" : index === 1 ? "aspect-[4/5]" : "aspect-square"}
+                          />
+                        ))}
                       </div>
                     </div>
                     
@@ -1542,6 +1573,8 @@ const ArrangementControl = () => {
       />
     </div>
   );
-};
+});
+
+ArrangementControl.displayName = 'ArrangementControl';
 
 export default ArrangementControl;

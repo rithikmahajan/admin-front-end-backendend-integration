@@ -1935,144 +1935,147 @@ const Orders = React.memo(() => {
   // New state for tab management
   const [activeTab, setActiveTab] = useState("orders");
 
-  // State for managing orders data
-  const [orders, setOrders] = useState(() => [
-    {
-      orderId: "1234567892220",
-      paymentStatus: "Pending",
-      image: "/api/placeholder/60/60",
-      productName: "T shirt",
-      name: "Tarnnish",
-      date: "13 aug 2024",
-      hsn: "406000",
-      size: ["small", "medium", "large"],
-      sizeQuantity: [5, 10, 115],
-      quantity: 130,
-      price: 4566,
-      salePrice: 4566,
-      sku: "bkhvhm0251",
-      barcodeNo: "406000000000000",
-      status: "pending",
-      orderType: "prepaid",
-      slotVendor: "slot vendor",
-      courierAlloted: "NO",
-      delivered: "NO",
-      actions: "Pending",
-      vendorAllotted: false,
-      allottedVendorName: null,
-      courierTrackingId: null,
-      deliveryStatus: "Order Placed",
-      lastUpdated: new Date().toISOString(),
-    },
-    {
-      orderId: "1234567892221",
-      paymentStatus: "Paid",
-      image: "/api/placeholder/60/60",
-      productName: "T shirt",
-      name: "Tarnnish",
-      date: "13 aug 2024",
-      hsn: "406000",
-      size: ["small", "medium", "large"],
-      sizeQuantity: [5, 10, 115],
-      quantity: 130,
-      price: 4566,
-      salePrice: 4566,
-      sku: "bkhvhm0251",
-      barcodeNo: "406000000000000",
-      status: "processing",
-      orderType: "cod",
-      slotVendor: "slot vendor",
-      courierAlloted: "YES",
-      delivered: "NO",
-      actions: "Processing",
-      vendorAllotted: true,
-      allottedVendorName: "ven 1",
-      courierTrackingId: "SP123456789",
-      deliveryStatus: "In Transit",
-      lastUpdated: new Date().toISOString(),
-    },
-    {
-      orderId: "1234567892222",
-      paymentStatus: "Paid",
-      image: "/api/placeholder/60/60",
-      productName: "Lower",
-      name: "Shristi",
-      date: "14 aug 2024",
-      hsn: "406001",
-      size: ["small", "medium"],
-      sizeQuantity: [8, 12],
-      quantity: 20,
-      price: 2500,
-      salePrice: 2300,
-      sku: "bkhvhm0252",
-      barcodeNo: "406001000000000",
-      status: "accepted",
-      orderType: "prepaid",
-      slotVendor: "vendor 2",
-      courierAlloted: "YES",
-      delivered: "YES",
-      actions: "Delivered",
-      vendorAllotted: true,
-      allottedVendorName: "ven 2",
-      courierTrackingId: "SP123456790",
-      deliveryStatus: "Delivered",
-      lastUpdated: new Date().toISOString(),
-    },
-    {
-      orderId: "1234567892223",
-      paymentStatus: "Pending",
-      image: "/api/placeholder/60/60",
-      productName: "Shorts",
-      name: "Rajesh",
-      date: "15 aug 2024",
-      hsn: "406002",
-      size: ["medium", "large"],
-      sizeQuantity: [15, 25],
-      quantity: 40,
-      price: 1800,
-      salePrice: 1650,
-      sku: "bkhvhm0253",
-      barcodeNo: "406002000000000",
-      status: "rejected",
-      orderType: "cod",
-      slotVendor: "vendor 3",
-      courierAlloted: "NO",
-      delivered: "NO",
-      actions: "Rejected",
-      vendorAllotted: false,
-      allottedVendorName: null,
-      courierTrackingId: null,
-      deliveryStatus: "Cancelled",
-      lastUpdated: new Date().toISOString(),
-    },
-    {
-      orderId: "1234567892224",
-      paymentStatus: "Paid",
-      image: "/api/placeholder/60/60",
-      productName: "Jacket",
-      name: "Priya",
-      date: "16 aug 2024",
-      hsn: "406003",
-      size: ["small", "medium", "large"],
-      sizeQuantity: [3, 7, 10],
-      quantity: 20,
-      price: 3500,
-      salePrice: 3200,
-      sku: "bkhvhm0254",
-      barcodeNo: "406003000000000",
-      status: "allotted to vendor",
-      orderType: "prepaid",
-      slotVendor: "vendor 1",
-      courierAlloted: "YES",
-      delivered: "NO",
-      actions: "On way",
-      vendorAllotted: true,
-      allottedVendorName: "ven 3",
-      courierTrackingId: "SP123456791",
-      deliveryStatus: "Out for Delivery",
-      lastUpdated: new Date().toISOString(),
-    },
-  ]); // Initial state data for orders
+  // State for managing orders data - memoized to prevent recreation
+  const [orders, setOrders] = useState(() => {
+    const orderTimestamp = new Date().toISOString();
+    return [
+      {
+        orderId: "1234567892220",
+        paymentStatus: "Pending",
+        image: "/api/placeholder/60/60",
+        productName: "T shirt",
+        name: "Tarnnish",
+        date: "13 aug 2024",
+        hsn: "406000",
+        size: ["small", "medium", "large"],
+        sizeQuantity: [5, 10, 115],
+        quantity: 130,
+        price: 4566,
+        salePrice: 4566,
+        sku: "bkhvhm0251",
+        barcodeNo: "406000000000000",
+        status: "pending",
+        orderType: "prepaid",
+        slotVendor: "slot vendor",
+        courierAlloted: "NO",
+        delivered: "NO",
+        actions: "Pending",
+        vendorAllotted: false,
+        allottedVendorName: null,
+        courierTrackingId: null,
+        deliveryStatus: "Order Placed",
+        lastUpdated: orderTimestamp,
+      },
+      {
+        orderId: "1234567892221",
+        paymentStatus: "Paid",
+        image: "/api/placeholder/60/60",
+        productName: "T shirt",
+        name: "Tarnnish",
+        date: "13 aug 2024",
+        hsn: "406000",
+        size: ["small", "medium", "large"],
+        sizeQuantity: [5, 10, 115],
+        quantity: 130,
+        price: 4566,
+        salePrice: 4566,
+        sku: "bkhvhm0251",
+        barcodeNo: "406000000000000",
+        status: "processing",
+        orderType: "cod",
+        slotVendor: "slot vendor",
+        courierAlloted: "YES",
+        delivered: "NO",
+        actions: "Processing",
+        vendorAllotted: true,
+        allottedVendorName: "ven 1",
+        courierTrackingId: "SP123456789",
+        deliveryStatus: "In Transit",
+        lastUpdated: orderTimestamp,
+      },
+      {
+        orderId: "1234567892222",
+        paymentStatus: "Paid",
+        image: "/api/placeholder/60/60",
+        productName: "Lower",
+        name: "Shristi",
+        date: "14 aug 2024",
+        hsn: "406001",
+        size: ["small", "medium"],
+        sizeQuantity: [8, 12],
+        quantity: 20,
+        price: 2500,
+        salePrice: 2300,
+        sku: "bkhvhm0252",
+        barcodeNo: "406001000000000",
+        status: "accepted",
+        orderType: "prepaid",
+        slotVendor: "vendor 2",
+        courierAlloted: "YES",
+        delivered: "YES",
+        actions: "Delivered",
+        vendorAllotted: true,
+        allottedVendorName: "ven 2",
+        courierTrackingId: "SP123456790",
+        deliveryStatus: "Delivered",
+        lastUpdated: orderTimestamp,
+      },
+      {
+        orderId: "1234567892223",
+        paymentStatus: "Pending",
+        image: "/api/placeholder/60/60",
+        productName: "Shorts",
+        name: "Rajesh",
+        date: "15 aug 2024",
+        hsn: "406002",
+        size: ["medium", "large"],
+        sizeQuantity: [15, 25],
+        quantity: 40,
+        price: 1800,
+        salePrice: 1650,
+        sku: "bkhvhm0253",
+        barcodeNo: "406002000000000",
+        status: "rejected",
+        orderType: "cod",
+        slotVendor: "vendor 3",
+        courierAlloted: "NO",
+        delivered: "NO",
+        actions: "Rejected",
+        vendorAllotted: false,
+        allottedVendorName: null,
+        courierTrackingId: null,
+        deliveryStatus: "Cancelled",
+        lastUpdated: orderTimestamp,
+      },
+      {
+        orderId: "1234567892224",
+        paymentStatus: "Paid",
+        image: "/api/placeholder/60/60",
+        productName: "Jacket",
+        name: "Priya",
+        date: "16 aug 2024",
+        hsn: "406003",
+        size: ["small", "medium", "large"],
+        sizeQuantity: [3, 7, 10],
+        quantity: 20,
+        price: 3500,
+        salePrice: 3200,
+        sku: "bkhvhm0254",
+        barcodeNo: "406003000000000",
+        status: "allotted to vendor",
+        orderType: "prepaid",
+        slotVendor: "vendor 1",
+        courierAlloted: "YES",
+        delivered: "NO",
+        actions: "On way",
+        vendorAllotted: true,
+        allottedVendorName: "ven 3",
+        courierTrackingId: "SP123456791",
+        deliveryStatus: "Out for Delivery",
+        lastUpdated: orderTimestamp,
+      },
+    ];
+  });
 
   // Tab handler
   const handleTabChange = useCallback((tab) => {
@@ -2081,10 +2084,11 @@ const Orders = React.memo(() => {
 
   /**
    * Sample return requests data
-   * Memoized to prevent unnecessary re-creation on each render
+   * Memoized with static initialization to prevent recreation on each render
    */
-  const returnRequests = useMemo(
-    () => [
+  const returnRequests = useMemo(() => {
+    const timestamp = new Date().toISOString();
+    return [
       {
         orderId: "1234567892225",
         paymentStatus: "Paid",
@@ -2110,7 +2114,7 @@ const Orders = React.memo(() => {
         allottedVendorName: "ven 1",
         courierTrackingId: "SP123456792",
         deliveryStatus: "Return Requested",
-        lastUpdated: new Date().toISOString(),
+        lastUpdated: timestamp,
         returnReason: "Size/fit issue (For Exchanging the product)",
         returnStatus: "pending",
       },
@@ -2139,7 +2143,7 @@ const Orders = React.memo(() => {
         allottedVendorName: "ven 2",
         courierTrackingId: "SP123456793",
         deliveryStatus: "Return Approved",
-        lastUpdated: new Date().toISOString(),
+        lastUpdated: timestamp,
         returnReason: "Product not as expected",
         returnStatus: "accepted",
       },
@@ -2168,20 +2172,20 @@ const Orders = React.memo(() => {
         allottedVendorName: null,
         courierTrackingId: null,
         deliveryStatus: "Return Rejected",
-        lastUpdated: new Date().toISOString(),
+        lastUpdated: timestamp,
         returnReason: "Damaged/defective product",
         returnStatus: "rejected",
       },
-    ],
-    []
-  ); // Empty dependency array since this is static data
+    ];
+  }, []); // Empty dependency array since this is static data
 
   /**
    * Sample exchange requests data
-   * Memoized to prevent unnecessary re-creation on each render
+   * Memoized with static initialization to prevent recreation on each render
    */
-  const exchangeRequests = useMemo(
-    () => [
+  const exchangeRequests = useMemo(() => {
+    const timestamp = new Date().toISOString();
+    return [
       {
         orderId: "1234567892230",
         paymentStatus: "Paid",
@@ -2207,7 +2211,7 @@ const Orders = React.memo(() => {
         allottedVendorName: null,
         courierTrackingId: null,
         deliveryStatus: "Exchange Requested",
-        lastUpdated: new Date().toISOString(),
+        lastUpdated: timestamp,
         exchangeReason: "Size/fit issue (For Exchanging the product)",
         exchangeStatus: "pending",
       },
@@ -2236,7 +2240,7 @@ const Orders = React.memo(() => {
         allottedVendorName: "ven 1",
         courierTrackingId: "SP123456792",
         deliveryStatus: "Exchange In Progress",
-        lastUpdated: new Date().toISOString(),
+        lastUpdated: timestamp,
         exchangeReason: "Size/fit issue (For Exchanging the product)",
         exchangeStatus: "accepted",
       },
@@ -2265,32 +2269,35 @@ const Orders = React.memo(() => {
         allottedVendorName: null,
         courierTrackingId: null,
         deliveryStatus: "Exchange Rejected",
-        lastUpdated: new Date().toISOString(),
+        lastUpdated: timestamp,
         exchangeReason: "Product not as expected",
         exchangeStatus: "rejected",
       },
-    ],
-    []
-  ); // Empty dependency array since this is static data
+    ];
+  }, []); // Empty dependency array since this is static data
 
-  // Initialize allotted vendor names from existing order data
+  // Initialize allotted vendor names from existing order data - optimized for performance
   useEffect(() => {
-    const initialAllottedVendors = {};
-    const initialSelectedVendors = {};
-    const allData = [...orders, ...returnRequests, ...exchangeRequests];
+    const initializeVendorData = () => {
+      const initialAllottedVendors = {};
+      const initialSelectedVendors = {};
+      const allData = [...orders, ...returnRequests, ...exchangeRequests];
 
-    allData.forEach((order) => {
-      if (order.allottedVendorName) {
-        initialAllottedVendors[order.orderId] = order.allottedVendorName;
-        initialSelectedVendors[order.orderId] = true;
-      } else if (order.vendorAllotted) {
-        initialSelectedVendors[order.orderId] = true;
+      for (const order of allData) {
+        if (order.allottedVendorName) {
+          initialAllottedVendors[order.orderId] = order.allottedVendorName;
+          initialSelectedVendors[order.orderId] = true;
+        } else if (order.vendorAllotted) {
+          initialSelectedVendors[order.orderId] = true;
+        }
       }
-    });
 
-    setAllottedVendorNames(initialAllottedVendors);
-    setSelectedVendors((prev) => ({ ...prev, ...initialSelectedVendors }));
-  }, [orders, returnRequests, exchangeRequests]);
+      setAllottedVendorNames(initialAllottedVendors);
+      setSelectedVendors(prev => ({ ...prev, ...initialSelectedVendors }));
+    };
+
+    initializeVendorData();
+  }, []); // Remove dependencies to avoid recreation
 
   /**
    * Optimized filter handler using useCallback to prevent unnecessary re-renders
@@ -2514,11 +2521,12 @@ const Orders = React.memo(() => {
   }, []);
 
   /**
-   * Close dropdowns when clicking outside
+   * Close dropdowns when clicking outside - optimized event handler
    */
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (!event.target.closest(".dropdown-container")) {
+      const target = event.target;
+      if (!target.closest(".dropdown-container")) {
         setShowDateDropdown(false);
         setShowOrderTypeDropdown(false);
         setShowOrderStatusDropdown(false);
@@ -2526,7 +2534,8 @@ const Orders = React.memo(() => {
       }
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
+    // Use passive listener for better performance
+    document.addEventListener("mousedown", handleClickOutside, { passive: true });
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
@@ -2596,62 +2605,80 @@ const Orders = React.memo(() => {
   );
 
   /**
-   * Optimized filter handlers using useCallback to prevent unnecessary re-renders
+   * Optimized filter logic using useMemo with proper dependencies
    */
   const filteredOrders = useMemo(() => {
-    let currentData;
-    if (activeTab === "orders") {
-      currentData = orders;
-    } else if (activeTab === "returns") {
-      currentData = returnRequests;
-    } else if (activeTab === "exchanges") {
-      currentData = exchangeRequests;
-    } else {
-      currentData = orders;
+    // Early return for better performance
+    if (!orders.length && !returnRequests.length && !exchangeRequests.length) {
+      return [];
     }
+
+    let currentData;
+    switch (activeTab) {
+      case "returns":
+        currentData = returnRequests;
+        break;
+      case "exchanges":
+        currentData = exchangeRequests;
+        break;
+      default:
+        currentData = orders;
+    }
+
+    // Pre-compute filter conditions for better performance
+    const hasOrderStatusFilter = orderStatus !== "Order Status";
+    const hasOrderTypeFilter = orderType !== "Order Type";
+    const lowerOrderStatus = hasOrderStatusFilter ? orderStatus.toLowerCase() : null;
+    const lowerOrderType = hasOrderTypeFilter ? orderType.toLowerCase() : null;
 
     return currentData.filter((order) => {
       // Filter by order status
-      if (
-        orderStatus !== "Order Status" &&
-        order.status !== orderStatus.toLowerCase()
-      ) {
+      if (hasOrderStatusFilter && order.status !== lowerOrderStatus) {
         return false;
       }
 
       // Filter by order type
-      if (
-        orderType !== "Order Type" &&
-        order.orderType !== orderType.toLowerCase()
-      ) {
+      if (hasOrderTypeFilter && order.orderType !== lowerOrderType) {
         return false;
       }
 
-      // Add date filtering logic here if needed
-      // if (filterBy !== 'Date') {
-      //   // Implement date filtering logic based on filterBy value
-      // }
-
       return true;
     });
-  }, [orders, returnRequests, exchangeRequests, activeTab, orderStatus, orderType, filterBy]);
+  }, [orders, returnRequests, exchangeRequests, activeTab, orderStatus, orderType]);
 
   /**
-   * Print handler for order list - defined after filteredOrders to avoid initialization error
+   * Print handler for order list - optimized with better string concatenation
    */
   const handlePrintOrderList = useCallback(() => {
     // Create a formatted table for printing
     const currentData = filteredOrders;
-    let title;
-    if (activeTab === "orders") {
-      title = "Orders List";
-    } else if (activeTab === "returns") {
-      title = "Return Requests";
-    } else if (activeTab === "exchanges") {
-      title = "Exchange Requests";
-    } else {
-      title = "Orders List";
-    }
+    
+    // Pre-compute title to avoid repeated checks
+    const titles = {
+      orders: "Orders List",
+      returns: "Return Requests", 
+      exchanges: "Exchange Requests"
+    };
+    const title = titles[activeTab] || "Orders List";
+
+    // Generate rows more efficiently using map instead of template literals
+    const tableRows = currentData.map(order => {
+      const statusClass = order.status.toLowerCase().replace(/\s+/g, "-");
+      return `
+        <tr>
+          <td>${order.orderId}</td>
+          <td>${order.productName}</td>
+          <td>${order.name}</td>
+          <td>${order.date}</td>
+          <td>${order.quantity}</td>
+          <td>₹${order.price}</td>
+          <td>₹${order.salePrice}</td>
+          <td><span class="status status-${statusClass}">${order.status}</span></td>
+          <td>${order.paymentStatus}</td>
+          <td>${order.deliveryStatus}</td>
+        </tr>
+      `;
+    }).join('');
 
     const printContent = `
       <html>
@@ -2698,26 +2725,7 @@ const Orders = React.memo(() => {
               </tr>
             </thead>
             <tbody>
-              ${currentData
-                .map(
-                  (order) => `
-                <tr>
-                  <td>${order.orderId}</td>
-                  <td>${order.productName}</td>
-                  <td>${order.name}</td>
-                  <td>${order.date}</td>
-                  <td>${order.quantity}</td>
-                  <td>₹${order.price}</td>
-                  <td>₹${order.salePrice}</td>
-                  <td><span class="status status-${order.status
-                    .toLowerCase()
-                    .replace(/\s+/g, "-")}">${order.status}</span></td>
-                  <td>${order.paymentStatus}</td>
-                  <td>${order.deliveryStatus}</td>
-                </tr>
-              `
-                )
-                .join("")}
+              ${tableRows}
             </tbody>
           </table>
         </body>
@@ -2771,38 +2779,25 @@ const Orders = React.memo(() => {
   return (
     <div className="bg-gray-50 min-h-screen p-4">
       <div className="max-w-full mx-0 ml-4">
-        {/* Tab Navigation */}
+        {/* Tab Navigation - Optimized with better styling and performance */}
         <div className="flex items-center space-x-8 mb-6">
-          <button
-            onClick={() => handleTabChange("orders")}
-            className={`text-xl font-semibold pb-2 ${
-              activeTab === "orders"
-                ? "text-black border-b-2 border-black"
-                : "text-gray-500 hover:text-gray-700"
-            }`}
-          >
-            orders list
-          </button>
-          <button
-            onClick={() => handleTabChange("returns")}
-            className={`text-xl font-semibold pb-2 ${
-              activeTab === "returns"
-                ? "text-black border-b-2 border-black"
-                : "text-gray-500 hover:text-gray-700"
-            }`}
-          >
-            return requests
-          </button>
-          <button
-            onClick={() => handleTabChange("exchanges")}
-            className={`text-xl font-semibold pb-2 ${
-              activeTab === "exchanges"
-                ? "text-black border-b-2 border-black"
-                : "text-gray-500 hover:text-gray-700"
-            }`}
-          >
-            Exchange requests
-          </button>
+          {[
+            { key: "orders", label: "orders list" },
+            { key: "returns", label: "return requests" },
+            { key: "exchanges", label: "Exchange requests" }
+          ].map(({ key, label }) => (
+            <button
+              key={key}
+              onClick={() => handleTabChange(key)}
+              className={`text-xl font-semibold pb-2 transition-colors duration-200 ${
+                activeTab === key
+                  ? "text-black border-b-2 border-black"
+                  : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
         </div>
 
         {/* Header Section - Title and date in one line */}
@@ -3156,11 +3151,11 @@ const Orders = React.memo(() => {
                 </tr>
               </thead>
 
-              {/* Table Body */}
+              {/* Table Body - Optimized rendering with React.Fragment */}
               <tbody className="bg-white divide-y divide-gray-100">
                 {filteredOrders.map((order, index) => (
                   <OrderRow
-                    key={`${order.orderId}-${index}`}
+                    key={order.orderId} // Use orderId as key instead of combination for better performance
                     order={order}
                     getStatusColor={getStatusColor}
                     getPaymentStatusColor={getPaymentStatusColor}
@@ -3195,22 +3190,7 @@ const Orders = React.memo(() => {
 
 /**
  * OrderRow Component - Enhanced row component with comprehensive order management features
- *
- * @param {Object} props - Component props
- * @param {Object} props.order - Order data object
- * @param {Function} props.getStatusColor - Function to get status color
- * @param {Function} props.getPaymentStatusColor - Function to get payment status color
- * @param {Function} props.getDeliveryStatusColor - Function to get delivery status color
- * @param {Function} props.onOrderIdClick - Function to handle order ID click
- * @param {Function} props.onVendorAllotment - Function to handle vendor allotment
- * @param {Function} props.onVendorSelection - Function to handle vendor selection
- * @param {Function} props.onCourierAllotment - Function to handle courier allotment
- * @param {Function} props.onBarcodeScanning - Function to handle barcode scanning
- * @param {Object} props.showVendorDropdown - State for vendor dropdown visibility
- * @param {Function} props.setShowVendorDropdown - Function to set vendor dropdown visibility
- * @param {Object} props.selectedVendors - State for selected vendors
- * @param {Object} props.courierAllotments - State for courier allotments
- * @param {Object} props.deliveryStatuses - State for delivery statuses
+ * Optimized for performance with memoization and efficient re-rendering
  */
 const OrderRow = React.memo(
   ({
@@ -3236,19 +3216,48 @@ const OrderRow = React.memo(
     deliveryStatuses,
     activeTab,
   }) => {
-    // Available vendors for allotment
-    const availableVendors = ["ven 1", "ven 2", "ven 3"];
+    // Memoized vendor options to prevent recreation
+    const availableVendors = useMemo(() => ["ven 1", "ven 2", "ven 3"], []);
+
+    // Memoized computed values for better performance
+    const computedValues = useMemo(() => ({
+      isVendorAllotted: selectedVendors[order.orderId],
+      isCourierAllotted: courierAllotments[order.orderId],
+      currentDeliveryStatus: deliveryStatuses[order.orderId] || order.deliveryStatus,
+      vendorDropdownVisible: showVendorDropdown[order.orderId],
+      selectedVendorName: selectedVendorNames[order.orderId],
+      allottedVendorName: allottedVendorNames[order.orderId],
+      paymentStatusClass: getPaymentStatusColor(order.paymentStatus),
+      statusClass: getStatusColor(order.status),
+      isPendingStatus: order.status.toLowerCase() === "pending"
+    }), [
+      order.orderId,
+      order.paymentStatus,
+      order.status,
+      order.deliveryStatus,
+      selectedVendors,
+      courierAllotments,
+      deliveryStatuses,
+      showVendorDropdown,
+      selectedVendorNames,
+      allottedVendorNames,
+      getPaymentStatusColor,
+      getStatusColor
+    ]);
 
     /**
      * Action button handlers - memoized to prevent unnecessary re-renders
      */
     const handleView = useCallback(() => {
-      if (activeTab === "returns") {
-        onReturnIdClick(order.orderId);
-      } else if (activeTab === "exchanges") {
-        onExchangeIdClick(order.orderId);
-      } else {
-        onOrderIdClick(order.orderId);
+      switch (activeTab) {
+        case "returns":
+          onReturnIdClick(order.orderId);
+          break;
+        case "exchanges":
+          onExchangeIdClick(order.orderId);
+          break;
+        default:
+          onOrderIdClick(order.orderId);
       }
     }, [order.orderId, onOrderIdClick, onReturnIdClick, onExchangeIdClick, activeTab]);
 
@@ -3264,18 +3273,20 @@ const OrderRow = React.memo(
 
     const handleShare = useCallback(() => {
       console.log("Share order:", order.orderId);
+      const orderUrl = `${window.location.origin}/order-details/${order.orderId}`;
+      
       if (navigator.share) {
         navigator
           .share({
             title: `Order #${order.orderId}`,
             text: `Order details for #${order.orderId}`,
-            url: `${window.location.origin}/order-details/${order.orderId}`,
+            url: orderUrl,
           })
           .catch(console.error);
       } else {
         // Fallback - copy to clipboard
         navigator.clipboard
-          .writeText(`${window.location.origin}/order-details/${order.orderId}`)
+          .writeText(orderUrl)
           .then(() => alert("Order link copied to clipboard!"))
           .catch(console.error);
       }
@@ -3314,10 +3325,10 @@ const OrderRow = React.memo(
     );
 
     const handleVendorConfirm = useCallback(() => {
-      if (selectedVendorNames[order.orderId]) {
+      if (computedValues.selectedVendorName) {
         onVendorSelection(order.orderId, "Confirmed");
       }
-    }, [order.orderId, onVendorSelection, selectedVendorNames]);
+    }, [order.orderId, onVendorSelection, computedValues.selectedVendorName]);
 
     const handleCourierAllot = useCallback(
       (allot) => {
@@ -3334,11 +3345,86 @@ const OrderRow = React.memo(
       onRejectOrder(order.orderId);
     }, [order.orderId, onRejectOrder]);
 
-    // Get current states
-    const isVendorAllotted = selectedVendors[order.orderId];
-    const isCourierAllotted = courierAllotments[order.orderId];
-    const currentDeliveryStatus =
-      deliveryStatuses[order.orderId] || order.deliveryStatus;
+    // Memoized size and quantity display for better performance
+    const sizeDisplay = useMemo(() => (
+      <div className="space-y-1">
+        {order.size.map((size) => (
+          <div key={size} className="text-xs text-gray-600">
+            {size}
+          </div>
+        ))}
+      </div>
+    ), [order.size]);
+
+    const quantityDisplay = useMemo(() => (
+      <div className="space-y-1">
+        {order.sizeQuantity.map((qty, i) => (
+          <div key={i} className="text-xs font-semibold text-gray-800">
+            {qty}
+          </div>
+        ))}
+      </div>
+    ), [order.sizeQuantity]);
+
+    // Memoized vendor selection dropdown
+    const vendorDropdown = useMemo(() => {
+      if (!computedValues.isVendorAllotted || !computedValues.vendorDropdownVisible) {
+        return null;
+      }
+
+      return (
+        <div className="relative mt-2 z-10">
+          <div className="bg-white border rounded-xl shadow-lg p-4">
+            <div className="text-gray-400 mb-2 font-semibold">
+              Vendor Name
+            </div>
+            {availableVendors.map((vendor) => (
+              <label
+                key={vendor}
+                className="flex justify-between items-center py-1"
+              >
+                <span className="text-sm text-gray-900">{vendor}</span>
+                <input
+                  type="radio"
+                  className="sr-only"
+                  checked={computedValues.selectedVendorName === vendor}
+                  onChange={() => handleVendorSelect(vendor)}
+                />
+                <div
+                  className={`w-5 h-5 flex items-center justify-center rounded border-2 ${
+                    computedValues.selectedVendorName === vendor
+                      ? "border-blue-500 bg-blue-50"
+                      : "border-gray-300"
+                  }`}
+                >
+                  {computedValues.selectedVendorName === vendor && (
+                    <Check className="w-3 h-3 text-blue-500" />
+                  )}
+                </div>
+              </label>
+            ))}
+            <button
+              onClick={handleVendorConfirm}
+              disabled={!computedValues.selectedVendorName}
+              className={`w-full mt-3 py-2 rounded text-sm font-medium ${
+                computedValues.selectedVendorName
+                  ? "bg-blue-600 text-white hover:bg-blue-700"
+                  : "bg-gray-200 text-gray-400 cursor-not-allowed"
+              }`}
+            >
+              Confirm
+            </button>
+          </div>
+        </div>
+      );
+    }, [
+      computedValues.isVendorAllotted,
+      computedValues.vendorDropdownVisible,
+      computedValues.selectedVendorName,
+      availableVendors,
+      handleVendorSelect,
+      handleVendorConfirm
+    ]);
 
     return (
       <tr className="border-b border-gray-200 hover:bg-gray-50 text-sm">
@@ -3355,9 +3441,7 @@ const OrderRow = React.memo(
               {activeTab === "returns" ? "RETURN STATUS" : "PAYMENT STATUS"}
             </div>
             <span
-              className={`inline-block px-2 py-1 text-xs rounded-full font-medium ${getPaymentStatusColor(
-                order.paymentStatus
-              )}`}
+              className={`inline-block px-2 py-1 text-xs rounded-full font-medium ${computedValues.paymentStatusClass}`}
             >
               {order.paymentStatus}
             </span>
@@ -3391,26 +3475,10 @@ const OrderRow = React.memo(
         <td className="py-4 px-3 text-gray-700">{order.hsn}</td>
 
         {/* Sizes */}
-        <td className="py-4 px-3">
-          <div className="space-y-1">
-            {order.size.map((size) => (
-              <div key={size} className="text-xs text-gray-600">
-                {size}
-              </div>
-            ))}
-          </div>
-        </td>
+        <td className="py-4 px-3">{sizeDisplay}</td>
 
         {/* Quantities */}
-        <td className="py-4 px-3">
-          <div className="space-y-1">
-            {order.sizeQuantity.map((qty, i) => (
-              <div key={i} className="text-xs font-semibold text-gray-800">
-                {qty}
-              </div>
-            ))}
-          </div>
-        </td>
+        <td className="py-4 px-3">{quantityDisplay}</td>
 
         {/* Price */}
         <td className="py-4 px-3 font-semibold text-gray-700">
@@ -3432,7 +3500,7 @@ const OrderRow = React.memo(
 
         {/* Status */}
         <td className="py-4 px-3">
-          {order.status.toLowerCase() === "pending" ? (
+          {computedValues.isPendingStatus ? (
             <div className="space-y-2">
               <button
                 onClick={handleAccept}
@@ -3449,9 +3517,7 @@ const OrderRow = React.memo(
             </div>
           ) : (
             <span
-              className={`inline-block px-3 py-1 text-xs rounded-full font-medium ${getStatusColor(
-                order.status
-              )}`}
+              className={`inline-block px-3 py-1 text-xs rounded-full font-medium ${computedValues.statusClass}`}
             >
               {order.status}
             </span>
@@ -3470,7 +3536,7 @@ const OrderRow = React.memo(
                   key={value ? "yes" : "no"}
                   onClick={() => handleVendorAllot(value)}
                   className={`px-3 py-1 rounded-full text-xs font-medium border ${
-                    value === isVendorAllotted
+                    value === computedValues.isVendorAllotted
                       ? activeTab === "returns" && value
                         ? "bg-blue-600 text-white"
                         : "bg-gray-200 text-gray-700"
@@ -3481,62 +3547,18 @@ const OrderRow = React.memo(
                 </button>
               ))}
             </div>
-            {(isVendorAllotted ||
+            {(computedValues.isVendorAllotted ||
               order.allottedVendorName ||
-              allottedVendorNames[order.orderId]) && (
+              computedValues.allottedVendorName) && (
               <div className="text-center">
                 <span className="inline-block px-2 py-1 bg-blue-100 text-blue-800 font-medium rounded-full">
-                  {allottedVendorNames[order.orderId] ||
+                  {computedValues.allottedVendorName ||
                     order.allottedVendorName ||
                     "Vendor Assigned"}
                 </span>
               </div>
             )}
-            {isVendorAllotted && showVendorDropdown[order.orderId] && (
-              <div className="relative mt-2 z-10">
-                <div className="bg-white border rounded-xl shadow-lg p-4">
-                  <div className="text-gray-400 mb-2 font-semibold">
-                    Vendor Name
-                  </div>
-                  {availableVendors.map((vendor, i) => (
-                    <label
-                      key={vendor}
-                      className="flex justify-between items-center py-1"
-                    >
-                      <span className="text-sm text-gray-900">{vendor}</span>
-                      <input
-                        type="radio"
-                        className="sr-only"
-                        checked={selectedVendorNames[order.orderId] === vendor}
-                        onChange={() => handleVendorSelect(vendor)}
-                      />
-                      <div
-                        className={`w-5 h-5 flex items-center justify-center rounded border-2 ${
-                          selectedVendorNames[order.orderId] === vendor
-                            ? "border-blue-500 bg-blue-50"
-                            : "border-gray-300"
-                        }`}
-                      >
-                        {selectedVendorNames[order.orderId] === vendor && (
-                          <Check className="w-3 h-3 text-blue-500" />
-                        )}
-                      </div>
-                    </label>
-                  ))}
-                  <button
-                    onClick={handleVendorConfirm}
-                    disabled={!selectedVendorNames[order.orderId]}
-                    className={`w-full mt-3 py-2 rounded text-sm font-medium ${
-                      selectedVendorNames[order.orderId]
-                        ? "bg-blue-600 text-white hover:bg-blue-700"
-                        : "bg-gray-200 text-gray-400 cursor-not-allowed"
-                    }`}
-                  >
-                    Confirm
-                  </button>
-                </div>
-              </div>
-            )}
+            {vendorDropdown}
           </div>
         </td>
 
@@ -3549,7 +3571,7 @@ const OrderRow = React.memo(
                   key={value ? "yes" : "no"}
                   onClick={() => handleCourierAllot(value)}
                   className={`px-3 py-1 rounded-full text-xs font-medium border ${
-                    value === isCourierAllotted
+                    value === computedValues.isCourierAllotted
                       ? "bg-blue-600 text-white"
                       : "bg-white text-gray-600 hover:bg-gray-100"
                   }`}
@@ -3558,7 +3580,7 @@ const OrderRow = React.memo(
                 </button>
               ))}
             </div>
-            {isCourierAllotted && (
+            {computedValues.isCourierAllotted && (
               <div className="text-green-600 font-medium text-center">
                 <Package className="inline w-4 h-4 mr-1" /> Shiprocket
               </div>
@@ -3570,10 +3592,10 @@ const OrderRow = React.memo(
         <td className="py-4 px-3">
           <span
             className={`inline-block px-2 py-1 text-xs rounded-full font-medium ${getDeliveryStatusColor(
-              currentDeliveryStatus
+              computedValues.currentDeliveryStatus
             )}`}
           >
-            {currentDeliveryStatus}
+            {computedValues.currentDeliveryStatus}
           </span>
         </td>
 
@@ -3611,6 +3633,22 @@ const OrderRow = React.memo(
           </div>
         </td>
       </tr>
+    );
+  },
+  // Custom comparison function for better memoization
+  (prevProps, nextProps) => {
+    // Only re-render if essential props change
+    return (
+      prevProps.order.orderId === nextProps.order.orderId &&
+      prevProps.order.status === nextProps.order.status &&
+      prevProps.order.paymentStatus === nextProps.order.paymentStatus &&
+      prevProps.selectedVendors[prevProps.order.orderId] === nextProps.selectedVendors[nextProps.order.orderId] &&
+      prevProps.courierAllotments[prevProps.order.orderId] === nextProps.courierAllotments[nextProps.order.orderId] &&
+      prevProps.showVendorDropdown[prevProps.order.orderId] === nextProps.showVendorDropdown[nextProps.order.orderId] &&
+      prevProps.selectedVendorNames[prevProps.order.orderId] === nextProps.selectedVendorNames[nextProps.order.orderId] &&
+      prevProps.allottedVendorNames[prevProps.order.orderId] === nextProps.allottedVendorNames[nextProps.order.orderId] &&
+      prevProps.deliveryStatuses[prevProps.order.orderId] === nextProps.deliveryStatuses[nextProps.order.orderId] &&
+      prevProps.activeTab === nextProps.activeTab
     );
   }
 );

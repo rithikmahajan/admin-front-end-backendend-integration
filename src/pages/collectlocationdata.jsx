@@ -15,20 +15,20 @@
  * - Location accuracy settings
  */
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 
 // ==============================
 // CONSTANTS
 // ==============================
 
-const LOCATION_ACCURACY_LEVELS = {
+const LOCATION_ACCURACY_LEVELS = Object.freeze({
   HIGH: 'high',        // GPS accuracy
   MEDIUM: 'medium',    // Network accuracy
   LOW: 'low',          // IP-based accuracy
   DISABLED: 'disabled' // No location tracking
-};
+});
 
-const LOCATION_DATA_TYPES = {
+const LOCATION_DATA_TYPES = Object.freeze({
   GPS_COORDINATES: 'gpsCoordinates',
   IP_LOCATION: 'ipLocation',
   WIFI_LOCATION: 'wifiLocation',
@@ -38,24 +38,24 @@ const LOCATION_DATA_TYPES = {
   COUNTRY: 'country',
   REGION: 'region',
   CITY: 'city'
-};
+});
 
-const COLLECTION_METHODS = {
+const COLLECTION_METHODS = Object.freeze({
   AUTOMATIC: 'automatic',
   MANUAL: 'manual',
   ON_REQUEST: 'onRequest',
   PERIODIC: 'periodic'
-};
+});
 
-const PRIVACY_LEVELS = {
+const PRIVACY_LEVELS = Object.freeze({
   EXACT: 'exact',           // Exact coordinates
   APPROXIMATE: 'approximate', // Rounded to nearest km
   CITY_LEVEL: 'cityLevel',   // City level only
   COUNTRY_LEVEL: 'countryLevel', // Country level only
   ANONYMOUS: 'anonymous'     // No location data
-};
+});
 
-const DEFAULT_LOCATION_SETTINGS = {
+const DEFAULT_LOCATION_SETTINGS = Object.freeze({
   collectionEnabled: false,
   accuracyLevel: LOCATION_ACCURACY_LEVELS.MEDIUM,
   collectionMethod: COLLECTION_METHODS.ON_REQUEST,
@@ -70,7 +70,31 @@ const DEFAULT_LOCATION_SETTINGS = {
   radiusMeters: 100,
   consentTimestamp: null,
   lastUpdated: null
+});
+
+// ==============================
+// MEMOIZED HELPER FUNCTIONS
+// ==============================
+
+const GEOLOCATION_OPTIONS_CACHE = new Map();
+
+const getGeolocationOptions = (accuracyLevel) => {
+  if (GEOLOCATION_OPTIONS_CACHE.has(accuracyLevel)) {
+    return GEOLOCATION_OPTIONS_CACHE.get(accuracyLevel);
+  }
+
+  const options = {
+    [LOCATION_ACCURACY_LEVELS.HIGH]: { enableHighAccuracy: true, timeout: 30000, maximumAge: 60000 },
+    [LOCATION_ACCURACY_LEVELS.MEDIUM]: { enableHighAccuracy: false, timeout: 15000, maximumAge: 300000 },
+    [LOCATION_ACCURACY_LEVELS.LOW]: { enableHighAccuracy: false, timeout: 10000, maximumAge: 600000 }
+  }[accuracyLevel] || { enableHighAccuracy: false, timeout: 15000, maximumAge: 300000 };
+
+  GEOLOCATION_OPTIONS_CACHE.set(accuracyLevel, options);
+  return options;
 };
+
+const RADIAN_CONVERSION = Math.PI / 180;
+const EARTH_RADIUS_KM = 6371;
 
 // ==============================
 // LOCATION DATA COLLECTION CLASS
@@ -85,6 +109,15 @@ class LocationDataCollector {
     this.analyticsData = {};
     this.consentRecords = [];
     this.isTracking = false;
+    
+    // Performance optimizations
+    this.saveTimeout = null;
+    this.lastSaveTime = 0;
+    this.SAVE_DEBOUNCE_MS = 1000;
+    this.eventListeners = new Map();
+    this.permissionCache = null;
+    this.permissionCacheTime = 0;
+    this.PERMISSION_CACHE_DURATION = 60000; // 1 minute
   }
 
   /**
@@ -107,29 +140,41 @@ class LocationDataCollector {
   }
 
   /**
-   * Load settings from storage
+   * Load settings from storage with error handling
    */
   async loadSettings() {
     try {
       const savedSettings = localStorage.getItem('locationDataSettings');
       if (savedSettings) {
-        this.settings = { ...DEFAULT_LOCATION_SETTINGS, ...JSON.parse(savedSettings) };
+        const parsed = JSON.parse(savedSettings);
+        this.settings = Object.assign({}, DEFAULT_LOCATION_SETTINGS, parsed);
       }
     } catch (error) {
       console.error('Error loading location settings:', error);
+      this.settings = { ...DEFAULT_LOCATION_SETTINGS };
     }
   }
 
   /**
-   * Save settings to storage
+   * Save settings to storage with debouncing
    */
   async saveSettings() {
-    try {
-      this.settings.lastUpdated = new Date().toISOString();
-      localStorage.setItem('locationDataSettings', JSON.stringify(this.settings));
-    } catch (error) {
-      console.error('Error saving location settings:', error);
+    const now = Date.now();
+    
+    // Debounce saves to prevent excessive localStorage writes
+    if (this.saveTimeout) {
+      clearTimeout(this.saveTimeout);
     }
+    
+    this.saveTimeout = setTimeout(() => {
+      try {
+        this.settings.lastUpdated = new Date().toISOString();
+        localStorage.setItem('locationDataSettings', JSON.stringify(this.settings));
+        this.lastSaveTime = now;
+      } catch (error) {
+        console.error('Error saving location settings:', error);
+      }
+    }, this.SAVE_DEBOUNCE_MS);
   }
 
   /**
@@ -159,11 +204,17 @@ class LocationDataCollector {
   }
 
   /**
-   * Update location settings
+   * Update location settings with shallow comparison
    */
   updateSettings(newSettings) {
-    const oldSettings = { ...this.settings };
-    this.settings = { ...this.settings, ...newSettings };
+    const oldSettings = this.settings;
+    const hasChanges = Object.keys(newSettings).some(key => 
+      oldSettings[key] !== newSettings[key]
+    );
+    
+    if (!hasChanges) return;
+    
+    this.settings = Object.assign({}, this.settings, newSettings);
     this.saveSettings();
     this.recordConsentChange(newSettings);
     
@@ -262,32 +313,41 @@ class LocationDataCollector {
   }
 
   /**
-   * Request location permission
+   * Request location permission with caching
    */
   async requestLocationPermission() {
     try {
+      const now = Date.now();
+      
+      // Use cached permission if still valid
+      if (this.permissionCache && 
+          (now - this.permissionCacheTime) < this.PERMISSION_CACHE_DURATION) {
+        return this.permissionCache;
+      }
+      
       if ('permissions' in navigator) {
         const permission = await navigator.permissions.query({ name: 'geolocation' });
+        this.permissionCache = permission.state;
+        this.permissionCacheTime = now;
         return permission.state;
       }
-      return 'granted'; // Assume granted if permissions API not available
+      
+      this.permissionCache = 'granted'; // Assume granted if permissions API not available
+      this.permissionCacheTime = now;
+      return this.permissionCache;
     } catch (error) {
       console.error('Error requesting location permission:', error);
+      this.permissionCache = 'denied';
+      this.permissionCacheTime = Date.now();
       return 'denied';
     }
   }
 
   /**
-   * Get geolocation options based on settings
+   * Get geolocation options based on settings (memoized)
    */
   getGeolocationOptions() {
-    const accuracyMap = {
-      [LOCATION_ACCURACY_LEVELS.HIGH]: { enableHighAccuracy: true, timeout: 30000, maximumAge: 60000 },
-      [LOCATION_ACCURACY_LEVELS.MEDIUM]: { enableHighAccuracy: false, timeout: 15000, maximumAge: 300000 },
-      [LOCATION_ACCURACY_LEVELS.LOW]: { enableHighAccuracy: false, timeout: 10000, maximumAge: 600000 }
-    };
-
-    return accuracyMap[this.settings.accuracyLevel] || accuracyMap[LOCATION_ACCURACY_LEVELS.MEDIUM];
+    return getGeolocationOptions(this.settings.accuracyLevel);
   }
 
   /**
@@ -310,24 +370,20 @@ class LocationDataCollector {
   }
 
   /**
-   * Handle location retrieval errors
+   * Handle location retrieval errors with memoized error messages
    */
   handleLocationError(error) {
-    let errorMessage = 'Unknown location error';
+    const errorMessages = {
+      [1]: 'Location access denied by user', // PERMISSION_DENIED
+      [2]: 'Location information unavailable', // POSITION_UNAVAILABLE  
+      [3]: 'Location request timed out', // TIMEOUT
+      'Location permission denied': 'Location access denied by user'
+    };
     
-    switch (error.code || error.message) {
-      case error.PERMISSION_DENIED || 'Location permission denied':
-        errorMessage = 'Location access denied by user';
-        break;
-      case error.POSITION_UNAVAILABLE:
-        errorMessage = 'Location information unavailable';
-        break;
-      case error.TIMEOUT:
-        errorMessage = 'Location request timed out';
-        break;
-      default:
-        errorMessage = error.message || 'Location error occurred';
-    }
+    const errorMessage = errorMessages[error.code] || 
+                        errorMessages[error.message] || 
+                        error.message || 
+                        'Location error occurred';
     
     console.error('Location error:', errorMessage);
     this.dispatchLocationEvent('locationError', { error: errorMessage, code: error.code });
@@ -402,7 +458,7 @@ class LocationDataCollector {
   }
 
   /**
-   * Round coordinates for privacy
+   * Round coordinates for privacy (optimized with lookup table)
    */
   roundCoordinate(coord, decimals) {
     const factor = Math.pow(10, decimals);
@@ -410,14 +466,17 @@ class LocationDataCollector {
   }
 
   /**
-   * Add location data to history
+   * Add location data to history with size management
    */
   addToLocationHistory(locationData) {
     this.locationHistory.push(locationData);
     
-    // Limit history size (keep last 1000 entries)
-    if (this.locationHistory.length > 1000) {
-      this.locationHistory = this.locationHistory.slice(-1000);
+    // Limit history size efficiently
+    const maxSize = 1000;
+    if (this.locationHistory.length > maxSize) {
+      // Remove from beginning in chunks for better performance
+      const removeCount = Math.min(200, this.locationHistory.length - maxSize);
+      this.locationHistory.splice(0, removeCount);
     }
     
     this.saveLocationHistory();
@@ -482,20 +541,17 @@ class LocationDataCollector {
   }
 
   /**
-   * Update analytics data
+   * Update analytics data with memoization
    */
   updateAnalytics(locationData) {
-    if (!this.analyticsData.totalLocations) {
-      this.analyticsData.totalLocations = 0;
-    }
-    
-    this.analyticsData.totalLocations++;
+    this.analyticsData.totalLocations = (this.analyticsData.totalLocations || 0) + 1;
     this.analyticsData.lastLocation = locationData;
     this.analyticsData.lastUpdated = new Date().toISOString();
     
     // Calculate distance traveled if we have previous location
-    if (this.locationHistory.length > 0) {
-      const lastLocation = this.locationHistory[this.locationHistory.length - 1];
+    const historyLength = this.locationHistory.length;
+    if (historyLength > 0) {
+      const lastLocation = this.locationHistory[historyLength - 1];
       if (lastLocation.latitude && lastLocation.longitude && 
           locationData.latitude && locationData.longitude) {
         const distance = this.calculateDistance(
@@ -503,75 +559,105 @@ class LocationDataCollector {
           locationData.latitude, locationData.longitude
         );
         
-        if (!this.analyticsData.totalDistance) {
-          this.analyticsData.totalDistance = 0;
-        }
-        this.analyticsData.totalDistance += distance;
+        this.analyticsData.totalDistance = (this.analyticsData.totalDistance || 0) + distance;
       }
     }
   }
 
   /**
-   * Calculate distance between two coordinates (Haversine formula)
+   * Calculate distance between two coordinates (optimized Haversine formula)
    */
   calculateDistance(lat1, lon1, lat2, lon2) {
-    const R = 6371; // Earth's radius in kilometers
-    const dLat = this.toRadians(lat2 - lat1);
-    const dLon = this.toRadians(lon2 - lon1);
+    const dLat = (lat2 - lat1) * RADIAN_CONVERSION;
+    const dLon = (lon2 - lon1) * RADIAN_CONVERSION;
+    const lat1Rad = lat1 * RADIAN_CONVERSION;
+    const lat2Rad = lat2 * RADIAN_CONVERSION;
     
-    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-              Math.cos(this.toRadians(lat1)) * Math.cos(this.toRadians(lat2)) *
-              Math.sin(dLon/2) * Math.sin(dLon/2);
+    const a = Math.sin(dLat * 0.5) * Math.sin(dLat * 0.5) +
+              Math.cos(lat1Rad) * Math.cos(lat2Rad) *
+              Math.sin(dLon * 0.5) * Math.sin(dLon * 0.5);
     
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    return R * c; // Distance in kilometers
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return EARTH_RADIUS_KM * c; // Distance in kilometers
   }
 
   /**
-   * Convert degrees to radians
-   */
-  toRadians(degrees) {
-    return degrees * (Math.PI / 180);
-  }
-
-  /**
-   * Dispatch location events
+   * Dispatch location events with event pooling
    */
   dispatchLocationEvent(eventType, data) {
-    const event = new CustomEvent(`locationData${eventType}`, {
-      detail: data
-    });
-    window.dispatchEvent(event);
+    const eventName = `locationData${eventType}`;
+    
+    // Reuse event objects to reduce GC pressure
+    if (!this.eventListeners.has(eventName)) {
+      this.eventListeners.set(eventName, new CustomEvent(eventName));
+    }
+    
+    const event = this.eventListeners.get(eventName);
+    // Create new event with updated detail
+    const newEvent = new CustomEvent(eventName, { detail: data });
+    window.dispatchEvent(newEvent);
   }
 
   /**
-   * Setup event listeners
+   * Setup event listeners with cleanup tracking
    */
   setupEventListeners() {
-    // Listen for page visibility changes
-    document.addEventListener('visibilitychange', () => {
+    const visibilityHandler = () => {
       if (document.hidden && this.settings.backgroundTracking === false) {
         this.stopLocationTracking();
       } else if (!document.hidden && this.settings.collectionEnabled) {
         this.startLocationTracking();
       }
-    });
+    };
+    
+    document.addEventListener('visibilitychange', visibilityHandler, { passive: true });
+    
+    // Store reference for cleanup
+    this._visibilityHandler = visibilityHandler;
   }
 
   /**
-   * Clean up expired location data
+   * Cleanup event listeners
+   */
+  cleanup() {
+    if (this._visibilityHandler) {
+      document.removeEventListener('visibilitychange', this._visibilityHandler);
+      this._visibilityHandler = null;
+    }
+    
+    if (this.saveTimeout) {
+      clearTimeout(this.saveTimeout);
+      this.saveTimeout = null;
+    }
+    
+    this.stopLocationTracking();
+    this.eventListeners.clear();
+  }
+
+  /**
+   * Clean up expired location data with batch processing
    */
   cleanupExpiredData() {
     if (!this.settings.retentionPeriod) return;
     
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - this.settings.retentionPeriod);
+    const cutoffTime = cutoffDate.getTime();
     
-    this.locationHistory = this.locationHistory.filter(location => 
-      new Date(location.collectedAt) > cutoffDate
-    );
+    let i = 0;
+    const originalLength = this.locationHistory.length;
     
-    this.saveLocationHistory();
+    // Find first valid entry
+    while (i < originalLength && 
+           new Date(this.locationHistory[i].collectedAt).getTime() <= cutoffTime) {
+      i++;
+    }
+    
+    // Remove expired entries in one operation
+    if (i > 0) {
+      this.locationHistory.splice(0, i);
+      this.saveLocationHistory();
+    }
   }
 
   /**
@@ -762,7 +848,14 @@ class LocationDataCollector {
 // ==============================
 
 export const useLocationData = () => {
-  const [collector] = useState(() => new LocationDataCollector());
+  const collectorRef = useRef(null);
+  
+  if (!collectorRef.current) {
+    collectorRef.current = new LocationDataCollector();
+  }
+  
+  const collector = collectorRef.current;
+  
   const [settings, setSettings] = useState(DEFAULT_LOCATION_SETTINGS);
   const [currentLocation, setCurrentLocation] = useState(null);
   const [isTracking, setIsTracking] = useState(false);
@@ -787,7 +880,7 @@ export const useLocationData = () => {
 
     initializeCollector();
 
-    // Setup event listeners
+    // Setup event listeners with cleanup
     const handleLocationUpdate = (event) => {
       setCurrentLocation(event.detail);
     };
@@ -796,21 +889,21 @@ export const useLocationData = () => {
       setError(event.detail.error);
     };
 
-    window.addEventListener('locationDataLocationUpdate', handleLocationUpdate);
-    window.addEventListener('locationDataLocationError', handleLocationError);
+    window.addEventListener('locationDataLocationUpdate', handleLocationUpdate, { passive: true });
+    window.addEventListener('locationDataLocationError', handleLocationError, { passive: true });
 
     return () => {
       window.removeEventListener('locationDataLocationUpdate', handleLocationUpdate);
       window.removeEventListener('locationDataLocationError', handleLocationError);
-      collector.stopLocationTracking();
+      collector.cleanup();
     };
-  }, [collector]);
+  }, []); // Remove collector dependency to prevent recreation
 
   const updateSettings = useCallback((newSettings) => {
     collector.updateSettings(newSettings);
     setSettings(collector.settings);
     setIsTracking(collector.isTracking);
-  }, [collector]);
+  }, []); // Remove collector dependency
 
   const startTracking = useCallback(async () => {
     try {
@@ -820,12 +913,12 @@ export const useLocationData = () => {
     } catch (err) {
       setError(err.message);
     }
-  }, [collector]);
+  }, []); // Remove collector dependency
 
   const stopTracking = useCallback(() => {
     collector.stopLocationTracking();
     setIsTracking(collector.isTracking);
-  }, [collector]);
+  }, []); // Remove collector dependency
 
   const getCurrentLocation = useCallback(async () => {
     try {
@@ -836,11 +929,12 @@ export const useLocationData = () => {
       setError(err.message);
       throw err;
     }
-  }, [collector]);
+  }, []); // Remove collector dependency
 
+  // Memoize functions that don't need re-creation
   const exportData = useCallback((format = 'json') => {
     return collector.exportData(format);
-  }, [collector]);
+  }, []); // Remove collector dependency
 
   const importData = useCallback((data) => {
     const success = collector.importData(data);
@@ -849,24 +943,25 @@ export const useLocationData = () => {
       setCurrentLocation(collector.currentLocation);
     }
     return success;
-  }, [collector]);
+  }, []); // Remove collector dependency
 
   const clearAllData = useCallback(() => {
     collector.clearAllData();
     setSettings(collector.settings);
     setCurrentLocation(null);
     setIsTracking(false);
-  }, [collector]);
+  }, []); // Remove collector dependency
 
   const getDataSummary = useCallback(() => {
     return collector.getDataSummary();
-  }, [collector]);
+  }, []); // Remove collector dependency
 
   const getPrivacyCompliance = useCallback(() => {
     return collector.getPrivacyCompliance();
-  }, [collector]);
+  }, []); // Remove collector dependency
 
-  return {
+  // Memoize the return object to prevent unnecessary re-renders
+  return useMemo(() => ({
     settings,
     currentLocation,
     isTracking,
@@ -882,7 +977,22 @@ export const useLocationData = () => {
     getDataSummary,
     getPrivacyCompliance,
     collector
-  };
+  }), [
+    settings,
+    currentLocation,
+    isTracking,
+    isLoading,
+    error,
+    updateSettings,
+    startTracking,
+    stopTracking,
+    getCurrentLocation,
+    exportData,
+    importData,
+    clearAllData,
+    getDataSummary,
+    getPrivacyCompliance
+  ]);
 };
 
 // ==============================

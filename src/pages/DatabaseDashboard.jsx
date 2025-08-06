@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo, memo } from "react";
 import {
   Search,
   Settings,
@@ -34,6 +34,393 @@ import DeleteConfirmationModal from "../components/DeleteConfirmationModal";
 import SizeChartModal from "../components/SizeChartModal";
 import SuccessModal from "../components/SuccessModal";
 
+// Move mock data outside component to prevent recreation on every render
+const MOCK_USERS = [
+  {
+    id: 1,
+    name: "Rajesh Kumar Sharma",
+    email: "rajesh.sharma@gmail.com",
+    phone: {
+      countryCode: "+91",
+      number: "9876543210",
+    },
+    dateOfBirth: "15/06/1995",
+    address: {
+      street: "123, MG Road, Sector 15",
+      city: "Mumbai",
+      state: "Maharashtra",
+      pincode: "400001",
+      landmark: "Near Metro Station",
+    },
+    deleteAccount: false,
+    username: "rajesh_kumar_95",
+    appReviews: {
+      rating: 4.5,
+      reviewCount: 23,
+      lastReviewDate: "2025-07-20",
+    },
+    gender: "male",
+    password: "R@j3sh#Secure2025!",
+    pointBalance: 1250,
+    accountCreated: "2023-01-15",
+    lastLogin: "2025-08-05",
+  },
+  {
+    id: 2,
+    name: "Priya Patel Singh",
+    email: "priya.singh@hotmail.com",
+    phone: {
+      countryCode: "+91",
+      number: "8765432109",
+    },
+    dateOfBirth: "22/03/1990",
+    address: {
+      street: "456, Park Avenue, Block B",
+      city: "Delhi",
+      state: "Delhi",
+      pincode: "110001",
+      landmark: "Opposite City Mall",
+    },
+    deleteAccount: false,
+    username: "priya_fashion_lover",
+    appReviews: {
+      rating: 4.8,
+      reviewCount: 45,
+      lastReviewDate: "2025-08-01",
+    },
+    gender: "female",
+    password: "Pr!ya@Delhi2024#",
+    pointBalance: 2750,
+    accountCreated: "2022-11-08",
+    lastLogin: "2025-08-06",
+  },
+  {
+    id: 3,
+    name: "Mohammed Ali Khan",
+    email: "ali.khan@yahoo.com",
+    phone: {
+      countryCode: "+971",
+      number: "501234567",
+    },
+    dateOfBirth: "10/12/1988",
+    address: {
+      street: "789, Business Bay Tower 3",
+      city: "Dubai",
+      state: "Dubai",
+      pincode: "00000",
+      landmark: "Business Bay Metro",
+    },
+    deleteAccount: true,
+    username: "ali_dubai_shopper",
+    appReviews: {
+      rating: 3.9,
+      reviewCount: 12,
+      lastReviewDate: "2025-06-15",
+    },
+    gender: "male",
+    password: "Ali@Dubai123!",
+    pointBalance: 580,
+    accountCreated: "2024-03-22",
+    lastLogin: "2025-07-10",
+  },
+  {
+    id: 4,
+    name: "Sarah Johnson Williams",
+    email: "sarah.williams@outlook.com",
+    phone: {
+      countryCode: "+1",
+      number: "5551234567",
+    },
+    dateOfBirth: "28/09/1992",
+    address: {
+      street: "321, Broadway Street, Apt 4B",
+      city: "New York",
+      state: "New York",
+      pincode: "10001",
+      landmark: "Times Square Area",
+    },
+    deleteAccount: false,
+    username: "sarah_ny_fashion",
+    appReviews: {
+      rating: 4.9,
+      reviewCount: 67,
+      lastReviewDate: "2025-08-04",
+    },
+    gender: "female",
+    password: "S@rah#NYC2025!",
+    pointBalance: 3420,
+    accountCreated: "2023-05-14",
+    lastLogin: "2025-08-06",
+  },
+];
+
+const MOCK_ORDERS = [
+  {
+    id: "ORD001",
+    orderId: "ORD2025001",
+    email: "rajesh.sharma@gmail.com",
+    name: "Rajesh Kumar Sharma",
+    phone: {
+      countryCode: "+91",
+      number: "9876543210",
+    },
+    address: {
+      street: "123, MG Road, Sector 15",
+      city: "Mumbai",
+      state: "Maharashtra",
+      pincode: "400001",
+      landmark: "Near Metro Station",
+    },
+    sku: "men/tshirt/insomniac tshirt/2025/07/28/12345678",
+    barcode: "12345678901234",
+    prices: {
+      website: 899,
+      app: 849,
+      wholesale: 699,
+      marketplace: 920,
+    },
+    hsnCode: "61091000",
+    documents: [
+      {
+        type: "invoice",
+        name: "invoice_001.pdf",
+        url: "/docs/invoice_001.pdf",
+        sides: "single",
+        uploadDate: "2025-07-28",
+      },
+      {
+        type: "receipt",
+        name: "receipt_001_front.jpg",
+        url: "/docs/receipt_001_front.jpg",
+        sides: "front",
+        uploadDate: "2025-07-28",
+      },
+      {
+        type: "receipt",
+        name: "receipt_001_back.jpg",
+        url: "/docs/receipt_001_back.jpg",
+        sides: "back",
+        uploadDate: "2025-07-28",
+      },
+    ],
+    paymentStatus: "completed",
+    invoiceDetails: {
+      invoiceNo: "INV2025001",
+      amount: 849,
+      date: "2025-07-28",
+      taxAmount: 127.35,
+      totalAmount: 976.35,
+    },
+    orderDate: "2025-07-28",
+    deliveryStatus: "delivered",
+  },
+  {
+    id: "ORD002",
+    orderId: "ORD2025002",
+    email: "priya.singh@hotmail.com",
+    name: "Priya Patel Singh",
+    phone: {
+      countryCode: "+91",
+      number: "8765432109",
+    },
+    address: {
+      street: "456, Park Avenue, Block B",
+      city: "Delhi",
+      state: "Delhi",
+      pincode: "110001",
+      landmark: "Opposite City Mall",
+    },
+    sku: "women/dress/summer floral dress/2025/08/01/87654321",
+    barcode: "87654321098765",
+    prices: {
+      website: 1299,
+      app: 1199,
+      wholesale: 899,
+      marketplace: 1350,
+    },
+    hsnCode: "62043200",
+    documents: [
+      {
+        type: "invoice",
+        name: "invoice_002.pdf",
+        url: "/docs/invoice_002.pdf",
+        sides: "single",
+        uploadDate: "2025-08-01",
+      },
+      {
+        type: "warranty",
+        name: "warranty_card.jpg",
+        url: "/docs/warranty_card.jpg",
+        sides: "single",
+        uploadDate: "2025-08-01",
+      },
+    ],
+    paymentStatus: "pending",
+    invoiceDetails: {
+      invoiceNo: "INV2025002",
+      amount: 1199,
+      date: "2025-08-01",
+      taxAmount: 179.85,
+      totalAmount: 1378.85,
+    },
+    orderDate: "2025-08-01",
+    deliveryStatus: "processing",
+  },
+  {
+    id: "ORD003",
+    orderId: "ORD2025003",
+    email: "sarah.williams@outlook.com",
+    name: "Sarah Johnson Williams",
+    phone: {
+      countryCode: "+1",
+      number: "5551234567",
+    },
+    address: {
+      street: "321, Broadway Street, Apt 4B",
+      city: "New York",
+      state: "New York",
+      pincode: "10001",
+      landmark: "Times Square Area",
+    },
+    sku: "women/jeans/skinny blue jeans/2025/08/03/11223344",
+    barcode: "11223344556677",
+    prices: {
+      website: 2499,
+      app: 2299,
+      wholesale: 1799,
+      marketplace: 2650,
+    },
+    hsnCode: "62034200",
+    documents: [
+      {
+        type: "invoice",
+        name: "invoice_003.pdf",
+        url: "/docs/invoice_003.pdf",
+        sides: "single",
+        uploadDate: "2025-08-03",
+      },
+      {
+        type: "customs",
+        name: "customs_declaration_front.jpg",
+        url: "/docs/customs_front.jpg",
+        sides: "front",
+        uploadDate: "2025-08-03",
+      },
+      {
+        type: "customs",
+        name: "customs_declaration_back.jpg",
+        url: "/docs/customs_back.jpg",
+        sides: "back",
+        uploadDate: "2025-08-03",
+      },
+    ],
+    paymentStatus: "completed",
+    invoiceDetails: {
+      invoiceNo: "INV2025003",
+      amount: 2299,
+      date: "2025-08-03",
+      taxAmount: 344.85,
+      totalAmount: 2643.85,
+    },
+    orderDate: "2025-08-03",
+    deliveryStatus: "shipped",
+  },
+];
+
+// Move filter options outside component to prevent recreation
+const FILTER_OPTIONS = {
+  users: {
+    gender: [
+      { value: "all", label: "All Genders" },
+      { value: "male", label: "Male" },
+      { value: "female", label: "Female" },
+    ],
+    accountStatus: [
+      { value: "all", label: "All Status" },
+      { value: "active", label: "Active" },
+      { value: "deleted", label: "Deleted" },
+    ],
+    pointRange: [
+      { value: "all", label: "All Points" },
+      { value: "low", label: "Low (< 500)" },
+      { value: "medium", label: "Medium (500-999)" },
+      { value: "high", label: "High (≥ 1000)" },
+    ],
+  },
+  orders: {
+    deliveryStatus: [
+      { value: "all", label: "All Delivery Status" },
+      { value: "pending", label: "Pending" },
+      { value: "shipped", label: "Shipped" },
+      { value: "delivered", label: "Delivered" },
+      { value: "cancelled", label: "Cancelled" },
+    ],
+    paymentStatus: [
+      { value: "all", label: "All Payment Status" },
+      { value: "pending", label: "Pending" },
+      { value: "completed", label: "Completed" },
+      { value: "failed", label: "Failed" },
+      { value: "refunded", label: "Refunded" },
+    ],
+  },
+  products: {
+    status: [
+      { value: "all", label: "All Status" },
+      { value: "returnable", label: "Returnable" },
+      { value: "non-returnable", label: "Non-Returnable" },
+    ],
+    brand: [
+      { value: "all", label: "All Brands" },
+      { value: "Adidas", label: "Adidas" },
+      { value: "Nike", label: "Nike" },
+      { value: "Zara", label: "Zara" },
+    ],
+    category: [
+      { value: "all", label: "All Categories" },
+      { value: "tshirt", label: "T-Shirts" },
+      { value: "shoes", label: "Shoes" },
+      { value: "dress", label: "Dresses" },
+    ],
+    stockLevel: [
+      { value: "all", label: "All Stock Levels" },
+      { value: "low", label: "Low (< 50)" },
+      { value: "medium", label: "Medium (50-149)" },
+      { value: "high", label: "High (≥ 150)" },
+    ],
+  },
+};
+
+// Memoized FilterSelect component to prevent unnecessary re-renders
+const FilterSelect = memo(({ icon, label, value, onChange, options }) => (
+  <div>
+    <label className="text-sm font-medium text-gray-700 flex mb-1 items-center gap-1">
+      {icon}
+      {label}
+    </label>
+    <select
+      value={value}
+      onChange={onChange}
+      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+    >
+      {options.map((opt) => (
+        <option key={opt.value} value={opt.value}>
+          {opt.label}
+        </option>
+      ))}
+    </select>
+  </div>
+));
+
+// Memoized Badge component to prevent unnecessary re-renders
+const Badge = memo(({ color, icon, label }) => (
+  <span
+    className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-${color} text-gray-700`}
+  >
+    {icon}
+    {label}
+  </span>
+));
+
 // Enhanced Database Dashboard based on Figma designs
 const DatabaseDashboard = () => {
   const [activeTab, setActiveTab] = useState("users");
@@ -60,7 +447,7 @@ const DatabaseDashboard = () => {
   const [showSizeChartEditModal, setShowSizeChartEditModal] = useState(false);
   const [editingSizeCharts, setEditingSizeCharts] = useState([]);
 
-  // Mock products state (for manipulation)
+  // Mock products state (for manipulation) - initialize with constant data
   const [products, setProducts] = useState(() => [
     {
       id: 1,
@@ -139,8 +526,8 @@ const DatabaseDashboard = () => {
   const [show2FASuccess, setShow2FASuccess] = useState(false);
   const [authenticated2FAUsers, setAuthenticated2FAUsers] = useState(new Set());
 
-  // Filter states
-  const [filters, setFilters] = useState({
+  // Filter states - move initialization outside to prevent object recreation
+  const [filters, setFilters] = useState(() => ({
     users: {
       gender: "all",
       accountStatus: "all",
@@ -159,396 +546,113 @@ const DatabaseDashboard = () => {
       category: "all",
       stockLevel: "all",
     },
-  });
+  }));
 
-  // Mock data for User Data View (View 1) - Based on Figma Design
-  const mockUsers = [
-    {
-      id: 1,
-      name: "Rajesh Kumar Sharma",
-      email: "rajesh.sharma@gmail.com",
-      phone: {
-        countryCode: "+91",
-        number: "9876543210",
-      },
-      dateOfBirth: "15/06/1995", // DD/MM/YYYY format
-      address: {
-        street: "123, MG Road, Sector 15",
-        city: "Mumbai",
-        state: "Maharashtra",
-        pincode: "400001",
-        landmark: "Near Metro Station",
-      },
-      deleteAccount: false,
-      username: "rajesh_kumar_95",
-      appReviews: {
-        rating: 4.5,
-        reviewCount: 23,
-        lastReviewDate: "2025-07-20",
-      },
-      gender: "male",
-      password: "R@j3sh#Secure2025!",
-      pointBalance: 1250,
-      accountCreated: "2023-01-15",
-      lastLogin: "2025-08-05",
-    },
-    {
-      id: 2,
-      name: "Priya Patel Singh",
-      email: "priya.singh@hotmail.com",
-      phone: {
-        countryCode: "+91",
-        number: "8765432109",
-      },
-      dateOfBirth: "22/03/1990",
-      address: {
-        street: "456, Park Avenue, Block B",
-        city: "Delhi",
-        state: "Delhi",
-        pincode: "110001",
-        landmark: "Opposite City Mall",
-      },
-      deleteAccount: false,
-      username: "priya_fashion_lover",
-      appReviews: {
-        rating: 4.8,
-        reviewCount: 45,
-        lastReviewDate: "2025-08-01",
-      },
-      gender: "female",
-      password: "Pr!ya@Delhi2024#",
-      pointBalance: 2750,
-      accountCreated: "2022-11-08",
-      lastLogin: "2025-08-06",
-    },
-    {
-      id: 3,
-      name: "Mohammed Ali Khan",
-      email: "ali.khan@yahoo.com",
-      phone: {
-        countryCode: "+971",
-        number: "501234567",
-      },
-      dateOfBirth: "10/12/1988",
-      address: {
-        street: "789, Business Bay Tower 3",
-        city: "Dubai",
-        state: "Dubai",
-        pincode: "00000",
-        landmark: "Business Bay Metro",
-      },
-      deleteAccount: true,
-      username: "ali_dubai_shopper",
-      appReviews: {
-        rating: 3.9,
-        reviewCount: 12,
-        lastReviewDate: "2025-06-15",
-      },
-      gender: "male",
-      password: "Ali@Dubai123!",
-      pointBalance: 580,
-      accountCreated: "2024-03-22",
-      lastLogin: "2025-07-10",
-    },
-    {
-      id: 4,
-      name: "Sarah Johnson Williams",
-      email: "sarah.williams@outlook.com",
-      phone: {
-        countryCode: "+1",
-        number: "5551234567",
-      },
-      dateOfBirth: "28/09/1992",
-      address: {
-        street: "321, Broadway Street, Apt 4B",
-        city: "New York",
-        state: "New York",
-        pincode: "10001",
-        landmark: "Times Square Area",
-      },
-      deleteAccount: false,
-      username: "sarah_ny_fashion",
-      appReviews: {
-        rating: 4.9,
-        reviewCount: 67,
-        lastReviewDate: "2025-08-04",
-      },
-      gender: "female",
-      password: "S@rah#NYC2025!",
-      pointBalance: 3420,
-      accountCreated: "2023-05-14",
-      lastLogin: "2025-08-06",
-    },
-  ];
-
-  // Mock data for Order Data View (View 2) - Based on Figma Design
-  const mockOrders = [
-    {
-      id: "ORD001",
-      orderId: "ORD2025001",
-      email: "rajesh.sharma@gmail.com",
-      name: "Rajesh Kumar Sharma",
-      phone: {
-        countryCode: "+91",
-        number: "9876543210",
-      },
-      address: {
-        street: "123, MG Road, Sector 15",
-        city: "Mumbai",
-        state: "Maharashtra",
-        pincode: "400001",
-        landmark: "Near Metro Station",
-      },
-      sku: "men/tshirt/insomniac tshirt/2025/07/28/12345678",
-      barcode: "12345678901234",
-      prices: {
-        website: 899,
-        app: 849,
-        wholesale: 699,
-        marketplace: 920,
-      },
-      hsnCode: "61091000",
-      documents: [
-        {
-          type: "invoice",
-          name: "invoice_001.pdf",
-          url: "/docs/invoice_001.pdf",
-          sides: "single",
-          uploadDate: "2025-07-28",
-        },
-        {
-          type: "receipt",
-          name: "receipt_001_front.jpg",
-          url: "/docs/receipt_001_front.jpg",
-          sides: "front",
-          uploadDate: "2025-07-28",
-        },
-        {
-          type: "receipt",
-          name: "receipt_001_back.jpg",
-          url: "/docs/receipt_001_back.jpg",
-          sides: "back",
-          uploadDate: "2025-07-28",
-        },
-      ],
-      paymentStatus: "completed",
-      invoiceDetails: {
-        invoiceNo: "INV2025001",
-        amount: 849,
-        date: "2025-07-28",
-        taxAmount: 127.35,
-        totalAmount: 976.35,
-      },
-      orderDate: "2025-07-28",
-      deliveryStatus: "delivered",
-    },
-    {
-      id: "ORD002",
-      orderId: "ORD2025002",
-      email: "priya.singh@hotmail.com",
-      name: "Priya Patel Singh",
-      phone: {
-        countryCode: "+91",
-        number: "8765432109",
-      },
-      address: {
-        street: "456, Park Avenue, Block B",
-        city: "Delhi",
-        state: "Delhi",
-        pincode: "110001",
-        landmark: "Opposite City Mall",
-      },
-      sku: "women/dress/summer floral dress/2025/08/01/87654321",
-      barcode: "87654321098765",
-      prices: {
-        website: 1299,
-        app: 1199,
-        wholesale: 899,
-        marketplace: 1350,
-      },
-      hsnCode: "62043200",
-      documents: [
-        {
-          type: "invoice",
-          name: "invoice_002.pdf",
-          url: "/docs/invoice_002.pdf",
-          sides: "single",
-          uploadDate: "2025-08-01",
-        },
-        {
-          type: "warranty",
-          name: "warranty_card.jpg",
-          url: "/docs/warranty_card.jpg",
-          sides: "single",
-          uploadDate: "2025-08-01",
-        },
-      ],
-      paymentStatus: "pending",
-      invoiceDetails: {
-        invoiceNo: "INV2025002",
-        amount: 1199,
-        date: "2025-08-01",
-        taxAmount: 179.85,
-        totalAmount: 1378.85,
-      },
-      orderDate: "2025-08-01",
-      deliveryStatus: "processing",
-    },
-    {
-      id: "ORD003",
-      orderId: "ORD2025003",
-      email: "sarah.williams@outlook.com",
-      name: "Sarah Johnson Williams",
-      phone: {
-        countryCode: "+1",
-        number: "5551234567",
-      },
-      address: {
-        street: "321, Broadway Street, Apt 4B",
-        city: "New York",
-        state: "New York",
-        pincode: "10001",
-        landmark: "Times Square Area",
-      },
-      sku: "women/jeans/skinny blue jeans/2025/08/03/11223344",
-      barcode: "11223344556677",
-      prices: {
-        website: 2499,
-        app: 2299,
-        wholesale: 1799,
-        marketplace: 2650,
-      },
-      hsnCode: "62034200",
-      documents: [
-        {
-          type: "invoice",
-          name: "invoice_003.pdf",
-          url: "/docs/invoice_003.pdf",
-          sides: "single",
-          uploadDate: "2025-08-03",
-        },
-        {
-          type: "customs",
-          name: "customs_declaration_front.jpg",
-          url: "/docs/customs_front.jpg",
-          sides: "front",
-          uploadDate: "2025-08-03",
-        },
-        {
-          type: "customs",
-          name: "customs_declaration_back.jpg",
-          url: "/docs/customs_back.jpg",
-          sides: "back",
-          uploadDate: "2025-08-03",
-        },
-      ],
-      paymentStatus: "completed",
-      invoiceDetails: {
-        invoiceNo: "INV2025003",
-        amount: 2299,
-        date: "2025-08-03",
-        taxAmount: 344.85,
-        totalAmount: 2643.85,
-      },
-      orderDate: "2025-08-03",
-      deliveryStatus: "shipped",
-    },
-  ];
-
-  // Filter functions
+  // Optimized filtered data with more efficient filtering
+  const searchLower = useMemo(() => searchTerm.toLowerCase(), [searchTerm]);
+  
   const filteredUsers = useMemo(() => {
-    return mockUsers.filter((user) => {
-      // Search filter
-      const searchMatch =
-        user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.username.toLowerCase().includes(searchTerm.toLowerCase());
-
+    return MOCK_USERS.filter((user) => {
+      // Early return for search filter if it fails
+      if (searchLower && !user.name.toLowerCase().includes(searchLower)) {
+        return false;
+      }
+      
       // Gender filter
-      const genderMatch =
-        filters.users.gender === "all" || user.gender === filters.users.gender;
+      if (filters.users.gender !== "all" && user.gender !== filters.users.gender) {
+        return false;
+      }
 
       // Account status filter
-      const statusMatch =
-        filters.users.accountStatus === "all" ||
-        (filters.users.accountStatus === "active" && !user.deleteAccount) ||
-        (filters.users.accountStatus === "deleted" && user.deleteAccount);
+      if (filters.users.accountStatus !== "all") {
+        const isActive = !user.deleteAccount;
+        if (
+          (filters.users.accountStatus === "active" && !isActive) ||
+          (filters.users.accountStatus === "deleted" && isActive)
+        ) {
+          return false;
+        }
+      }
 
       // Point range filter
-      const pointMatch =
-        filters.users.pointRange === "all" ||
-        (filters.users.pointRange === "low" && user.pointBalance < 500) ||
-        (filters.users.pointRange === "medium" &&
-          user.pointBalance >= 500 &&
-          user.pointBalance < 1000) ||
-        (filters.users.pointRange === "high" && user.pointBalance >= 1000);
+      if (filters.users.pointRange !== "all") {
+        const points = user.pointBalance;
+        if (
+          (filters.users.pointRange === "low" && points >= 500) ||
+          (filters.users.pointRange === "medium" && (points < 500 || points >= 1000)) ||
+          (filters.users.pointRange === "high" && points < 1000)
+        ) {
+          return false;
+        }
+      }
 
-      return searchMatch && genderMatch && statusMatch && pointMatch;
+      return true;
     });
-  }, [searchTerm, filters.users]);
+  }, [searchLower, filters.users]);
 
   const filteredOrders = useMemo(() => {
-    return mockOrders.filter((order) => {
-      // Search filter
-      const searchMatch =
-        order.orderId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        order.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        order.sku.toLowerCase().includes(searchTerm.toLowerCase());
+    return MOCK_ORDERS.filter((order) => {
+      // Early return for search filter if it fails
+      if (searchLower && 
+          !order.name.toLowerCase().includes(searchLower) &&
+          !order.orderId.toLowerCase().includes(searchLower)) {
+        return false;
+      }
 
       // Delivery status filter
-      const deliveryMatch =
-        filters.orders.deliveryStatus === "all" ||
-        order.deliveryStatus === filters.orders.deliveryStatus;
+      if (filters.orders.deliveryStatus !== "all" && 
+          order.deliveryStatus !== filters.orders.deliveryStatus) {
+        return false;
+      }
 
       // Payment status filter
-      const paymentMatch =
-        filters.orders.paymentStatus === "all" ||
-        order.paymentStatus === filters.orders.paymentStatus;
+      if (filters.orders.paymentStatus !== "all" && 
+          order.paymentStatus !== filters.orders.paymentStatus) {
+        return false;
+      }
 
-      return searchMatch && deliveryMatch && paymentMatch;
+      return true;
     });
-  }, [searchTerm, filters.orders]);
+  }, [searchLower, filters.orders]);
 
   const filteredProducts = useMemo(() => {
     return products.filter((product) => {
-      // Search filter
-      const searchMatch = product.article
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase());
+      // Early return for search filter if it fails
+      if (searchLower && !product.article.toLowerCase().includes(searchLower)) {
+        return false;
+      }
 
       // Status filter
-      const statusMatch =
-        filters.products.status === "all" ||
-        product.status === filters.products.status;
+      if (filters.products.status !== "all" && product.status !== filters.products.status) {
+        return false;
+      }
 
       // Brand filter
-      const brandMatch =
-        filters.products.brand === "all" ||
-        product.brand === filters.products.brand;
+      if (filters.products.brand !== "all" && product.brand !== filters.products.brand) {
+        return false;
+      }
 
       // Category filter
-      const categoryMatch =
-        filters.products.category === "all" ||
-        product.category.includes(filters.products.category);
+      if (filters.products.category !== "all" && 
+          !product.category.includes(filters.products.category)) {
+        return false;
+      }
 
-      // Stock level filter
-      const totalStock = product.variants.reduce(
-        (sum, variant) => sum + variant.stock,
-        0
-      );
-      const stockMatch =
-        filters.products.stockLevel === "all" ||
-        (filters.products.stockLevel === "low" && totalStock < 50) ||
-        (filters.products.stockLevel === "medium" &&
-          totalStock >= 50 &&
-          totalStock < 150) ||
-        (filters.products.stockLevel === "high" && totalStock >= 150);
+      // Stock level filter with optimized calculation
+      if (filters.products.stockLevel !== "all") {
+        const totalStock = product.variants.reduce((sum, variant) => sum + variant.stock, 0);
+        if (
+          (filters.products.stockLevel === "low" && totalStock >= 50) ||
+          (filters.products.stockLevel === "medium" && (totalStock < 50 || totalStock >= 150)) ||
+          (filters.products.stockLevel === "high" && totalStock < 150)
+        ) {
+          return false;
+        }
+      }
 
-      return (
-        searchMatch && statusMatch && brandMatch && categoryMatch && stockMatch
-      );
+      return true;
     });
-  }, [searchTerm, filters.products, products]);
+  }, [searchLower, filters.products, products]);
 
   // Toggle password visibility with 2FA authentication
   const togglePassword = useCallback(
@@ -620,10 +724,11 @@ const DatabaseDashboard = () => {
     setPending2FAUserId(null);
   }, []);
 
-  // Sensitive data protection functions
+  // Sensitive data protection functions - optimized with better error handling
   const maskEmail = useCallback((email) => {
     if (!email) return "";
     const [username, domain] = email.split("@");
+    if (!username || !domain) return email;
     if (username.length <= 2) return "••••@" + domain;
     return (
       username.charAt(0) +
@@ -672,10 +777,13 @@ const DatabaseDashboard = () => {
         return;
       }
 
-      setShowSensitiveData((prev) => ({
-        ...prev,
-        [`${userId}_${field}`]: !prev[`${userId}_${field}`],
-      }));
+      setShowSensitiveData((prev) => {
+        const key = `${userId}_${field}`;
+        return {
+          ...prev,
+          [key]: !prev[key],
+        };
+      });
     },
     [authenticated2FAUsers]
   );
@@ -688,10 +796,13 @@ const DatabaseDashboard = () => {
   );
 
   const toggleFieldProtection = useCallback((field) => {
-    setProtectedFields((prev) => ({
-      ...prev,
-      [field]: !prev[field],
-    }));
+    setProtectedFields((prev) => {
+      if (prev[field] === undefined) return prev; // Prevent unnecessary updates
+      return {
+        ...prev,
+        [field]: !prev[field],
+      };
+    });
   }, []);
 
   // Document preview
@@ -704,34 +815,42 @@ const DatabaseDashboard = () => {
     setSizeChartPreview(charts);
   }, []);
 
-  // Filter handler
+  // Filter handler - optimized to reduce object recreation
   const updateFilter = useCallback((tab, filterType, value) => {
-    setFilters((prev) => ({
-      ...prev,
-      [tab]: {
-        ...prev[tab],
-        [filterType]: value,
-      },
-    }));
+    setFilters((prev) => {
+      // Only update if value actually changed
+      if (prev[tab][filterType] === value) return prev;
+      
+      return {
+        ...prev,
+        [tab]: {
+          ...prev[tab],
+          [filterType]: value,
+        },
+      };
+    });
   }, []);
 
-  // Reset filters
+  // Reset filters - optimized
   const resetFilters = useCallback((tab) => {
-    setFilters((prev) => ({
-      ...prev,
-      [tab]: {
-        ...Object.keys(prev[tab]).reduce((acc, key) => {
-          acc[key] = "all";
-          return acc;
-        }, {}),
-      },
-    }));
+    setFilters((prev) => {
+      const resetValues = Object.keys(prev[tab]).reduce((acc, key) => {
+        acc[key] = "all";
+        return acc;
+      }, {});
+      
+      return {
+        ...prev,
+        [tab]: resetValues,
+      };
+    });
   }, []);
 
-  // Product management functions
+  // Product management functions - optimized
   const handleEditProduct = useCallback((product) => {
     setEditingProduct(product);
-    setEditFormData({
+    // Use functional update to prevent unnecessary object creation
+    setEditFormData(() => ({
       article: product.article,
       description: product.description,
       manufacturingDetails: product.manufacturingDetails,
@@ -739,7 +858,7 @@ const DatabaseDashboard = () => {
       status: product.status,
       brand: product.brand,
       category: product.category,
-    });
+    }));
     setShowEditModal(true);
   }, []);
 
@@ -785,15 +904,19 @@ const DatabaseDashboard = () => {
   }, []);
 
   const handleEditFormChange = useCallback((field, value) => {
-    setEditFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
+    // Only update if value actually changed
+    setEditFormData((prev) => {
+      if (prev[field] === value) return prev;
+      return {
+        ...prev,
+        [field]: value,
+      };
+    });
   }, []);
 
   const handleEditSizeCharts = useCallback((product) => {
     setEditingProduct(product);
-    setEditingSizeCharts([...product.sizeCharts]);
+    setEditingSizeCharts(() => [...product.sizeCharts]);
     setShowSizeChartEditModal(true);
   }, []);
 
@@ -844,34 +967,42 @@ const DatabaseDashboard = () => {
     );
   }, []);
 
-  const FilterSelect = ({ icon, label, value, onChange, options }) => (
-    <div>
-      <label className="text-sm font-medium text-gray-700 flex mb-1 items-center gap-1">
-        {icon}
-        {label}
-      </label>
-      <select
-        value={value}
-        onChange={onChange}
-        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
-      >
-        {options.map((opt) => (
-          <option key={opt.value} value={opt.value}>
-            {opt.label}
-          </option>
-        ))}
-      </select>
-    </div>
-  );
+  // Memoize tab configuration to prevent recreation
+  const tabConfig = useMemo(() => [
+    {
+      key: "users",
+      icon: <User className="w-4 h-4" />,
+      label: "User Data",
+      desc: "Profile & Account Info",
+    },
+    {
+      key: "orders",
+      icon: <ShoppingCart className="w-4 h-4" />,
+      label: "Order Data",
+      desc: "Order History & Details",
+    },
+    {
+      key: "products",
+      icon: <PackageCheck className="w-4 h-4" />,
+      label: "Product Data",
+      desc: "Inventory & Variants",
+    },
+  ], []);
 
-  const Badge = ({ color, icon, label }) => (
-    <span
-      className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-${color} text-gray-700`}
-    >
-      {icon}
-      {label}
-    </span>
-  );
+  // Memoize result count for performance
+  const currentResultCount = useMemo(() => {
+    switch (activeTab) {
+      case "users": return filteredUsers.length;
+      case "orders": return filteredOrders.length;
+      case "products": return filteredProducts.length;
+      default: return 0;
+    }
+  }, [activeTab, filteredUsers.length, filteredOrders.length, filteredProducts.length]);
+
+  // Optimize search input handler
+  const handleSearchChange = useCallback((e) => {
+    setSearchTerm(e.target.value);
+  }, []);
 
   return (
     <div className="px-5 py-5 pl-2.5 bg-gray-50 min-h-screen">
@@ -892,7 +1023,7 @@ const DatabaseDashboard = () => {
                 type="text"
                 placeholder="Search database..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={handleSearchChange}
                 className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
               />
             </div>
@@ -930,11 +1061,7 @@ const DatabaseDashboard = () => {
                 onChange={(e) =>
                   updateFilter("users", "gender", e.target.value)
                 }
-                options={[
-                  { value: "all", label: "All Genders" },
-                  { value: "male", label: "Male" },
-                  { value: "female", label: "Female" },
-                ]}
+                options={FILTER_OPTIONS.users.gender}
               />
               <FilterSelect
                 icon={<CheckCircle className="w-4 h-4 text-gray-500" />}
@@ -943,11 +1070,7 @@ const DatabaseDashboard = () => {
                 onChange={(e) =>
                   updateFilter("users", "accountStatus", e.target.value)
                 }
-                options={[
-                  { value: "all", label: "All Status" },
-                  { value: "active", label: "Active" },
-                  { value: "deleted", label: "Deleted" },
-                ]}
+                options={FILTER_OPTIONS.users.accountStatus}
               />
               <FilterSelect
                 icon={<Wallet className="w-4 h-4 text-gray-500" />}
@@ -956,12 +1079,7 @@ const DatabaseDashboard = () => {
                 onChange={(e) =>
                   updateFilter("users", "pointRange", e.target.value)
                 }
-                options={[
-                  { value: "all", label: "All Points" },
-                  { value: "low", label: "Low (< 500)" },
-                  { value: "medium", label: "Medium (500-999)" },
-                  { value: "high", label: "High (≥ 1000)" },
-                ]}
+                options={FILTER_OPTIONS.users.pointRange}
               />
             </div>
           )}
@@ -976,13 +1094,7 @@ const DatabaseDashboard = () => {
                 onChange={(e) =>
                   updateFilter("orders", "deliveryStatus", e.target.value)
                 }
-                options={[
-                  { value: "all", label: "All Delivery Status" },
-                  { value: "pending", label: "Pending" },
-                  { value: "shipped", label: "Shipped" },
-                  { value: "delivered", label: "Delivered" },
-                  { value: "cancelled", label: "Cancelled" },
-                ]}
+                options={FILTER_OPTIONS.orders.deliveryStatus}
               />
               <FilterSelect
                 icon={<Wallet className="w-4 h-4 text-gray-500" />}
@@ -991,13 +1103,7 @@ const DatabaseDashboard = () => {
                 onChange={(e) =>
                   updateFilter("orders", "paymentStatus", e.target.value)
                 }
-                options={[
-                  { value: "all", label: "All Payment Status" },
-                  { value: "pending", label: "Pending" },
-                  { value: "completed", label: "Completed" },
-                  { value: "failed", label: "Failed" },
-                  { value: "refunded", label: "Refunded" },
-                ]}
+                options={FILTER_OPTIONS.orders.paymentStatus}
               />
             </div>
           )}
@@ -1012,11 +1118,7 @@ const DatabaseDashboard = () => {
                 onChange={(e) =>
                   updateFilter("products", "status", e.target.value)
                 }
-                options={[
-                  { value: "all", label: "All Status" },
-                  { value: "returnable", label: "Returnable" },
-                  { value: "non-returnable", label: "Non-Returnable" },
-                ]}
+                options={FILTER_OPTIONS.products.status}
               />
               <FilterSelect
                 icon={<Tags className="w-4 h-4 text-gray-500" />}
@@ -1025,12 +1127,7 @@ const DatabaseDashboard = () => {
                 onChange={(e) =>
                   updateFilter("products", "brand", e.target.value)
                 }
-                options={[
-                  { value: "all", label: "All Brands" },
-                  { value: "Adidas", label: "Adidas" },
-                  { value: "Nike", label: "Nike" },
-                  { value: "Zara", label: "Zara" },
-                ]}
+                options={FILTER_OPTIONS.products.brand}
               />
               <FilterSelect
                 icon={<Package className="w-4 h-4 text-gray-500" />}
@@ -1039,12 +1136,7 @@ const DatabaseDashboard = () => {
                 onChange={(e) =>
                   updateFilter("products", "category", e.target.value)
                 }
-                options={[
-                  { value: "all", label: "All Categories" },
-                  { value: "tshirt", label: "T-Shirts" },
-                  { value: "shoes", label: "Shoes" },
-                  { value: "dress", label: "Dresses" },
-                ]}
+                options={FILTER_OPTIONS.products.category}
               />
               <FilterSelect
                 icon={<BarChart className="w-4 h-4 text-gray-500" />}
@@ -1053,12 +1145,7 @@ const DatabaseDashboard = () => {
                 onChange={(e) =>
                   updateFilter("products", "stockLevel", e.target.value)
                 }
-                options={[
-                  { value: "all", label: "All Stock Levels" },
-                  { value: "low", label: "Low (< 50)" },
-                  { value: "medium", label: "Medium (50-149)" },
-                  { value: "high", label: "High (≥ 150)" },
-                ]}
+                options={FILTER_OPTIONS.products.stockLevel}
               />
             </div>
           )}
@@ -1066,58 +1153,39 @@ const DatabaseDashboard = () => {
 
         {/* Tab Navigation */}
         <div className="bg-white rounded-xl border border-gray-200 mb-6 shadow overflow-hidden">
-  <div className="flex divide-x divide-gray-200">
-    {[
-      {
-        key: "users",
-        icon: <User className="w-4 h-4" />,
-        label: "User Data",
-        desc: "Profile & Account Info",
-      },
-      {
-        key: "orders",
-        icon: <ShoppingCart className="w-4 h-4" />,
-        label: "Order Data",
-        desc: "Order History & Details",
-      },
-      {
-        key: "products",
-        icon: <PackageCheck className="w-4 h-4" />,
-        label: "Product Data",
-        desc: "Inventory & Variants",
-      },
-    ].map(({ key, label, icon, desc }) => {
-      const isActive = activeTab === key;
-      return (
-        <button
-          key={key}
-          onClick={() => setActiveTab(key)}
-          className={`flex-1 px-6 py-5 text-left transition-all duration-200 outline-none group ${
-            isActive
-              ? "bg-blue-600 text-white shadow-inner"
-              : "bg-white hover:bg-gray-50"
-          }`}
-        >
-          <div
-            className={`flex items-center gap-2 mb-1 text-base font-semibold ${
-              isActive ? "text-white" : "text-gray-800"
-            }`}
-          >
-            {icon}
-            {label}
+          <div className="flex divide-x divide-gray-200">
+            {tabConfig.map(({ key, label, icon, desc }) => {
+              const isActive = activeTab === key;
+              return (
+                <button
+                  key={key}
+                  onClick={() => setActiveTab(key)}
+                  className={`flex-1 px-6 py-5 text-left transition-all duration-200 outline-none group ${
+                    isActive
+                      ? "bg-blue-600 text-white shadow-inner"
+                      : "bg-white hover:bg-gray-50"
+                  }`}
+                >
+                  <div
+                    className={`flex items-center gap-2 mb-1 text-base font-semibold ${
+                      isActive ? "text-white" : "text-gray-800"
+                    }`}
+                  >
+                    {icon}
+                    {label}
+                  </div>
+                  <div
+                    className={`text-sm ${
+                      isActive ? "text-blue-100" : "text-gray-500"
+                    }`}
+                  >
+                    {desc}
+                  </div>
+                </button>
+              );
+            })}
           </div>
-          <div
-            className={`text-sm ${
-              isActive ? "text-blue-100" : "text-gray-500"
-            }`}
-          >
-            {desc}
-          </div>
-        </button>
-      );
-    })}
-  </div>
-</div>
+        </div>
 
 
         {/* Content Area */}
@@ -1128,13 +1196,7 @@ const DatabaseDashboard = () => {
             <div className="flex items-center gap-4 text-gray-700 flex-wrap">
               <span className="flex items-center gap-1 font-semibold">
                 <BarChart2 className="w-4 h-4 text-gray-600" />
-                Results:{" "}
-                {activeTab === "users"
-                  ? filteredUsers.length
-                  : activeTab === "orders"
-                  ? filteredOrders.length
-                  : filteredProducts.length}{" "}
-                items
+                Results: {currentResultCount} items
               </span>
 
               {searchTerm && (

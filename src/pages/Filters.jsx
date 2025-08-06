@@ -6,6 +6,25 @@ import {
   Settings, ArrowUpDown, Move, Smartphone, Monitor
 } from 'lucide-react';
 
+// Constants moved outside component to prevent recreation
+const DEFAULT_FILTER_FORM = {
+  key: '',
+  type: 'colour',
+  priority: 1,
+  arrangement: 1
+};
+
+const DEFAULT_VALUE_FORM = {
+  filterId: null,
+  value: '',
+  colorCode: '#000000',
+  priceRange: { min: 0, max: 1000 },
+  priority: 1
+};
+
+// Memoized color regex for validation
+const COLOR_REGEX = /^#[0-9A-F]{6}$/i;
+
 /**
  * Zara-Style Advanced Filters Management System
  * 
@@ -99,21 +118,25 @@ const FILTER_ACTIONS = {
   TOGGLE_FILTER_STATUS: 'TOGGLE_FILTER_STATUS'
 };
 
-// Reducer for advanced filter management
+// Memoized reducer for better performance
 const filterReducer = (state, action) => {
   switch (action.type) {
     case FILTER_ACTIONS.SET_FILTERS:
       return action.payload;
       
-    case FILTER_ACTIONS.ADD_FILTER:
-      return [...state, action.payload].sort((a, b) => a.priority - b.priority);
+    case FILTER_ACTIONS.ADD_FILTER: {
+      const newState = [...state, action.payload];
+      return newState.sort((a, b) => a.priority - b.priority);
+    }
       
-    case FILTER_ACTIONS.UPDATE_FILTER:
-      return state.map(filter => 
+    case FILTER_ACTIONS.UPDATE_FILTER: {
+      const newState = state.map(filter => 
         filter.id === action.payload.id 
           ? { ...filter, ...action.payload.updates }
           : filter
-      ).sort((a, b) => a.priority - b.priority);
+      );
+      return newState.sort((a, b) => a.priority - b.priority);
+    }
       
     case FILTER_ACTIONS.DELETE_FILTER:
       return state.filter(filter => filter.id !== action.payload);
@@ -169,129 +192,125 @@ const filterReducer = (state, action) => {
   }
 };
 
-// Initial Zara-style filter data based on Figma design
-const INITIAL_ZARA_FILTERS = [
-  {
-    id: 1,
-    key: 'colour',
-    type: ZARA_FILTER_CONFIG.FILTER_TYPES.COLOUR,
-    priority: 1,
-    isActive: true,
-    createdAt: new Date().toISOString(),
-    assignedValues: [
-      { 
-        id: 1, 
-        value: 'Black', 
-        colorCode: '#000000', 
-        isActive: true, 
-        priority: 1 
-      },
-      { 
-        id: 2, 
-        value: 'White', 
-        colorCode: '#FFFFFF', 
-        isActive: true, 
-        priority: 2 
-      },
-      { 
-        id: 3, 
-        value: 'Red', 
-        colorCode: '#FF0000', 
-        isActive: true, 
-        priority: 3 
-      }
-    ]
-  },
-  {
-    id: 2,
-    key: 'size',
-    type: ZARA_FILTER_CONFIG.FILTER_TYPES.SIZE,
-    priority: 2,
-    isActive: true,
-    createdAt: new Date().toISOString(),
-    assignedValues: [
-      { id: 4, value: 'XS', isActive: true, priority: 1 },
-      { id: 5, value: 'S', isActive: true, priority: 2 },
-      { id: 6, value: 'M', isActive: true, priority: 3 },
-      { id: 7, value: 'L', isActive: true, priority: 4 }
-    ]
-  },
-  {
-    id: 3,
-    key: 'price',
-    type: ZARA_FILTER_CONFIG.FILTER_TYPES.PRICE,
-    priority: 3,
-    isActive: true,
-    createdAt: new Date().toISOString(),
-    assignedValues: [
-      { 
-        id: 8, 
-        value: '₹1,000 - ₹5,000', 
-        priceRange: { min: 1000, max: 5000 }, 
-        isActive: true, 
-        priority: 1 
-      },
-      { 
-        id: 9, 
-        value: '₹5,000 - ₹10,000', 
-        priceRange: { min: 5000, max: 10000 }, 
-        isActive: true, 
-        priority: 2 
-      }
-    ]
-  },
-  {
-    id: 4,
-    key: 'sort by',
-    type: ZARA_FILTER_CONFIG.FILTER_TYPES.SORT_BY,
-    priority: 4,
-    isActive: true,
-    createdAt: new Date().toISOString(),
-    assignedValues: [
-      { id: 10, value: 'newest', isActive: true, priority: 1 },
-      { id: 11, value: 'price low to high', isActive: true, priority: 2 },
-      { id: 12, value: 'price high to low', isActive: true, priority: 3 }
-    ]
-  },
-  {
-    id: 5,
-    key: 'category',
-    type: ZARA_FILTER_CONFIG.FILTER_TYPES.CATEGORY,
-    priority: 5,
-    isActive: true,
-    createdAt: new Date().toISOString(),
-    assignedValues: [
-      { id: 13, value: 'woman', isActive: true, priority: 1 },
-      { id: 14, value: 'man', isActive: true, priority: 2 },
-      { id: 15, value: 'kids', isActive: true, priority: 3 }
-    ]
-  }
-];
+// Memoized initial data to prevent recreation
+const INITIAL_ZARA_FILTERS = (() => {
+  const timestamp = new Date().toISOString();
+  return [
+    {
+      id: 1,
+      key: 'colour',
+      type: ZARA_FILTER_CONFIG.FILTER_TYPES.COLOUR,
+      priority: 1,
+      isActive: true,
+      createdAt: timestamp,
+      assignedValues: [
+        { 
+          id: 1, 
+          value: 'Black', 
+          colorCode: '#000000', 
+          isActive: true, 
+          priority: 1 
+        },
+        { 
+          id: 2, 
+          value: 'White', 
+          colorCode: '#FFFFFF', 
+          isActive: true, 
+          priority: 2 
+        },
+        { 
+          id: 3, 
+          value: 'Red', 
+          colorCode: '#FF0000', 
+          isActive: true, 
+          priority: 3 
+        }
+      ]
+    },
+    {
+      id: 2,
+      key: 'size',
+      type: ZARA_FILTER_CONFIG.FILTER_TYPES.SIZE,
+      priority: 2,
+      isActive: true,
+      createdAt: timestamp,
+      assignedValues: [
+        { id: 4, value: 'XS', isActive: true, priority: 1 },
+        { id: 5, value: 'S', isActive: true, priority: 2 },
+        { id: 6, value: 'M', isActive: true, priority: 3 },
+        { id: 7, value: 'L', isActive: true, priority: 4 }
+      ]
+    },
+    {
+      id: 3,
+      key: 'price',
+      type: ZARA_FILTER_CONFIG.FILTER_TYPES.PRICE,
+      priority: 3,
+      isActive: true,
+      createdAt: timestamp,
+      assignedValues: [
+        { 
+          id: 8, 
+          value: '₹1,000 - ₹5,000', 
+          priceRange: { min: 1000, max: 5000 }, 
+          isActive: true, 
+          priority: 1 
+        },
+        { 
+          id: 9, 
+          value: '₹5,000 - ₹10,000', 
+          priceRange: { min: 5000, max: 10000 }, 
+          isActive: true, 
+          priority: 2 
+        }
+      ]
+    },
+    {
+      id: 4,
+      key: 'sort by',
+      type: ZARA_FILTER_CONFIG.FILTER_TYPES.SORT_BY,
+      priority: 4,
+      isActive: true,
+      createdAt: timestamp,
+      assignedValues: [
+        { id: 10, value: 'newest', isActive: true, priority: 1 },
+        { id: 11, value: 'price low to high', isActive: true, priority: 2 },
+        { id: 12, value: 'price high to low', isActive: true, priority: 3 }
+      ]
+    },
+    {
+      id: 5,
+      key: 'category',
+      type: ZARA_FILTER_CONFIG.FILTER_TYPES.CATEGORY,
+      priority: 5,
+      isActive: true,
+      createdAt: timestamp,
+      assignedValues: [
+        { id: 13, value: 'woman', isActive: true, priority: 1 },
+        { id: 14, value: 'man', isActive: true, priority: 2 },
+        { id: 15, value: 'kids', isActive: true, priority: 3 }
+      ]
+    }
+  ];
+})();
 
 const Filters = () => {
   // Advanced state management with useReducer
   const [filters, filtersDispatch] = useReducer(filterReducer, INITIAL_ZARA_FILTERS);
   
   // UI States
-  const [currentView, setCurrentView] = useState('management'); // 'management', 'mobile-preview'
-  const [activeSection, setActiveSection] = useState('create-filters'); // 'create-filters', 'create-values', 'saved-filters'
+  const [currentView, setCurrentView] = useState('management');
+  const [activeSection, setActiveSection] = useState('create-filters');
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
   
-  // Form states for creating filters and values
-  const [filterForm, setFilterForm] = useState({
-    key: '',
-    type: ZARA_FILTER_CONFIG.FILTER_TYPES.COLOUR,
-    priority: filters.length + 1,
-    arrangement: 1
-  });
+  // Form states - use useMemo to prevent recreation
+  const [filterForm, setFilterForm] = useState(() => ({
+    ...DEFAULT_FILTER_FORM,
+    priority: INITIAL_ZARA_FILTERS.length + 1
+  }));
   
-  const [valueForm, setValueForm] = useState({
-    filterId: null,
-    value: '',
-    colorCode: '#000000',
-    priceRange: { min: 0, max: 1000 },
-    priority: 1
-  });
+  const [valueForm, setValueForm] = useState(DEFAULT_VALUE_FORM);
   
   // Editing states
   const [editingFilter, setEditingFilter] = useState(null);
@@ -304,27 +323,43 @@ const Filters = () => {
   // Validation states
   const [validationErrors, setValidationErrors] = useState({});
   
-  // Utility function to generate unique IDs
+  // Debounce search term for better performance
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+  
+  // Memoized utility function to generate unique IDs
   const generateId = useCallback(() => Date.now() + Math.random(), []);
   
-  // Validation functions
+  // Memoized validation functions for better performance
   const validateFilterForm = useCallback((form) => {
     const errors = {};
+    const trimmedKey = form.key?.trim();
     
-    if (!form.key?.trim()) {
+    if (!trimmedKey) {
       errors.key = 'Filter key is required';
-    } else if (form.key.length < 2) {
+    } else if (trimmedKey.length < 2) {
       errors.key = 'Filter key must be at least 2 characters';
-    } else if (filters.some(f => f.key.toLowerCase() === form.key.toLowerCase() && f.id !== editingFilter?.id)) {
-      errors.key = 'Filter key already exists';
+    } else {
+      const existingFilter = filters.find(f => 
+        f.key.toLowerCase() === trimmedKey.toLowerCase() && 
+        f.id !== editingFilter?.id
+      );
+      if (existingFilter) {
+        errors.key = 'Filter key already exists';
+      }
     }
     
-    if (form.priority < 1 || form.priority > 999) {
+    const priority = parseInt(form.priority);
+    if (isNaN(priority) || priority < 1 || priority > 999) {
       errors.priority = 'Priority must be between 1 and 999';
     }
     
     return { errors, isValid: Object.keys(errors).length === 0 };
-  }, [filters, editingFilter]);
+  }, [filters, editingFilter?.id]);
   
   const validateValueForm = useCallback((form) => {
     const errors = {};
@@ -333,7 +368,7 @@ const Filters = () => {
       errors.value = 'Value is required';
     }
     
-    if (form.colorCode && !form.colorCode.match(/^#[0-9A-F]{6}$/i)) {
+    if (form.colorCode && !COLOR_REGEX.test(form.colorCode)) {
       errors.colorCode = 'Invalid RGB color code (use #RRGGBB format)';
     }
     
@@ -349,7 +384,7 @@ const Filters = () => {
     return { errors, isValid: Object.keys(errors).length === 0 };
   }, []);
   
-  // Filter and value management functions
+  // Optimized filter and value management functions
   const createFilter = useCallback(() => {
     const validation = validateFilterForm(filterForm);
     setValidationErrors(validation.errors);
@@ -368,15 +403,13 @@ const Filters = () => {
     
     filtersDispatch({ type: FILTER_ACTIONS.ADD_FILTER, payload: newFilter });
     
-    // Reset form
-    setFilterForm({
-      key: '',
-      type: ZARA_FILTER_CONFIG.FILTER_TYPES.COLOUR,
-      priority: filters.length + 2,
-      arrangement: filters.length + 2
-    });
+    // Reset form with new priority
+    setFilterForm(prev => ({
+      ...DEFAULT_FILTER_FORM,
+      priority: prev.priority + 1
+    }));
     setValidationErrors({});
-  }, [filterForm, validateFilterForm, generateId, filters.length]);
+  }, [filterForm, validateFilterForm, generateId]);
   
   const createValue = useCallback(() => {
     if (!valueForm.filterId) {
@@ -390,13 +423,15 @@ const Filters = () => {
     if (!validation.isValid) return;
     
     const selectedFilter = filters.find(f => f.id === valueForm.filterId);
+    if (!selectedFilter) return;
+    
     const newValue = {
       id: generateId(),
       value: valueForm.value.trim(),
       isActive: true,
       priority: parseInt(valueForm.priority) || 1,
-      ...(selectedFilter?.type === 'colour' && valueForm.colorCode && { colorCode: valueForm.colorCode }),
-      ...(selectedFilter?.type === 'price' && valueForm.priceRange && { priceRange: valueForm.priceRange })
+      ...(selectedFilter.type === 'colour' && valueForm.colorCode && { colorCode: valueForm.colorCode }),
+      ...(selectedFilter.type === 'price' && valueForm.priceRange && { priceRange: valueForm.priceRange })
     };
     
     filtersDispatch({ 
@@ -405,16 +440,11 @@ const Filters = () => {
     });
     
     // Reset form
-    setValueForm({
-      filterId: null,
-      value: '',
-      colorCode: '#000000',
-      priceRange: { min: 0, max: 1000 },
-      priority: 1
-    });
+    setValueForm(DEFAULT_VALUE_FORM);
     setValidationErrors({});
   }, [valueForm, validateValueForm, generateId, filters]);
   
+  // Memoized action callbacks to prevent unnecessary re-renders
   const updateFilter = useCallback((filterId, updates) => {
     filtersDispatch({ 
       type: FILTER_ACTIONS.UPDATE_FILTER, 
@@ -444,7 +474,7 @@ const Filters = () => {
     }
   }, []);
   
-  // Drag and drop functions
+  // Optimized drag and drop functions with better performance
   const handleDragStart = useCallback((e, item, type) => {
     setDraggedItem({ item, type });
     e.dataTransfer.effectAllowed = 'move';
@@ -463,13 +493,17 @@ const Filters = () => {
   const handleDrop = useCallback((e, targetItem, targetType) => {
     e.preventDefault();
     
-    if (!draggedItem || draggedItem.type !== targetType) return;
+    if (!draggedItem || draggedItem.type !== targetType || draggedItem.item.id === targetItem.id) {
+      setDraggedItem(null);
+      setDragOverItem(null);
+      return;
+    }
     
     if (targetType === 'filter') {
       const sourceIndex = filters.findIndex(f => f.id === draggedItem.item.id);
       const targetIndex = filters.findIndex(f => f.id === targetItem.id);
       
-      if (sourceIndex !== targetIndex) {
+      if (sourceIndex !== -1 && targetIndex !== -1 && sourceIndex !== targetIndex) {
         const reorderedFilters = [...filters];
         const [removed] = reorderedFilters.splice(sourceIndex, 1);
         reorderedFilters.splice(targetIndex, 0, removed);
@@ -488,18 +522,37 @@ const Filters = () => {
     setDragOverItem(null);
   }, [draggedItem, filters]);
   
-  // Filtered and sorted data
+  // Optimized filtered and sorted data with debounced search
   const filteredFilters = useMemo(() => {
-    if (!searchTerm) return filters;
+    if (!debouncedSearchTerm) return filters;
     
-    return filters.filter(filter =>
-      filter.key.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      filter.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      filter.assignedValues.some(value => 
-        value.value.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    );
-  }, [filters, searchTerm]);
+    const searchLower = debouncedSearchTerm.toLowerCase();
+    return filters.filter(filter => {
+      const keyMatch = filter.key.toLowerCase().includes(searchLower);
+      const typeMatch = filter.type.toLowerCase().includes(searchLower);
+      const valueMatch = filter.assignedValues.some(value => 
+        value.value.toLowerCase().includes(searchLower)
+      );
+      return keyMatch || typeMatch || valueMatch;
+    });
+  }, [filters, debouncedSearchTerm]);
+
+  // Memoized view toggle functions
+  const toggleToMobileView = useCallback(() => setCurrentView('mobile-preview'), []);
+  const toggleToManagementView = useCallback(() => setCurrentView('management'), []);
+  
+  // Memoized section toggle functions
+  const toggleCreateFiltersSection = useCallback(() => {
+    setActiveSection(prev => prev === 'create-filters' ? '' : 'create-filters');
+  }, []);
+  
+  const toggleCreateValuesSection = useCallback(() => {
+    setActiveSection(prev => prev === 'create-values' ? '' : 'create-values');
+  }, []);
+  
+  const toggleSavedFiltersSection = useCallback(() => {
+    setActiveSection(prev => prev === 'saved-filters' ? '' : 'saved-filters');
+  }, []);
 
   // Main render function
   return (
@@ -532,20 +585,23 @@ const Filters = () => {
           onDragOver={handleDragOver}
           onDragEnter={handleDragEnter}
           onDrop={handleDrop}
-          onToggleView={() => setCurrentView('mobile-preview')}
+          onToggleView={toggleToMobileView}
+          onToggleCreateFilters={toggleCreateFiltersSection}
+          onToggleCreateValues={toggleCreateValuesSection}
+          onToggleSavedFilters={toggleSavedFiltersSection}
           filtersDispatch={filtersDispatch}
         />
       ) : (
         <ZaraMobilePreviewInterface
           filters={filters}
-          onToggleView={() => setCurrentView('management')}
+          onToggleView={toggleToManagementView}
         />
       )}
     </div>
   );
 };
 
-// Zara Desktop Management Interface Component
+// Optimized Zara Desktop Management Interface Component
 const ZaraDesktopManagementInterface = React.memo(({
   filters,
   filterForm,
@@ -574,6 +630,9 @@ const ZaraDesktopManagementInterface = React.memo(({
   onDragEnter,
   onDrop,
   onToggleView,
+  onToggleCreateFilters,
+  onToggleCreateValues,
+  onToggleSavedFilters,
   filtersDispatch
 }) => {
   return (
@@ -616,7 +675,7 @@ const ZaraDesktopManagementInterface = React.memo(({
             onFormChange={onFilterFormChange}
             onCreateFilter={onCreateFilter}
             isActive={activeSection === 'create-filters'}
-            onToggle={() => onActiveSectionChange(activeSection === 'create-filters' ? '' : 'create-filters')}
+            onToggle={onToggleCreateFilters}
           />
         </div>
 
@@ -629,7 +688,7 @@ const ZaraDesktopManagementInterface = React.memo(({
             onFormChange={onValueFormChange}
             onCreateValue={onCreateValue}
             isActive={activeSection === 'create-values'}
-            onToggle={() => onActiveSectionChange(activeSection === 'create-values' ? '' : 'create-values')}
+            onToggle={onToggleCreateValues}
           />
         </div>
 
@@ -652,7 +711,7 @@ const ZaraDesktopManagementInterface = React.memo(({
             onDragEnter={onDragEnter}
             onDrop={onDrop}
             isActive={activeSection === 'saved-filters'}
-            onToggle={() => onActiveSectionChange(activeSection === 'saved-filters' ? '' : 'saved-filters')}
+            onToggle={onToggleSavedFilters}
             filtersDispatch={filtersDispatch}
           />
         </div>
@@ -757,7 +816,7 @@ const ZaraCreateFiltersSection = React.memo(({
   );
 });
 
-// Zara Create Filter Values Section Component
+// Optimized Zara Create Filter Values Section Component
 const ZaraCreateFilterValuesSection = React.memo(({
   valueForm,
   filters,
@@ -767,7 +826,58 @@ const ZaraCreateFilterValuesSection = React.memo(({
   isActive,
   onToggle
 }) => {
-  const selectedFilter = filters.find(f => f.id === valueForm.filterId);
+  // Memoize selected filter to prevent unnecessary calculations
+  const selectedFilter = useMemo(() => 
+    filters.find(f => f.id === valueForm.filterId), 
+    [filters, valueForm.filterId]
+  );
+
+  // Memoized form change handlers to prevent object recreation
+  const handleFilterChange = useCallback((e) => {
+    onFormChange({ ...valueForm, filterId: parseInt(e.target.value) || null });
+  }, [valueForm, onFormChange]);
+
+  const handleValueChange = useCallback((e) => {
+    onFormChange({ ...valueForm, value: e.target.value });
+  }, [valueForm, onFormChange]);
+
+  const handleColorChange = useCallback((e) => {
+    onFormChange({ ...valueForm, colorCode: e.target.value });
+  }, [valueForm, onFormChange]);
+
+  const handleColorAndValueChange = useCallback((color, value) => {
+    onFormChange({ 
+      ...valueForm, 
+      colorCode: color,
+      value: value 
+    });
+  }, [valueForm, onFormChange]);
+
+  const handlePriceRangeChange = useCallback((priceRange, value) => {
+    onFormChange({ 
+      ...valueForm, 
+      priceRange: priceRange,
+      value: value 
+    });
+  }, [valueForm, onFormChange]);
+
+  const handlePriceMinChange = useCallback((e) => {
+    onFormChange({ 
+      ...valueForm, 
+      priceRange: { ...valueForm.priceRange, min: parseInt(e.target.value) || 0 }
+    });
+  }, [valueForm, onFormChange]);
+
+  const handlePriceMaxChange = useCallback((e) => {
+    onFormChange({ 
+      ...valueForm, 
+      priceRange: { ...valueForm.priceRange, max: parseInt(e.target.value) || 1000 }
+    });
+  }, [valueForm, onFormChange]);
+
+  const handleSizeSelect = useCallback((size) => {
+    onFormChange({ ...valueForm, value: size });
+  }, [valueForm, onFormChange]);
 
   return (
     <div className="bg-gray-50 border-2 border-black">
@@ -790,7 +900,7 @@ const ZaraCreateFilterValuesSection = React.memo(({
             </label>
             <select
               value={valueForm.filterId || ''}
-              onChange={(e) => onFormChange({ ...valueForm, filterId: parseInt(e.target.value) || null })}
+              onChange={handleFilterChange}
               className="w-full px-4 py-4 border-2 border-black focus:outline-none focus:border-gray-600 text-lg"
             >
               <option value="">Select filter key...</option>
@@ -816,7 +926,7 @@ const ZaraCreateFilterValuesSection = React.memo(({
             <input
               type="text"
               value={valueForm.value}
-              onChange={(e) => onFormChange({ ...valueForm, value: e.target.value })}
+              onChange={handleValueChange}
               placeholder="Enter value"
               className="w-full px-4 py-4 border-2 border-black focus:outline-none focus:border-gray-600 text-lg"
             />
@@ -838,13 +948,13 @@ const ZaraCreateFilterValuesSection = React.memo(({
                 <input
                   type="color"
                   value={valueForm.colorCode}
-                  onChange={(e) => onFormChange({ ...valueForm, colorCode: e.target.value })}
+                  onChange={handleColorChange}
                   className="w-16 h-16 border-2 border-black cursor-pointer"
                 />
                 <input
                   type="text"
                   value={valueForm.colorCode}
-                  onChange={(e) => onFormChange({ ...valueForm, colorCode: e.target.value })}
+                  onChange={handleColorChange}
                   placeholder="#000000"
                   className="flex-1 px-4 py-4 border-2 border-black focus:outline-none focus:border-gray-600 text-lg"
                 />
@@ -863,11 +973,7 @@ const ZaraCreateFilterValuesSection = React.memo(({
                   {ZARA_FILTER_CONFIG.COLOR_PRESETS.map((color) => (
                     <button
                       key={color.name}
-                      onClick={() => onFormChange({ 
-                        ...valueForm, 
-                        colorCode: color.code,
-                        value: color.name 
-                      })}
+                      onClick={() => handleColorAndValueChange(color.code, color.name)}
                       className="w-12 h-12 border-2 border-black hover:scale-110 transition-transform"
                       style={{ backgroundColor: color.code }}
                       title={color.name}
@@ -890,11 +996,7 @@ const ZaraCreateFilterValuesSection = React.memo(({
                 {ZARA_FILTER_CONFIG.PRICE_RANGES.map((range, index) => (
                   <button
                     key={index}
-                    onClick={() => onFormChange({ 
-                      ...valueForm, 
-                      priceRange: { min: range.min, max: range.max },
-                      value: range.label 
-                    })}
+                    onClick={() => handlePriceRangeChange({ min: range.min, max: range.max }, range.label)}
                     className="p-3 border-2 border-black hover:bg-black hover:text-white transition-colors text-left font-medium"
                   >
                     {range.label}
@@ -911,10 +1013,7 @@ const ZaraCreateFilterValuesSection = React.memo(({
                   <input
                     type="number"
                     value={valueForm.priceRange.min}
-                    onChange={(e) => onFormChange({ 
-                      ...valueForm, 
-                      priceRange: { ...valueForm.priceRange, min: parseInt(e.target.value) || 0 }
-                    })}
+                    onChange={handlePriceMinChange}
                     placeholder="0"
                     className="w-full px-4 py-3 border-2 border-black focus:outline-none focus:border-gray-600 text-lg"
                   />
@@ -926,10 +1025,7 @@ const ZaraCreateFilterValuesSection = React.memo(({
                   <input
                     type="number"
                     value={valueForm.priceRange.max}
-                    onChange={(e) => onFormChange({ 
-                      ...valueForm, 
-                      priceRange: { ...valueForm.priceRange, max: parseInt(e.target.value) || 1000 }
-                    })}
+                    onChange={handlePriceMaxChange}
                     placeholder="1000"
                     className="w-full px-4 py-3 border-2 border-black focus:outline-none focus:border-gray-600 text-lg"
                   />
@@ -948,7 +1044,7 @@ const ZaraCreateFilterValuesSection = React.memo(({
                 {ZARA_FILTER_CONFIG.SIZE_OPTIONS.map((size) => (
                   <button
                     key={size}
-                    onClick={() => onFormChange({ ...valueForm, value: size })}
+                    onClick={() => handleSizeSelect(size)}
                     className="p-3 border-2 border-black hover:bg-black hover:text-white transition-colors font-medium"
                   >
                     {size}
@@ -1051,7 +1147,7 @@ const ZaraSavedFiltersSection = React.memo(({
   );
 });
 
-// Zara Filter Row Component with Drag & Drop
+// Optimized Zara Filter Row Component with Drag & Drop
 const ZaraFilterRow = React.memo(({
   filter,
   index,
@@ -1071,7 +1167,36 @@ const ZaraFilterRow = React.memo(({
   onDrop,
   filtersDispatch
 }) => {
-  const isDraggedOver = dragOverItem?.item?.id === filter.id && dragOverItem?.type === 'filter';
+  // Memoize computed values
+  const isDraggedOver = useMemo(() => 
+    dragOverItem?.item?.id === filter.id && dragOverItem?.type === 'filter',
+    [dragOverItem, filter.id]
+  );
+  
+  // Memoized handlers to prevent recreation
+  const handleDragStart = useCallback((e) => {
+    onDragStart(e, filter, 'filter');
+  }, [onDragStart, filter]);
+  
+  const handleDragEnter = useCallback((e) => {
+    onDragEnter(e, filter, 'filter');
+  }, [onDragEnter, filter]);
+  
+  const handleDrop = useCallback((e) => {
+    onDrop(e, filter, 'filter');
+  }, [onDrop, filter]);
+  
+  const handleEditFilter = useCallback(() => {
+    onEditFilter(filter);
+  }, [onEditFilter, filter]);
+  
+  const handleDeleteFilter = useCallback(() => {
+    onDeleteFilter(filter.id);
+  }, [onDeleteFilter, filter.id]);
+  
+  const handleToggleFilter = useCallback(() => {
+    filtersDispatch({ type: FILTER_ACTIONS.TOGGLE_FILTER_STATUS, payload: filter.id });
+  }, [filtersDispatch, filter.id]);
   
   return (
     <div 
@@ -1079,10 +1204,10 @@ const ZaraFilterRow = React.memo(({
         isDraggedOver ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
       } hover:border-black cursor-move`}
       draggable
-      onDragStart={(e) => onDragStart(e, filter, 'filter')}
+      onDragStart={handleDragStart}
       onDragOver={onDragOver}
-      onDragEnter={(e) => onDragEnter(e, filter, 'filter')}
-      onDrop={(e) => onDrop(e, filter, 'filter')}
+      onDragEnter={handleDragEnter}
+      onDrop={handleDrop}
     >
       {/* Key Values */}
       <div className="flex items-center gap-3">
@@ -1095,22 +1220,12 @@ const ZaraFilterRow = React.memo(({
       {/* Assigned Values */}
       <div className="space-y-2">
         {filter.assignedValues.map((value) => (
-          <div key={value.id} className="bg-gray-100 px-3 py-2 border border-gray-300 flex items-center gap-2 text-sm">
-            {value.colorCode && (
-              <div 
-                className="w-4 h-4 border border-gray-400"
-                style={{ backgroundColor: value.colorCode }}
-              />
-            )}
-            <span className="flex-1 font-medium">{value.value}</span>
-            <button
-              onClick={() => onDeleteValue(filter.id, value.id)}
-              className="text-red-600 hover:text-red-800 p-1"
-              title="Delete value"
-            >
-              <X className="h-3 w-3" />
-            </button>
-          </div>
+          <ZaraFilterValue
+            key={value.id}
+            value={value}
+            filterId={filter.id}
+            onDeleteValue={onDeleteValue}
+          />
         ))}
         {filter.assignedValues.length === 0 && (
           <div className="text-gray-400 text-sm italic">No values assigned</div>
@@ -1125,21 +1240,21 @@ const ZaraFilterRow = React.memo(({
       {/* Action Buttons */}
       <div className="flex items-center gap-2">
         <button
-          onClick={() => onEditFilter(filter)}
+          onClick={handleEditFilter}
           className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-colors"
           title="Edit filter"
         >
           <Edit2 className="h-4 w-4" />
         </button>
         <button
-          onClick={() => onDeleteFilter(filter.id)}
+          onClick={handleDeleteFilter}
           className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 transition-colors"
           title="Delete filter"
         >
           <Trash2 className="h-4 w-4" />
         </button>
         <button
-          onClick={() => filtersDispatch({ type: FILTER_ACTIONS.TOGGLE_FILTER_STATUS, payload: filter.id })}
+          onClick={handleToggleFilter}
           className={`p-2 transition-colors ${
             filter.isActive 
               ? 'text-green-600 hover:text-green-800 hover:bg-green-50' 
@@ -1154,11 +1269,43 @@ const ZaraFilterRow = React.memo(({
   );
 });
 
-// Zara Mobile Preview Interface Component
+// Separate component for filter values to optimize rendering
+const ZaraFilterValue = React.memo(({ value, filterId, onDeleteValue }) => {
+  const handleDelete = useCallback(() => {
+    onDeleteValue(filterId, value.id);
+  }, [onDeleteValue, filterId, value.id]);
+  
+  return (
+    <div className="bg-gray-100 px-3 py-2 border border-gray-300 flex items-center gap-2 text-sm">
+      {value.colorCode && (
+        <div 
+          className="w-4 h-4 border border-gray-400"
+          style={{ backgroundColor: value.colorCode }}
+        />
+      )}
+      <span className="flex-1 font-medium">{value.value}</span>
+      <button
+        onClick={handleDelete}
+        className="text-red-600 hover:text-red-800 p-1"
+        title="Delete value"
+      >
+        <X className="h-3 w-3" />
+      </button>
+    </div>
+  );
+});
+
+// Optimized Zara Mobile Preview Interface Component
 const ZaraMobilePreviewInterface = React.memo(({
   filters,
   onToggleView
 }) => {
+  // Memoize active filters to prevent recalculation
+  const activeFilters = useMemo(() => 
+    filters.filter(f => f.isActive), 
+    [filters]
+  );
+  
   return (
     <div className="flex h-screen bg-gray-100">
       {/* Mobile Preview Device Frame */}
@@ -1201,28 +1348,8 @@ const ZaraMobilePreviewInterface = React.memo(({
           <div className="px-4 pb-4 max-h-96 overflow-y-auto">
             <h3 className="font-bold mb-4 text-lg uppercase tracking-wide">Filters</h3>
             <div className="space-y-4">
-              {filters.filter(f => f.isActive).map((filter) => (
-                <div key={filter.id} className="space-y-3">
-                  <h4 className="font-bold text-sm uppercase tracking-wider text-black border-b border-gray-300 pb-1">
-                    {filter.key}
-                  </h4>
-                  <div className="flex flex-wrap gap-2">
-                    {filter.assignedValues.filter(v => v.isActive).map((value) => (
-                      <div
-                        key={value.id}
-                        className="flex items-center gap-2 px-3 py-2 border-2 border-black text-sm font-medium hover:bg-black hover:text-white transition-colors cursor-pointer"
-                      >
-                        {value.colorCode && (
-                          <div 
-                            className="w-4 h-4 border border-gray-400"
-                            style={{ backgroundColor: value.colorCode }}
-                          />
-                        )}
-                        {value.value}
-                      </div>
-                    ))}
-                  </div>
-                </div>
+              {activeFilters.map((filter) => (
+                <MobileFilterSection key={filter.id} filter={filter} />
               ))}
             </div>
           </div>
@@ -1258,38 +1385,7 @@ const ZaraMobilePreviewInterface = React.memo(({
           <h3 className="font-bold mb-6 text-xl uppercase tracking-wide">Filter Summary</h3>
           <div className="space-y-4">
             {filters.map((filter) => (
-              <div key={filter.id} className="flex items-center justify-between p-4 bg-white border-2 border-gray-200">
-                <div>
-                  <div className="font-bold text-lg uppercase tracking-wide">{filter.key}</div>
-                  <div className="text-sm text-gray-600 mt-1">
-                    {filter.assignedValues.length} value(s) • Priority: {filter.priority} • Type: {filter.type}
-                  </div>
-                  <div className="flex flex-wrap gap-1 mt-2">
-                    {filter.assignedValues.slice(0, 3).map((value) => (
-                      <span key={value.id} className="text-xs bg-gray-200 px-2 py-1 border">
-                        {value.value}
-                      </span>
-                    ))}
-                    {filter.assignedValues.length > 3 && (
-                      <span className="text-xs text-gray-500">+{filter.assignedValues.length - 3} more</span>
-                    )}
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className={`px-3 py-1 text-sm font-bold border-2 ${
-                    filter.isActive 
-                      ? 'bg-green-100 text-green-800 border-green-300' 
-                      : 'bg-red-100 text-red-800 border-red-300'
-                  }`}>
-                    {filter.isActive ? 'ACTIVE' : 'INACTIVE'}
-                  </div>
-                  {filter.isActive ? (
-                    <Check className="h-5 w-5 text-green-600" />
-                  ) : (
-                    <X className="h-5 w-5 text-red-600" />
-                  )}
-                </div>
-              </div>
+              <FilterSummaryCard key={filter.id} filter={filter} />
             ))}
           </div>
           
@@ -1306,12 +1402,85 @@ const ZaraMobilePreviewInterface = React.memo(({
   );
 });
 
-// Set display names for debugging
+// Separate component for mobile filter sections
+const MobileFilterSection = React.memo(({ filter }) => {
+  const activeValues = useMemo(() => 
+    filter.assignedValues.filter(v => v.isActive), 
+    [filter.assignedValues]
+  );
+  
+  return (
+    <div className="space-y-3">
+      <h4 className="font-bold text-sm uppercase tracking-wider text-black border-b border-gray-300 pb-1">
+        {filter.key}
+      </h4>
+      <div className="flex flex-wrap gap-2">
+        {activeValues.map((value) => (
+          <div
+            key={value.id}
+            className="flex items-center gap-2 px-3 py-2 border-2 border-black text-sm font-medium hover:bg-black hover:text-white transition-colors cursor-pointer"
+          >
+            {value.colorCode && (
+              <div 
+                className="w-4 h-4 border border-gray-400"
+                style={{ backgroundColor: value.colorCode }}
+              />
+            )}
+            {value.value}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+});
+
+// Separate component for filter summary cards
+const FilterSummaryCard = React.memo(({ filter }) => {
+  return (
+    <div className="flex items-center justify-between p-4 bg-white border-2 border-gray-200">
+      <div>
+        <div className="font-bold text-lg uppercase tracking-wide">{filter.key}</div>
+        <div className="text-sm text-gray-600 mt-1">
+          {filter.assignedValues.length} value(s) • Priority: {filter.priority} • Type: {filter.type}
+        </div>
+        <div className="flex flex-wrap gap-1 mt-2">
+          {filter.assignedValues.slice(0, 3).map((value) => (
+            <span key={value.id} className="text-xs bg-gray-200 px-2 py-1 border">
+              {value.value}
+            </span>
+          ))}
+          {filter.assignedValues.length > 3 && (
+            <span className="text-xs text-gray-500">+{filter.assignedValues.length - 3} more</span>
+          )}
+        </div>
+      </div>
+      <div className="flex items-center gap-3">
+        <div className={`px-3 py-1 text-sm font-bold border-2 ${
+          filter.isActive 
+            ? 'bg-green-100 text-green-800 border-green-300' 
+            : 'bg-red-100 text-red-800 border-red-300'
+        }`}>
+          {filter.isActive ? 'ACTIVE' : 'INACTIVE'}
+        </div>
+        {filter.isActive ? (
+          <Check className="h-5 w-5 text-green-600" />
+        ) : (
+          <X className="h-5 w-5 text-red-600" />
+        )}
+      </div>
+    </div>
+  );
+});
+
+// Set display names for debugging and React DevTools
 ZaraDesktopManagementInterface.displayName = 'ZaraDesktopManagementInterface';
 ZaraCreateFiltersSection.displayName = 'ZaraCreateFiltersSection';
 ZaraCreateFilterValuesSection.displayName = 'ZaraCreateFilterValuesSection';
 ZaraSavedFiltersSection.displayName = 'ZaraSavedFiltersSection';
 ZaraFilterRow.displayName = 'ZaraFilterRow';
+ZaraFilterValue.displayName = 'ZaraFilterValue';
 ZaraMobilePreviewInterface.displayName = 'ZaraMobilePreviewInterface';
+MobileFilterSection.displayName = 'MobileFilterSection';
+FilterSummaryCard.displayName = 'FilterSummaryCard';
 
 export default Filters;

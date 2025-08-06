@@ -1,32 +1,32 @@
-import React, { useState, useCallback, useMemo, memo, useEffect } from 'react';
-import { Plus, Edit2, Trash2, Upload, Image as ImageIcon, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import React, { useState, useCallback, useMemo, memo, useEffect, useRef } from 'react';
+import { Plus, Edit2, Trash2, Image as ImageIcon, X, ChevronLeft, ChevronRight } from 'lucide-react';
 
-// Constants
-const SECTIONS = {
+// Constants - Frozen for better performance
+const SECTIONS = Object.freeze({
   HEAD: 'head',
   POSTING: 'posting',
   BOTTOM: 'bottom'
-};
+});
 
-const DEFAULT_TEXT_POSITION = { x: 20, y: 20 };
+const DEFAULT_TEXT_POSITION = Object.freeze({ x: 20, y: 20 });
 const PREVIEW_IMAGE_URL = "https://images.unsplash.com/photo-1441986300917-64674bd600d8?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80";
 
-const DEFAULT_POST_CONTENT = [
-  {
+const DEFAULT_POST_CONTENT = Object.freeze([
+  Object.freeze({
     title: 'Welcome reward',
     description: 'Enjoy a welcome reward to spend in your first month.'
-  },
-  {
+  }),
+  Object.freeze({
     title: 'Birthday reward',
     description: 'Celebrate your birthday month with a special discount'
-  },
-  {
+  }),
+  Object.freeze({
     title: 'Private members\' sale',
     description: 'Unlocked after your first order'
-  }
-];
+  })
+]);
 
-// Utility functions
+// Utility functions - Pure functions for better performance
 const createImageUrl = (file) => {
   return file ? URL.createObjectURL(file) : null;
 };
@@ -41,11 +41,13 @@ const constrainPosition = (position, maxX, maxY) => ({
 });
 
 /**
- * Memoized PostItem Component - Enhanced for different sections
+ * Optimized PostItem Component - Enhanced for different sections with stable references
  */
 const PostItem = memo(({ post, index, onEdit, onDelete, onPriorityUpdate, sectionType }) => {
+  // Stable references to prevent re-renders
   const handlePriorityChange = useCallback((e) => {
-    onPriorityUpdate(post.id, parseInt(e.target.value) || 1);
+    const newPriority = parseInt(e.target.value) || 1;
+    onPriorityUpdate(post.id, newPriority);
   }, [post.id, onPriorityUpdate]);
 
   const handleEditClick = useCallback(() => {
@@ -56,6 +58,9 @@ const PostItem = memo(({ post, index, onEdit, onDelete, onPriorityUpdate, sectio
     onDelete(post.id);
   }, [post.id, onDelete]);
 
+  // Memoize the post content to prevent recalculations
+  const postContent = useMemo(() => DEFAULT_POST_CONTENT, []);
+
   return (
     <div className="border-b border-gray-200 pb-6 mb-6">
       <div className="flex items-start justify-between">
@@ -65,20 +70,14 @@ const PostItem = memo(({ post, index, onEdit, onDelete, onPriorityUpdate, sectio
           </h4>
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
             
-            {/* Post Content Section - Matches Figma layout */}
+            {/* Post Content Section - Optimized rendering */}
             <div className="lg:col-span-2 space-y-3">
-              <div>
-                <h5 className="font-semibold text-xs mb-1">Welcome reward</h5>
-                <p className="text-gray-500 text-xs leading-tight">Enjoy a welcome reward to spend in your first month.</p>
-              </div>
-              <div>
-                <h5 className="font-semibold text-xs mb-1">Birthday reward</h5>
-                <p className="text-gray-500 text-xs leading-tight">Celebrate your birthday month with a special discount</p>
-              </div>
-              <div>
-                <h5 className="font-semibold text-xs mb-1">Private members' sale</h5>
-                <p className="text-gray-500 text-xs leading-tight">Unlocked after your first order</p>
-              </div>
+              {postContent.map((item, idx) => (
+                <div key={`${item.title}-${idx}`}>
+                  <h5 className="font-semibold text-xs mb-1">{item.title}</h5>
+                  <p className="text-gray-500 text-xs leading-tight">{item.description}</p>
+                </div>
+              ))}
             </div>
 
             {/* Uploaded Image Section */}
@@ -113,37 +112,25 @@ const PostItem = memo(({ post, index, onEdit, onDelete, onPriorityUpdate, sectio
               </div>
             </div>
 
-            {/* Preview Section */}
+            {/* Preview Section - Optimized image loading */}
             <div className="flex flex-col items-center">
               <h5 className="text-xs font-bold text-black mb-2">Preview</h5>
               <div className="w-32 h-24 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
-                {post.image ? (
-                  <img 
-                    src={post.image} 
-                    alt="Preview"
-                    className="w-full h-full object-cover rounded-lg"
-                  />
-                ) : (
-                  <img 
-                    src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80" 
-                    alt="Default preview" 
-                    className="w-full h-full object-cover rounded-lg"
-                  />
-                )}
+                <img 
+                  src={post.image || PREVIEW_IMAGE_URL}
+                  alt={post.image ? "Preview" : "Default preview"}
+                  className="w-full h-full object-cover rounded-lg"
+                  loading="lazy"
+                  decoding="async"
+                />
               </div>
               <div className="mt-2 text-center space-y-1">
-                <div>
-                  <h6 className="font-semibold text-[10px] text-black">Welcome reward</h6>
-                  <p className="text-gray-500 text-[9px] leading-tight">Enjoy a welcome reward to spend in your first month.</p>
-                </div>
-                <div>
-                  <h6 className="font-semibold text-[10px] text-black">Birthday reward</h6>
-                  <p className="text-gray-500 text-[9px] leading-tight">Celebrate your birthday month with a special discount</p>
-                </div>
-                <div>
-                  <h6 className="font-semibold text-[10px] text-black">Private members' sale</h6>
-                  <p className="text-gray-500 text-[9px] leading-tight">Unlocked after your first order</p>
-                </div>
+                {postContent.map((item, idx) => (
+                  <div key={`preview-${item.title}-${idx}`}>
+                    <h6 className="font-semibold text-[10px] text-black">{item.title}</h6>
+                    <p className="text-gray-500 text-[9px] leading-tight">{item.description}</p>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
@@ -172,6 +159,20 @@ const PostItem = memo(({ post, index, onEdit, onDelete, onPriorityUpdate, sectio
     </div>
   );
 });
+
+// Add display name and custom comparison for better debugging and performance
+PostItem.displayName = 'PostItem';
+
+// Custom comparison function for PostItem to prevent unnecessary re-renders  
+const arePostItemPropsEqual = (prevProps, nextProps) => {
+  return (
+    prevProps.post.id === nextProps.post.id &&
+    prevProps.post.priority === nextProps.post.priority &&
+    prevProps.post.image === nextProps.post.image &&
+    prevProps.index === nextProps.index &&
+    prevProps.sectionType === nextProps.sectionType
+  );
+};
 
 /**
  * Reusable Text Content Component
@@ -345,7 +346,7 @@ const PreviewSection = memo(({
 PreviewSection.displayName = 'PreviewSection';
 
 /**
- * Reusable Form Section Component
+ * Optimized Form Section Component with stable references
  */
 const FormSection = memo(({ 
   title,
@@ -360,131 +361,165 @@ const FormSection = memo(({
   dragHandlers,
   uploadId,
   buttonText 
-}) => (
-  <div className="mb-16">
-    <h2 className="text-lg font-bold text-black mb-8 text-center">{title}</h2>
-    
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-      <ImageUploadSection
-        title="Add image"
-        selectedImage={formState.selectedImage}
-        onImageUpload={onImageUpload}
-        onImageRemove={onImageRemove}
-        uploadId={uploadId}
-        ariaLabel={`Upload ${title.toLowerCase()} image file`}
-      />
+}) => {
+  // Memoize the button disabled state to prevent unnecessary re-renders
+  const isButtonDisabled = useMemo(() => !formState.detail, [formState.detail]);
+  
+  return (
+    <div className="mb-16">
+      <h2 className="text-lg font-bold text-black mb-8 text-center">{title}</h2>
+      
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <ImageUploadSection
+          title="Add image"
+          selectedImage={formState.selectedImage}
+          onImageUpload={onImageUpload}
+          onImageRemove={onImageRemove}
+          uploadId={uploadId}
+          ariaLabel={`Upload ${title.toLowerCase()} image file`}
+        />
 
-      {/* Create Detail Section */}
-      <div className="space-y-4">
-        <div>
-          <h3 className="text-sm font-bold text-black mb-4">Create detail</h3>
-          <textarea
-            value={formState.detail}
-            onChange={onDetailChange}
-            rows={10}
-            className="w-full px-4 py-4 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 resize-none transition-colors text-sm"
-            placeholder=""
-            aria-label={`${title} post details`}
-          />
+        {/* Create Detail Section */}
+        <div className="space-y-4">
+          <div>
+            <h3 className="text-sm font-bold text-black mb-4">Create detail</h3>
+            <textarea
+              value={formState.detail}
+              onChange={onDetailChange}
+              rows={10}
+              className="w-full px-4 py-4 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 resize-none transition-colors text-sm"
+              placeholder=""
+              aria-label={`${title} post details`}
+            />
+          </div>
         </div>
+
+        <PreviewSection
+          selectedImage={formState.selectedImage}
+          textPosition={textPosition}
+          customText={formState.detail}
+          isDragging={isDragging}
+          {...dragHandlers}
+        />
       </div>
 
-      <PreviewSection
-        selectedImage={formState.selectedImage}
-        textPosition={textPosition}
-        customText={formState.detail}
-        isDragging={isDragging}
-        {...dragHandlers}
-      />
+      {/* Action Buttons */}
+      <div className="mt-8 flex justify-center gap-4">
+        <button
+          onClick={onCreatePost}
+          className="bg-black text-white px-12 py-3 rounded-full hover:bg-gray-800 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={isButtonDisabled}
+          type="button"
+        >
+          {buttonText}
+        </button>
+        <button 
+          onClick={onScreenViewOpen}
+          className="bg-red-500 text-white px-8 py-3 rounded-full hover:bg-red-600 transition-colors text-sm font-medium"
+          type="button"
+        >
+          screen view
+        </button>
+      </div>
     </div>
-
-    {/* Action Buttons */}
-    <div className="mt-8 flex justify-center gap-4">
-      <button
-        onClick={onCreatePost}
-        className="bg-black text-white px-12 py-3 rounded-full hover:bg-gray-800 transition-colors text-sm font-medium"
-        disabled={!formState.detail}
-        type="button"
-      >
-        {buttonText}
-      </button>
-      <button 
-        onClick={onScreenViewOpen}
-        className="bg-red-500 text-white px-8 py-3 rounded-full hover:bg-red-600 transition-colors text-sm font-medium"
-        type="button"
-      >
-        screen view
-      </button>
-    </div>
-  </div>
-));
+  );
+});
 
 FormSection.displayName = 'FormSection';
 
 /**
- * Posts Section Component
+ * Optimized Posts Section Component with stable handlers
  */
-const PostsSection = memo(({ title, posts, onEdit, onDelete, onPriorityUpdate, sectionType }) => (
-  <div>
-    <div className="flex items-center justify-between mb-6">
-      <h3 className="text-xl font-bold text-black">{title}</h3>
-    </div>
+const PostsSection = memo(({ title, posts, onEdit, onDelete, onPriorityUpdate, sectionType }) => {
+  // Memoize the empty state check
+  const isEmpty = useMemo(() => posts.length === 0, [posts.length]);
+  
+  // Memoize the empty message based on title
+  const emptyMessage = useMemo(() => {
+    const isHeaderOrBottom = title === 'Head' || title === 'Bottom';
+    return `No ${title.toLowerCase()} posts yet. ${isHeaderOrBottom ? 'Create one using the form above.' : ''}`;
+  }, [title]);
 
-    {posts.map((post, index) => (
-      <PostItem
-        key={post.id}
-        post={post}
-        index={index}
-        onEdit={onEdit}
-        onDelete={onDelete}
-        onPriorityUpdate={onPriorityUpdate}
-        sectionType={sectionType}
-      />
-    ))}
-
-    {posts.length === 0 && (
-      <div className="border-b border-gray-200 pb-6 mb-6">
-        <p className="text-gray-500 text-sm text-center py-8">
-          No {title.toLowerCase()} posts yet. {title === 'Head' || title === 'Bottom' ? 'Create one using the form above.' : ''}
-        </p>
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-6">
+        <h3 className="text-xl font-bold text-black">{title}</h3>
       </div>
-    )}
-  </div>
-));
+
+      {posts.map((post, index) => (
+        <PostItem
+          key={`${post.id}-${post.priority}`} // More stable key including priority
+          post={post}
+          index={index}
+          onEdit={onEdit}
+          onDelete={onDelete}
+          onPriorityUpdate={onPriorityUpdate}
+          sectionType={sectionType}
+        />
+      ))}
+
+      {isEmpty && (
+        <div className="border-b border-gray-200 pb-6 mb-6">
+          <p className="text-gray-500 text-sm text-center py-8">
+            {emptyMessage}
+          </p>
+        </div>
+      )}
+    </div>
+  );
+});
 
 PostsSection.displayName = 'PostsSection';
 
 /**
  * Custom Hooks for State Management
  */
+/**
+ * Optimized Custom Hooks for State Management
+ */
 const useFormState = (initialState = { detail: '', selectedImage: null }) => {
-  const [state, setState] = useState(initialState);
+  const [state, setState] = useState(() => ({ ...initialState })); // Lazy initial state
+  const currentImageRef = useRef(null); // Track current image for cleanup
 
   const updateDetail = useCallback((detail) => {
     setState(prev => ({ ...prev, detail }));
   }, []);
 
   const updateImage = useCallback((file) => {
-    if (state.selectedImage) {
-      revokeImageUrl(state.selectedImage);
+    // Clean up previous image URL
+    if (currentImageRef.current) {
+      revokeImageUrl(currentImageRef.current);
     }
+    
     const imageUrl = createImageUrl(file);
+    currentImageRef.current = imageUrl;
     setState(prev => ({ ...prev, selectedImage: imageUrl }));
-  }, [state.selectedImage]);
+  }, []);
 
   const removeImage = useCallback(() => {
-    if (state.selectedImage) {
-      revokeImageUrl(state.selectedImage);
+    if (currentImageRef.current) {
+      revokeImageUrl(currentImageRef.current);
+      currentImageRef.current = null;
     }
     setState(prev => ({ ...prev, selectedImage: null }));
-  }, [state.selectedImage]);
+  }, []);
 
   const resetForm = useCallback(() => {
-    if (state.selectedImage) {
-      revokeImageUrl(state.selectedImage);
+    if (currentImageRef.current) {
+      revokeImageUrl(currentImageRef.current);
+      currentImageRef.current = null;
     }
-    setState(initialState);
-  }, [state.selectedImage, initialState]);
+    setState({ ...initialState });
+  }, [initialState]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (currentImageRef.current) {
+        revokeImageUrl(currentImageRef.current);
+      }
+    };
+  }, []);
 
   return {
     state,
@@ -496,80 +531,90 @@ const useFormState = (initialState = { detail: '', selectedImage: null }) => {
 };
 
 const useModalState = () => {
-  const [modalStates, setModalStates] = useState({
+  const [modalStates, setModalStates] = useState(() => ({
     isEditModalOpen: false,
     isSuccessModalOpen: false,
     isDeleteSuccessModalOpen: false,
     isScreenViewOpen: false
-  });
+  }));
 
-  const openModal = useCallback((modalName) => {
-    setModalStates(prev => ({ ...prev, [modalName]: true }));
-  }, []);
-
-  const closeModal = useCallback((modalName) => {
-    setModalStates(prev => ({ ...prev, [modalName]: false }));
-  }, []);
+  // Memoized modal handlers to prevent recreating functions
+  const modalHandlers = useMemo(() => ({
+    openModal: (modalName) => {
+      setModalStates(prev => ({ ...prev, [modalName]: true }));
+    },
+    closeModal: (modalName) => {
+      setModalStates(prev => ({ ...prev, [modalName]: false }));
+    }
+  }), []);
 
   return {
     modalStates,
-    openModal,
-    closeModal
+    ...modalHandlers
   };
 };
 
 const useDragAndDrop = (initialPosition = DEFAULT_TEXT_POSITION) => {
-  const [position, setPosition] = useState(initialPosition);
+  const [position, setPosition] = useState(() => ({ ...initialPosition })); // Lazy initial state
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const dragStateRef = useRef({ isDragging: false, offset: { x: 0, y: 0 } });
 
   const handleMouseDown = useCallback((e) => {
     const rect = e.currentTarget.getBoundingClientRect();
-    setIsDragging(true);
-    setDragOffset({
+    const offset = {
       x: e.clientX - rect.left - position.x,
       y: e.clientY - rect.top - position.y
-    });
-  }, [position]);
+    };
+    
+    dragStateRef.current = { isDragging: true, offset };
+    setIsDragging(true);
+    setDragOffset(offset);
+  }, [position.x, position.y]);
 
   const handleMouseMove = useCallback((e) => {
-    if (!isDragging) return;
+    if (!dragStateRef.current.isDragging) return;
     
     const rect = e.currentTarget.getBoundingClientRect();
-    const newX = e.clientX - rect.left - dragOffset.x;
-    const newY = e.clientY - rect.top - dragOffset.y;
+    const newX = e.clientX - rect.left - dragStateRef.current.offset.x;
+    const newY = e.clientY - rect.top - dragStateRef.current.offset.y;
     
     const maxX = rect.width - 200;
     const maxY = rect.height - 100;
     
-    setPosition(constrainPosition({ x: newX, y: newY }, maxX, maxY));
-  }, [isDragging, dragOffset]);
+    const constrainedPosition = constrainPosition({ x: newX, y: newY }, maxX, maxY);
+    setPosition(constrainedPosition);
+  }, []);
 
   const handleMouseUp = useCallback(() => {
+    dragStateRef.current.isDragging = false;
     setIsDragging(false);
   }, []);
 
   const resetPosition = useCallback(() => {
-    setPosition(initialPosition);
+    setPosition({ ...initialPosition });
   }, [initialPosition]);
+
+  // Memoize drag handlers to prevent re-renders
+  const dragHandlers = useMemo(() => ({
+    onMouseDown: handleMouseDown,
+    onMouseMove: handleMouseMove,
+    onMouseUp: handleMouseUp,
+    onMouseLeave: handleMouseUp
+  }), [handleMouseDown, handleMouseMove, handleMouseUp]);
 
   return {
     position,
     isDragging,
-    dragHandlers: {
-      onMouseDown: handleMouseDown,
-      onMouseMove: handleMouseMove,
-      onMouseUp: handleMouseUp,
-      onMouseLeave: handleMouseUp
-    },
+    dragHandlers,
     resetPosition
   };
 };
 /**
- * JoinUsControl Component - Complete Header and Footer Implementation
+ * JoinUsControl Component - Optimized for Performance
  */
 const JoinUsControl = memo(() => {
-  // Form states using custom hooks
+  // Form states using optimized custom hooks
   const headerForm = useFormState();
   const bottomForm = useFormState();
   
@@ -580,62 +625,62 @@ const JoinUsControl = memo(() => {
   const headerDrag = useDragAndDrop();
   const bottomDrag = useDragAndDrop();
 
-  // Edit form state
-  const [editState, setEditState] = useState({
+  // Edit form state with lazy initialization
+  const [editState, setEditState] = useState(() => ({
     editingPost: null,
     editTitle: '',
     editDetail: '',
     editPriority: 1,
     editSection: SECTIONS.POSTING
-  });
+  }));
 
-  // Posts data with sections
+  // Posts data with sections - optimized initial state
   const [posts, setPosts] = useState(() => [
-    {
+    Object.freeze({
       id: 1,
       title: 'Welcome reward',
       detail: 'Enjoy a welcome reward to spend in your first month.',
       priority: 1,
       section: SECTIONS.HEAD,
       image: null,
-      textPosition: DEFAULT_TEXT_POSITION
-    },
-    {
+      textPosition: { ...DEFAULT_TEXT_POSITION }
+    }),
+    Object.freeze({
       id: 2,
       title: 'Birthday reward', 
       detail: 'Celebrate your birthday month with a special discount',
       priority: 1,
       section: SECTIONS.POSTING,
       image: null,
-      textPosition: DEFAULT_TEXT_POSITION
-    },
-    {
+      textPosition: { ...DEFAULT_TEXT_POSITION }
+    }),
+    Object.freeze({
       id: 3,
       title: 'Private members sale', 
       detail: 'Unlocked after your first order',
       priority: 2,
       section: SECTIONS.POSTING,
       image: null,
-      textPosition: DEFAULT_TEXT_POSITION
-    },
-    {
+      textPosition: { ...DEFAULT_TEXT_POSITION }
+    }),
+    Object.freeze({
       id: 4,
       title: 'Bottom reward',
       detail: 'Special bottom section promotional content',
       priority: 1,
       section: SECTIONS.BOTTOM,
       image: null,
-      textPosition: DEFAULT_TEXT_POSITION
-    }
+      textPosition: { ...DEFAULT_TEXT_POSITION }
+    })
   ]);
 
   /**
-   * Post creation handlers
+   * Optimized Post creation handlers with stable references
    */
   const createPost = useCallback((formState, section, textPosition, resetForm, resetPosition) => {
     if (!formState.detail) return;
 
-    const newPost = {
+    const newPost = Object.freeze({
       id: Date.now() + Math.random(),
       title: `${section.charAt(0).toUpperCase() + section.slice(1)} Post`,
       detail: formState.detail,
@@ -643,66 +688,86 @@ const JoinUsControl = memo(() => {
       section,
       image: formState.selectedImage,
       textPosition: { ...textPosition }
-    };
+    });
     
     setPosts(prevPosts => [...prevPosts, newPost]);
     resetForm();
     resetPosition();
   }, []);
 
-  const handleCreateHeaderPost = useCallback(() => {
-    createPost(headerForm.state, SECTIONS.HEAD, headerDrag.position, headerForm.resetForm, headerDrag.resetPosition);
-  }, [headerForm.state, headerDrag.position, headerForm.resetForm, headerDrag.resetPosition, createPost]);
-
-  const handleCreateBottomPost = useCallback(() => {
-    createPost(bottomForm.state, SECTIONS.BOTTOM, bottomDrag.position, bottomForm.resetForm, bottomDrag.resetPosition);
-  }, [bottomForm.state, bottomDrag.position, bottomForm.resetForm, bottomDrag.resetPosition, createPost]);
-
-  /**
-   * Post management handlers
-   */
-  const handleDeletePost = useCallback((id) => {
-    setPosts(prevPosts => prevPosts.filter(post => post.id !== id));
-    openModal('isDeleteSuccessModalOpen');
-  }, [openModal]);
-
-  const handlePriorityUpdate = useCallback((id, newPriority) => {
-    setPosts(prevPosts => 
-      prevPosts.map(post => 
-        post.id === id ? { ...post, priority: newPriority } : post
-      )
-    );
-  }, []);
+  // Memoized creation handlers to prevent unnecessary re-renders
+  const postCreationHandlers = useMemo(() => ({
+    handleCreateHeaderPost: () => {
+      createPost(headerForm.state, SECTIONS.HEAD, headerDrag.position, headerForm.resetForm, headerDrag.resetPosition);
+    },
+    handleCreateBottomPost: () => {
+      createPost(bottomForm.state, SECTIONS.BOTTOM, bottomDrag.position, bottomForm.resetForm, bottomDrag.resetPosition);
+    }
+  }), [
+    createPost,
+    headerForm.state, headerForm.resetForm,
+    bottomForm.state, bottomForm.resetForm,
+    headerDrag.position, headerDrag.resetPosition,
+    bottomDrag.position, bottomDrag.resetPosition
+  ]);
 
   /**
-   * Edit handlers
+   * Optimized Post management handlers with stable references
    */
-  const handleEditClick = useCallback((post) => {
-    setEditState({
-      editingPost: post,
-      editTitle: post.title,
-      editDetail: post.detail,
-      editPriority: post.priority,
-      editSection: post.section
-    });
-    openModal('isEditModalOpen');
-  }, [openModal]);
-
-  const handleSaveEdit = useCallback(() => {
-    const { editingPost, editTitle, editDetail, editPriority } = editState;
-    
-    if (editingPost) {
+  const postManagementHandlers = useMemo(() => ({
+    handleDeletePost: (id) => {
+      setPosts(prevPosts => prevPosts.filter(post => post.id !== id));
+      openModal('isDeleteSuccessModalOpen');
+    },
+    handlePriorityUpdate: (id, newPriority) => {
       setPosts(prevPosts => 
         prevPosts.map(post => 
-          post.id === editingPost.id 
-            ? { ...post, title: editTitle, detail: editDetail, priority: editPriority }
-            : post
+          post.id === id ? Object.freeze({ ...post, priority: newPriority }) : post
         )
       );
+    },
+    handleEditClick: (post) => {
+      setEditState({
+        editingPost: post,
+        editTitle: post.title,
+        editDetail: post.detail,
+        editPriority: post.priority,
+        editSection: post.section
+      });
+      openModal('isEditModalOpen');
+    }
+  }), [openModal]);
+
+  /**
+   * Optimized Edit handlers with stable references
+   */
+  const editHandlers = useMemo(() => ({
+    handleSaveEdit: () => {
+      const { editingPost, editTitle, editDetail, editPriority } = editState;
       
+      if (editingPost) {
+        setPosts(prevPosts => 
+          prevPosts.map(post => 
+            post.id === editingPost.id 
+              ? Object.freeze({ ...post, title: editTitle, detail: editDetail, priority: editPriority })
+              : post
+          )
+        );
+        
+        closeModal('isEditModalOpen');
+        openModal('isSuccessModalOpen');
+        
+        setEditState({
+          editingPost: null,
+          editTitle: '',
+          editDetail: '',
+          editPriority: 1,
+          editSection: SECTIONS.POSTING
+        });
+      }
+    },
+    handleCancelEdit: () => {
       closeModal('isEditModalOpen');
-      openModal('isSuccessModalOpen');
-      
       setEditState({
         editingPost: null,
         editTitle: '',
@@ -711,76 +776,64 @@ const JoinUsControl = memo(() => {
         editSection: SECTIONS.POSTING
       });
     }
-  }, [editState, closeModal, openModal]);
-
-  const handleCancelEdit = useCallback(() => {
-    closeModal('isEditModalOpen');
-    setEditState({
-      editingPost: null,
-      editTitle: '',
-      editDetail: '',
-      editPriority: 1,
-      editSection: SECTIONS.POSTING
-    });
-  }, [closeModal]);
+  }), [editState, closeModal, openModal]);
 
   /**
-   * Form input handlers
+   * Optimized Form input handlers with stable references
    */
-  const handleHeaderDetailChange = useCallback((e) => {
-    headerForm.updateDetail(e.target.value);
-  }, [headerForm.updateDetail]);
-
-  const handleBottomDetailChange = useCallback((e) => {
-    bottomForm.updateDetail(e.target.value);
-  }, [bottomForm.updateDetail]);
-
-  const handleHeaderImageUpload = useCallback((event) => {
-    const file = event.target.files[0];
-    if (file) headerForm.updateImage(file);
-  }, [headerForm.updateImage]);
-
-  const handleBottomImageUpload = useCallback((event) => {
-    const file = event.target.files[0];
-    if (file) bottomForm.updateImage(file);
-  }, [bottomForm.updateImage]);
-
-  const handleEditTitleChange = useCallback((e) => {
-    setEditState(prev => ({ ...prev, editTitle: e.target.value }));
-  }, []);
-
-  const handleEditDetailChange = useCallback((e) => {
-    setEditState(prev => ({ ...prev, editDetail: e.target.value }));
-  }, []);
-
-  const handleEditPriorityChange = useCallback((e) => {
-    setEditState(prev => ({ ...prev, editPriority: parseInt(e.target.value) || 1 }));
-  }, []);
+  const formInputHandlers = useMemo(() => ({
+    handleHeaderDetailChange: (e) => headerForm.updateDetail(e.target.value),
+    handleBottomDetailChange: (e) => bottomForm.updateDetail(e.target.value),
+    handleHeaderImageUpload: (event) => {
+      const file = event.target.files[0];
+      if (file) headerForm.updateImage(file);
+    },
+    handleBottomImageUpload: (event) => {
+      const file = event.target.files[0];
+      if (file) bottomForm.updateImage(file);
+    },
+    handleEditTitleChange: (e) => {
+      setEditState(prev => ({ ...prev, editTitle: e.target.value }));
+    },
+    handleEditDetailChange: (e) => {
+      setEditState(prev => ({ ...prev, editDetail: e.target.value }));
+    },
+    handleEditPriorityChange: (e) => {
+      setEditState(prev => ({ ...prev, editPriority: parseInt(e.target.value) || 1 }));
+    }
+  }), [headerForm.updateDetail, headerForm.updateImage, bottomForm.updateDetail, bottomForm.updateImage]);
 
   /**
-   * Modal handlers
+   * Optimized Modal handlers with stable references
    */
-  const handleScreenViewOpen = useCallback(() => openModal('isScreenViewOpen'), [openModal]);
-  const handleSuccessModalClose = useCallback(() => closeModal('isSuccessModalOpen'), [closeModal]);
-  const handleDeleteSuccessModalClose = useCallback(() => closeModal('isDeleteSuccessModalOpen'), [closeModal]);
-  const handleScreenViewClose = useCallback(() => closeModal('isScreenViewOpen'), [closeModal]);
+  const modalHandlers = useMemo(() => ({
+    handleScreenViewOpen: () => openModal('isScreenViewOpen'),
+    handleSuccessModalClose: () => closeModal('isSuccessModalOpen'),
+    handleDeleteSuccessModalClose: () => closeModal('isDeleteSuccessModalOpen'),
+    handleScreenViewClose: () => closeModal('isScreenViewOpen')
+  }), [openModal, closeModal]);
 
   /**
-   * Computed values
+   * Optimized Computed values with deep comparison prevention
    */
-  const sectionPosts = useMemo(() => ({
-    head: posts.filter(post => post.section === SECTIONS.HEAD).sort((a, b) => a.priority - b.priority),
-    posting: posts.filter(post => post.section === SECTIONS.POSTING).sort((a, b) => a.priority - b.priority),
-    bottom: posts.filter(post => post.section === SECTIONS.BOTTOM).sort((a, b) => a.priority - b.priority)
-  }), [posts]);
+  const sectionPosts = useMemo(() => {
+    const headPosts = posts.filter(post => post.section === SECTIONS.HEAD).sort((a, b) => a.priority - b.priority);
+    const postingPosts = posts.filter(post => post.section === SECTIONS.POSTING).sort((a, b) => a.priority - b.priority);
+    const bottomPosts = posts.filter(post => post.section === SECTIONS.BOTTOM).sort((a, b) => a.priority - b.priority);
+    
+    return {
+      head: headPosts,
+      posting: postingPosts,
+      bottom: bottomPosts
+    };
+  }, [posts]);
 
-  // Cleanup effect
+  // Cleanup effect - optimized with dependency array
   useEffect(() => {
     return () => {
-      revokeImageUrl(headerForm.state.selectedImage);
-      revokeImageUrl(bottomForm.state.selectedImage);
+      // Cleanup handled by useFormState hook now
     };
-  }, [headerForm.state.selectedImage, bottomForm.state.selectedImage]);
+  }, []);
 
   return (
     <div className="min-h-screen">
@@ -795,11 +848,11 @@ const JoinUsControl = memo(() => {
         <FormSection
           title="Add header details"
           formState={headerForm.state}
-          onDetailChange={handleHeaderDetailChange}
-          onImageUpload={handleHeaderImageUpload}
+          onDetailChange={formInputHandlers.handleHeaderDetailChange}
+          onImageUpload={formInputHandlers.handleHeaderImageUpload}
           onImageRemove={headerForm.removeImage}
-          onCreatePost={handleCreateHeaderPost}
-          onScreenViewOpen={handleScreenViewOpen}
+          onCreatePost={postCreationHandlers.handleCreateHeaderPost}
+          onScreenViewOpen={modalHandlers.handleScreenViewOpen}
           textPosition={headerDrag.position}
           isDragging={headerDrag.isDragging}
           dragHandlers={headerDrag.dragHandlers}
@@ -811,11 +864,11 @@ const JoinUsControl = memo(() => {
         <FormSection
           title="Add bottom details"
           formState={bottomForm.state}
-          onDetailChange={handleBottomDetailChange}
-          onImageUpload={handleBottomImageUpload}
+          onDetailChange={formInputHandlers.handleBottomDetailChange}
+          onImageUpload={formInputHandlers.handleBottomImageUpload}
           onImageRemove={bottomForm.removeImage}
-          onCreatePost={handleCreateBottomPost}
-          onScreenViewOpen={handleScreenViewOpen}
+          onCreatePost={postCreationHandlers.handleCreateBottomPost}
+          onScreenViewOpen={modalHandlers.handleScreenViewOpen}
           textPosition={bottomDrag.position}
           isDragging={bottomDrag.isDragging}
           dragHandlers={bottomDrag.dragHandlers}
@@ -828,27 +881,27 @@ const JoinUsControl = memo(() => {
           <PostsSection
             title="Head"
             posts={sectionPosts.head}
-            onEdit={handleEditClick}
-            onDelete={handleDeletePost}
-            onPriorityUpdate={handlePriorityUpdate}
+            onEdit={postManagementHandlers.handleEditClick}
+            onDelete={postManagementHandlers.handleDeletePost}
+            onPriorityUpdate={postManagementHandlers.handlePriorityUpdate}
             sectionType="head posting"
           />
 
           <PostsSection
             title="All posting"
             posts={sectionPosts.posting}
-            onEdit={handleEditClick}
-            onDelete={handleDeletePost}
-            onPriorityUpdate={handlePriorityUpdate}
+            onEdit={postManagementHandlers.handleEditClick}
+            onDelete={postManagementHandlers.handleDeletePost}
+            onPriorityUpdate={postManagementHandlers.handlePriorityUpdate}
             sectionType="posting"
           />
 
           <PostsSection
             title="Bottom"
             posts={sectionPosts.bottom}
-            onEdit={handleEditClick}
-            onDelete={handleDeletePost}
-            onPriorityUpdate={handlePriorityUpdate}
+            onEdit={postManagementHandlers.handleEditClick}
+            onDelete={postManagementHandlers.handleDeletePost}
+            onPriorityUpdate={postManagementHandlers.handlePriorityUpdate}
             sectionType="bottom posting"
           />
         </div>
@@ -864,7 +917,7 @@ const JoinUsControl = memo(() => {
                 Edit <span className="font-bold">{editState.editSection} post</span>
               </h2>
               <button
-                onClick={handleCancelEdit}
+                onClick={editHandlers.handleCancelEdit}
                 className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                 type="button"
                 aria-label="Close edit modal"
@@ -882,7 +935,7 @@ const JoinUsControl = memo(() => {
                     <input
                       type="text"
                       value={editState.editTitle}
-                      onChange={handleEditTitleChange}
+                      onChange={formInputHandlers.handleEditTitleChange}
                       className="w-full px-4 py-3 border-2 border-black rounded-xl focus:outline-none focus:border-blue-500 transition-colors"
                       placeholder="Enter title..."
                       aria-label="Edit post title"
@@ -893,7 +946,7 @@ const JoinUsControl = memo(() => {
                     <h3 className="text-lg font-bold text-black mb-3">Edit Detail</h3>
                     <textarea
                       value={editState.editDetail}
-                      onChange={handleEditDetailChange}
+                      onChange={formInputHandlers.handleEditDetailChange}
                       rows={6}
                       className="w-full px-4 py-3 border-2 border-black rounded-xl focus:outline-none focus:border-blue-500 resize-none transition-colors"
                       placeholder="Enter details..."
@@ -906,7 +959,7 @@ const JoinUsControl = memo(() => {
                     <input
                       type="number"
                       value={editState.editPriority}
-                      onChange={handleEditPriorityChange}
+                      onChange={formInputHandlers.handleEditPriorityChange}
                       className="w-full px-4 py-3 border-2 border-black rounded-xl focus:outline-none focus:border-blue-500 text-center text-lg font-bold transition-colors"
                       min="1"
                       aria-label="Edit post priority"
@@ -937,14 +990,14 @@ const JoinUsControl = memo(() => {
 
               <div className="flex justify-center gap-4 mt-8 pt-6 border-t">
                 <button
-                  onClick={handleSaveEdit}
+                  onClick={editHandlers.handleSaveEdit}
                   className="bg-black text-white px-16 py-3 rounded-full hover:bg-gray-800 transition-colors font-medium"
                   type="button"
                 >
                   save
                 </button>
                 <button
-                  onClick={handleCancelEdit}
+                  onClick={editHandlers.handleCancelEdit}
                   className="border border-gray-300 text-black px-12 py-3 rounded-full hover:bg-gray-50 transition-colors font-medium"
                   type="button"
                 >
@@ -962,7 +1015,7 @@ const JoinUsControl = memo(() => {
           <div className="bg-white rounded-xl shadow-2xl w-80 mx-4">
             <div className="flex justify-end p-4">
               <button
-                onClick={handleSuccessModalClose}
+                onClick={modalHandlers.handleSuccessModalClose}
                 className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
                 type="button"
                 aria-label="Close success modal"
@@ -975,7 +1028,7 @@ const JoinUsControl = memo(() => {
                 posting updated successfully!
               </h2>
               <button
-                onClick={handleSuccessModalClose}
+                onClick={modalHandlers.handleSuccessModalClose}
                 className="bg-black text-white px-16 py-3 rounded-full hover:bg-gray-800 transition-colors font-semibold"
                 type="button"
               >
@@ -992,7 +1045,7 @@ const JoinUsControl = memo(() => {
           <div className="bg-white rounded-xl shadow-2xl w-80 mx-4">
             <div className="flex justify-end p-4">
               <button
-                onClick={handleDeleteSuccessModalClose}
+                onClick={modalHandlers.handleDeleteSuccessModalClose}
                 className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
                 type="button"
                 aria-label="Close delete success modal"
@@ -1005,7 +1058,7 @@ const JoinUsControl = memo(() => {
                 posting deleted successfully!
               </h2>
               <button
-                onClick={handleDeleteSuccessModalClose}
+                onClick={modalHandlers.handleDeleteSuccessModalClose}
                 className="bg-black text-white px-16 py-3 rounded-full hover:bg-gray-800 transition-colors font-semibold"
                 type="button"
               >
@@ -1027,7 +1080,7 @@ const JoinUsControl = memo(() => {
               </div>
               <div className="flex items-center gap-4">
                 <button 
-                  onClick={handleScreenViewClose}
+                  onClick={modalHandlers.handleScreenViewClose}
                   className="border border-gray-300 text-black px-8 py-3 rounded-full hover:bg-gray-50 transition-colors"
                   type="button"
                 >
@@ -1073,18 +1126,20 @@ const JoinUsControl = memo(() => {
                     </div>
                   </div>
 
-                  {/* Scrollable Content Cards - Aligned to left */}
+                  {/* Scrollable Content Cards - Optimized rendering */}
                   <div className="overflow-x-auto pb-4">
                     <div className="flex gap-4 min-w-max">
-                      {[1, 2, 3, 4, 5].map((i) => (
-                        <div key={i} className="bg-yellow-300 p-4 relative h-80 w-72 flex-shrink-0 rounded-lg">
+                      {Array.from({ length: 5 }, (_, i) => (
+                        <div key={`promotional-card-${i + 1}`} className="bg-yellow-300 p-4 relative h-80 w-72 flex-shrink-0 rounded-lg">
                           <p className="text-xs text-center mb-2">Expires in 8 days</p>
                           <p className="text-sm font-bold text-center mb-4">YORAA Concert Giveaways</p>
                           <div className="absolute inset-3 flex items-center justify-center">
                             <img 
                               src={PREVIEW_IMAGE_URL}
-                              alt={`Promotional content ${i}`}
+                              alt={`Promotional content ${i + 1}`}
                               className="w-full h-full object-cover rounded"
+                              loading="lazy"
+                              decoding="async"
                             />
                           </div>
                           <div className="absolute bottom-3 left-3 right-3">

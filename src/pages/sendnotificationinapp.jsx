@@ -91,20 +91,18 @@ const storageUtils = {
  * - Optimized localStorage operations
  */
 const SendNotificationInApp = memo(() => {
-  // State Management - Form Data
-  const [notificationText, setNotificationText] = useState(INITIAL_FORM_STATE.notificationText);
-  const [deeplink, setDeeplink] = useState(INITIAL_FORM_STATE.deeplink);
-  const [selectedPlatforms, setSelectedPlatforms] = useState(INITIAL_FORM_STATE.selectedPlatforms);
-
-  // State Management - UI State
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [editIndex, setEditIndex] = useState(null);
-  const [editValue, setEditValue] = useState("");
+  // State Management - Consolidated form state
+  const [formState, setFormState] = useState(INITIAL_FORM_STATE);
   
-  // State Management - Dialog State
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [dialogAction, setDialogAction] = useState(null);
-  const [selectedNotification, setSelectedNotification] = useState(null);
+  // State Management - UI State consolidated
+  const [uiState, setUiState] = useState({
+    dropdownOpen: false,
+    editIndex: null,
+    editValue: "",
+    dialogOpen: false,
+    dialogAction: null,
+    selectedNotification: null
+  });
 
   // State Management - Image with localStorage persistence
   const [image, setImage] = useState(() => storageUtils.getImage());
@@ -121,32 +119,46 @@ const SendNotificationInApp = memo(() => {
     storageUtils.setImage(image);
   }, [image]);
 
-  // Computed Values
+  // Computed Values - Memoized for performance
   const platformDisplayText = useMemo(() => {
-    if (selectedPlatforms.length === 2) return "android/ios";
-    if (selectedPlatforms.length === 1) {
-      return PLATFORM_OPTIONS.find(opt => opt.value === selectedPlatforms[0])?.label;
+    if (formState.selectedPlatforms.length === 2) return "android/ios";
+    if (formState.selectedPlatforms.length === 1) {
+      return PLATFORM_OPTIONS.find(opt => opt.value === formState.selectedPlatforms[0])?.label;
     }
     return "android/ios";
-  }, [selectedPlatforms]);
+  }, [formState.selectedPlatforms]);
 
-  // Event Handlers - Form Management
-  const handleNotificationTextChange = useCallback((e) => {
-    setNotificationText(e.target.value);
+  const isFormValid = useMemo(() => formState.notificationText.trim(), [formState.notificationText]);
+
+  // Event Handlers - Form Management with batched updates
+  const updateFormState = useCallback((updates) => {
+    setFormState(prev => ({ ...prev, ...updates }));
   }, []);
+
+  const updateUIState = useCallback((updates) => {
+    setUiState(prev => ({ ...prev, ...updates }));
+  }, []);
+
+  const handleEditValueChange = useCallback((e) => {
+    updateUIState({ editValue: e.target.value });
+  }, [updateUIState]);
+
+  const handleNotificationTextChange = useCallback((e) => {
+    updateFormState({ notificationText: e.target.value });
+  }, [updateFormState]);
 
   const handleDeeplinkChange = useCallback((e) => {
-    setDeeplink(e.target.value);
-  }, []);
+    updateFormState({ deeplink: e.target.value });
+  }, [updateFormState]);
 
   const handlePlatformSelection = useCallback((platforms) => {
-    setSelectedPlatforms(platforms);
-    setDropdownOpen(false);
-  }, []);
+    updateFormState({ selectedPlatforms: platforms });
+    updateUIState({ dropdownOpen: false });
+  }, [updateFormState, updateUIState]);
 
   const toggleDropdown = useCallback(() => {
-    setDropdownOpen(prev => !prev);
-  }, []);
+    updateUIState({ dropdownOpen: !uiState.dropdownOpen });
+  }, [uiState.dropdownOpen, updateUIState]);
 
   // Event Handlers - Image Management
   const handleImageUpload = useCallback((e) => {
@@ -164,82 +176,90 @@ const SendNotificationInApp = memo(() => {
     fileInputRef.current?.click();
   }, []);
 
-  // Event Handlers - Notification Actions
+  // Event Handlers - Notification Actions - Optimized with early returns
   const handleSaveForLater = useCallback(() => {
-    if (!notificationText.trim()) return;
+    if (!isFormValid) return;
     
     const newNotification = {
       id: Date.now(),
-      text: notificationText.trim()
+      text: formState.notificationText.trim()
     };
     
     setStackedNotifications(prev => [...prev, newNotification]);
-    setNotificationText("");
-  }, [notificationText]);
+    updateFormState({ notificationText: "" });
+  }, [isFormValid, formState.notificationText, updateFormState]);
 
   const handleSendNow = useCallback(() => {
-    if (!notificationText.trim()) return;
+    if (!isFormValid) return;
     
     console.log('Sending notification:', {
-      text: notificationText,
-      deeplink,
-      platforms: selectedPlatforms,
+      text: formState.notificationText,
+      deeplink: formState.deeplink,
+      platforms: formState.selectedPlatforms,
       image: !!image
     });
     
     // TODO: Implement actual sending logic
-    setNotificationText("");
-  }, [notificationText, deeplink, selectedPlatforms, image]);
+    updateFormState({ notificationText: "" });
+  }, [isFormValid, formState, image, updateFormState]);
 
-  // Event Handlers - Stacked Notifications Management
+  // Event Handlers - Stacked Notifications Management - Optimized
   const handleStackedNotificationSend = useCallback((notification) => {
-    setDialogAction(DIALOG_ACTIONS.SEND);
-    setSelectedNotification(notification);
-    setDialogOpen(true);
-  }, []);
+    updateUIState({
+      dialogAction: DIALOG_ACTIONS.SEND,
+      selectedNotification: notification,
+      dialogOpen: true
+    });
+  }, [updateUIState]);
 
   const handleStackedNotificationEdit = useCallback((notification, index) => {
-    setEditIndex(index);
-    setEditValue(notification.text);
-    setDialogAction(DIALOG_ACTIONS.EDIT);
-    setSelectedNotification(notification);
-    setDialogOpen(true);
-  }, []);
+    updateUIState({
+      editIndex: index,
+      editValue: notification.text,
+      dialogAction: DIALOG_ACTIONS.EDIT,
+      selectedNotification: notification,
+      dialogOpen: true
+    });
+  }, [updateUIState]);
 
   const handleStackedNotificationDelete = useCallback((notification) => {
-    setDialogAction(DIALOG_ACTIONS.DELETE);
-    setSelectedNotification(notification);
-    setDialogOpen(true);
-  }, []);
+    updateUIState({
+      dialogAction: DIALOG_ACTIONS.DELETE,
+      selectedNotification: notification,
+      dialogOpen: true
+    });
+  }, [updateUIState]);
 
-  // Event Handlers - Dialog Management
+  // Event Handlers - Dialog Management - Optimized
   const closeDialog = useCallback(() => {
-    setDialogOpen(false);
-    setEditIndex(null);
-    setDialogAction(null);
-    setSelectedNotification(null);
-  }, []);
+    updateUIState({
+      dialogOpen: false,
+      editIndex: null,
+      dialogAction: null,
+      selectedNotification: null
+    });
+  }, [updateUIState]);
 
   const handleDialogConfirm = useCallback(() => {
-    switch (dialogAction) {
+    switch (uiState.dialogAction) {
       case DIALOG_ACTIONS.SEND:
-        console.log('Sending stacked notification:', selectedNotification);
+        console.log('Sending stacked notification:', uiState.selectedNotification);
         setStackedNotifications(prev => 
-          prev.filter(notif => notif.id !== selectedNotification.id)
+          prev.filter(notif => notif.id !== uiState.selectedNotification.id)
         );
         break;
       
       case DIALOG_ACTIONS.EDIT:
         setStackedNotifications(prev => 
           prev.map((notif, index) => 
-            index === editIndex ? { ...notif, text: editValue } : notif
+            index === uiState.editIndex ? { ...notif, text: uiState.editValue } : notif
           )
         );
         break;
       
       case DIALOG_ACTIONS.DELETE:
         setStackedNotifications(prev => 
-          prev.filter(notif => notif.id !== selectedNotification.id)
+          prev.filter(notif => notif.id !== uiState.selectedNotification.id)
         );
         break;
       
@@ -247,15 +267,15 @@ const SendNotificationInApp = memo(() => {
         break;
     }
     closeDialog();
-  }, [dialogAction, selectedNotification, editIndex, editValue, closeDialog]);
+  }, [uiState.dialogAction, uiState.selectedNotification, uiState.editIndex, uiState.editValue, closeDialog]);
 
   // Event Handlers - Navigation
   const handlePreviewNavigation = useCallback(() => {
     navigate("/notification-preview", { state: { image } });
   }, [navigate, image]);
 
-  // UI Helper Components
-  const renderPlatformDropdown = useCallback(() => (
+  // UI Helper Components - Memoized for performance
+  const renderPlatformDropdown = useMemo(() => (
     <div className="relative max-w-xs">
       <button
         type="button"
@@ -264,20 +284,20 @@ const SendNotificationInApp = memo(() => {
       >
         {platformDisplayText}
       </button>
-      {dropdownOpen && (
+      {uiState.dropdownOpen && (
         <div className="absolute z-10 mt-1 w-full bg-white border-2 border-black rounded-xl shadow-lg">
           <div className="py-1">
             <button
               type="button"
               className={`w-full text-left px-4 py-2 text-sm font-montserrat ${
-                selectedPlatforms.length === 2
+                formState.selectedPlatforms.length === 2
                   ? "text-blue-600 bg-gray-100"
                   : "text-gray-900"
               }`}
               onClick={() => handlePlatformSelection(["android", "ios"])}
             >
               Both
-              {selectedPlatforms.length === 2 && (
+              {formState.selectedPlatforms.length === 2 && (
                 <span className="ml-2">✓</span>
               )}
             </button>
@@ -286,16 +306,16 @@ const SendNotificationInApp = memo(() => {
                 key={opt.value}
                 type="button"
                 className={`w-full text-left px-4 py-2 text-sm font-montserrat ${
-                  selectedPlatforms.includes(opt.value) &&
-                  selectedPlatforms.length === 1
+                  formState.selectedPlatforms.includes(opt.value) &&
+                  formState.selectedPlatforms.length === 1
                     ? "text-blue-600 bg-gray-100"
                     : "text-gray-900"
                 }`}
                 onClick={() => handlePlatformSelection([opt.value])}
               >
                 {opt.label}
-                {selectedPlatforms.includes(opt.value) &&
-                  selectedPlatforms.length === 1 && (
+                {formState.selectedPlatforms.includes(opt.value) &&
+                  formState.selectedPlatforms.length === 1 && (
                     <span className="ml-2">✓</span>
                   )}
               </button>
@@ -304,9 +324,9 @@ const SendNotificationInApp = memo(() => {
         </div>
       )}
     </div>
-  ), [dropdownOpen, platformDisplayText, selectedPlatforms, toggleDropdown, handlePlatformSelection]);
+  ), [uiState.dropdownOpen, platformDisplayText, formState.selectedPlatforms, toggleDropdown, handlePlatformSelection]);
 
-  const renderImageUpload = useCallback(() => (
+  const renderImageUpload = useMemo(() => (
     <div className="mb-8">
       <label className="block text-xl font-bold text-black mb-4">
         Notification image(optional)
@@ -342,24 +362,24 @@ const SendNotificationInApp = memo(() => {
     </div>
   ), [image, handleImageUpload, triggerImageUpload]);
 
-  const renderActionButtons = useCallback(() => (
+  const renderActionButtons = useMemo(() => (
     <div className="flex gap-4 mb-12">
       <button 
         className="text-black px-12 py-4 border border-[#E4E4E4] rounded-full text-base font-medium hover:bg-gray-50 font-montserrat"
         onClick={handleSaveForLater}
-        disabled={!notificationText.trim()}
+        disabled={!isFormValid}
       >
         save for later
       </button>
       <button 
         className="bg-black text-white px-12 py-4 rounded-full text-base font-medium hover:bg-gray-800 font-montserrat disabled:opacity-50"
         onClick={handleSendNow}
-        disabled={!notificationText.trim()}
+        disabled={!isFormValid}
       >
         send Now
       </button>
     </div>
-  ), [handleSaveForLater, handleSendNow, notificationText]);
+  ), [handleSaveForLater, handleSendNow, isFormValid]);
 
   const renderNotificationCard = useCallback((notification, index) => (
     <div key={notification.id} className="bg-white rounded-xl shadow-lg border border-gray-100 p-4 flex items-center justify-between">
@@ -394,7 +414,7 @@ const SendNotificationInApp = memo(() => {
     </div>
   ), [handleStackedNotificationSend, handleStackedNotificationEdit, handleStackedNotificationDelete]);
 
-  const renderPreview = useCallback(() => (
+  const renderPreview = useMemo(() => (
     <div className="w-80 flex-shrink-0">
       <div className="flex items-center gap-2 mb-6">
         <h3 className="text-2xl font-bold text-black">
@@ -441,7 +461,7 @@ const SendNotificationInApp = memo(() => {
           {/* Notification Text */}
           <div className="mb-8">
             <textarea
-              value={notificationText}
+              value={formState.notificationText}
               onChange={handleNotificationTextChange}
               placeholder="Type Here"
               className="w-full h-36 border-2 border-black rounded-xl p-4 text-sm resize-none focus:outline-none focus:border-black font-montserrat text-[#979797]"
@@ -449,7 +469,7 @@ const SendNotificationInApp = memo(() => {
           </div>
 
           {/* Notification Image Upload */}
-          {renderImageUpload()}
+          {renderImageUpload}
 
           {/* Deeplink */}
           <div className="mb-8">
@@ -458,7 +478,7 @@ const SendNotificationInApp = memo(() => {
             </label>
             <input
               type="text"
-              value={deeplink}
+              value={formState.deeplink}
               onChange={handleDeeplinkChange}
               placeholder="enter Deeplink  eg yoraa/product/123"
               className="w-full max-w-lg border-2 border-black rounded-xl px-4 py-3 text-xl focus:outline-none focus:border-black text-[#979797] font-medium font-montserrat"
@@ -470,11 +490,11 @@ const SendNotificationInApp = memo(() => {
             <label className="block text-2xl font-bold text-black mb-4">
               Target platform
             </label>
-            {renderPlatformDropdown()}
+            {renderPlatformDropdown}
           </div>
 
           {/* Action Buttons */}
-          {renderActionButtons()}
+          {renderActionButtons}
 
           {/* Stack notification for later */}
           <div>
@@ -488,24 +508,24 @@ const SendNotificationInApp = memo(() => {
         </div>
 
         {/* Right Column - Preview */}
-        {renderPreview()}
+        {renderPreview}
       </div>
 
       {/* Dialogs */}
-      {dialogOpen && (
+      {uiState.dialogOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black bg-opacity-20" />
-          {dialogAction === DIALOG_ACTIONS.EDIT ? (
+          {uiState.dialogAction === DIALOG_ACTIONS.EDIT ? (
             <EditNotificationModal
-              value={editValue}
-              onChange={(e) => setEditValue(e.target.value)}
+              value={uiState.editValue}
+              onChange={handleEditValueChange}
               onSave={handleDialogConfirm}
               onCancel={closeDialog}
-              original={selectedNotification?.text}
+              original={uiState.selectedNotification?.text}
             />
-          ) : dialogAction === DIALOG_ACTIONS.DELETE ? (
+          ) : uiState.dialogAction === DIALOG_ACTIONS.DELETE ? (
             <ConfirmationDialogue
-              open={dialogOpen}
+              open={uiState.dialogOpen}
               message="Are you sure you want to delete this notification?"
               confirmText="Delete"
               onConfirm={handleDialogConfirm}
@@ -513,7 +533,7 @@ const SendNotificationInApp = memo(() => {
             />
           ) : (
             <ConfirmationDialogue
-              open={dialogOpen}
+              open={uiState.dialogOpen}
               message="Are you sure you want to send the notification?"
               onConfirm={handleDialogConfirm}
               onCancel={closeDialog}

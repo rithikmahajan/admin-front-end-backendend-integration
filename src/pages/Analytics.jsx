@@ -10,7 +10,7 @@ import {
   RefreshCw
 } from 'lucide-react';
 
-// Constants
+// Constants - moved outside component to prevent recreation
 const PERIOD_OPTIONS = [
   { value: '7d', label: 'Last 7 days' },
   { value: '30d', label: 'Last 30 days' },
@@ -18,8 +18,8 @@ const PERIOD_OPTIONS = [
   { value: '1y', label: 'Last year' }
 ];
 
-// Mock data - in production, this would come from an API
-const getMockAnalyticsData = () => ({
+// Mock data - memoized to prevent recreation on every render
+const MOCK_ANALYTICS_DATA = {
   overview: {
     totalRevenue: 45230,
     totalOrders: 1324,
@@ -48,21 +48,23 @@ const getMockAnalyticsData = () => ({
       { name: 'Dress', sales: 98, revenue: 9800 }
     ]
   }
-});
+};
 
-// Utility functions
-const formatCurrency = (amount) => {
-  return new Intl.NumberFormat('en-IN', {
+// Utility functions - memoized to prevent recreation
+const formatCurrency = (() => {
+  const formatter = new Intl.NumberFormat('en-IN', {
     style: 'currency',
     currency: 'INR',
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
-  }).format(amount);
-};
+  });
+  return (amount) => formatter.format(amount);
+})();
 
-const formatNumber = (num) => {
-  return new Intl.NumberFormat('en-IN').format(num);
-};
+const formatNumber = (() => {
+  const formatter = new Intl.NumberFormat('en-IN');
+  return (num) => formatter.format(num);
+})();
 
 const getChangeColor = (change) => {
   return change >= 0 ? 'text-green-600' : 'text-red-600';
@@ -72,30 +74,36 @@ const getChangeIcon = (change) => {
   return change >= 0 ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />;
 };
 
-// Components
-const StatCard = React.memo(({ title, value, change, icon: Icon, format = 'number' }) => (
-  <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
-    <div className="flex items-center justify-between">
-      <div className="flex items-center space-x-3">
-        <div className="p-2 bg-blue-50 rounded-lg">
-          <Icon className="h-6 w-6 text-blue-600" />
+// Components - moved outside to prevent recreation on every render
+const StatCard = React.memo(({ title, value, change, icon: Icon, format = 'number' }) => {
+  const changeColor = getChangeColor(change);
+  const changeIcon = getChangeIcon(change);
+  const formattedValue = format === 'currency' ? formatCurrency(value) : formatNumber(value);
+  
+  return (
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-3">
+          <div className="p-2 bg-blue-50 rounded-lg">
+            <Icon className="h-6 w-6 text-blue-600" />
+          </div>
+          <div>
+            <p className="text-sm font-medium text-gray-600">{title}</p>
+            <p className="text-2xl font-bold text-gray-900">
+              {formattedValue}
+            </p>
+          </div>
         </div>
-        <div>
-          <p className="text-sm font-medium text-gray-600">{title}</p>
-          <p className="text-2xl font-bold text-gray-900">
-            {format === 'currency' ? formatCurrency(value) : formatNumber(value)}
-          </p>
+        <div className={`flex items-center space-x-1 ${changeColor}`}>
+          {changeIcon}
+          <span className="text-sm font-medium">
+            {Math.abs(change)}%
+          </span>
         </div>
-      </div>
-      <div className={`flex items-center space-x-1 ${getChangeColor(change)}`}>
-        {getChangeIcon(change)}
-        <span className="text-sm font-medium">
-          {Math.abs(change)}%
-        </span>
       </div>
     </div>
-  </div>
-));
+  );
+});
 
 const SimpleChart = React.memo(({ data, title }) => (
   <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
@@ -121,19 +129,20 @@ const SimpleChart = React.memo(({ data, title }) => (
   </div>
 ));
 
-const InsightCard = ({ title, value, subtitle, bgColor, textColor }) => (
+const InsightCard = React.memo(({ title, value, subtitle, bgColor, textColor }) => (
   <div className={`p-4 ${bgColor} rounded-lg`}>
     <p className={`text-sm font-medium ${textColor}`}>{title}</p>
     <p className={`text-lg font-bold ${textColor.replace('600', '900')}`}>{value}</p>
     <p className={`text-xs ${textColor}`}>{subtitle}</p>
   </div>
-);
+));
 
 const Analytics = () => {
   const [selectedPeriod, setSelectedPeriod] = useState('7d');
   const [isLoading, setIsLoading] = useState(false);
 
-  const analyticsData = useMemo(() => getMockAnalyticsData(), []);
+  // Use static data directly instead of function call
+  const analyticsData = MOCK_ANALYTICS_DATA;
 
   const handleRefresh = useCallback(async () => {
     setIsLoading(true);
@@ -147,6 +156,11 @@ const Analytics = () => {
     console.log('Exporting analytics data...');
   }, []);
 
+  const handlePeriodChange = useCallback((e) => {
+    setSelectedPeriod(e.target.value);
+  }, []);
+
+  // Pre-computed insights data to avoid recalculation
   const insightsData = useMemo(() => [
     {
       title: 'Best Performing Day',
@@ -213,7 +227,7 @@ const Analytics = () => {
           {/* Period Selector */}
           <select
             value={selectedPeriod}
-            onChange={(e) => setSelectedPeriod(e.target.value)}
+            onChange={handlePeriodChange}
             className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
           >
             {PERIOD_OPTIONS.map(option => (

@@ -1,5 +1,44 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo, memo } from 'react';
 import TwoFactorAuth from '../components/TwoFactorAuth';
+
+// Constants moved outside component to prevent recreation on each render
+const INITIAL_MODAL_STATE = {
+  communicationPrefsConfirmOn: false,
+  communicationPrefsConfirmOff: false,
+  communicationPrefs2FAOn: false,
+  communicationPrefs2FAOff: false,
+  communicationPrefsSuccessOn: false,
+  communicationPrefsSuccessOff: false,
+  communicationPrefsFinalSuccessOn: false,
+  communicationPrefsFinalSuccessOff: false,
+};
+
+const CONTACT_INFO = {
+  phoneNumber: "+1 (555) 123-4567",
+  emailAddress: "communications@system.com"
+};
+
+// Memoized SVG components for better performance
+const CloseIcon = memo(() => (
+  <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+  </svg>
+));
+CloseIcon.displayName = 'CloseIcon';
+
+const CheckIcon = memo(() => (
+  <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+  </svg>
+));
+CheckIcon.displayName = 'CheckIcon';
+
+const XIcon = memo(() => (
+  <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+  </svg>
+));
+XIcon.displayName = 'XIcon';
 
 /**
  * Communication Preferences Collection Component
@@ -11,6 +50,9 @@ import TwoFactorAuth from '../components/TwoFactorAuth';
  * 
  * Performance optimizations:
  * - useCallback for all event handlers
+ * - useMemo for computed values
+ * - Memoized SVG icons and modal components
+ * - Constants moved outside component
  * - Organized state management
  * - Efficient modal state handling
  */
@@ -23,17 +65,21 @@ const CollectCommunicationPreferences = () => {
   // Communication preferences setting
   const [communicationPrefs, setCommunicationPrefs] = useState(true);
 
-  // Modal states for communication preferences
-  const [modals, setModals] = useState({
-    communicationPrefsConfirmOn: false,
-    communicationPrefsConfirmOff: false,
-    communicationPrefs2FAOn: false,
-    communicationPrefs2FAOff: false,
-    communicationPrefsSuccessOn: false,
-    communicationPrefsSuccessOff: false,
-    communicationPrefsFinalSuccessOn: false,
-    communicationPrefsFinalSuccessOff: false,
-  });
+  // Modal states for communication preferences - using constant reference
+  const [modals, setModals] = useState(INITIAL_MODAL_STATE);
+
+  // ==============================
+  // MEMOIZED VALUES
+  // ==============================
+  
+  // Memoized status indicator
+  const statusIndicator = useMemo(() => ({
+    className: `w-3 h-3 rounded-full ${communicationPrefs ? 'bg-green-500' : 'bg-red-500'}`,
+    text: `Communication preferences collection is ${communicationPrefs ? 'enabled' : 'disabled'}`,
+    description: communicationPrefs 
+      ? 'User communication preferences are being collected and stored securely.'
+      : 'Communication preferences collection is currently disabled.'
+  }), [communicationPrefs]);
 
   // ==============================
   // UTILITY FUNCTIONS
@@ -110,6 +156,95 @@ const CollectCommunicationPreferences = () => {
   }, [updateModal]);
 
   // ==============================
+  // MEMOIZED MODAL COMPONENTS
+  // ==============================
+  
+  // Memoized confirmation modal
+  const ConfirmationModal = useMemo(() => memo(({ 
+    isOpen, 
+    onClose, 
+    onConfirm, 
+    title, 
+    action 
+  }) => {
+    if (!isOpen) return null;
+    
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-md mx-4 overflow-clip">
+          <button 
+            onClick={onClose}
+            className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700"
+          >
+            <CloseIcon />
+          </button>
+          <div className="absolute top-[60px] left-1/2 transform -translate-x-1/2 w-[165px] text-center">
+            <p className="font-bold text-black text-[18px] leading-[22px] tracking-[-0.41px] font-['Montserrat']">
+              {title}
+            </p>
+          </div>
+          <div className="absolute top-[189px] left-1/2 transform -translate-x-1/2 flex gap-4">
+            <button
+              onClick={onConfirm}
+              className="bg-black text-white rounded-3xl w-[149px] h-12 font-semibold text-[16px] leading-[22px] font-['Montserrat'] hover:bg-gray-800 transition-colors"
+            >
+              yes
+            </button>
+            <button
+              onClick={onClose}
+              className="border border-[#e4e4e4] text-black rounded-[100px] w-[209px] h-16 font-medium text-[16px] leading-[19.2px] font-['Montserrat'] hover:bg-gray-50 transition-colors flex items-center justify-center"
+            >
+              Cancel
+            </button>
+          </div>
+          <div className="h-[280px]"></div>
+        </div>
+      </div>
+    );
+  }), []);
+
+  // Memoized success modal
+  const SuccessModal = useMemo(() => memo(({ 
+    isOpen, 
+    onClose, 
+    onDone, 
+    title, 
+    description, 
+    isSuccess = true,
+    buttonText = "Done"
+  }) => {
+    if (!isOpen) return null;
+    
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-md mx-4 overflow-clip">
+          <button 
+            onClick={onClose}
+            className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700"
+          >
+            <CloseIcon />
+          </button>
+          <div className="p-8 text-center">
+            <div className="mb-6">
+              <div className={`w-16 h-16 ${isSuccess ? 'bg-green-100' : 'bg-red-100'} rounded-full flex items-center justify-center mx-auto mb-4`}>
+                {isSuccess ? <CheckIcon /> : <XIcon />}
+              </div>
+              <h3 className="font-bold text-black text-[18px] mb-2">{title}</h3>
+              <p className="text-gray-600">{description}</p>
+            </div>
+            <button
+              onClick={onDone}
+              className="bg-black text-white px-8 py-3 rounded-full font-semibold hover:bg-gray-800 transition-colors"
+            >
+              {buttonText}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }), []);
+
+  // ==============================
   // COMPONENT DEFINITIONS
   // ==============================
   
@@ -145,232 +280,96 @@ const CollectCommunicationPreferences = () => {
   const renderModalsForSetting = useCallback((settingKey, displayName) => {
     return (
       <>
-        {/* Confirmation Modal - On */}
-        {modals[`${settingKey}ConfirmOn`] && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-md mx-4 overflow-clip">
-              <button 
-                onClick={() => handleCancelToggle(settingKey, 'On')}
-                className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700"
-              >
-                <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-              <div className="absolute top-[60px] left-1/2 transform -translate-x-1/2 w-[165px] text-center">
-                <p className="font-bold text-black text-[18px] leading-[22px] tracking-[-0.41px] font-['Montserrat']">
-                  Are you sure you want to turn {displayName} on
-                </p>
-              </div>
-              <div className="absolute top-[189px] left-1/2 transform -translate-x-1/2 flex gap-4">
-                <button
-                  onClick={() => handleConfirmToggleOn(settingKey)}
-                  className="bg-black text-white rounded-3xl w-[149px] h-12 font-semibold text-[16px] leading-[22px] font-['Montserrat'] hover:bg-gray-800 transition-colors"
-                >
-                  yes
-                </button>
-                <button
-                  onClick={() => handleCancelToggle(settingKey, 'On')}
-                  className="border border-[#e4e4e4] text-black rounded-[100px] w-[209px] h-16 font-medium text-[16px] leading-[19.2px] font-['Montserrat'] hover:bg-gray-50 transition-colors flex items-center justify-center"
-                >
-                  Cancel
-                </button>
-              </div>
-              <div className="h-[280px]"></div>
-            </div>
-          </div>
-        )}
+        {/* Confirmation Modals */}
+        <ConfirmationModal
+          isOpen={modals[`${settingKey}ConfirmOn`]}
+          onClose={() => handleCancelToggle(settingKey, 'On')}
+          onConfirm={() => handleConfirmToggleOn(settingKey)}
+          title={`Are you sure you want to turn ${displayName} on`}
+          action="On"
+        />
+        
+        <ConfirmationModal
+          isOpen={modals[`${settingKey}ConfirmOff`]}
+          onClose={() => handleCancelToggle(settingKey, 'Off')}
+          onConfirm={() => handleConfirmToggleOff(settingKey)}
+          title={`Are you sure you want to turn ${displayName} off`}
+          action="Off"
+        />
 
-        {/* Confirmation Modal - Off */}
-        {modals[`${settingKey}ConfirmOff`] && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-md mx-4 overflow-clip">
-              <button 
-                onClick={() => handleCancelToggle(settingKey, 'Off')}
-                className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700"
-              >
-                <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-              <div className="absolute top-[60px] left-1/2 transform -translate-x-1/2 w-[165px] text-center">
-                <p className="font-bold text-black text-[18px] leading-[22px] tracking-[-0.41px] font-['Montserrat']">
-                  Are you sure you want to turn {displayName} off
-                </p>
-              </div>
-              <div className="absolute top-[189px] left-1/2 transform -translate-x-1/2 flex gap-4">
-                <button
-                  onClick={() => handleConfirmToggleOff(settingKey)}
-                  className="bg-black text-white rounded-3xl w-[149px] h-12 font-semibold text-[16px] leading-[22px] font-['Montserrat'] hover:bg-gray-800 transition-colors"
-                >
-                  yes
-                </button>
-                <button
-                  onClick={() => handleCancelToggle(settingKey, 'Off')}
-                  className="border border-[#e4e4e4] text-black rounded-[100px] w-[209px] h-16 font-medium text-[16px] leading-[19.2px] font-['Montserrat'] hover:bg-gray-50 transition-colors flex items-center justify-center"
-                >
-                  Cancel
-                </button>
-              </div>
-              <div className="h-[280px]"></div>
-            </div>
-          </div>
-        )}
-
-        {/* 2FA Modal - On */}
+        {/* 2FA Modals */}
         {modals[`${settingKey}2FAOn`] && (
           <TwoFactorAuth
             onSubmit={(data) => handle2FASubmit(settingKey, 'On', data)}
             onClose={() => handleCancel2FA(settingKey, 'On')}
-            phoneNumber="+1 (555) 123-4567"
-            emailAddress="communications@system.com"
+            phoneNumber={CONTACT_INFO.phoneNumber}
+            emailAddress={CONTACT_INFO.emailAddress}
           />
         )}
 
-        {/* 2FA Modal - Off */}
         {modals[`${settingKey}2FAOff`] && (
           <TwoFactorAuth
             onSubmit={(data) => handle2FASubmit(settingKey, 'Off', data)}
             onClose={() => handleCancel2FA(settingKey, 'Off')}
-            phoneNumber="+1 (555) 123-4567"
-            emailAddress="communications@system.com"
+            phoneNumber={CONTACT_INFO.phoneNumber}
+            emailAddress={CONTACT_INFO.emailAddress}
           />
         )}
 
-        {/* Success Modal - On */}
-        {modals[`${settingKey}SuccessOn`] && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-md mx-4 overflow-clip">
-              <button 
-                onClick={() => handleCloseSuccessModal(settingKey, 'On')}
-                className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700"
-              >
-                <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-              <div className="p-8 text-center">
-                <div className="mb-6">
-                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                  </div>
-                  <h3 className="font-bold text-black text-[18px] mb-2">{displayName} Turned On</h3>
-                  <p className="text-gray-600">The setting has been successfully activated.</p>
-                </div>
-                <button
-                  onClick={() => handleSuccessModalDone(settingKey, 'On')}
-                  className="bg-black text-white px-8 py-3 rounded-full font-semibold hover:bg-gray-800 transition-colors"
-                >
-                  Done
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* Success Modals */}
+        <SuccessModal
+          isOpen={modals[`${settingKey}SuccessOn`]}
+          onClose={() => handleCloseSuccessModal(settingKey, 'On')}
+          onDone={() => handleSuccessModalDone(settingKey, 'On')}
+          title={`${displayName} Turned On`}
+          description="The setting has been successfully activated."
+          isSuccess={true}
+        />
 
-        {/* Success Modal - Off */}
-        {modals[`${settingKey}SuccessOff`] && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-md mx-4 overflow-clip">
-              <button 
-                onClick={() => handleCloseSuccessModal(settingKey, 'Off')}
-                className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700"
-              >
-                <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-              <div className="p-8 text-center">
-                <div className="mb-6">
-                  <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </div>
-                  <h3 className="font-bold text-black text-[18px] mb-2">{displayName} Turned Off</h3>
-                  <p className="text-gray-600">The setting has been successfully deactivated.</p>
-                </div>
-                <button
-                  onClick={() => handleSuccessModalDone(settingKey, 'Off')}
-                  className="bg-black text-white px-8 py-3 rounded-full font-semibold hover:bg-gray-800 transition-colors"
-                >
-                  Done
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        <SuccessModal
+          isOpen={modals[`${settingKey}SuccessOff`]}
+          onClose={() => handleCloseSuccessModal(settingKey, 'Off')}
+          onDone={() => handleSuccessModalDone(settingKey, 'Off')}
+          title={`${displayName} Turned Off`}
+          description="The setting has been successfully deactivated."
+          isSuccess={false}
+        />
 
-        {/* Final Success Modal - On */}
-        {modals[`${settingKey}FinalSuccessOn`] && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-md mx-4 overflow-clip">
-              <button 
-                onClick={() => handleCloseFinalSuccessModal(settingKey, 'On')}
-                className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700"
-              >
-                <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-              <div className="p-8 text-center">
-                <div className="mb-6">
-                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                  </div>
-                  <h3 className="font-bold text-black text-[18px] mb-2">Configuration Complete</h3>
-                  <p className="text-gray-600">{displayName} is now active and configured.</p>
-                </div>
-                <button
-                  onClick={() => handleFinalSuccessModalDone(settingKey, 'On')}
-                  className="bg-black text-white px-8 py-3 rounded-full font-semibold hover:bg-gray-800 transition-colors"
-                >
-                  Finish
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        <SuccessModal
+          isOpen={modals[`${settingKey}FinalSuccessOn`]}
+          onClose={() => handleCloseFinalSuccessModal(settingKey, 'On')}
+          onDone={() => handleFinalSuccessModalDone(settingKey, 'On')}
+          title="Configuration Complete"
+          description={`${displayName} is now active and configured.`}
+          isSuccess={true}
+          buttonText="Finish"
+        />
 
-        {/* Final Success Modal - Off */}
-        {modals[`${settingKey}FinalSuccessOff`] && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-md mx-4 overflow-clip">
-              <button 
-                onClick={() => handleCloseFinalSuccessModal(settingKey, 'Off')}
-                className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700"
-              >
-                <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-              <div className="p-8 text-center">
-                <div className="mb-6">
-                  <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </div>
-                  <h3 className="font-bold text-black text-[18px] mb-2">Configuration Complete</h3>
-                  <p className="text-gray-600">{displayName} has been successfully disabled.</p>
-                </div>
-                <button
-                  onClick={() => handleFinalSuccessModalDone(settingKey, 'Off')}
-                  className="bg-black text-white px-8 py-3 rounded-full font-semibold hover:bg-gray-800 transition-colors"
-                >
-                  Finish
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        <SuccessModal
+          isOpen={modals[`${settingKey}FinalSuccessOff`]}
+          onClose={() => handleCloseFinalSuccessModal(settingKey, 'Off')}
+          onDone={() => handleFinalSuccessModalDone(settingKey, 'Off')}
+          title="Configuration Complete"
+          description={`${displayName} has been successfully disabled.`}
+          isSuccess={false}
+          buttonText="Finish"
+        />
       </>
     );
-  }, [modals, handleCancelToggle, handleConfirmToggleOn, handleConfirmToggleOff, handle2FASubmit, handleCancel2FA, handleSuccessModalDone, handleFinalSuccessModalDone, handleCloseSuccessModal, handleCloseFinalSuccessModal]);
+  }, [
+    modals, 
+    ConfirmationModal, 
+    SuccessModal,
+    handleCancelToggle, 
+    handleConfirmToggleOn, 
+    handleConfirmToggleOff, 
+    handle2FASubmit, 
+    handleCancel2FA, 
+    handleSuccessModalDone, 
+    handleFinalSuccessModalDone, 
+    handleCloseSuccessModal, 
+    handleCloseFinalSuccessModal
+  ]);
 
   // ==============================
   // MAIN RENDER
@@ -403,16 +402,13 @@ const CollectCommunicationPreferences = () => {
         <div className="bg-white border border-gray-200 rounded-lg p-6">
           <h3 className="font-bold text-[18px] text-[#010101] mb-4">Current Status</h3>
           <div className="flex items-center space-x-3">
-            <div className={`w-3 h-3 rounded-full ${communicationPrefs ? 'bg-green-500' : 'bg-red-500'}`}></div>
+            <div className={statusIndicator.className}></div>
             <span className="text-[16px] font-medium">
-              Communication preferences collection is {communicationPrefs ? 'enabled' : 'disabled'}
+              {statusIndicator.text}
             </span>
           </div>
           <p className="text-sm text-gray-600 mt-2">
-            {communicationPrefs 
-              ? 'User communication preferences are being collected and stored securely.'
-              : 'Communication preferences collection is currently disabled.'
-            }
+            {statusIndicator.description}
           </p>
         </div>
 

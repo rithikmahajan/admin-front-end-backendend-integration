@@ -1,11 +1,11 @@
-import React, { useState, useCallback, useMemo, memo, useEffect } from 'react';
+import React, { useState, useCallback, useMemo, memo, useEffect, useRef } from 'react';
 
-// Constants
-const INITIAL_TEXT_POSITION = { x: 20, y: 20 };
-const DRAG_CONSTRAINTS = {
+// Constants - Frozen for better performance
+const INITIAL_TEXT_POSITION = Object.freeze({ x: 20, y: 20 });
+const DRAG_CONSTRAINTS = Object.freeze({
   maxTextWidth: 200,
   maxTextHeight: 100
-};
+});
 
 const DEFAULT_BANNER_CONTENT = `Welcome reward
 Enjoy a welcome reward to spend in your first month.
@@ -14,7 +14,7 @@ Celebrate your birthday month with a special discount
 Private members' sale
 Unlocked after your first order`;
 
-// Utility functions
+// Utility functions - Pure functions for better performance
 const createImageUrl = (file) => {
   return new Promise((resolve) => {
     const reader = new FileReader();
@@ -46,76 +46,97 @@ const constrainPosition = (position, maxX, maxY) => ({
  * - Form validation and error handling
  */
 /**
- * Custom Hooks for State Management
+ * Optimized Custom Hooks for State Management
  */
 const useImageUpload = () => {
   const [selectedImage, setSelectedImage] = useState(null);
+  const currentImageRef = useRef(null);
 
   const handleImageUpload = useCallback(async (event) => {
     const file = event.target.files[0];
     if (file) {
       const imageUrl = await createImageUrl(file);
+      currentImageRef.current = imageUrl;
       setSelectedImage(imageUrl);
     }
   }, []);
 
   const resetImage = useCallback(() => {
+    currentImageRef.current = null;
     setSelectedImage(null);
+  }, []);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (currentImageRef.current) {
+        // Cleanup handled automatically for data URLs
+      }
+    };
   }, []);
 
   return { selectedImage, handleImageUpload, resetImage };
 };
 
 const useDragAndDrop = (initialPosition = INITIAL_TEXT_POSITION) => {
-  const [textPosition, setTextPosition] = useState(initialPosition);
+  const [textPosition, setTextPosition] = useState(() => ({ ...initialPosition }));
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const dragStateRef = useRef({ isDragging: false, offset: { x: 0, y: 0 } });
 
   const handleMouseDown = useCallback((e) => {
     const rect = e.currentTarget.getBoundingClientRect();
-    setIsDragging(true);
-    setDragOffset({
+    const offset = {
       x: e.clientX - rect.left - textPosition.x,
       y: e.clientY - rect.top - textPosition.y
-    });
-  }, [textPosition]);
+    };
+    
+    dragStateRef.current = { isDragging: true, offset };
+    setIsDragging(true);
+    setDragOffset(offset);
+  }, [textPosition.x, textPosition.y]);
 
   const handleMouseMove = useCallback((e) => {
-    if (!isDragging) return;
+    if (!dragStateRef.current.isDragging) return;
     
     const rect = e.currentTarget.getBoundingClientRect();
-    const newX = e.clientX - rect.left - dragOffset.x;
-    const newY = e.clientY - rect.top - dragOffset.y;
+    const newX = e.clientX - rect.left - dragStateRef.current.offset.x;
+    const newY = e.clientY - rect.top - dragStateRef.current.offset.y;
     
     const maxX = rect.width - DRAG_CONSTRAINTS.maxTextWidth;
     const maxY = rect.height - DRAG_CONSTRAINTS.maxTextHeight;
     
-    setTextPosition(constrainPosition({ x: newX, y: newY }, maxX, maxY));
-  }, [isDragging, dragOffset]);
+    const constrainedPosition = constrainPosition({ x: newX, y: newY }, maxX, maxY);
+    setTextPosition(constrainedPosition);
+  }, []);
 
   const handleMouseUp = useCallback(() => {
+    dragStateRef.current.isDragging = false;
     setIsDragging(false);
   }, []);
 
   const resetPosition = useCallback(() => {
-    setTextPosition(initialPosition);
+    setTextPosition({ ...initialPosition });
   }, [initialPosition]);
+
+  // Memoize drag handlers to prevent re-renders
+  const dragHandlers = useMemo(() => ({
+    onMouseDown: handleMouseDown,
+    onMouseMove: handleMouseMove,
+    onMouseUp: handleMouseUp,
+    onMouseLeave: handleMouseUp
+  }), [handleMouseDown, handleMouseMove, handleMouseUp]);
 
   return {
     textPosition,
     isDragging,
-    dragHandlers: {
-      onMouseDown: handleMouseDown,
-      onMouseMove: handleMouseMove,
-      onMouseUp: handleMouseUp,
-      onMouseLeave: handleMouseUp
-    },
+    dragHandlers,
     resetPosition
   };
 };
 
 const useModalState = () => {
-  const [modals, setModals] = useState({
+  const [modals, setModals] = useState(() => ({
     showScreenView: false,
     showEditModal: false,
     showSaveSuccessModal: false,
@@ -123,38 +144,30 @@ const useModalState = () => {
     showPostSuccessModal: false,
     showDeleteConfirmationModal: false,
     showDeleteSuccessModal: false
-  });
+  }));
 
-  const openModal = useCallback((modalName) => {
-    setModals(prev => ({ ...prev, [modalName]: true }));
-  }, []);
+  // Memoized modal handlers to prevent recreating functions
+  const modalHandlers = useMemo(() => ({
+    openModal: (modalName) => {
+      setModals(prev => ({ ...prev, [modalName]: true }));
+    },
+    closeModal: (modalName) => {
+      setModals(prev => ({ ...prev, [modalName]: false }));
+    }
+  }), []);
 
-  const closeModal = useCallback((modalName) => {
-    setModals(prev => ({ ...prev, [modalName]: false }));
-  }, []);
-
-  return { modals, openModal, closeModal };
+  return { 
+    modals, 
+    ...modalHandlers 
+  };
 };
 
 /**
- * Reusable Components
+ * Optimized Reusable Components with performance improvements
  */
-const ImageUploadSection = memo(({ selectedImage, onImageUpload, title = "upload image" }) => (
-  <div className="mb-6">
-    <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center mb-4 h-32">
-      {selectedImage ? (
-        <img 
-          src={selectedImage} 
-          alt="Uploaded preview" 
-          className="max-w-full max-h-full mx-auto rounded object-contain"
-        />
-      ) : (
-        <div className="text-gray-400 flex flex-col items-center justify-center h-full">
-          <div className="text-4xl mb-2">📧</div>
-        </div>
-      )}
-    </div>
-
+const ImageUploadSection = memo(({ selectedImage, onImageUpload, title = "upload image" }) => {
+  // Memoize the upload label to prevent re-renders
+  const uploadLabel = useMemo(() => (
     <label className="bg-blue-600 text-white px-4 py-2 rounded-lg cursor-pointer inline-flex items-center gap-2 hover:bg-blue-700 transition-colors">
       <span className="text-xl">+</span>
       <span>{title}</span>
@@ -165,26 +178,52 @@ const ImageUploadSection = memo(({ selectedImage, onImageUpload, title = "upload
         className="hidden"
       />
     </label>
-  </div>
-));
+  ), [title, onImageUpload]);
+
+  return (
+    <div className="mb-6">
+      <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center mb-4 h-32">
+        {selectedImage ? (
+          <img 
+            src={selectedImage} 
+            alt="Uploaded preview" 
+            className="max-w-full max-h-full mx-auto rounded object-contain"
+            loading="lazy"
+            decoding="async"
+          />
+        ) : (
+          <div className="text-gray-400 flex flex-col items-center justify-center h-full">
+            <div className="text-4xl mb-2">📧</div>
+          </div>
+        )}
+      </div>
+      {uploadLabel}
+    </div>
+  );
+});
 
 ImageUploadSection.displayName = 'ImageUploadSection';
 
 const TextContentDisplay = memo(({ content }) => {
-  const lines = content.split('\n');
+  // Memoize the processed lines to prevent recalculations
+  const processedLines = useMemo(() => {
+    return content.split('\n').map((line, index) => ({
+      line,
+      isTitle: index % 2 === 0,
+      key: `${index}-${line.slice(0, 10)}` // More stable key
+    }));
+  }, [content]);
+
   return (
     <div className="text-sm leading-relaxed space-y-1">
-      {lines.map((line, index) => {
-        const isTitle = index % 2 === 0;
-        return (
-          <div 
-            key={index}
-            className={isTitle ? "font-bold text-black" : "text-gray-600 text-xs"}
-          >
-            {line}
-          </div>
-        );
-      })}
+      {processedLines.map(({ line, isTitle, key }) => (
+        <div 
+          key={key}
+          className={isTitle ? "font-bold text-black" : "text-gray-600 text-xs"}
+        >
+          {line}
+        </div>
+      ))}
     </div>
   );
 });
@@ -197,175 +236,210 @@ const PreviewSection = memo(({
   textPosition, 
   isDragging, 
   dragHandlers 
-}) => (
-  <div className="mb-8">
-    <div className="flex items-center gap-2 mb-4">
-      <h2 className="text-lg font-bold text-black">Preview and arrange here</h2>
-      <div className="bg-black text-white rounded-full w-6 h-6 flex items-center justify-center text-sm">
-        i
+}) => {
+  // Memoize the text content processing
+  const processedTextContent = useMemo(() => {
+    if (!createDetail) return null;
+    
+    return createDetail.split('\n').map((line, index) => ({
+      line,
+      isTitle: index % 2 === 0,
+      key: `preview-${index}-${line.slice(0, 10)}`
+    }));
+  }, [createDetail]);
+
+  // Memoize the text styles for performance
+  const textShadowStyle = useMemo(() => ({
+    textShadow: '1px 1px 2px rgba(255, 255, 255, 0.8), -1px -1px 2px rgba(255, 255, 255, 0.8)'
+  }), []);
+
+  return (
+    <div className="mb-8">
+      <div className="flex items-center gap-2 mb-4">
+        <h2 className="text-lg font-bold text-black">Preview and arrange here</h2>
+        <div className="bg-black text-white rounded-full w-6 h-6 flex items-center justify-center text-sm">
+          i
+        </div>
+      </div>
+      <div 
+        className="bg-white border-2 border-gray-200 rounded-lg p-4 w-full h-64 relative overflow-hidden cursor-move"
+        style={{ aspectRatio: '16/9', maxWidth: '400px' }}
+        {...dragHandlers}
+      >
+        {/* Background Image */}
+        {selectedImage && (
+          <img 
+            src={selectedImage} 
+            alt="Banner preview" 
+            className="w-full h-full object-cover rounded absolute inset-0"
+            loading="lazy"
+            decoding="async"
+          />
+        )}
+        
+        {/* Text Overlay */}
+        {(selectedImage || createDetail) && (
+          <div
+            className="absolute cursor-move select-none max-w-xs"
+            style={{
+              left: textPosition.x,
+              top: textPosition.y,
+              transform: isDragging ? 'scale(1.02)' : 'scale(1)',
+              transition: isDragging ? 'none' : 'transform 0.2s ease'
+            }}
+            onMouseDown={dragHandlers.onMouseDown}
+          >
+            {processedTextContent ? (
+              <div className="text-sm leading-tight">
+                {processedTextContent.map(({ line, isTitle, key }) => (
+                  <div 
+                    key={key} 
+                    className={`${isTitle ? 'font-bold text-black text-shadow-sm' : 'text-gray-700 mb-2 text-shadow-sm'}`}
+                    style={textShadowStyle}
+                  >
+                    {line}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div 
+                className="text-sm text-gray-600"
+                style={textShadowStyle}
+              >
+                Add text content to preview
+              </div>
+            )}
+          </div>
+        )}
+        
+        {/* Centered message when no content */}
+        {!selectedImage && !createDetail && (
+          <div className="absolute inset-0 flex items-center justify-center text-gray-400">
+            <p>Upload image and add text to preview</p>
+          </div>
+        )}
       </div>
     </div>
-    <div 
-      className="bg-white border-2 border-gray-200 rounded-lg p-4 w-full h-64 relative overflow-hidden cursor-move"
-      style={{ aspectRatio: '16/9', maxWidth: '400px' }}
-      {...dragHandlers}
-    >
-      {/* Background Image */}
-      {selectedImage && (
-        <img 
-          src={selectedImage} 
-          alt="Banner preview" 
-          className="w-full h-full object-cover rounded absolute inset-0"
-        />
-      )}
-      
-      {/* Text Overlay */}
-      {(selectedImage || createDetail) && (
-        <div
-          className="absolute cursor-move select-none max-w-xs"
-          style={{
-            left: textPosition.x,
-            top: textPosition.y,
-            transform: isDragging ? 'scale(1.02)' : 'scale(1)',
-            transition: isDragging ? 'none' : 'transform 0.2s ease'
-          }}
-          onMouseDown={dragHandlers.onMouseDown}
-        >
-          {createDetail ? (
-            <div className="text-sm leading-tight">
-              {createDetail.split('\n').map((line, index) => (
-                <div 
-                  key={index} 
-                  className={`${index % 2 === 0 ? 'font-bold text-black text-shadow-sm' : 'text-gray-700 mb-2 text-shadow-sm'}`}
-                  style={{
-                    textShadow: '1px 1px 2px rgba(255, 255, 255, 0.8), -1px -1px 2px rgba(255, 255, 255, 0.8)'
-                  }}
-                >
-                  {line}
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div 
-              className="text-sm text-gray-600"
-              style={{
-                textShadow: '1px 1px 2px rgba(255, 255, 255, 0.8)'
-              }}
-            >
-              Add text content to preview
-            </div>
-          )}
-        </div>
-      )}
-      
-      {/* Centered message when no content */}
-      {!selectedImage && !createDetail && (
-        <div className="absolute inset-0 flex items-center justify-center text-gray-400">
-          <p>Upload image and add text to preview</p>
-        </div>
-      )}
-    </div>
-  </div>
-));
+  );
+});
 
 PreviewSection.displayName = 'PreviewSection';
 
-const BannerItem = memo(({ banner, onEdit, onDelete }) => (
-  <div className="mb-8 bg-white">
-    <div className="grid grid-cols-5 gap-6 items-start">
-      {/* Column 1 - Details */}
-      <div className="col-span-1">
-        <h3 className="text-base font-bold text-black mb-3">posting {banner.id}</h3>
-        <h4 className="text-sm font-medium text-black mb-2">detail</h4>
-        <TextContentDisplay content={DEFAULT_BANNER_CONTENT} />
-      </div>
-      
-      {/* Column 2 - Uploaded Image */}
-      <div className="col-span-1 text-center">
-        <h4 className="text-sm font-medium text-black mb-3">uploaded image</h4>
-        <div className="w-32 h-24 bg-white border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center mx-auto overflow-hidden">
-          {banner.image && banner.image !== '/api/placeholder/400/300' ? (
-            <img 
-              src={banner.image} 
-              alt={`Banner ${banner.id}`}
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <div className="text-blue-500 text-4xl">
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
-                <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/>
-                <circle cx="12" cy="13" r="3"/>
-              </svg>
-            </div>
-          )}
+const BannerItem = memo(({ banner, onEdit, onDelete }) => {
+  // Memoize the edit handler to prevent recreations
+  const handleEdit = useCallback(() => {
+    onEdit(banner);
+  }, [banner, onEdit]);
+
+  // Memoize the delete handler to prevent recreations
+  const handleDelete = useCallback(() => {
+    onDelete(banner.id);
+  }, [banner.id, onDelete]);
+
+  // Memoize the content to prevent recalculations
+  const defaultContent = useMemo(() => DEFAULT_BANNER_CONTENT, []);
+
+  return (
+    <div className="mb-8 bg-white">
+      <div className="grid grid-cols-5 gap-6 items-start">
+        {/* Column 1 - Details */}
+        <div className="col-span-1">
+          <h3 className="text-base font-bold text-black mb-3">posting {banner.id}</h3>
+          <h4 className="text-sm font-medium text-black mb-2">detail</h4>
+          <TextContentDisplay content={defaultContent} />
         </div>
-      </div>
-      
-      {/* Column 3 - Priority */}
-      <div className="col-span-1 text-center">
-        <h4 className="text-sm font-medium text-black mb-3">priority</h4>
-        <div className="flex justify-center">
-          <div className="w-12 h-8 border-2 border-black rounded-md flex items-center justify-center text-sm font-medium bg-white">
-            {banner.priority}
+        
+        {/* Column 2 - Uploaded Image */}
+        <div className="col-span-1 text-center">
+          <h4 className="text-sm font-medium text-black mb-3">uploaded image</h4>
+          <div className="w-32 h-24 bg-white border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center mx-auto overflow-hidden">
+            {banner.image && banner.image !== '/api/placeholder/400/300' ? (
+              <img 
+                src={banner.image} 
+                alt={`Banner ${banner.id}`}
+                className="w-full h-full object-cover"
+                loading="lazy"
+                decoding="async"
+              />
+            ) : (
+              <div className="text-blue-500 text-4xl">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
+                  <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/>
+                  <circle cx="12" cy="13" r="3"/>
+                </svg>
+              </div>
+            )}
           </div>
         </div>
-      </div>
-      
-      {/* Column 4 - Preview */}
-      <div className="col-span-1 text-center">
-        <h4 className="text-sm font-medium text-black mb-3">Preview</h4>
-        <div className="w-32 h-56 bg-gray-100 rounded-lg overflow-hidden relative mx-auto shadow-sm border">
-          <div className="w-full h-full relative">
-            <div 
-              className="absolute inset-0 bg-cover bg-center"
-              style={{
-                backgroundImage: `url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTI4IiBoZWlnaHQ9IjIyNCIgdmlld0JveD0iMCAwIDEyOCAyMjQiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxMjgiIGhlaWdodD0iMjI0IiBmaWxsPSIjRjVGNUY1Ii8+CjxyZWN0IHg9IjIwIiB5PSI0MCIgd2lkdGg9Ijg4IiBoZWlnaHQ9IjE0NCIgZmlsbD0iI0U1RTVFNSIgcng9IjgiLz4KPHN2ZyB4PSI0MCIgeT0iODAiIHdpZHRoPSI0OCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDQ4IDY0IiBmaWxsPSJub25lIj4KPHN2ZyB3aWR0aD0iNDgiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA0OCA2NCIgZmlsbD0ibm9uZSI+CjxyZWN0IHdpZHRoPSI0OCIgaGVpZ2h0PSIzMiIgZmlsbD0iI0ZGRkZGRiIgcng9IjQiLz4KPHJlY3QgeT0iMzIiIHdpZHRoPSI0OCIgaGVpZ2h0PSIzMiIgZmlsbD0iIzc2QTlGQSIgcng9IjQiLz4KPC9zdmc+Cjwvc3ZnPgo8L3N2Zz4K')`
-              }}
-            >
-              <div className="absolute inset-0 p-3 flex flex-col justify-center">
-                <div className="text-xs font-bold text-black mb-1 leading-tight">Welcome reward</div>
-                <div className="text-xs text-gray-700 mb-2 leading-tight">Enjoy a welcome reward to spend in your first month.</div>
-                <div className="text-xs font-bold text-black mb-1 leading-tight">Birthday reward</div>
-                <div className="text-xs text-gray-700 mb-2 leading-tight">Celebrate your birthday with a special discount</div>
-                <div className="text-xs font-bold text-black mb-1 leading-tight">Private members' sale</div>
-                <div className="text-xs text-gray-700 leading-tight">Unlocked after your first order</div>
+        
+        {/* Column 3 - Priority */}
+        <div className="col-span-1 text-center">
+          <h4 className="text-sm font-medium text-black mb-3">priority</h4>
+          <div className="flex justify-center">
+            <div className="w-12 h-8 border-2 border-black rounded-md flex items-center justify-center text-sm font-medium bg-white">
+              {banner.priority}
+            </div>
+          </div>
+        </div>
+        
+        {/* Column 4 - Preview */}
+        <div className="col-span-1 text-center">
+          <h4 className="text-sm font-medium text-black mb-3">Preview</h4>
+          <div className="w-32 h-56 bg-gray-100 rounded-lg overflow-hidden relative mx-auto shadow-sm border">
+            <div className="w-full h-full relative">
+              <div 
+                className="absolute inset-0 bg-cover bg-center"
+                style={{
+                  backgroundImage: `url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTI4IiBoZWlnaHQ9IjIyNCIgdmlld0JveD0iMCAwIDEyOCAyMjQiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxMjgiIGhlaWdodD0iMjI0IiBmaWxsPSIjRjVGNUY1Ii8+CjxyZWN0IHg9IjIwIiB5PSI0MCIgd2lkdGg9Ijg4IiBoZWlnaHQ9IjE0NCIgZmlsbD0iI0U1RTVFNSIgcng9IjgiLz4KPHN2ZyB4PSI0MCIgeT0iODAiIHdpZHRoPSI0OCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDQ4IDY0IiBmaWxsPSJub25lIj4KPHN2ZyB3aWR0aD0iNDgiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA0OCA2NCIgZmlsbD0ibm9uZSI+CjxyZWN0IHdpZHRoPSI0OCIgaGVpZ2h0PSIzMiIgZmlsbD0iI0ZGRkZGRiIgcng9IjQiLz4KPHJlY3QgeT0iMzIiIHdpZHRoPSI0OCIgaGVpZ2h0PSIzMiIgZmlsbD0iIzc2QTlGQSIgcng9IjQiLz4KPC9zdmc+Cjwvc3ZnPgo8L3N2Zz4K')`
+                }}
+              >
+                <div className="absolute inset-0 p-3 flex flex-col justify-center">
+                  <div className="text-xs font-bold text-black mb-1 leading-tight">Welcome reward</div>
+                  <div className="text-xs text-gray-700 mb-2 leading-tight">Enjoy a welcome reward to spend in your first month.</div>
+                  <div className="text-xs font-bold text-black mb-1 leading-tight">Birthday reward</div>
+                  <div className="text-xs text-gray-700 mb-2 leading-tight">Celebrate your birthday with a special discount</div>
+                  <div className="text-xs font-bold text-black mb-1 leading-tight">Private members' sale</div>
+                  <div className="text-xs text-gray-700 leading-tight">Unlocked after your first order</div>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
-      
-      {/* Column 5 - Actions */}
-      <div className="col-span-1 text-center">
-        <div className="h-6 mb-3"></div>
-        <div className="flex justify-center gap-2">
-          <button 
-            onClick={() => onEdit(banner)}
-            className="p-2 text-gray-400 hover:text-blue-500 transition-colors"
-            title="Edit banner"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-              <path d="m18.5 2.5 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-            </svg>
-          </button>
-          <button 
-            onClick={() => onDelete(banner.id)}
-            className="p-2 text-gray-400 hover:text-red-500 transition-colors"
-            title="Delete banner"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <polyline points="3,6 5,6 21,6" />
-              <path d="m19,6v14a2,2 0 0 1-2,2H7a2,2 0 0 1-2-2V6m3,0V4a2,2 0 0 1 2-2h4a2,2 0 0 1 2,2v2" />
-              <line x1="10" y1="11" x2="10" y2="17" />
-              <line x1="14" y1="11" x2="14" y2="17" />
-            </svg>
-          </button>
+        
+        {/* Column 5 - Actions */}
+        <div className="col-span-1 text-center">
+          <div className="h-6 mb-3"></div>
+          <div className="flex justify-center gap-2">
+            <button 
+              onClick={handleEdit}
+              className="p-2 text-gray-400 hover:text-blue-500 transition-colors"
+              title="Edit banner"
+              type="button"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                <path d="m18.5 2.5 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+              </svg>
+            </button>
+            <button 
+              onClick={handleDelete}
+              className="p-2 text-gray-400 hover:text-red-500 transition-colors"
+              title="Delete banner"
+              type="button"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="3,6 5,6 21,6" />
+                <path d="m19,6v14a2,2 0 0 1-2,2H7a2,2 0 0 1-2-2V6m3,0V4a2,2 0 0 1 2-2h4a2,2 0 0 1 2,2v2" />
+                <line x1="10" y1="11" x2="10" y2="17" />
+                <line x1="14" y1="11" x2="14" y2="17" />
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-));
+  );
+});
 
 BannerItem.displayName = 'BannerItem';
 BannerItem.displayName = 'BannerItem';
@@ -379,114 +453,115 @@ const ManageBannersOnRewards = () => {
   const { textPosition, isDragging, dragHandlers, resetPosition } = useDragAndDrop();
   const { modals, openModal, closeModal } = useModalState();
   
-  // Edit state
+  // Edit state with lazy initialization
   const [bannerToDelete, setBannerToDelete] = useState(null);
   const [editingBanner, setEditingBanner] = useState(null);
   const [editDetail, setEditDetail] = useState('');
   const [editImage, setEditImage] = useState(null);
   
-  // Banners state
-  const [banners, setBanners] = useState([
-    {
+  // Banners state with optimized initial data
+  const [banners, setBanners] = useState(() => [
+    Object.freeze({
       id: 1,
       detail: DEFAULT_BANNER_CONTENT,
       priority: 1,
       image: 'https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=400&h=300&q=80',
-      textPosition: INITIAL_TEXT_POSITION
-    },
-    {
+      textPosition: { ...INITIAL_TEXT_POSITION }
+    }),
+    Object.freeze({
       id: 2,
       detail: DEFAULT_BANNER_CONTENT,
       priority: 2,
       image: 'https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=400&h=300&q=80',
-      textPosition: INITIAL_TEXT_POSITION
-    }
+      textPosition: { ...INITIAL_TEXT_POSITION }
+    })
   ]);
 
   /**
-   * Banner management handlers
+   * Optimized Banner management handlers with stable references
    */
-  const handlePostToRewards = useCallback(() => {
-    if (!createDetail.trim()) {
-      alert('Please fill in the detail field');
-      return;
+  const bannerManagementHandlers = useMemo(() => ({
+    handlePostToRewards: () => {
+      if (!createDetail.trim()) {
+        alert('Please fill in the detail field');
+        return;
+      }
+      openModal('showConfirmationModal');
+    },
+    handleConfirmPost: () => {
+      const newBanner = Object.freeze({
+        id: banners.length + 1,
+        detail: createDetail,
+        priority: banners.length + 1,
+        image: selectedImage || null,
+        textPosition: { ...textPosition }
+      });
+
+      setBanners(prev => [...prev, newBanner]);
+      setCreateDetail('');
+      resetImage();
+      resetPosition();
+      closeModal('showConfirmationModal');
+      openModal('showPostSuccessModal');
+    },
+    handleDeleteBanner: (bannerId) => {
+      setBannerToDelete(bannerId);
+      openModal('showDeleteConfirmationModal');
+    },
+    handleConfirmDelete: () => {
+      if (bannerToDelete) {
+        setBanners(prev => prev.filter(banner => banner.id !== bannerToDelete));
+        closeModal('showDeleteConfirmationModal');
+        setBannerToDelete(null);
+        openModal('showDeleteSuccessModal');
+      }
+    },
+    handleEditBanner: (banner) => {
+      setEditingBanner(banner);
+      setEditDetail(banner.detail);
+      setEditImage(banner.image);
+      openModal('showEditModal');
     }
-    openModal('showConfirmationModal');
-  }, [createDetail, openModal]);
+  }), [
+    createDetail, banners.length, selectedImage, textPosition, bannerToDelete,
+    resetImage, resetPosition, openModal, closeModal
+  ]);
 
-  const handleConfirmPost = useCallback(() => {
-    const newBanner = {
-      id: banners.length + 1,
-      detail: createDetail,
-      priority: banners.length + 1,
-      image: selectedImage || null,
-      textPosition: { ...textPosition }
-    };
-
-    setBanners(prev => [...prev, newBanner]);
-    setCreateDetail('');
-    resetImage();
-    resetPosition();
-    closeModal('showConfirmationModal');
-    openModal('showPostSuccessModal');
-  }, [banners.length, createDetail, selectedImage, textPosition, resetImage, resetPosition, closeModal, openModal]);
-
-  const handleDeleteBanner = useCallback((bannerId) => {
-    setBannerToDelete(bannerId);
-    openModal('showDeleteConfirmationModal');
-  }, [openModal]);
-
-  const handleConfirmDelete = useCallback(() => {
-    if (bannerToDelete) {
-      setBanners(prev => prev.filter(banner => banner.id !== bannerToDelete));
-      closeModal('showDeleteConfirmationModal');
-      setBannerToDelete(null);
-      openModal('showDeleteSuccessModal');
+  const editHandlers = useMemo(() => ({
+    handleSaveEdit: (updatedBannerData) => {
+      if (editingBanner) {
+        setBanners(prev => prev.map(banner => 
+          banner.id === editingBanner.id 
+            ? Object.freeze({ 
+                ...banner, 
+                detail: editDetail,
+                image: editImage,
+                textPosition: updatedBannerData?.textPosition || banner.textPosition,
+                priority: updatedBannerData?.priority || banner.priority
+              })
+            : banner
+        ));
+        editHandlers.handleCloseEdit();
+        openModal('showSaveSuccessModal');
+      }
+    },
+    handleCloseEdit: () => {
+      closeModal('showEditModal');
+      setEditingBanner(null);
+      setEditDetail('');
+      setEditImage(null);
+    },
+    handleEditImageUpload: async (event) => {
+      const file = event.target.files[0];
+      if (file) {
+        const imageUrl = await createImageUrl(file);
+        setEditImage(imageUrl);
+      }
     }
-  }, [bannerToDelete, closeModal, openModal]);
-
-  const handleEditBanner = useCallback((banner) => {
-    setEditingBanner(banner);
-    setEditDetail(banner.detail);
-    setEditImage(banner.image);
-    openModal('showEditModal');
-  }, [openModal]);
-
-  const handleSaveEdit = useCallback((updatedBannerData) => {
-    if (editingBanner) {
-      setBanners(prev => prev.map(banner => 
-        banner.id === editingBanner.id 
-          ? { 
-              ...banner, 
-              detail: editDetail,
-              image: editImage,
-              textPosition: updatedBannerData?.textPosition || banner.textPosition,
-              priority: updatedBannerData?.priority || banner.priority
-            }
-          : banner
-      ));
-      handleCloseEdit();
-      openModal('showSaveSuccessModal');
-    }
-  }, [editingBanner, editDetail, editImage, openModal]);
-
-  const handleCloseEdit = useCallback(() => {
-    closeModal('showEditModal');
-    setEditingBanner(null);
-    setEditDetail('');
-    setEditImage(null);
-  }, [closeModal]);
-
-  const handleEditImageUpload = useCallback(async (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      const imageUrl = await createImageUrl(file);
-      setEditImage(imageUrl);
-    }
-  }, []);
+  }), [editingBanner, editDetail, editImage, openModal, closeModal]);
 
   /**
-   * Modal handlers
+   * Optimized Modal handlers with stable references
    */
   const modalHandlers = useMemo(() => ({
     handleCancelPost: () => closeModal('showConfirmationModal'),
@@ -500,6 +575,11 @@ const ManageBannersOnRewards = () => {
     handleCloseSaveSuccessModal: () => closeModal('showSaveSuccessModal'),
     handleClosePostSuccessModal: () => closeModal('showPostSuccessModal')
   }), [closeModal, openModal]);
+
+  // Memoize the detail change handler
+  const handleDetailChange = useCallback((e) => {
+    setCreateDetail(e.target.value);
+  }, []);
 
   return (
     <div className="p-6 bg-white min-h-screen">
@@ -521,7 +601,7 @@ const ManageBannersOnRewards = () => {
             <label className="block text-lg font-bold text-black mb-2">Create detail</label>
             <textarea
               value={createDetail}
-              onChange={(e) => setCreateDetail(e.target.value)}
+              onChange={handleDetailChange}
               rows={8}
               className="w-full p-3 border-2 border-black rounded-xl resize-none focus:outline-none focus:border-blue-500"
               placeholder={DEFAULT_BANNER_CONTENT}
@@ -531,14 +611,16 @@ const ManageBannersOnRewards = () => {
           {/* Action Buttons */}
           <div className="flex gap-4">
             <button
-              onClick={handlePostToRewards}
+              onClick={bannerManagementHandlers.handlePostToRewards}
               className="bg-gray-800 text-white px-12 py-3 rounded-full font-medium hover:bg-gray-700 transition-colors"
+              type="button"
             >
               Post to rewards
             </button>
             <button 
               onClick={modalHandlers.handleViewScreenView}
               className="bg-red-500 text-white px-12 py-3 rounded-full font-medium hover:bg-red-600 transition-colors"
+              type="button"
             >
               View screen view
             </button>
@@ -561,10 +643,10 @@ const ManageBannersOnRewards = () => {
             
             {banners.map((banner) => (
               <BannerItem
-                key={banner.id}
+                key={`banner-${banner.id}-${banner.priority}`}
                 banner={banner}
-                onEdit={handleEditBanner}
-                onDelete={handleDeleteBanner}
+                onEdit={bannerManagementHandlers.handleEditBanner}
+                onDelete={bannerManagementHandlers.handleDeleteBanner}
               />
             ))}
           </div>
@@ -585,9 +667,9 @@ const ManageBannersOnRewards = () => {
           detail={editDetail}
           image={editImage}
           onDetailChange={setEditDetail}
-          onImageChange={handleEditImageUpload}
-          onSave={handleSaveEdit}
-          onClose={handleCloseEdit}
+          onImageChange={editHandlers.handleEditImageUpload}
+          onSave={editHandlers.handleSaveEdit}
+          onClose={editHandlers.handleCloseEdit}
         />
       )}
 
@@ -597,7 +679,7 @@ const ManageBannersOnRewards = () => {
 
       {modals.showConfirmationModal && (
         <ConfirmationModal 
-          onConfirm={handleConfirmPost}
+          onConfirm={bannerManagementHandlers.handleConfirmPost}
           onCancel={modalHandlers.handleCancelPost}
         />
       )}
@@ -608,7 +690,7 @@ const ManageBannersOnRewards = () => {
 
       {modals.showDeleteConfirmationModal && (
         <DeleteConfirmationModal 
-          onConfirm={handleConfirmDelete}
+          onConfirm={bannerManagementHandlers.handleConfirmDelete}
           onCancel={modalHandlers.handleCancelDelete}
         />
       )}
@@ -621,48 +703,53 @@ const ManageBannersOnRewards = () => {
 };
 
 /**
- * Screen View Modal Component - Shows mobile app preview with banners
- * Matches the Figma design exactly
+ * Optimized Screen View Modal Component - Shows mobile app preview with banners
+ * Matches the Figma design exactly with performance improvements
  */
-const ScreenViewModal = memo(({ banners, onClose }) => (
-  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-    <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] w-full max-w-7xl max-h-[90vh] overflow-y-auto relative">
-      {/* Header */}
-      <div className="flex items-center justify-between p-6 border-b border-gray-200">
-        <div className="flex items-center space-x-4">
-          {/* Screen View Button */}
-          <div className="bg-red-500 text-white px-12 py-3 rounded-full font-medium">
-            screen view
+const ScreenViewModal = memo(({ banners, onClose }) => {
+  // Memoize sorted banners to prevent recalculations
+  const sortedBanners = useMemo(() => {
+    return banners.sort((a, b) => a.priority - b.priority);
+  }, [banners]);
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] w-full max-w-7xl max-h-[90vh] overflow-y-auto relative">
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+          <div className="flex items-center space-x-4">
+            {/* Screen View Button */}
+            <div className="bg-red-500 text-white px-12 py-3 rounded-full font-medium">
+              screen view
+            </div>
+            
+            {/* Go Back Button */}
+            <button
+              onClick={onClose}
+              className="border border-gray-300 text-black px-12 py-3 rounded-full font-medium hover:bg-gray-50 transition-colors"
+              type="button"
+            >
+              go back
+            </button>
           </div>
-          
-          {/* Go Back Button */}
-          <button
-            onClick={onClose}
-            className="border border-gray-300 text-black px-12 py-3 rounded-full font-medium hover:bg-gray-50 transition-colors"
-          >
-            go back
-          </button>
         </div>
-      </div>
 
-      {/* Main Content */}
-      <div className="flex h-[800px]">
-        {/* Mobile Preview - Centered */}
-        <div className="flex-1 flex items-center justify-center bg-white p-8">
-          <div className="w-96 h-[700px] bg-white rounded-3xl shadow-2xl overflow-hidden border-8 border-gray-800">
-            {/* Phone Screen Content */}
-            <div className="h-full flex flex-col">
-              {/* Status Bar */}
-              <div className="bg-black h-8 flex items-center justify-center">
-                <div className="w-16 h-1 bg-white rounded-full"></div>
-              </div>
+        {/* Main Content */}
+        <div className="flex h-[800px]">
+          {/* Mobile Preview - Centered */}
+          <div className="flex-1 flex items-center justify-center bg-white p-8">
+            <div className="w-96 h-[700px] bg-white rounded-3xl shadow-2xl overflow-hidden border-8 border-gray-800">
+              {/* Phone Screen Content */}
+              <div className="h-full flex flex-col">
+                {/* Status Bar */}
+                <div className="bg-black h-8 flex items-center justify-center">
+                  <div className="w-16 h-1 bg-white rounded-full"></div>
+                </div>
 
-              {/* Content Area */}
-              <div className="flex-1 overflow-y-auto">
-                {banners
-                  .sort((a, b) => a.priority - b.priority)
-                  .map((banner, index) => (
-                    <div key={banner.id} className="relative">
+                {/* Content Area */}
+                <div className="flex-1 overflow-y-auto">
+                  {sortedBanners.map((banner, index) => (
+                    <div key={`screen-banner-${banner.id}`} className="relative">
                       {/* First Banner - Black with 10% OFF */}
                       {index === 0 && (
                         <div className="bg-black text-white p-8 text-center min-h-[250px] flex flex-col justify-center">
@@ -685,7 +772,7 @@ const ScreenViewModal = memo(({ banners, onClose }) => (
                           <div className="flex-1 flex items-center justify-center mb-4">
                             <div className="text-center">
                               {banner.detail.split('\n').slice(0, 2).map((line, idx) => (
-                                <div key={idx} className={idx === 0 ? 'text-lg font-bold mb-1' : 'text-sm'}>
+                                <div key={`banner-line-${idx}`} className={idx === 0 ? 'text-lg font-bold mb-1' : 'text-sm'}>
                                   {line}
                                 </div>
                               ))}
@@ -709,11 +796,13 @@ const ScreenViewModal = memo(({ banners, onClose }) => (
                               src={banner.image} 
                               alt="Banner"
                               className="w-full h-32 object-cover rounded mb-2"
+                              loading="lazy"
+                              decoding="async"
                             />
                           )}
                           <div className="text-sm">
                             {banner.detail.split('\n').map((line, idx) => (
-                              <div key={idx} className={idx % 2 === 0 ? 'font-medium text-black mb-1' : 'text-xs text-gray-600 mb-2'}>
+                              <div key={`additional-line-${idx}`} className={idx % 2 === 0 ? 'font-medium text-black mb-1' : 'text-xs text-gray-600 mb-2'}>
                                 {line}
                               </div>
                             ))}
@@ -722,14 +811,15 @@ const ScreenViewModal = memo(({ banners, onClose }) => (
                       )}
                     </div>
                   ))}
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
-));
+  );
+});
 
 ScreenViewModal.displayName = 'ScreenViewModal';
 
@@ -748,39 +838,54 @@ const EditBannerModal = memo(({
 }) => {
   const detailText = detail || DEFAULT_BANNER_CONTENT;
 
-  // Local state for drag and drop functionality
-  const [editTextPosition, setEditTextPosition] = useState(banner?.textPosition || INITIAL_TEXT_POSITION);
+  // Local state for drag and drop functionality with lazy initialization
+  const [editTextPosition, setEditTextPosition] = useState(() => banner?.textPosition || INITIAL_TEXT_POSITION);
   const [isEditDragging, setIsEditDragging] = useState(false);
   const [editDragOffset, setEditDragOffset] = useState({ x: 0, y: 0 });
-  const [editPriority, setEditPriority] = useState(banner?.priority || 1);
+  const [editPriority, setEditPriority] = useState(() => banner?.priority || 1);
+  const dragStateRef = useRef({ isDragging: false, offset: { x: 0, y: 0 } });
 
-  // Drag and drop handlers for edit modal
-  const handleEditMouseDown = useCallback((e) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    setIsEditDragging(true);
-    setEditDragOffset({
-      x: e.clientX - rect.left - editTextPosition.x,
-      y: e.clientY - rect.top - editTextPosition.y
-    });
+  // Memoized drag and drop handlers for edit modal
+  const editDragHandlers = useMemo(() => {
+    const handleEditMouseDown = (e) => {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const offset = {
+        x: e.clientX - rect.left - editTextPosition.x,
+        y: e.clientY - rect.top - editTextPosition.y
+      };
+      
+      dragStateRef.current = { isDragging: true, offset };
+      setIsEditDragging(true);
+      setEditDragOffset(offset);
+    };
+
+    const handleEditMouseMove = (e) => {
+      if (!dragStateRef.current.isDragging) return;
+      
+      const rect = e.currentTarget.getBoundingClientRect();
+      const newX = e.clientX - rect.left - dragStateRef.current.offset.x;
+      const newY = e.clientY - rect.top - dragStateRef.current.offset.y;
+      
+      const maxX = rect.width - DRAG_CONSTRAINTS.maxTextWidth;
+      const maxY = rect.height - DRAG_CONSTRAINTS.maxTextHeight;
+      
+      setEditTextPosition(constrainPosition({ x: newX, y: newY }, maxX, maxY));
+    };
+
+    const handleEditMouseUp = () => {
+      dragStateRef.current.isDragging = false;
+      setIsEditDragging(false);
+    };
+
+    return {
+      onMouseDown: handleEditMouseDown,
+      onMouseMove: handleEditMouseMove,
+      onMouseUp: handleEditMouseUp,
+      onMouseLeave: handleEditMouseUp
+    };
   }, [editTextPosition]);
 
-  const handleEditMouseMove = useCallback((e) => {
-    if (!isEditDragging) return;
-    
-    const rect = e.currentTarget.getBoundingClientRect();
-    const newX = e.clientX - rect.left - editDragOffset.x;
-    const newY = e.clientY - rect.top - editDragOffset.y;
-    
-    const maxX = rect.width - DRAG_CONSTRAINTS.maxTextWidth;
-    const maxY = rect.height - DRAG_CONSTRAINTS.maxTextHeight;
-    
-    setEditTextPosition(constrainPosition({ x: newX, y: newY }, maxX, maxY));
-  }, [isEditDragging, editDragOffset]);
-
-  const handleEditMouseUp = useCallback(() => {
-    setIsEditDragging(false);
-  }, []);
-
+  // Memoized save handler
   const handleSaveWithPosition = useCallback(() => {
     if (banner && onSave) {
       onSave({
@@ -790,6 +895,25 @@ const EditBannerModal = memo(({
       });
     }
   }, [banner, editTextPosition, editPriority, onSave]);
+
+  // Memoized priority change handler
+  const handlePriorityChange = useCallback((e) => {
+    setEditPriority(parseInt(e.target.value) || 1);
+  }, []);
+
+  // Memoized text content processing
+  const processedTextContent = useMemo(() => {
+    return detailText.split('\n').map((line, index) => ({
+      line,
+      isTitle: index % 2 === 0,
+      key: `edit-${index}-${line.slice(0, 10)}`
+    }));
+  }, [detailText]);
+
+  // Memoized text shadow style
+  const textShadowStyle = useMemo(() => ({
+    textShadow: '1px 1px 2px rgba(255, 255, 255, 0.8), -1px -1px 2px rgba(255, 255, 255, 0.8)'
+  }), []);
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -909,10 +1033,7 @@ const EditBannerModal = memo(({
             <div className="w-64 h-80 bg-gray-100 rounded-lg overflow-hidden relative mx-auto shadow-sm border">
               <div 
                 className="w-full h-full relative cursor-move"
-                onMouseDown={handleEditMouseDown}
-                onMouseMove={handleEditMouseMove}
-                onMouseUp={handleEditMouseUp}
-                onMouseLeave={handleEditMouseUp}
+                {...editDragHandlers}
               >
                 {/* Background image */}
                 <div className="absolute inset-0">
@@ -921,6 +1042,8 @@ const EditBannerModal = memo(({
                       src={image} 
                       alt="Banner background" 
                       className="w-full h-full object-cover"
+                      loading="lazy"
+                      decoding="async"
                     />
                   ) : (
                     <div 
@@ -942,16 +1065,14 @@ const EditBannerModal = memo(({
                     transform: isEditDragging ? 'scale(1.02)' : 'scale(1)',
                     transition: isEditDragging ? 'none' : 'transform 0.2s ease'
                   }}
-                  onMouseDown={handleEditMouseDown}
+                  onMouseDown={editDragHandlers.onMouseDown}
                 >
                   <div className="text-sm leading-tight">
-                    {detailText.split('\n').map((line, index) => (
+                    {processedTextContent.map(({ line, isTitle, key }) => (
                       <div 
-                        key={index} 
-                        className={`${index % 2 === 0 ? 'font-bold text-black mb-1' : 'text-gray-700 mb-2'}`}
-                        style={{
-                          textShadow: '1px 1px 2px rgba(255, 255, 255, 0.8), -1px -1px 2px rgba(255, 255, 255, 0.8)'
-                        }}
+                        key={key} 
+                        className={`${isTitle ? 'font-bold text-black mb-1' : 'text-gray-700 mb-2'}`}
+                        style={textShadowStyle}
                       >
                         {line}
                       </div>

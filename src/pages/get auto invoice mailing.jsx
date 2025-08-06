@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import TwoFactorAuth from '../components/TwoFactorAuth';
 
 /**
@@ -11,9 +11,37 @@ import TwoFactorAuth from '../components/TwoFactorAuth';
  * 
  * Performance optimizations:
  * - useCallback for all event handlers
+ * - useMemo for expensive calculations and CSS classes
  * - Organized state management
  * - Efficient modal state handling
+ * - Extracted constants and reusable components
  */
+
+// Constants moved outside component to prevent recreation
+const PHONE_NUMBER = "+1 (555) 123-4567";
+const EMAIL_ADDRESS = "invoice@automail.com";
+
+const MODAL_CLASSES = {
+  backdrop: "fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50",
+  container: "bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-md mx-4 overflow-clip",
+  closeButton: "absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700",
+  title: "absolute top-[60px] left-1/2 transform -translate-x-1/2 w-[165px] text-center",
+  titleText: "font-bold text-black text-[18px] leading-[22px] tracking-[-0.41px] font-['Montserrat']",
+  buttonContainer: "absolute top-[189px] left-1/2 transform -translate-x-1/2 flex gap-4",
+  confirmButton: "bg-black text-white rounded-3xl w-[149px] h-12 font-semibold text-[16px] leading-[22px] font-['Montserrat'] hover:bg-gray-800 transition-colors",
+  cancelButton: "border border-[#e4e4e4] text-black rounded-[100px] w-[209px] h-16 font-medium text-[16px] leading-[19.2px] font-['Montserrat'] hover:bg-gray-50 transition-colors flex items-center justify-center",
+  spacer: "h-[280px]"
+};
+
+const SUCCESS_MODAL_CLASSES = {
+  content: "p-8 text-center",
+  iconContainer: "mb-6",
+  icon: "w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4",
+  iconSvg: "w-8 h-8",
+  title: "font-bold text-black text-[18px] mb-2",
+  subtitle: "text-gray-600",
+  button: "bg-black text-white px-8 py-3 rounded-full font-semibold hover:bg-gray-800 transition-colors"
+};
 
 const GetAutoInvoiceMailing = () => {
   // ==============================
@@ -84,10 +112,6 @@ const GetAutoInvoiceMailing = () => {
 
   const handleCancel2FA = useCallback((settingKey, action) => {
     updateModal(`${settingKey}2FA${action}`, false);
-    // Reset 2FA form
-    setOtpCode(['', '', '', '']);
-    setVerificationPassword('');
-    setDefaultPassword('');
   }, [updateModal]);
 
   // ==============================
@@ -118,264 +142,220 @@ const GetAutoInvoiceMailing = () => {
   // COMPONENT DEFINITIONS
   // ==============================
   
+  // Memoized close button component
+  const CloseButton = useMemo(() => ({ onClick }) => (
+    <button onClick={onClick} className={MODAL_CLASSES.closeButton}>
+      <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+  ), []);
+
+  // Memoized confirmation modal component
+  const ConfirmationModal = useMemo(() => ({ 
+    isOpen, 
+    displayName, 
+    action, 
+    onConfirm, 
+    onCancel 
+  }) => {
+    if (!isOpen) return null;
+    
+    return (
+      <div className={MODAL_CLASSES.backdrop}>
+        <div className={MODAL_CLASSES.container}>
+          <CloseButton onClick={onCancel} />
+          <div className={MODAL_CLASSES.title}>
+            <p className={MODAL_CLASSES.titleText}>
+              Are you sure you want to turn {displayName} {action.toLowerCase()}
+            </p>
+          </div>
+          <div className={MODAL_CLASSES.buttonContainer}>
+            <button onClick={onConfirm} className={MODAL_CLASSES.confirmButton}>
+              yes
+            </button>
+            <button onClick={onCancel} className={MODAL_CLASSES.cancelButton}>
+              Cancel
+            </button>
+          </div>
+          <div className={MODAL_CLASSES.spacer}></div>
+        </div>
+      </div>
+    );
+  }, [CloseButton]);
+
+  // Memoized success modal component
+  const SuccessModal = useMemo(() => ({ 
+    isOpen, 
+    displayName, 
+    action, 
+    onDone, 
+    onClose,
+    isFinal = false 
+  }) => {
+    if (!isOpen) return null;
+    
+    const isOn = action === 'On';
+    const iconBgClass = isOn ? 'bg-green-100' : 'bg-red-100';
+    const iconColorClass = isOn ? 'text-green-600' : 'text-red-600';
+    const title = isFinal ? 'Configuration Complete' : `${displayName} Turned ${action}`;
+    const subtitle = isFinal 
+      ? (isOn ? `${displayName} is now active and configured.` : `${displayName} has been successfully disabled.`)
+      : (isOn ? 'The setting has been successfully activated.' : 'The setting has been successfully deactivated.');
+    const buttonText = isFinal ? 'Finish' : 'Done';
+    
+    return (
+      <div className={MODAL_CLASSES.backdrop}>
+        <div className={MODAL_CLASSES.container}>
+          <CloseButton onClick={onClose} />
+          <div className={SUCCESS_MODAL_CLASSES.content}>
+            <div className={SUCCESS_MODAL_CLASSES.iconContainer}>
+              <div className={`${SUCCESS_MODAL_CLASSES.icon} ${iconBgClass}`}>
+                <svg className={`${SUCCESS_MODAL_CLASSES.iconSvg} ${iconColorClass}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  {isOn ? (
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  ) : (
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  )}
+                </svg>
+              </div>
+              <h3 className={SUCCESS_MODAL_CLASSES.title}>{title}</h3>
+              <p className={SUCCESS_MODAL_CLASSES.subtitle}>{subtitle}</p>
+            </div>
+            <button onClick={onDone} className={SUCCESS_MODAL_CLASSES.button}>
+              {buttonText}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }, [CloseButton]);
+
+  // Memoized toggle button classes
+  const getToggleButtonClasses = useMemo(() => (enabled, isOnButton) => {
+    const baseClasses = "px-4 py-2 rounded-full text-[16px] font-medium transition-colors";
+    const widthClass = isOnButton ? "min-w-[69px]" : "min-w-[76px]";
+    const isActive = isOnButton ? enabled : !enabled;
+    const activeClasses = "bg-[#000aff] text-white border border-black";
+    const inactiveClasses = "bg-transparent text-black border border-[#e4e4e4]";
+    
+    return `${baseClasses} ${widthClass} ${isActive ? activeClasses : inactiveClasses}`;
+  }, []);
+
   const ToggleSwitch = useCallback(({ enabled, label, settingKey }) => (
     <div className="flex items-center justify-between py-4">
       <span className="font-bold text-[#010101] text-[20px] font-montserrat">{label}</span>
       <div className="flex items-center space-x-2">
         <button
           onClick={() => handleToggleSetting(settingKey, 'on')}
-          className={`px-4 py-2 rounded-full text-[16px] font-medium transition-colors min-w-[69px] ${
-            enabled 
-              ? 'bg-[#000aff] text-white border border-black' 
-              : 'bg-transparent text-black border border-[#e4e4e4]'
-          }`}
+          className={getToggleButtonClasses(enabled, true)}
         >
           On
         </button>
         <button
           onClick={() => handleToggleSetting(settingKey, 'off')}
-          className={`px-4 py-2 rounded-full text-[16px] font-medium transition-colors min-w-[76px] ${
-            !enabled 
-              ? 'bg-[#000aff] text-white border border-black' 
-              : 'bg-transparent text-black border border-[#e4e4e4]'
-          }`}
+          className={getToggleButtonClasses(enabled, false)}
         >
           Off
         </button>
       </div>
     </div>
-  ), [handleToggleSetting]);
+  ), [handleToggleSetting, getToggleButtonClasses]);
 
-  // Render modals for auto invoicing setting
-  const renderModalsForSetting = useCallback((settingKey, displayName) => {
+  // Optimized modal rendering with memoized components
+  const renderModals = useMemo(() => {
+    const settingKey = 'autoInvoicing';
+    const displayName = 'Auto Invoice Mailing';
+    
     return (
       <>
-        {/* Confirmation Modal - On */}
-        {modals[`${settingKey}ConfirmOn`] && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-md mx-4 overflow-clip">
-              <button 
-                onClick={() => handleCancelToggle(settingKey, 'On')}
-                className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700"
-              >
-                <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-              <div className="absolute top-[60px] left-1/2 transform -translate-x-1/2 w-[165px] text-center">
-                <p className="font-bold text-black text-[18px] leading-[22px] tracking-[-0.41px] font-['Montserrat']">
-                  Are you sure you want to turn {displayName} on
-                </p>
-              </div>
-              <div className="absolute top-[189px] left-1/2 transform -translate-x-1/2 flex gap-4">
-                <button
-                  onClick={() => handleConfirmToggleOn(settingKey)}
-                  className="bg-black text-white rounded-3xl w-[149px] h-12 font-semibold text-[16px] leading-[22px] font-['Montserrat'] hover:bg-gray-800 transition-colors"
-                >
-                  yes
-                </button>
-                <button
-                  onClick={() => handleCancelToggle(settingKey, 'On')}
-                  className="border border-[#e4e4e4] text-black rounded-[100px] w-[209px] h-16 font-medium text-[16px] leading-[19.2px] font-['Montserrat'] hover:bg-gray-50 transition-colors flex items-center justify-center"
-                >
-                  Cancel
-                </button>
-              </div>
-              <div className="h-[280px]"></div>
-            </div>
-          </div>
-        )}
+        {/* Confirmation Modals */}
+        <ConfirmationModal
+          isOpen={modals.autoInvoicingConfirmOn}
+          displayName={displayName}
+          action="On"
+          onConfirm={() => handleConfirmToggleOn(settingKey)}
+          onCancel={() => handleCancelToggle(settingKey, 'On')}
+        />
+        
+        <ConfirmationModal
+          isOpen={modals.autoInvoicingConfirmOff}
+          displayName={displayName}
+          action="Off"
+          onConfirm={() => handleConfirmToggleOff(settingKey)}
+          onCancel={() => handleCancelToggle(settingKey, 'Off')}
+        />
 
-        {/* Confirmation Modal - Off */}
-        {modals[`${settingKey}ConfirmOff`] && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-md mx-4 overflow-clip">
-              <button 
-                onClick={() => handleCancelToggle(settingKey, 'Off')}
-                className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700"
-              >
-                <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-              <div className="absolute top-[60px] left-1/2 transform -translate-x-1/2 w-[165px] text-center">
-                <p className="font-bold text-black text-[18px] leading-[22px] tracking-[-0.41px] font-['Montserrat']">
-                  Are you sure you want to turn {displayName} off
-                </p>
-              </div>
-              <div className="absolute top-[189px] left-1/2 transform -translate-x-1/2 flex gap-4">
-                <button
-                  onClick={() => handleConfirmToggleOff(settingKey)}
-                  className="bg-black text-white rounded-3xl w-[149px] h-12 font-semibold text-[16px] leading-[22px] font-['Montserrat'] hover:bg-gray-800 transition-colors"
-                >
-                  yes
-                </button>
-                <button
-                  onClick={() => handleCancelToggle(settingKey, 'Off')}
-                  className="border border-[#e4e4e4] text-black rounded-[100px] w-[209px] h-16 font-medium text-[16px] leading-[19.2px] font-['Montserrat'] hover:bg-gray-50 transition-colors flex items-center justify-center"
-                >
-                  Cancel
-                </button>
-              </div>
-              <div className="h-[280px]"></div>
-            </div>
-          </div>
-        )}
-
-        {/* 2FA Modal - On */}
-        {modals[`${settingKey}2FAOn`] && (
+        {/* 2FA Modals */}
+        {modals.autoInvoicing2FAOn && (
           <TwoFactorAuth
             onSubmit={(data) => handle2FASubmit(settingKey, 'On', data)}
             onClose={() => handleCancel2FA(settingKey, 'On')}
-            phoneNumber="+1 (555) 123-4567"
-            emailAddress="invoice@automail.com"
+            phoneNumber={PHONE_NUMBER}
+            emailAddress={EMAIL_ADDRESS}
           />
         )}
 
-        {/* 2FA Modal - Off */}
-        {modals[`${settingKey}2FAOff`] && (
+        {modals.autoInvoicing2FAOff && (
           <TwoFactorAuth
             onSubmit={(data) => handle2FASubmit(settingKey, 'Off', data)}
             onClose={() => handleCancel2FA(settingKey, 'Off')}
-            phoneNumber="+1 (555) 123-4567"
-            emailAddress="invoice@automail.com"
+            phoneNumber={PHONE_NUMBER}
+            emailAddress={EMAIL_ADDRESS}
           />
         )}
 
-        {/* Success Modal - On */}
-        {modals[`${settingKey}SuccessOn`] && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-md mx-4 overflow-clip">
-              <button 
-                onClick={() => handleCloseSuccessModal(settingKey, 'On')}
-                className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700"
-              >
-                <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-              <div className="p-8 text-center">
-                <div className="mb-6">
-                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                  </div>
-                  <h3 className="font-bold text-black text-[18px] mb-2">{displayName} Turned On</h3>
-                  <p className="text-gray-600">The setting has been successfully activated.</p>
-                </div>
-                <button
-                  onClick={() => handleSuccessModalDone(settingKey, 'On')}
-                  className="bg-black text-white px-8 py-3 rounded-full font-semibold hover:bg-gray-800 transition-colors"
-                >
-                  Done
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* Success Modals */}
+        <SuccessModal
+          isOpen={modals.autoInvoicingSuccessOn}
+          displayName={displayName}
+          action="On"
+          onDone={() => handleSuccessModalDone(settingKey, 'On')}
+          onClose={() => handleCloseSuccessModal(settingKey, 'On')}
+        />
 
-        {/* Success Modal - Off */}
-        {modals[`${settingKey}SuccessOff`] && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-md mx-4 overflow-clip">
-              <button 
-                onClick={() => handleCloseSuccessModal(settingKey, 'Off')}
-                className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700"
-              >
-                <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-              <div className="p-8 text-center">
-                <div className="mb-6">
-                  <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </div>
-                  <h3 className="font-bold text-black text-[18px] mb-2">{displayName} Turned Off</h3>
-                  <p className="text-gray-600">The setting has been successfully deactivated.</p>
-                </div>
-                <button
-                  onClick={() => handleSuccessModalDone(settingKey, 'Off')}
-                  className="bg-black text-white px-8 py-3 rounded-full font-semibold hover:bg-gray-800 transition-colors"
-                >
-                  Done
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        <SuccessModal
+          isOpen={modals.autoInvoicingSuccessOff}
+          displayName={displayName}
+          action="Off"
+          onDone={() => handleSuccessModalDone(settingKey, 'Off')}
+          onClose={() => handleCloseSuccessModal(settingKey, 'Off')}
+        />
 
-        {/* Final Success Modal - On */}
-        {modals[`${settingKey}FinalSuccessOn`] && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-md mx-4 overflow-clip">
-              <button 
-                onClick={() => handleCloseFinalSuccessModal(settingKey, 'On')}
-                className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700"
-              >
-                <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-              <div className="p-8 text-center">
-                <div className="mb-6">
-                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                  </div>
-                  <h3 className="font-bold text-black text-[18px] mb-2">Configuration Complete</h3>
-                  <p className="text-gray-600">{displayName} is now active and configured.</p>
-                </div>
-                <button
-                  onClick={() => handleFinalSuccessModalDone(settingKey, 'On')}
-                  className="bg-black text-white px-8 py-3 rounded-full font-semibold hover:bg-gray-800 transition-colors"
-                >
-                  Finish
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* Final Success Modals */}
+        <SuccessModal
+          isOpen={modals.autoInvoicingFinalSuccessOn}
+          displayName={displayName}
+          action="On"
+          onDone={() => handleFinalSuccessModalDone(settingKey, 'On')}
+          onClose={() => handleCloseFinalSuccessModal(settingKey, 'On')}
+          isFinal={true}
+        />
 
-        {/* Final Success Modal - Off */}
-        {modals[`${settingKey}FinalSuccessOff`] && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-md mx-4 overflow-clip">
-              <button 
-                onClick={() => handleCloseFinalSuccessModal(settingKey, 'Off')}
-                className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700"
-              >
-                <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-              <div className="p-8 text-center">
-                <div className="mb-6">
-                  <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </div>
-                  <h3 className="font-bold text-black text-[18px] mb-2">Configuration Complete</h3>
-                  <p className="text-gray-600">{displayName} has been successfully disabled.</p>
-                </div>
-                <button
-                  onClick={() => handleFinalSuccessModalDone(settingKey, 'Off')}
-                  className="bg-black text-white px-8 py-3 rounded-full font-semibold hover:bg-gray-800 transition-colors"
-                >
-                  Finish
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        <SuccessModal
+          isOpen={modals.autoInvoicingFinalSuccessOff}
+          displayName={displayName}
+          action="Off"
+          onDone={() => handleFinalSuccessModalDone(settingKey, 'Off')}
+          onClose={() => handleCloseFinalSuccessModal(settingKey, 'Off')}
+          isFinal={true}
+        />
       </>
     );
-  }, [modals, handleCancelToggle, handleConfirmToggleOn, handleConfirmToggleOff, handle2FASubmit, handleCancel2FA, handleSuccessModalDone, handleFinalSuccessModalDone, handleCloseSuccessModal, handleCloseFinalSuccessModal]);
+  }, [
+    modals,
+    ConfirmationModal,
+    SuccessModal,
+    handleConfirmToggleOn,
+    handleConfirmToggleOff,
+    handleCancelToggle,
+    handle2FASubmit,
+    handleCancel2FA,
+    handleSuccessModalDone,
+    handleCloseSuccessModal,
+    handleFinalSuccessModalDone,
+    handleCloseFinalSuccessModal
+  ]);
 
   // ==============================
   // MAIN RENDER
@@ -493,10 +473,10 @@ const GetAutoInvoiceMailing = () => {
         </div>
 
         {/* Render Modals */}
-        {renderModalsForSetting('autoInvoicing', 'Auto Invoice Mailing')}
+        {renderModals}
       </div>
     </div>
   );
 };
 
-export default GetAutoInvoiceMailing;
+export default React.memo(GetAutoInvoiceMailing);

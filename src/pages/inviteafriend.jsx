@@ -1,5 +1,17 @@
-import React, { useState, useCallback, useMemo, useReducer } from 'react';
+import React, { useState, useCallback, useMemo, useReducer, useRef } from 'react';
 import TwoFactorAuth from '../components/TwoFactorAuth';
+
+// Constants for better performance
+const OTP_INPUT_PATTERNS = [
+  'input[data-otp-index="{index}"]',
+  '#otp-{index}',
+  '#otp-off-{index}',
+  '#edit-otp-{index}',
+  '#delete-otp-{index}',
+  '#issue-otp-{index}'
+];
+
+const DIGIT_REGEX = /^\d*$/;
 
 // Modal state management using useReducer for better performance
 const initialModalState = {
@@ -36,6 +48,12 @@ const modalReducer = (state, action) => {
       return { ...state, [action.modal]: true };
     case 'HIDE_MODAL':
       return { ...state, [action.modal]: false };
+    case 'HIDE_MULTIPLE_MODALS':
+      const updates = {};
+      action.modals.forEach(modal => {
+        updates[modal] = false;
+      });
+      return { ...state, ...updates };
     case 'RESET_MODALS':
       return initialModalState;
     default:
@@ -64,6 +82,10 @@ const initialFormState = {
 const formReducer = (state, action) => {
   switch (action.type) {
     case 'SET_FIELD':
+      // Early return if value hasn't changed
+      if (state[action.field] === action.value) {
+        return state;
+      }
       return { ...state, [action.field]: action.value };
     case 'RESET_FORM':
       return initialFormState;
@@ -98,6 +120,9 @@ const InviteAFriend = React.memo(() => {
   const [modalState, dispatchModal] = useReducer(modalReducer, initialModalState);
   const [formState, dispatchForm] = useReducer(formReducer, initialFormState);
   
+  // Refs for better OTP focus management
+  const otpRefsMap = useRef(new Map());
+  
   const [issuedCodes, setIssuedCodes] = useState([
     {
       id: 1,
@@ -113,23 +138,50 @@ const InviteAFriend = React.memo(() => {
     }
   ]);
 
+  // Optimized OTP input focus function
+  const focusOtpInput = useCallback((index, direction = 'next') => {
+    const targetIndex = direction === 'next' ? index + 1 : index - 1;
+    const inputRef = otpRefsMap.current.get(targetIndex);
+    
+    if (inputRef && inputRef.current) {
+      inputRef.current.focus();
+      return;
+    }
+    
+    // Fallback to DOM query if ref not available
+    for (const pattern of OTP_INPUT_PATTERNS) {
+      const selector = pattern.replace('{index}', targetIndex.toString());
+      const input = document.querySelector(selector);
+      if (input) {
+        input.focus();
+        break;
+      }
+    }
+  }, []);
+
   // Memoized validation functions
   const validateFormFields = useCallback(() => {
-    return formState.userName && formState.codeToIssue && formState.codeLimit && formState.codeValue;
+    const { userName, codeToIssue, codeLimit, codeValue } = formState;
+    return userName && codeToIssue && codeLimit && codeValue;
   }, [formState.userName, formState.codeToIssue, formState.codeLimit, formState.codeValue]);
 
   const validate2FAFields = useCallback(() => {
     const otpString = formState.otpCode.join('');
-    return otpString.length === 4 && formState.verificationPassword && formState.defaultPassword;
+    const { verificationPassword, defaultPassword } = formState;
+    return otpString.length === 4 && verificationPassword && defaultPassword;
   }, [formState.otpCode, formState.verificationPassword, formState.defaultPassword]);
 
-  // Generic modal handlers
+  // Optimized generic modal handlers
   const showModal = useCallback((modal) => {
     dispatchModal({ type: 'SHOW_MODAL', modal });
   }, []);
 
   const hideModal = useCallback((modal) => {
     dispatchModal({ type: 'HIDE_MODAL', modal });
+  }, []);
+
+  const hideMultipleModals = useCallback((modals) => {
+    dispatchModal({ type: 'HIDE_MULTIPLE_MODALS', modals });
   }, []);
 
   const resetForm = useCallback(() => {
@@ -158,17 +210,19 @@ const InviteAFriend = React.memo(() => {
     }
   }, [isToggleOn, showModal]);
 
-  // Generic 2FA handler
+  // Generic 2FA handler with optimized modal management
   const handle2FASubmit = useCallback((nextModal, data) => {
     // Data contains: { code: string, emailPassword: string, defaultPassword: string }
     console.log('2FA submitted with data:', data);
-    hideModal('show2FAModal');
-    hideModal('showOff2FAModal');
-    hideModal('showEdit2FAModal');
-    hideModal('showIssue2FAModal');
-    hideModal('showDelete2FAModal');
+    hideMultipleModals([
+      'show2FAModal', 
+      'showOff2FAModal', 
+      'showEdit2FAModal', 
+      'showIssue2FAModal', 
+      'showDelete2FAModal'
+    ]);
     showModal(nextModal);
-  }, [hideModal, showModal]);
+  }, [hideMultipleModals, showModal]);
 
   // Specific 2FA handlers
   const handleToggle2FASubmit = useCallback((data) => {
@@ -202,7 +256,7 @@ const InviteAFriend = React.memo(() => {
     showModal('showOff2FAModal');
   }, [hideModal, showModal]);
 
-  // Cancel handlers
+  // Cancel handlers with optimized modal management
   const handleCancelToggle = useCallback(() => {
     hideModal('showConfirmationModal');
   }, [hideModal]);
@@ -212,13 +266,15 @@ const InviteAFriend = React.memo(() => {
   }, [hideModal]);
 
   const handleCancel2FA = useCallback(() => {
-    hideModal('show2FAModal');
-    hideModal('showOff2FAModal');
-    hideModal('showEdit2FAModal'); 
-    hideModal('showIssue2FAModal');
-    hideModal('showDelete2FAModal');
+    hideMultipleModals([
+      'show2FAModal', 
+      'showOff2FAModal', 
+      'showEdit2FAModal', 
+      'showIssue2FAModal', 
+      'showDelete2FAModal'
+    ]);
     reset2FA();
-  }, [hideModal, reset2FA]);
+  }, [hideMultipleModals, reset2FA]);
 
   // Success modal handlers
   const handleSuccessModalDone = useCallback(() => {
@@ -279,7 +335,8 @@ const InviteAFriend = React.memo(() => {
   }, [showModal]);
 
   const handleSaveEditedCode = useCallback(() => {
-    if (formState.editUserName.trim() && formState.editCodeToIssue.trim()) {
+    const { editUserName, editCodeToIssue } = formState;
+    if (editUserName.trim() && editCodeToIssue.trim()) {
       hideModal('showEditModal');
       showModal('showEdit2FAModal');
     } else {
@@ -294,13 +351,14 @@ const InviteAFriend = React.memo(() => {
   }, [hideModal]);
 
   const handleEditSuccessDone = useCallback(() => {
-    if (editingCode && formState.editUserName.trim() && formState.editCodeToIssue.trim()) {
+    const { editUserName, editCodeToIssue } = formState;
+    if (editingCode && editUserName.trim() && editCodeToIssue.trim()) {
       setIssuedCodes(prevCodes => prevCodes.map(code => 
         code.id === editingCode.id 
           ? { 
               ...code, 
-              username: formState.editUserName.trim(),
-              code: formState.editCodeToIssue.toUpperCase().trim()
+              username: editUserName.trim(),
+              code: editCodeToIssue.toUpperCase().trim()
             }
           : code
       ));
@@ -361,12 +419,13 @@ const InviteAFriend = React.memo(() => {
     hideModal('showIssueFinalSuccessModal');
     
     // Actually create the code now
-    if (formState.userName && formState.codeToIssue && formState.codeLimit && formState.codeValue) {
+    const { userName, codeToIssue, codeLimit, codeValue } = formState;
+    if (userName && codeToIssue && codeLimit && codeValue) {
       const newCode = {
         id: issuedCodes.length + 1,
-        username: formState.userName,
-        code: formState.codeToIssue.toUpperCase(),
-        description: `Invite a friend and get additional ${formState.codeValue}% off on your 1st purchase`
+        username: userName,
+        code: codeToIssue.toUpperCase(),
+        description: `Invite a friend and get additional ${codeValue}% off on your 1st purchase`
       };
       setIssuedCodes(prevCodes => [...prevCodes, newCode]);
       
@@ -383,50 +442,36 @@ const InviteAFriend = React.memo(() => {
     hideModal('showIssueFinalSuccessModal');
   }, [hideModal]);
 
-  // OTP handling with improved focus management
+  // Optimized OTP handling with refs and better performance
   const handleOtpChange = useCallback((index, value) => {
-    if (value.length <= 1 && /^\d*$/.test(value)) {
+    if (value.length <= 1 && DIGIT_REGEX.test(value)) {
       const newOtp = [...formState.otpCode];
       newOtp[index] = value;
       dispatchForm({ type: 'SET_FIELD', field: 'otpCode', value: newOtp });
       
       // Auto-focus next input
       if (value && index < 3) {
-        // Try multiple ID patterns for compatibility
-        let nextInput = document.querySelector(`input[data-otp-index="${index + 1}"]`) ||
-                       document.getElementById(`otp-${index + 1}`) ||
-                       document.getElementById(`otp-off-${index + 1}`) ||
-                       document.getElementById(`edit-otp-${index + 1}`) ||
-                       document.getElementById(`delete-otp-${index + 1}`) ||
-                       document.getElementById(`issue-otp-${index + 1}`);
-        if (nextInput) nextInput.focus();
+        focusOtpInput(index, 'next');
       }
     }
-  }, [formState.otpCode]);
+  }, [formState.otpCode, focusOtpInput]);
 
   const handleOtpKeyDown = useCallback((index, e) => {
     if (e.key === 'Backspace' && !formState.otpCode[index] && index > 0) {
-      // Try multiple ID patterns for compatibility
-      let prevInput = document.querySelector(`input[data-otp-index="${index - 1}"]`) ||
-                     document.getElementById(`otp-${index - 1}`) ||
-                     document.getElementById(`otp-off-${index - 1}`) ||
-                     document.getElementById(`edit-otp-${index - 1}`) ||
-                     document.getElementById(`delete-otp-${index - 1}`) ||
-                     document.getElementById(`issue-otp-${index - 1}`);
-      if (prevInput) prevInput.focus();
+      focusOtpInput(index, 'prev');
     }
-  }, [formState.otpCode]);
+  }, [formState.otpCode, focusOtpInput]);
 
-  // Issue OTP handling with improved focus management
+  // Issue OTP handling with optimized focus management
   const handleIssueOtpChange = useCallback((index, value) => {
-    if (value.length <= 1 && /^\d*$/.test(value)) {
+    if (value.length <= 1 && DIGIT_REGEX.test(value)) {
       const newOtp = [...formState.issueOtpCode];
       newOtp[index] = value;
       dispatchForm({ type: 'SET_FIELD', field: 'issueOtpCode', value: newOtp });
       
       // Auto-focus next input
       if (value && index < 3) {
-        let nextInput = document.getElementById(`issue-otp-${index + 1}`);
+        const nextInput = document.getElementById(`issue-otp-${index + 1}`);
         if (nextInput) nextInput.focus();
       }
     }
@@ -434,7 +479,7 @@ const InviteAFriend = React.memo(() => {
 
   const handleIssueOtpKeyDown = useCallback((index, e) => {
     if (e.key === 'Backspace' && !formState.issueOtpCode[index] && index > 0) {
-      let prevInput = document.getElementById(`issue-otp-${index - 1}`);
+      const prevInput = document.getElementById(`issue-otp-${index - 1}`);
       if (prevInput) prevInput.focus();
     }
   }, [formState.issueOtpCode]);
@@ -445,17 +490,63 @@ const InviteAFriend = React.memo(() => {
     dispatchForm({ type: 'SET_FIELD', field: 'issuePassword', value: '' });
   }, [hideModal]);
 
-  // Memoized form field handlers
+  // Optimized form field handlers
   const handleFieldChange = useCallback((field, value) => {
     dispatchForm({ type: 'SET_FIELD', field, value });
   }, []);
 
+  // Fixed password visibility toggle to prevent unnecessary re-renders
   const togglePasswordVisibility = useCallback((field) => {
-    dispatchForm({ type: 'SET_FIELD', field, value: !formState[field] });
+    dispatchForm({ 
+      type: 'SET_FIELD', 
+      field, 
+      value: !formState[field] 
+    });
   }, [formState]);
 
-  // Memoized computed values
-  const memoizedIssuedCodes = useMemo(() => issuedCodes, [issuedCodes]);
+  // Memoized button class names to prevent recreation
+  const getToggleButtonClass = useCallback((isActive) => {
+    return `px-4 py-2 rounded-full text-sm font-medium border ${
+      isActive
+        ? 'bg-blue-600 text-white border-black'
+        : 'bg-white text-black border-gray-300'
+    }`;
+  }, []);
+
+  // Memoized issued codes components to prevent unnecessary re-renders
+  const issuedCodesElements = useMemo(() => {
+    return issuedCodes.map((code) => (
+      <div key={code.id} className="bg-gray-50 p-4 rounded-lg border">
+        <div className="flex justify-between items-start">
+          <div className="flex-1">
+            <div className="font-semibold text-lg">{code.username}</div>
+            <div className="text-blue-600 font-mono text-lg">{code.code}</div>
+            <div className="text-gray-600 text-sm mt-1">{code.description}</div>
+          </div>
+          <div className="flex gap-2 ml-4">
+            <button
+              onClick={() => handleCopyCode(code.code)}
+              className="px-3 py-1 bg-gray-200 hover:bg-gray-300 rounded text-sm"
+            >
+              Copy
+            </button>
+            <button
+              onClick={() => handleEditCode(code)}
+              className="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded text-sm"
+            >
+              Edit
+            </button>
+            <button
+              onClick={() => handleDeleteCode(code)}
+              className="px-3 py-1 bg-red-500 hover:bg-red-600 text-white rounded text-sm"
+            >
+              Delete
+            </button>
+          </div>
+        </div>
+      </div>
+    ));
+  }, [issuedCodes, handleCopyCode, handleEditCode, handleDeleteCode]);
 
   return (
     <div className="bg-white min-h-screen p-6">
@@ -473,21 +564,13 @@ const InviteAFriend = React.memo(() => {
           <div className="flex gap-2">
             <button
               onClick={() => handleToggleInviteSystem('on')}
-              className={`px-4 py-2 rounded-full text-sm font-medium border ${
-                isToggleOn
-                  ? 'bg-blue-600 text-white border-black'
-                  : 'bg-white text-black border-gray-300'
-              }`}
+              className={getToggleButtonClass(isToggleOn)}
             >
               On
             </button>
             <button
               onClick={() => handleToggleInviteSystem('off')}
-              className={`px-4 py-2 rounded-full text-sm font-medium border ${
-                !isToggleOn
-                  ? 'bg-blue-600 text-white border-black'
-                  : 'bg-white text-black border-gray-300'
-              }`}
+              className={getToggleButtonClass(!isToggleOn)}
             >
               Off
             </button>
@@ -566,37 +649,7 @@ const InviteAFriend = React.memo(() => {
       <div className="mt-12">
         <h2 className="text-xl font-bold text-black mb-6">Issued Codes</h2>
         <div className="space-y-4">
-          {memoizedIssuedCodes.map((code) => (
-            <div key={code.id} className="bg-gray-50 p-4 rounded-lg border">
-              <div className="flex justify-between items-start">
-                <div className="flex-1">
-                  <div className="font-semibold text-lg">{code.username}</div>
-                  <div className="text-blue-600 font-mono text-lg">{code.code}</div>
-                  <div className="text-gray-600 text-sm mt-1">{code.description}</div>
-                </div>
-                <div className="flex gap-2 ml-4">
-                  <button
-                    onClick={() => handleCopyCode(code.code)}
-                    className="px-3 py-1 bg-gray-200 hover:bg-gray-300 rounded text-sm"
-                  >
-                    Copy
-                  </button>
-                  <button
-                    onClick={() => handleEditCode(code)}
-                    className="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded text-sm"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleDeleteCode(code)}
-                    className="px-3 py-1 bg-red-500 hover:bg-red-600 text-white rounded text-sm"
-                  >
-                    Delete
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
+          {issuedCodesElements}
         </div>
       </div>
 

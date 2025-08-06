@@ -18,6 +18,71 @@ const INITIAL_PROMO_LIST = [
   }
 ];
 
+// Pre-defined CSS classes to avoid inline object creation
+const CSS_CLASSES = {
+  statusButtonActive: 'px-4 py-1 text-sm rounded-full bg-blue-700 text-white',
+  statusButtonInactive: 'px-4 py-1 text-sm rounded-full bg-gray-200 text-gray-700',
+  formInput: 'w-full border border-gray-300 rounded-md px-3 py-2',
+  selectInput: 'w-full border border-gray-300 rounded-md px-3 py-2 appearance-none',
+  otpInput: 'w-12 h-12 text-center border border-gray-300 rounded-md',
+  passwordInput: 'w-full border border-gray-300 rounded-md px-3 py-2 pr-10',
+  modalOverlay: 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50',
+  modalContent: 'bg-white rounded-lg p-6 max-w-md w-full mx-4',
+  buttonPrimary: 'px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700',
+  buttonSecondary: 'px-4 py-2 border border-gray-300 rounded hover:bg-gray-50',
+  buttonEdit: 'bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600',
+  buttonDelete: 'bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600'
+};
+
+// Default form state to avoid recreation
+const DEFAULT_FORM_STATE = {
+  codeStatus: 'on',
+  discountValue: '',
+  discountType: '',
+  startDate: '',
+  endDate: '',
+  minOrderValue: '',
+  maxUsers: '',
+  category: '',
+  subcategory: '',
+  item: '',
+  sale: ''
+};
+
+// Default modal state to avoid recreation
+const DEFAULT_MODAL_STATE = {
+  showConfirmationModal: false,
+  showOffConfirmationModal: false,
+  show2FAModal: false,
+  showOff2FAModal: false,
+  showSuccessModal: false,
+  showOffSuccessModal: false,
+  showFinalSuccessModal: false,
+  showOffFinalSuccessModal: false,
+  showEditModal: false,
+  showDeleteConfirmationModal: false,
+  showDeleteSuccessModal: false,
+  showEdit2FAModal: false,
+  showEditSuccessModal: false
+};
+
+// Default edit state
+const DEFAULT_EDIT_STATE = {
+  editingPromo: null,
+  newPromoCode: '',
+  deletingPromo: null
+};
+
+// Default auth state
+const DEFAULT_AUTH_STATE = {
+  toggleAction: '',
+  otpCode: ['', '', '', ''],
+  verificationPassword: '',
+  defaultPassword: '',
+  showVerificationPassword: false,
+  showDefaultPassword: false
+};
+
 /**
  * PromoCodeManagement Component
  * 
@@ -29,158 +94,133 @@ const INITIAL_PROMO_LIST = [
  * - View and manage existing promo codes
  */
 const PromoCodeManagement = () => {
-  // Form state
-  const [formData, setFormData] = useState({
-    codeStatus: 'on',
-    discountValue: '',
-    discountType: '',
-    startDate: '',
-    endDate: '',
-    minOrderValue: '',
-    maxUsers: '',
-    category: '',
-    subcategory: '',
-    item: '',
-    sale: ''
-  });
-
-  // Modal state
-  const [modalState, setModalState] = useState({
-    showConfirmationModal: false,
-    showOffConfirmationModal: false,
-    show2FAModal: false,
-    showOff2FAModal: false,
-    showSuccessModal: false,
-    showOffSuccessModal: false,
-    showFinalSuccessModal: false,
-    showOffFinalSuccessModal: false,
-    showEditModal: false,
-    showDeleteConfirmationModal: false,
-    showDeleteSuccessModal: false,
-    showEdit2FAModal: false,
-    showEditSuccessModal: false
-  });
-
-  // Edit/Delete state
-  const [editState, setEditState] = useState({
-    editingPromo: null,
-    newPromoCode: '',
-    deletingPromo: null
-  });
-
-  // Authentication state
-  const [authState, setAuthState] = useState({
-    toggleAction: '',
-    otpCode: ['', '', '', ''],
-    verificationPassword: '',
-    defaultPassword: '',
-    showVerificationPassword: false,
-    showDefaultPassword: false
-  });
-
-  // Promo list state
+  // Consolidated state with default values
+  const [formData, setFormData] = useState(DEFAULT_FORM_STATE);
+  const [modalState, setModalState] = useState(DEFAULT_MODAL_STATE);
+  const [editState, setEditState] = useState(DEFAULT_EDIT_STATE);
+  const [authState, setAuthState] = useState(DEFAULT_AUTH_STATE);
   const [promoList, setPromoList] = useState(INITIAL_PROMO_LIST);
 
-  // Utility functions
+  // Memoized computations
+  const isAuthFormValid = useMemo(() => {
+    const otpString = authState.otpCode.join('');
+    return otpString.length === 4 && authState.verificationPassword && authState.defaultPassword;
+  }, [authState.otpCode, authState.verificationPassword, authState.defaultPassword]);
+
+  const currentModalType = useMemo(() => {
+    if (modalState.showOff2FAModal) return 'off';
+    if (modalState.showEdit2FAModal) return 'edit';
+    return 'default';
+  }, [modalState.showOff2FAModal, modalState.showEdit2FAModal]);
+
+  // Optimized state update functions using functional updates
   const updateFormData = useCallback((field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   }, []);
 
-  const updateModalState = useCallback((modalUpdates) => {
-    setModalState(prev => ({ ...prev, ...modalUpdates }));
+  const updateModalState = useCallback((updates) => {
+    setModalState(prev => ({ ...prev, ...updates }));
   }, []);
 
-  const updateAuthState = useCallback((authUpdates) => {
-    setAuthState(prev => ({ ...prev, ...authUpdates }));
+  const updateAuthState = useCallback((updates) => {
+    setAuthState(prev => ({ ...prev, ...updates }));
   }, []);
 
-  const updateEditState = useCallback((editUpdates) => {
-    setEditState(prev => ({ ...prev, ...editUpdates }));
+  const updateEditState = useCallback((updates) => {
+    setEditState(prev => ({ ...prev, ...updates }));
   }, []);
 
   const resetAuthForm = useCallback(() => {
-    updateAuthState({
+    setAuthState(prev => ({
+      ...prev,
       otpCode: ['', '', '', ''],
       verificationPassword: '',
       defaultPassword: ''
-    });
-  }, [updateAuthState]);
+    }));
+  }, []);
 
-  const validateAuthForm = useCallback(() => {
-    const otpString = authState.otpCode.join('');
-    return otpString.length === 4 && authState.verificationPassword && authState.defaultPassword;
-  }, [authState]);
+  // Memoized input ID generators
+  const getOtpInputId = useCallback((index, modalType) => {
+    const prefix = modalType === 'off' ? 'otp-off' : modalType === 'edit' ? 'edit-otp' : 'otp';
+    return `${prefix}-${index}`;
+  }, []);
 
-  // OTP handling
+  // Optimized OTP handlers with reduced DOM queries
   const handleOtpChange = useCallback((index, value) => {
     if (value.length <= 1 && /^\d*$/.test(value)) {
-      const newOtp = [...authState.otpCode];
-      newOtp[index] = value;
-      updateAuthState({ otpCode: newOtp });
+      setAuthState(prev => {
+        const newOtp = [...prev.otpCode];
+        newOtp[index] = value;
+        return { ...prev, otpCode: newOtp };
+      });
       
-      // Auto-focus next input
+      // Auto-focus next input only if value exists and not last input
       if (value && index < 3) {
-        const getInputId = () => {
-          if (modalState.showOff2FAModal) return `otp-off-${index + 1}`;
-          if (modalState.showEdit2FAModal) return `edit-otp-${index + 1}`;
-          return `otp-${index + 1}`;
-        };
-        
-        const nextInput = document.getElementById(getInputId());
-        if (nextInput) nextInput.focus();
+        requestAnimationFrame(() => {
+          const nextInput = document.getElementById(getOtpInputId(index + 1, currentModalType));
+          nextInput?.focus();
+        });
       }
     }
-  }, [authState.otpCode, modalState.showOff2FAModal, modalState.showEdit2FAModal, updateAuthState]);
+  }, [getOtpInputId, currentModalType]);
 
   const handleOtpKeyDown = useCallback((index, e) => {
     if (e.key === 'Backspace' && !authState.otpCode[index] && index > 0) {
-      const getInputId = () => {
-        if (modalState.showOff2FAModal) return `otp-off-${index - 1}`;
-        if (modalState.showEdit2FAModal) return `edit-otp-${index - 1}`;
-        return `otp-${index - 1}`;
-      };
-      
-      const prevInput = document.getElementById(getInputId());
-      if (prevInput) prevInput.focus();
+      requestAnimationFrame(() => {
+        const prevInput = document.getElementById(getOtpInputId(index - 1, currentModalType));
+        prevInput?.focus();
+      });
     }
-  }, [authState.otpCode, modalState.showOff2FAModal, modalState.showEdit2FAModal]);
+  }, [authState.otpCode, getOtpInputId, currentModalType]);
 
-  // Promo code management handlers
+  // Consolidated handlers to reduce function creation
   const handleCreatePromo = useCallback(() => {
     alert('Promo code created successfully!');
   }, []);
 
   const handleToggleCodeStatus = useCallback((status) => {
-    updateAuthState({ toggleAction: status });
-    if (status === 'on') {
-      updateModalState({ showConfirmationModal: true });
-    } else if (status === 'off') {
-      updateModalState({ showOffConfirmationModal: true });
-    }
-  }, [updateAuthState, updateModalState]);
+    setAuthState(prev => ({ ...prev, toggleAction: status }));
+    setModalState(prev => ({
+      ...prev,
+      showConfirmationModal: status === 'on',
+      showOffConfirmationModal: status === 'off'
+    }));
+  }, []);
 
-  // Confirmation handlers
-  const handleConfirmToggleOn = useCallback(() => {
-    updateModalState({ showConfirmationModal: false, show2FAModal: true });
-  }, [updateModalState]);
+  // Optimized confirmation handlers
+  const confirmationHandlers = useMemo(() => ({
+    confirmToggleOn: () => setModalState(prev => ({ 
+      ...prev, 
+      showConfirmationModal: false, 
+      show2FAModal: true 
+    })),
+    confirmToggleOff: () => setModalState(prev => ({ 
+      ...prev, 
+      showOffConfirmationModal: false, 
+      showOff2FAModal: true 
+    })),
+    cancelToggle: () => setModalState(prev => ({ 
+      ...prev, 
+      showConfirmationModal: false 
+    })),
+    cancelOffToggle: () => setModalState(prev => ({ 
+      ...prev, 
+      showOffConfirmationModal: false 
+    }))
+  }), []);
 
-  const handleConfirmToggleOff = useCallback(() => {
-    updateModalState({ showOffConfirmationModal: false, showOff2FAModal: true });
-  }, [updateModalState]);
+  // Consolidated 2FA validation logic
+  const validate2FAData = useCallback((data) => {
+    return data && 
+           data.verificationCode.length === 4 && 
+           data.emailPassword && 
+           data.defaultPassword;
+  }, []);
 
-  const handleCancelToggle = useCallback(() => {
-    updateModalState({ showConfirmationModal: false });
-  }, [updateModalState]);
-
-  const handleCancelOffToggle = useCallback(() => {
-    updateModalState({ showOffConfirmationModal: false });
-  }, [updateModalState]);
-
-  // 2FA handlers
+  // Optimized 2FA handlers
   const handle2FASubmit = useCallback((data) => {
-    if (data && data.verificationCode.length === 4 && data.emailPassword && data.defaultPassword) {
-      updateModalState({ show2FAModal: false, showSuccessModal: true });
-      
+    if (validate2FAData(data)) {
+      setModalState(prev => ({ ...prev, show2FAModal: false, showSuccessModal: true }));
       console.log('Promo Code 2FA Authentication Data:', {
         action: 'toggle_on',
         verificationCode: data.verificationCode,
@@ -190,12 +230,11 @@ const PromoCodeManagement = () => {
     } else {
       alert('Please fill in all fields');
     }
-  }, [updateModalState]);
+  }, [validate2FAData]);
 
   const handleOff2FASubmit = useCallback((data) => {
-    if (data && data.verificationCode.length === 4 && data.emailPassword && data.defaultPassword) {
-      updateModalState({ showOff2FAModal: false, showOffSuccessModal: true });
-      
+    if (validate2FAData(data)) {
+      setModalState(prev => ({ ...prev, showOff2FAModal: false, showOffSuccessModal: true }));
       console.log('Promo Code 2FA Authentication Data:', {
         action: 'toggle_off',
         verificationCode: data.verificationCode,
@@ -205,76 +244,11 @@ const PromoCodeManagement = () => {
     } else {
       alert('Please fill in all fields');
     }
-  }, [updateModalState]);
-
-  const handleCancel2FA = useCallback(() => {
-    updateModalState({ show2FAModal: false });
-  }, [updateModalState]);
-
-  const handleCancelOff2FA = useCallback(() => {
-    updateModalState({ showOff2FAModal: false });
-  }, [updateModalState]);
-
-  // Success modal handlers
-  const handleSuccessModalDone = useCallback(() => {
-    updateModalState({ showSuccessModal: false, showFinalSuccessModal: true });
-  }, [updateModalState]);
-
-  const handleOffSuccessModalDone = useCallback(() => {
-    updateModalState({ showOffSuccessModal: false, showOffFinalSuccessModal: true });
-  }, [updateModalState]);
-
-  const handleFinalSuccessModalDone = useCallback(() => {
-    updateModalState({ showFinalSuccessModal: false });
-    updateFormData('codeStatus', 'on');
-  }, [updateModalState, updateFormData]);
-
-  const handleOffFinalSuccessModalDone = useCallback(() => {
-    updateModalState({ showOffFinalSuccessModal: false });
-    updateFormData('codeStatus', 'off');
-  }, [updateModalState, updateFormData]);
-
-  const handleCloseSuccessModal = useCallback(() => {
-    updateModalState({ showSuccessModal: false });
-    updateFormData('codeStatus', 'on');
-  }, [updateModalState, updateFormData]);
-
-  const handleCloseOffSuccessModal = useCallback(() => {
-    updateModalState({ showOffSuccessModal: false });
-    updateFormData('codeStatus', 'off');
-  }, [updateModalState, updateFormData]);
-
-  const handleCloseFinalSuccessModal = useCallback(() => {
-    updateModalState({ showFinalSuccessModal: false });
-    updateFormData('codeStatus', 'on');
-  }, [updateModalState, updateFormData]);
-
-  const handleCloseOffFinalSuccessModal = useCallback(() => {
-    updateModalState({ showOffFinalSuccessModal: false });
-    updateFormData('codeStatus', 'off');
-  }, [updateModalState, updateFormData]);
-
-  // Edit promo handlers
-  const handleEditPromo = useCallback((promo) => {
-    updateEditState({ editingPromo: promo, newPromoCode: promo.code });
-    updateModalState({ showEditModal: true });
-  }, [updateEditState, updateModalState]);
-
-  const handleSaveEditedPromo = useCallback(() => {
-    if (editState.newPromoCode.trim()) {
-      updateModalState({ showEditModal: false, showEdit2FAModal: true });
-    }
-  }, [editState.newPromoCode, updateModalState]);
-
-  const handleCancelEdit = useCallback(() => {
-    updateModalState({ showEditModal: false });
-    updateEditState({ editingPromo: null, newPromoCode: '' });
-  }, [updateModalState, updateEditState]);
+  }, [validate2FAData]);
 
   const handleEdit2FASubmit = useCallback((data) => {
-    if (data && data.verificationCode.length === 4 && data.emailPassword && data.defaultPassword) {
-      updateModalState({ showEdit2FAModal: false, showEditSuccessModal: true });
-      
+    if (validate2FAData(data)) {
+      setModalState(prev => ({ ...prev, showEdit2FAModal: false, showEditSuccessModal: true }));
       console.log('Promo Code Edit 2FA Authentication Data:', {
         action: 'edit',
         verificationCode: data.verificationCode,
@@ -284,12 +258,72 @@ const PromoCodeManagement = () => {
     } else {
       alert('Please fill in all fields');
     }
-  }, [updateModalState]);
+  }, [validate2FAData]);
 
-  const handleCancelEdit2FA = useCallback(() => {
-    updateModalState({ showEdit2FAModal: false });
-    updateEditState({ editingPromo: null, newPromoCode: '' });
-  }, [updateModalState, updateEditState]);
+  // Consolidated cancel handlers
+  const cancelHandlers = useMemo(() => ({
+    cancel2FA: () => setModalState(prev => ({ ...prev, show2FAModal: false })),
+    cancelOff2FA: () => setModalState(prev => ({ ...prev, showOff2FAModal: false })),
+    cancelEdit2FA: () => {
+      setModalState(prev => ({ ...prev, showEdit2FAModal: false }));
+      setEditState(prev => ({ ...prev, editingPromo: null, newPromoCode: '' }));
+    }
+  }), []);
+
+  // Optimized success modal handlers
+  const successModalHandlers = useMemo(() => ({
+    successModalDone: () => setModalState(prev => ({ 
+      ...prev, 
+      showSuccessModal: false, 
+      showFinalSuccessModal: true 
+    })),
+    offSuccessModalDone: () => setModalState(prev => ({ 
+      ...prev, 
+      showOffSuccessModal: false, 
+      showOffFinalSuccessModal: true 
+    })),
+    finalSuccessModalDone: () => {
+      setModalState(prev => ({ ...prev, showFinalSuccessModal: false }));
+      setFormData(prev => ({ ...prev, codeStatus: 'on' }));
+    },
+    offFinalSuccessModalDone: () => {
+      setModalState(prev => ({ ...prev, showOffFinalSuccessModal: false }));
+      setFormData(prev => ({ ...prev, codeStatus: 'off' }));
+    },
+    closeSuccessModal: () => {
+      setModalState(prev => ({ ...prev, showSuccessModal: false }));
+      setFormData(prev => ({ ...prev, codeStatus: 'on' }));
+    },
+    closeOffSuccessModal: () => {
+      setModalState(prev => ({ ...prev, showOffSuccessModal: false }));
+      setFormData(prev => ({ ...prev, codeStatus: 'off' }));
+    },
+    closeFinalSuccessModal: () => {
+      setModalState(prev => ({ ...prev, showFinalSuccessModal: false }));
+      setFormData(prev => ({ ...prev, codeStatus: 'on' }));
+    },
+    closeOffFinalSuccessModal: () => {
+      setModalState(prev => ({ ...prev, showOffFinalSuccessModal: false }));
+      setFormData(prev => ({ ...prev, codeStatus: 'off' }));
+    }
+  }), []);
+
+  // Optimized edit promo handlers
+  const handleEditPromo = useCallback((promo) => {
+    setEditState(prev => ({ ...prev, editingPromo: promo, newPromoCode: promo.code }));
+    setModalState(prev => ({ ...prev, showEditModal: true }));
+  }, []);
+
+  const handleSaveEditedPromo = useCallback(() => {
+    if (editState.newPromoCode.trim()) {
+      setModalState(prev => ({ ...prev, showEditModal: false, showEdit2FAModal: true }));
+    }
+  }, [editState.newPromoCode]);
+
+  const handleCancelEdit = useCallback(() => {
+    setModalState(prev => ({ ...prev, showEditModal: false }));
+    setEditState(prev => ({ ...prev, editingPromo: null, newPromoCode: '' }));
+  }, []);
 
   const handleEditSuccessDone = useCallback(() => {
     if (editState.editingPromo && editState.newPromoCode.trim()) {
@@ -298,95 +332,154 @@ const PromoCodeManagement = () => {
           ? { ...promo, code: editState.newPromoCode.trim() }
           : promo
       ));
-      updateEditState({ editingPromo: null, newPromoCode: '' });
+      setEditState(prev => ({ ...prev, editingPromo: null, newPromoCode: '' }));
     }
-    updateModalState({ showEditSuccessModal: false });
-  }, [editState.editingPromo, editState.newPromoCode, updateEditState, updateModalState]);
+    setModalState(prev => ({ ...prev, showEditSuccessModal: false }));
+  }, [editState.editingPromo, editState.newPromoCode]);
 
-  // Delete promo handlers
-  const handleDeletePromo = useCallback((promo) => {
-    updateEditState({ deletingPromo: promo });
-    updateModalState({ showDeleteConfirmationModal: true });
-  }, [updateEditState, updateModalState]);
-
-  const handleConfirmDelete = useCallback(() => {
-    updateModalState({ showDeleteConfirmationModal: false, showDeleteSuccessModal: true });
-  }, [updateModalState]);
-
-  const handleDeleteSuccessDone = useCallback(() => {
-    if (editState.deletingPromo) {
-      setPromoList(prev => prev.filter(promo => promo.id !== editState.deletingPromo.id));
-      updateEditState({ deletingPromo: null });
+  // Optimized delete promo handlers
+  const deleteHandlers = useMemo(() => ({
+    deletePromo: (promo) => {
+      setEditState(prev => ({ ...prev, deletingPromo: promo }));
+      setModalState(prev => ({ ...prev, showDeleteConfirmationModal: true }));
+    },
+    confirmDelete: () => setModalState(prev => ({ 
+      ...prev, 
+      showDeleteConfirmationModal: false, 
+      showDeleteSuccessModal: true 
+    })),
+    deleteSuccessDone: () => {
+      setPromoList(prev => prev.filter(promo => promo.id !== editState.deletingPromo?.id));
+      setEditState(prev => ({ ...prev, deletingPromo: null }));
+      setModalState(prev => ({ ...prev, showDeleteSuccessModal: false }));
+    },
+    cancelDelete: () => {
+      setModalState(prev => ({ ...prev, showDeleteConfirmationModal: false }));
+      setEditState(prev => ({ ...prev, deletingPromo: null }));
     }
-    updateModalState({ showDeleteSuccessModal: false });
-  }, [editState.deletingPromo, updateEditState, updateModalState]);
+  }), [editState.deletingPromo]);
 
-  const handleCancelDelete = useCallback(() => {
-    updateModalState({ showDeleteConfirmationModal: false });
-    updateEditState({ deletingPromo: null });
-  }, [updateModalState, updateEditState]);
+  // Optimized render helpers with memoization
+  const renderFormField = useCallback((label, field, type = "text", options = null) => {
+    const fieldValue = formData[field];
+    const labelLower = label.toLowerCase();
+    
+    return (
+      <div>
+        <label className="block text-sm font-medium mb-1">{label}</label>
+        {type === 'select' ? (
+          <select
+            value={fieldValue}
+            onChange={(e) => updateFormData(field, e.target.value)}
+            className={CSS_CLASSES.selectInput}
+          >
+            <option value="">Select {labelLower}</option>
+            {options?.map((option, index) => (
+              <option key={index} value={option}>{option}</option>
+            ))}
+          </select>
+        ) : (
+          <input
+            type={type}
+            value={fieldValue}
+            onChange={(e) => updateFormData(field, e.target.value)}
+            className={CSS_CLASSES.formInput}
+            placeholder={type === 'text' ? `Enter ${labelLower}` : ''}
+          />
+        )}
+      </div>
+    );
+  }, [formData, updateFormData]);
 
-  // Render helpers
-  const renderFormField = useCallback((label, field, type = "text", options = null) => (
-    <div>
-      <label className="block text-sm font-medium mb-1">{label}</label>
-      {type === 'select' ? (
-        <select
-          value={formData[field]}
-          onChange={(e) => updateFormData(field, e.target.value)}
-          className="w-full border border-gray-300 rounded-md px-3 py-2 appearance-none"
-        >
-          <option value="">Select {label.toLowerCase()}</option>
-          {options?.map((option, index) => (
-            <option key={index} value={option}>{option}</option>
-          ))}
-        </select>
-      ) : (
-        <input
-          type={type}
-          value={formData[field]}
-          onChange={(e) => updateFormData(field, e.target.value)}
-          className="w-full border border-gray-300 rounded-md px-3 py-2"
-          placeholder={type === 'text' ? `Enter ${label.toLowerCase()}` : ''}
-        />
-      )}
-    </div>
-  ), [formData, updateFormData]);
-
-  const renderOtpInput = useCallback((index, modalType = '') => (
-    <input
-      key={index}
-      id={`${modalType}${modalType ? '-' : ''}otp-${index}`}
-      type="text"
-      value={authState.otpCode[index]}
-      onChange={(e) => handleOtpChange(index, e.target.value)}
-      onKeyDown={(e) => handleOtpKeyDown(index, e)}
-      className="w-12 h-12 text-center border border-gray-300 rounded-md"
-      maxLength={1}
-    />
-  ), [authState.otpCode, handleOtpChange, handleOtpKeyDown]);
-
-  const renderPasswordField = useCallback((label, field, showField) => (
-    <div className="relative">
-      <label className="block text-sm font-medium mb-1">{label}</label>
+  const renderOtpInput = useCallback((index, modalType = '') => {
+    const inputId = getOtpInputId(index, modalType);
+    return (
       <input
-        type={showField ? "text" : "password"}
-        value={authState[field]}
-        onChange={(e) => updateAuthState({ [field]: e.target.value })}
-        className="w-full border border-gray-300 rounded-md px-3 py-2 pr-10"
-        placeholder={`Enter ${label.toLowerCase()}`}
+        key={index}
+        id={inputId}
+        type="text"
+        value={authState.otpCode[index]}
+        onChange={(e) => handleOtpChange(index, e.target.value)}
+        onKeyDown={(e) => handleOtpKeyDown(index, e)}
+        className={CSS_CLASSES.otpInput}
+        maxLength={1}
       />
-      <button
-        type="button"
-        onClick={() => updateAuthState({ 
-          [field === 'verificationPassword' ? 'showVerificationPassword' : 'showDefaultPassword']: !showField 
-        })}
-        className="absolute right-3 top-8 text-gray-400"
-      >
-        {showField ? '👁️' : '👁️‍🗨️'}
-      </button>
-    </div>
-  ), [authState, updateAuthState]);
+    );
+  }, [authState.otpCode, handleOtpChange, handleOtpKeyDown, getOtpInputId]);
+
+  const renderPasswordField = useCallback((label, field, showField) => {
+    const fieldValue = authState[field];
+    const showFieldKey = field === 'verificationPassword' ? 'showVerificationPassword' : 'showDefaultPassword';
+    
+    return (
+      <div className="relative">
+        <label className="block text-sm font-medium mb-1">{label}</label>
+        <input
+          type={showField ? "text" : "password"}
+          value={fieldValue}
+          onChange={(e) => updateAuthState({ [field]: e.target.value })}
+          className={CSS_CLASSES.passwordInput}
+          placeholder={`Enter ${label.toLowerCase()}`}
+        />
+        <button
+          type="button"
+          onClick={() => updateAuthState({ [showFieldKey]: !showField })}
+          className="absolute right-3 top-8 text-gray-400"
+        >
+          {showField ? '👁️' : '👁️‍🗨️'}
+        </button>
+      </div>
+    );
+  }, [authState, updateAuthState]);
+
+  // Memoized status button classes
+  const getStatusButtonClass = useCallback((status) => {
+    return formData.codeStatus === status 
+      ? CSS_CLASSES.statusButtonActive 
+      : CSS_CLASSES.statusButtonInactive;
+  }, [formData.codeStatus]);
+
+  // Memoized promo list render
+  const renderPromoList = useMemo(() => {
+    if (promoList.length === 0) {
+      return (
+        <div className="text-left">
+          <p>No promo found</p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-4">
+        {promoList.map((promo) => (
+          <div key={promo.id} className="bg-gray-50 p-4 rounded-lg">
+            <div className="flex justify-between items-center">
+              <div>
+                <p className="font-semibold">Code: {promo.code}</p>
+                <p className="text-gray-600">Discount: {promo.discount}</p>
+                <p className="text-gray-600">Date Range: {promo.dateRange}</p>
+                <p className="text-gray-600">Coupon ID: {promo.couponId}</p>
+              </div>
+              <div className="space-x-2">
+                <button
+                  onClick={() => handleEditPromo(promo)}
+                  className={CSS_CLASSES.buttonEdit}
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={() => deleteHandlers.deletePromo(promo)}
+                  className={CSS_CLASSES.buttonDelete}
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }, [promoList, handleEditPromo, deleteHandlers.deletePromo]);
 
   return (
     <div className="p-6 bg-white min-h-screen">
@@ -400,17 +493,13 @@ const PromoCodeManagement = () => {
             <div className="flex items-center space-x-2">
               <button
                 onClick={() => handleToggleCodeStatus('on')}
-                className={`px-4 py-1 text-sm rounded-full ${
-                  formData.codeStatus === 'on' ? 'bg-blue-700 text-white' : 'bg-gray-200 text-gray-700'
-                }`}
+                className={getStatusButtonClass('on')}
               >
                 On
               </button>
               <button
                 onClick={() => handleToggleCodeStatus('off')}
-                className={`px-4 py-1 text-sm rounded-full ${
-                  formData.codeStatus === 'off' ? 'bg-blue-700 text-white' : 'bg-gray-200 text-gray-700'
-                }`}
+                className={getStatusButtonClass('off')}
               >
                 Off
               </button>
@@ -455,61 +544,27 @@ const PromoCodeManagement = () => {
         {/* Existing Promo Codes */}
         <div className="mt-8">
           <h2 className="text-xl font-bold mb-4">Existing promo codes</h2>
-          
-          {promoList.length === 0 ? (
-            <div className="text-left">
-              <p>No promo found</p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {promoList.map((promo) => (
-                <div key={promo.id} className="bg-gray-50 p-4 rounded-lg">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <p className="font-semibold">Code: {promo.code}</p>
-                      <p className="text-gray-600">Discount: {promo.discount}</p>
-                      <p className="text-gray-600">Date Range: {promo.dateRange}</p>
-                      <p className="text-gray-600">Coupon ID: {promo.couponId}</p>
-                    </div>
-                    <div className="space-x-2">
-                      <button
-                        onClick={() => handleEditPromo(promo)}
-                        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => handleDeletePromo(promo)}
-                        className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+          {renderPromoList}
         </div>
       </div>
 
       {/* Modals */}
       {/* Confirmation Modal */}
       {modalState.showConfirmationModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+        <div className={CSS_CLASSES.modalOverlay}>
+          <div className={CSS_CLASSES.modalContent}>
             <h3 className="text-lg font-semibold mb-4">Confirm Action</h3>
             <p className="mb-6">Are you sure you want to turn the promo code on?</p>
             <div className="flex justify-end space-x-4">
               <button
-                onClick={handleCancelToggle}
-                className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50"
+                onClick={confirmationHandlers.cancelToggle}
+                className={CSS_CLASSES.buttonSecondary}
               >
                 Cancel
               </button>
               <button
-                onClick={handleConfirmToggleOn}
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                onClick={confirmationHandlers.confirmToggleOn}
+                className={CSS_CLASSES.buttonPrimary}
               >
                 Confirm
               </button>
@@ -520,20 +575,20 @@ const PromoCodeManagement = () => {
 
       {/* Off Confirmation Modal */}
       {modalState.showOffConfirmationModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+        <div className={CSS_CLASSES.modalOverlay}>
+          <div className={CSS_CLASSES.modalContent}>
             <h3 className="text-lg font-semibold mb-4">Confirm Action</h3>
             <p className="mb-6">Are you sure you want to turn the promo code off?</p>
             <div className="flex justify-end space-x-4">
               <button
-                onClick={handleCancelOffToggle}
-                className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50"
+                onClick={confirmationHandlers.cancelOffToggle}
+                className={CSS_CLASSES.buttonSecondary}
               >
                 Cancel
               </button>
               <button
-                onClick={handleConfirmToggleOff}
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                onClick={confirmationHandlers.confirmToggleOff}
+                className={CSS_CLASSES.buttonPrimary}
               >
                 Confirm
               </button>
@@ -546,7 +601,7 @@ const PromoCodeManagement = () => {
       {modalState.show2FAModal && (
         <TwoFactorAuth
           onSubmit={handle2FASubmit}
-          onClose={handleCancel2FA}
+          onClose={cancelHandlers.cancel2FA}
           phoneNumber="+1 (555) 123-4567"
           emailAddress="admin@promocodes.com"
         />
@@ -556,7 +611,7 @@ const PromoCodeManagement = () => {
       {modalState.showOff2FAModal && (
         <TwoFactorAuth
           onSubmit={handleOff2FASubmit}
-          onClose={handleCancelOff2FA}
+          onClose={cancelHandlers.cancelOff2FA}
           phoneNumber="+1 (555) 123-4567"
           emailAddress="admin@promocodes.com"
         />
@@ -566,7 +621,7 @@ const PromoCodeManagement = () => {
       {modalState.showEdit2FAModal && (
         <TwoFactorAuth
           onSubmit={handleEdit2FASubmit}
-          onClose={handleCancelEdit2FA}
+          onClose={cancelHandlers.cancelEdit2FA}
           phoneNumber="+1 (555) 123-4567"
           emailAddress="admin@promocodes.com"
         />

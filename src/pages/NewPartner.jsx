@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { X } from 'lucide-react';
 import TwoFactorAuth from '../components/TwoFactorAuth';
 import SuccessModal from '../components/SuccessModal';
@@ -10,6 +10,7 @@ const imgProgressBar2 = "http://localhost:3845/assets/03d7a9eb0b3a258f8463991e4d
 const imgProgressBar3 = "http://localhost:3845/assets/f3f85ecfe751f814840dadb647864a547b36ca15.svg";
 
 const NewPartner = () => {
+  // Consolidated form state
   const [formData, setFormData] = useState({
     name: '',
     newId: '',
@@ -17,23 +18,25 @@ const NewPartner = () => {
     confirmPassword: ''
   });
 
-  // Modal states
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [selectedVendorId, setSelectedVendorId] = useState(null);
-  const [blockAction, setBlockAction] = useState(''); // 'block' or 'unblock'
-  
-  // 2FA Flow states for partner creation
-  const [show2FAModal, setShow2FAModal] = useState(false);
-  const [showVerificationSuccessModal, setShowVerificationSuccessModal] = useState(false);
-  const [showPartnerCreatedSuccessModal, setShowPartnerCreatedSuccessModal] = useState(false);
-  const [pendingPartnerData, setPendingPartnerData] = useState(null);
-  
-  // 2FA Flow states for blocking/unblocking
-  const [showBlockConfirmModal, setShowBlockConfirmModal] = useState(false);
-  const [showBlock2FAModal, setShowBlock2FAModal] = useState(false);
-  const [showBlockSuccessModal, setShowBlockSuccessModal] = useState(false);
-  const [pendingBlockData, setPendingBlockData] = useState(null);
+  // Consolidated modal states
+  const [modalStates, setModalStates] = useState({
+    showConfirmModal: false,
+    showSuccessModal: false,
+    show2FAModal: false,
+    showVerificationSuccessModal: false,
+    showPartnerCreatedSuccessModal: false,
+    showBlockConfirmModal: false,
+    showBlock2FAModal: false,
+    showBlockSuccessModal: false
+  });
+
+  // Consolidated action states
+  const [actionStates, setActionStates] = useState({
+    selectedVendorId: null,
+    blockAction: '',
+    pendingPartnerData: null,
+    pendingBlockData: null
+  });
 
   const [vendors, setVendors] = useState([
     {
@@ -73,15 +76,34 @@ const NewPartner = () => {
   const [editingPassword, setEditingPassword] = useState({});
   const [editingEditPassword, setEditingEditPassword] = useState({});
 
-  const handleInputChange = (e) => {
+  // Memoized helper functions
+  const updateModalState = useCallback((key, value) => {
+    setModalStates(prev => ({ ...prev, [key]: value }));
+  }, []);
+
+  const updateActionState = useCallback((key, value) => {
+    setActionStates(prev => ({ ...prev, [key]: value }));
+  }, []);
+
+  const resetForm = useCallback(() => {
+    setFormData({
+      name: '',
+      newId: '',
+      password: '',
+      confirmPassword: ''
+    });
+  }, []);
+
+  // Memoized event handlers
+  const handleInputChange = useCallback((e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
       [name]: value
     }));
-  };
+  }, []);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = useCallback((e) => {
     e.preventDefault();
     if (formData.password !== formData.confirmPassword) {
       alert('Passwords do not match!');
@@ -98,104 +120,98 @@ const NewPartner = () => {
       status: 'active'
     };
     
-    setPendingPartnerData(newPartnerData);
-    setShow2FAModal(true);
-  };
+    updateActionState('pendingPartnerData', newPartnerData);
+    updateModalState('show2FAModal', true);
+  }, [formData.password, formData.confirmPassword, formData.name, formData.newId, updateActionState, updateModalState]);
 
-  const handleBlockVendor = (vendorId, action) => {
-    setSelectedVendorId(vendorId);
-    setBlockAction(action);
-    setPendingBlockData({ vendorId, action });
-    setShowBlockConfirmModal(true);
-  };
+  const handleBlockVendor = useCallback((vendorId, action) => {
+    const blockData = { vendorId, action };
+    updateActionState('selectedVendorId', vendorId);
+    updateActionState('blockAction', action);
+    updateActionState('pendingBlockData', blockData);
+    updateModalState('showBlockConfirmModal', true);
+  }, [updateActionState, updateModalState]);
 
-  const confirmBlockVendor = () => {
-    setShowBlockConfirmModal(false);
-    setShowBlock2FAModal(true);
-  };
+  const confirmBlockVendor = useCallback(() => {
+    updateModalState('showBlockConfirmModal', false);
+    updateModalState('showBlock2FAModal', true);
+  }, [updateModalState]);
 
-  const cancelBlockVendor = () => {
-    setShowConfirmModal(false);
-    setSelectedVendorId(null);
-  };
+  const cancelBlockVendor = useCallback(() => {
+    updateModalState('showConfirmModal', false);
+    updateActionState('selectedVendorId', null);
+  }, [updateModalState, updateActionState]);
 
-  const closeSuccessModal = () => {
-    setShowSuccessModal(false);
-  };
+  const closeSuccessModal = useCallback(() => {
+    updateModalState('showSuccessModal', false);
+  }, [updateModalState]);
 
   // Block/Unblock 2FA Flow handlers
-  const handleBlock2FASubmit = (data) => {
+  const handleBlock2FASubmit = useCallback((data) => {
     console.log('Block 2FA Authentication Data:', data);
-    setShowBlock2FAModal(false);
+    updateModalState('showBlock2FAModal', false);
     
     // Update vendor status
-    if (pendingBlockData) {
+    if (actionStates.pendingBlockData) {
       setVendors(prev => 
         prev.map(vendor => 
-          vendor.id === pendingBlockData.vendorId 
-            ? { ...vendor, status: pendingBlockData.action === 'block' ? 'blocked' : 'active' }
+          vendor.id === actionStates.pendingBlockData.vendorId 
+            ? { ...vendor, status: actionStates.pendingBlockData.action === 'block' ? 'blocked' : 'active' }
             : vendor
         )
       );
     }
     
-    setShowBlockSuccessModal(true);
-  };
+    updateModalState('showBlockSuccessModal', true);
+  }, [actionStates.pendingBlockData, updateModalState]);
 
-  const handleCancelBlock2FA = () => {
-    setShowBlock2FAModal(false);
-    setPendingBlockData(null);
-    setSelectedVendorId(null);
-  };
+  const handleCancelBlock2FA = useCallback(() => {
+    updateModalState('showBlock2FAModal', false);
+    updateActionState('pendingBlockData', null);
+    updateActionState('selectedVendorId', null);
+  }, [updateModalState, updateActionState]);
 
-  const handleBlockSuccessDone = () => {
-    setShowBlockSuccessModal(false);
-    setPendingBlockData(null);
-    setSelectedVendorId(null);
-  };
+  const handleBlockSuccessDone = useCallback(() => {
+    updateModalState('showBlockSuccessModal', false);
+    updateActionState('pendingBlockData', null);
+    updateActionState('selectedVendorId', null);
+  }, [updateModalState, updateActionState]);
 
-  const handleCancelBlockConfirm = () => {
-    setShowBlockConfirmModal(false);
-    setPendingBlockData(null);
-    setSelectedVendorId(null);
-  };
+  const handleCancelBlockConfirm = useCallback(() => {
+    updateModalState('showBlockConfirmModal', false);
+    updateActionState('pendingBlockData', null);
+    updateActionState('selectedVendorId', null);
+  }, [updateModalState, updateActionState]);
 
   // 2FA Flow handlers
-  const handle2FASubmit = (data) => {
+  const handle2FASubmit = useCallback((data) => {
     console.log('2FA Authentication Data:', data);
-    setShow2FAModal(false);
-    setShowVerificationSuccessModal(true);
-  };
+    updateModalState('show2FAModal', false);
+    updateModalState('showVerificationSuccessModal', true);
+  }, [updateModalState]);
 
-  const handleCancel2FA = () => {
-    setShow2FAModal(false);
-    setPendingPartnerData(null);
-  };
+  const handleCancel2FA = useCallback(() => {
+    updateModalState('show2FAModal', false);
+    updateActionState('pendingPartnerData', null);
+  }, [updateModalState, updateActionState]);
 
-  const handleVerificationSuccessDone = () => {
-    setShowVerificationSuccessModal(false);
-    setShowPartnerCreatedSuccessModal(true);
-  };
+  const handleVerificationSuccessDone = useCallback(() => {
+    updateModalState('showVerificationSuccessModal', false);
+    updateModalState('showPartnerCreatedSuccessModal', true);
+  }, [updateModalState]);
 
-  const handlePartnerCreatedSuccessDone = () => {
-    setShowPartnerCreatedSuccessModal(false);
+  const handlePartnerCreatedSuccessDone = useCallback(() => {
+    updateModalState('showPartnerCreatedSuccessModal', false);
     
     // Now create the vendor and reset form
-    if (pendingPartnerData) {
-      setVendors(prev => [...prev, pendingPartnerData]);
-      setPendingPartnerData(null);
-      
-      // Reset form
-      setFormData({
-        name: '',
-        newId: '',
-        password: '',
-        confirmPassword: ''
-      });
+    if (actionStates.pendingPartnerData) {
+      setVendors(prev => [...prev, actionStates.pendingPartnerData]);
+      updateActionState('pendingPartnerData', null);
+      resetForm();
     }
-  };
+  }, [actionStates.pendingPartnerData, updateModalState, updateActionState, resetForm]);
 
-  const handlePasswordEdit = (vendorId, field, value) => {
+  const handlePasswordEdit = useCallback((vendorId, field, value) => {
     if (field === 'password') {
       setEditingPassword(prev => ({
         ...prev,
@@ -207,9 +223,9 @@ const NewPartner = () => {
         [vendorId]: value
       }));
     }
-  };
+  }, []);
 
-  const savePassword = (vendorId, field) => {
+  const savePassword = useCallback((vendorId, field) => {
     const newValue = field === 'password' ? editingPassword[vendorId] : editingEditPassword[vendorId];
     if (newValue) {
       setVendors(prev => 
@@ -235,7 +251,20 @@ const NewPartner = () => {
         });
       }
     }
-  };
+  }, [editingPassword, editingEditPassword]);
+
+  // Memoized computed values
+  const selectedVendor = useMemo(() => 
+    vendors.find(v => v.id === actionStates.selectedVendorId),
+    [vendors, actionStates.selectedVendorId]
+  );
+
+  const blockSuccessTitle = useMemo(() => 
+    actionStates.pendingBlockData?.action === 'block' 
+      ? 'partner blocked successfully!' 
+      : 'partner unblocked successfully!',
+    [actionStates.pendingBlockData?.action]
+  );
 
   return (
     <div className="bg-[#ffffff] relative min-h-screen w-full">
@@ -420,7 +449,7 @@ const NewPartner = () => {
       </div>
 
       {/* Block Confirmation Modal */}
-      {showBlockConfirmModal && (
+      {modalStates.showBlockConfirmModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] p-8 max-w-md w-full mx-4 relative">
             {/* Close button */}
@@ -443,7 +472,7 @@ const NewPartner = () => {
               </div>
 
               <h2 className="font-montserrat font-bold text-[18px] text-black mb-8 leading-[22px] tracking-[-0.41px]">
-                are you sure you want to {pendingBlockData?.action} this partner
+                are you sure you want to {actionStates.pendingBlockData?.action} this partner
               </h2>
               
               <div className="flex justify-center space-x-4">
@@ -469,7 +498,7 @@ const NewPartner = () => {
       )}
 
       {/* Success Modal */}
-      {showSuccessModal && (
+      {modalStates.showSuccessModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl shadow-lg p-8 max-w-md w-full mx-4 relative">
             {/* Close button */}
@@ -492,8 +521,7 @@ const NewPartner = () => {
               </div>
               
               {(() => {
-                const vendor = vendors.find(v => v.id === selectedVendorId);
-                const wasBlocked = vendor?.status === 'blocked';
+                const wasBlocked = selectedVendor?.status === 'blocked';
                 return (
                   <h2 className="text-lg font-bold text-black mb-6">
                     Vendor {wasBlocked ? 'blocked' : 'unblocked'} successfully
@@ -513,7 +541,7 @@ const NewPartner = () => {
       )}
 
       {/* 2FA Modal for Partner Creation */}
-      {show2FAModal && (
+      {modalStates.show2FAModal && (
         <TwoFactorAuth
           onSubmit={handle2FASubmit}
           onClose={handleCancel2FA}
@@ -523,7 +551,7 @@ const NewPartner = () => {
       )}
 
       {/* 2FA Modal for Blocking/Unblocking */}
-      {showBlock2FAModal && (
+      {modalStates.showBlock2FAModal && (
         <TwoFactorAuth
           onSubmit={handleBlock2FASubmit}
           onClose={handleCancelBlock2FA}
@@ -534,7 +562,7 @@ const NewPartner = () => {
 
       {/* Verification Success Modal */}
       <SuccessModal
-        isOpen={showVerificationSuccessModal}
+        isOpen={modalStates.showVerificationSuccessModal}
         onClose={handleVerificationSuccessDone}
         title="id verified successfully!"
         buttonText="Done"
@@ -542,7 +570,7 @@ const NewPartner = () => {
 
       {/* Partner Created Success Modal */}
       <SuccessModal
-        isOpen={showPartnerCreatedSuccessModal}
+        isOpen={modalStates.showPartnerCreatedSuccessModal}
         onClose={handlePartnerCreatedSuccessDone}
         title="New Partner created successfully!"
         buttonText="Done"
@@ -550,9 +578,9 @@ const NewPartner = () => {
 
       {/* Block Success Modal */}
       <SuccessModal
-        isOpen={showBlockSuccessModal}
+        isOpen={modalStates.showBlockSuccessModal}
         onClose={handleBlockSuccessDone}
-        title={pendingBlockData?.action === 'block' ? 'partner blocked successfully!' : 'partner unblocked successfully!'}
+        title={blockSuccessTitle}
         buttonText="Done"
       />
     </div>

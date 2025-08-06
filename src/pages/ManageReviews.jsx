@@ -1,6 +1,126 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { Search, ChevronDown, Star, X } from 'lucide-react';
 import ReviewDetails from './ReviewDetails';
+
+// Move static data outside component to prevent recreation on every render
+const CATEGORIES = ['All categories', 'men', 'Women', 'kids'];
+const SUBCATEGORIES = ['sub categories', 'jacket', 't-shirt', 'lower'];
+
+const INITIAL_PRODUCTS = [
+  {
+    id: 1,
+    name: 'Tshirt',
+    image: 'http://localhost:3845/assets/fcfe140894624215171c88f4e69e22948fa65f2b.png',
+    rating: 4,
+    sizeRating: 3,
+    comfortRating: 4,
+    durabilityRating: 4,
+    category: 'men',
+    subcategory: 't-shirt',
+    reviewsEnabled: true
+  },
+  {
+    id: 2,
+    name: 'manage reviews',
+    image: 'http://localhost:3845/assets/fcfe140894624215171c88f4e69e22948fa65f2b.png',
+    rating: 4,
+    sizeRating: 3,
+    comfortRating: 3,
+    durabilityRating: 4,
+    category: 'Women',
+    subcategory: 'jacket',
+    reviewsEnabled: true
+  }
+];
+
+// Memoized ProductRow component to prevent unnecessary re-renders
+const ProductRow = React.memo(({ 
+  product, 
+  renderStars, 
+  renderRatingScale, 
+  handleViewReviews, 
+  handleToggleReviews 
+}) => (
+  <div key={product.id} className="px-6 py-6">
+    <div className="grid grid-cols-12 gap-4 items-start">
+      {/* Product Image */}
+      <div className="col-span-1">
+        <img
+          src={product.image}
+          alt={product.name}
+          className="w-16 h-20 object-cover rounded-md"
+        />
+      </div>
+
+      {/* Product Name */}
+      <div className="col-span-2">
+        <h3 className="text-lg font-medium text-gray-900">{product.name}</h3>
+      </div>
+
+      {/* Rating */}
+      <div className="col-span-1">
+        <div className="flex space-x-1">{renderStars(product.rating)}</div>
+      </div>
+
+      {/* Size and Fit Ratings */}
+      <div className="col-span-2">
+        {renderRatingScale(product.sizeRating, 'size')}
+        {renderRatingScale(product.comfortRating, 'comfort')}
+        {renderRatingScale(product.durabilityRating, 'durability')}
+      </div>
+
+      {/* Category */}
+      <div className="col-span-1">
+        <span className="text-sm text-gray-700">{product.category}</span>
+      </div>
+
+      {/* Subcategory */}
+      <div className="col-span-1">
+        <span className="text-sm text-gray-700">{product.subcategory}</span>
+      </div>
+
+      {/* Action Button */}
+      <div className="col-span-2">
+        <div className="flex space-x-2">
+          <button 
+            onClick={() => handleViewReviews(product)}
+            className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+          >
+            view reviews
+          </button>
+        </div>
+      </div>
+
+      {/* Toggle Reviews */}
+      <div className="col-span-2">
+        <div className="flex space-x-2">
+          <button
+            onClick={() => handleToggleReviews(product.id, product.reviewsEnabled)}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors border ${
+              product.reviewsEnabled
+                ? 'bg-blue-600 text-white border-black'
+                : 'bg-white text-black border-gray-300 hover:bg-gray-50'
+            }`}
+          >
+            On
+          </button>
+          <button
+            onClick={() => handleToggleReviews(product.id, product.reviewsEnabled)}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors border ${
+              !product.reviewsEnabled
+                ? 'bg-blue-600 text-white border-black'
+                : 'bg-white text-black border-gray-300 hover:bg-gray-50'
+            }`}
+          >
+            Off
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+));
+
+ProductRow.displayName = 'ProductRow';
 
 const ManageReviews = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -11,12 +131,14 @@ const ManageReviews = () => {
   const [showReviewDetails, setShowReviewDetails] = useState(false);
   const [selectedProductForReview, setSelectedProductForReview] = useState(null);
   
-  // Modal states for confirmation dialogitgs
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [showToggleModal, setShowToggleModal] = useState(false);
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [successMessage, setSuccessMessage] = useState('');
+  // Consolidated modal state for better performance
+  const [modalState, setModalState] = useState({
+    showDeleteModal: false,
+    showEditModal: false,
+    showToggleModal: false,
+    showSuccessModal: false,
+    successMessage: ''
+  });
   
   // Edit states
   const [editingProduct, setEditingProduct] = useState(null);
@@ -24,77 +146,60 @@ const ManageReviews = () => {
   const [editProductCategory, setEditProductCategory] = useState('');
   const [editProductSubcategory, setEditProductSubcategory] = useState('');
   
-  // Delete state
+  // Action states
   const [deletingProductId, setDeletingProductId] = useState(null);
-  
-  // Toggle state
   const [toggleProductId, setToggleProductId] = useState(null);
   const [toggleAction, setToggleAction] = useState('');
   
-  // Mock data for products with reviews
-  const [products, setProducts] = useState([
-    {
-      id: 1,
-      name: 'Tshirt',
-      image: 'http://localhost:3845/assets/fcfe140894624215171c88f4e69e22948fa65f2b.png',
-      rating: 4,
-      sizeRating: 3, // 1-5 scale (too small to too big)
-      comfortRating: 4,
-      durabilityRating: 4,
-      category: 'men',
-      subcategory: 't-shirt',
-      reviewsEnabled: true
-    },
-    {
-      id: 2,
-      name: 'manage reviews',
-      image: 'http://localhost:3845/assets/fcfe140894624215171c88f4e69e22948fa65f2b.png',
-      rating: 4,
-      sizeRating: 3,
-      comfortRating: 3,
-      durabilityRating: 4,
-      category: 'Women',
-      subcategory: 'jacket',
-      reviewsEnabled: true
-    }
-  ]);
+  const [products, setProducts] = useState(INITIAL_PRODUCTS);
+
+  // Memoized filtered products to avoid recalculation on every render
+  const filteredProducts = useMemo(() => {
+    return products.filter((product) => {
+      const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesCategory = selectedCategory === 'All categories' || product.category === selectedCategory;
+      const matchesSubcategory = selectedSubcategory === 'sub categories' || product.subcategory === selectedSubcategory;
+      
+      return matchesSearch && matchesCategory && matchesSubcategory;
+    });
+  }, [products, searchTerm, selectedCategory, selectedSubcategory]);
 
   const categories = ['All categories', 'men', 'Women', 'kids'];
   const subcategories = ['sub categories', 'jacket', 't-shirt', 'lower'];
 
-  // Handler functions for CRUD operations
-  const handleEditProduct = (product) => {
+  // Memoized event handlers to prevent unnecessary re-renders
+  const handleEditProduct = useCallback((product) => {
     setEditingProduct(product);
     setEditProductName(product.name);
     setEditProductCategory(product.category);
     setEditProductSubcategory(product.subcategory);
-    setShowEditModal(true);
-  };
+    setModalState(prev => ({ ...prev, showEditModal: true }));
+  }, []);
 
-  const handleDeleteProduct = (productId) => {
+  const handleDeleteProduct = useCallback((productId) => {
     setDeletingProductId(productId);
-    setShowDeleteModal(true);
-  };
+    setModalState(prev => ({ ...prev, showDeleteModal: true }));
+  }, []);
 
-  const handleToggleReviews = (productId, currentState) => {
+  const handleToggleReviews = useCallback((productId, currentState) => {
     setToggleProductId(productId);
     setToggleAction(currentState ? 'off' : 'on');
-    setShowToggleModal(true);
-  };
+    setModalState(prev => ({ ...prev, showToggleModal: true }));
+  }, []);
 
-  const handleViewReviews = (product) => {
+  const handleViewReviews = useCallback((product) => {
     setSelectedProductForReview(product);
     setShowReviewDetails(true);
-  };
+  }, []);
 
-  const handleGoBackFromReviews = () => {
+  const handleGoBackFromReviews = useCallback(() => {
     setShowReviewDetails(false);
     setSelectedProductForReview(null);
-  };
+  }, []);
 
-  const confirmEdit = () => {
+  const confirmEdit = useCallback(() => {
     if (editingProduct && editProductName.trim()) {
-      setProducts(products.map(product => 
+      setProducts(prevProducts => prevProducts.map(product => 
         product.id === editingProduct.id 
           ? { 
               ...product, 
@@ -105,58 +210,71 @@ const ManageReviews = () => {
           : product
       ));
       
-      setShowEditModal(false);
-      setSuccessMessage('Product updated successfully!');
-      setShowSuccessModal(true);
+      setModalState(prev => ({ 
+        ...prev, 
+        showEditModal: false,
+        showSuccessModal: true,
+        successMessage: 'Product updated successfully!'
+      }));
       resetEditState();
     }
-  };
+  }, [editingProduct, editProductName, editProductCategory, editProductSubcategory]);
 
-  const confirmDelete = () => {
+  const confirmDelete = useCallback(() => {
     if (deletingProductId) {
-      setProducts(products.filter(product => product.id !== deletingProductId));
-      setShowDeleteModal(false);
-      setSuccessMessage('Product deleted successfully!');
-      setShowSuccessModal(true);
+      setProducts(prevProducts => prevProducts.filter(product => product.id !== deletingProductId));
+      setModalState(prev => ({ 
+        ...prev, 
+        showDeleteModal: false,
+        showSuccessModal: true,
+        successMessage: 'Product deleted successfully!'
+      }));
       setDeletingProductId(null);
     }
-  };
+  }, [deletingProductId]);
 
-  const confirmToggle = () => {
+  const confirmToggle = useCallback(() => {
     if (toggleProductId) {
-      setProducts(products.map(product => 
+      setProducts(prevProducts => prevProducts.map(product => 
         product.id === toggleProductId 
           ? { ...product, reviewsEnabled: toggleAction === 'on' }
           : product
       ));
       
-      setShowToggleModal(false);
-      setSuccessMessage(`Reviews ${toggleAction === 'on' ? 'enabled' : 'disabled'} successfully!`);
-      setShowSuccessModal(true);
+      setModalState(prev => ({ 
+        ...prev, 
+        showToggleModal: false,
+        showSuccessModal: true,
+        successMessage: `Reviews ${toggleAction === 'on' ? 'enabled' : 'disabled'} successfully!`
+      }));
       setToggleProductId(null);
       setToggleAction('');
     }
-  };
+  }, [toggleProductId, toggleAction]);
 
-  const resetEditState = () => {
+  const resetEditState = useCallback(() => {
     setEditingProduct(null);
     setEditProductName('');
     setEditProductCategory('');
     setEditProductSubcategory('');
-  };
+  }, []);
 
-  const closeAllModals = () => {
-    setShowEditModal(false);
-    setShowDeleteModal(false);
-    setShowToggleModal(false);
-    setShowSuccessModal(false);
+  const closeAllModals = useCallback(() => {
+    setModalState({
+      showEditModal: false,
+      showDeleteModal: false,
+      showToggleModal: false,
+      showSuccessModal: false,
+      successMessage: ''
+    });
     resetEditState();
     setDeletingProductId(null);
     setToggleProductId(null);
     setToggleAction('');
-  };
+  }, [resetEditState]);
 
-  const renderStars = (rating) => {
+  // Memoized render functions to prevent recreation on every render
+  const renderStars = useCallback((rating) => {
     return [...Array(5)].map((_, index) => (
       <Star
         key={index}
@@ -165,9 +283,9 @@ const ManageReviews = () => {
         }`}
       />
     ));
-  };
+  }, []);
 
-  const renderRatingScale = (rating, label) => {
+  const renderRatingScale = useCallback((rating, label) => {
     return (
       <div className="flex flex-col items-start space-y-2 mb-4">
         <div className="text-xs font-semibold text-gray-700">
@@ -187,15 +305,18 @@ const ManageReviews = () => {
         </div>
       </div>
     );
-  };
+  }, []);
 
-  const filteredProducts = products.filter((product) => {
-    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === 'All categories' || product.category === selectedCategory;
-    const matchesSubcategory = selectedSubcategory === 'sub categories' || product.subcategory === selectedSubcategory;
-    
-    return matchesSearch && matchesCategory && matchesSubcategory;
-  });
+  // Memoized dropdown handlers
+  const handleCategorySelect = useCallback((category) => {
+    setSelectedCategory(category);
+    setCategoryDropdownOpen(false);
+  }, []);
+
+  const handleSubcategorySelect = useCallback((subcategory) => {
+    setSelectedSubcategory(subcategory);
+    setSubcategoryDropdownOpen(false);
+  }, []);
 
   return (
     <>
@@ -237,13 +358,10 @@ const ManageReviews = () => {
             </button>
             {categoryDropdownOpen && (
               <div className="absolute top-full mt-1 w-full bg-white border border-gray-300 rounded-lg shadow-lg z-10">
-                {categories.map((category) => (
+                {CATEGORIES.map((category) => (
                   <button
                     key={category}
-                    onClick={() => {
-                      setSelectedCategory(category);
-                      setCategoryDropdownOpen(false);
-                    }}
+                    onClick={() => handleCategorySelect(category)}
                     className="block w-full text-left px-4 py-2 hover:bg-gray-100 first:rounded-t-lg last:rounded-b-lg"
                   >
                     {category}
@@ -264,13 +382,10 @@ const ManageReviews = () => {
             </button>
             {subcategoryDropdownOpen && (
               <div className="absolute top-full mt-1 w-full bg-white border border-gray-300 rounded-lg shadow-lg z-10">
-                {subcategories.map((subcategory) => (
+                {SUBCATEGORIES.map((subcategory) => (
                   <button
                     key={subcategory}
-                    onClick={() => {
-                      setSelectedSubcategory(subcategory);
-                      setSubcategoryDropdownOpen(false);
-                    }}
+                    onClick={() => handleSubcategorySelect(subcategory)}
                     className="block w-full text-left px-4 py-2 hover:bg-gray-100 first:rounded-t-lg last:rounded-b-lg"
                   >
                     {subcategory}
@@ -301,83 +416,14 @@ const ManageReviews = () => {
         {/* Table Body */}
         <div className="divide-y divide-gray-200">
           {filteredProducts.map((product) => (
-            <div key={product.id} className="px-6 py-6">
-              <div className="grid grid-cols-12 gap-4 items-start">
-                {/* Product Image */}
-                <div className="col-span-1">
-                  <img
-                    src={product.image}
-                    alt={product.name}
-                    className="w-16 h-20 object-cover rounded-md"
-                  />
-                </div>
-
-                {/* Product Name */}
-                <div className="col-span-2">
-                  <h3 className="text-lg font-medium text-gray-900">{product.name}</h3>
-                </div>
-
-                {/* Rating */}
-                <div className="col-span-1">
-                  <div className="flex space-x-1">{renderStars(product.rating)}</div>
-                </div>
-
-                {/* Size and Fit Ratings */}
-                <div className="col-span-2">
-                  {renderRatingScale(product.sizeRating, 'size')}
-                  {renderRatingScale(product.comfortRating, 'comfort')}
-                  {renderRatingScale(product.durabilityRating, 'durability')}
-                </div>
-
-                {/* Category */}
-                <div className="col-span-1">
-                  <span className="text-sm text-gray-700">{product.category}</span>
-                </div>
-
-                {/* Subcategory */}
-                <div className="col-span-1">
-                  <span className="text-sm text-gray-700">{product.subcategory}</span>
-                </div>
-
-                {/* Action Button */}
-                <div className="col-span-2">
-                  <div className="flex space-x-2">
-                    <button 
-                      onClick={() => handleViewReviews(product)}
-                      className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-                    >
-                      view reviews
-                    </button>
-                  </div>
-                </div>
-
-                {/* Toggle Reviews */}
-                <div className="col-span-2">
-                  <div className="flex space-x-2">
-                    <button
-                      onClick={() => handleToggleReviews(product.id, product.reviewsEnabled)}
-                      className={`px-4 py-2 rounded-full text-sm font-medium transition-colors border ${
-                        product.reviewsEnabled
-                          ? 'bg-blue-600 text-white border-black'
-                          : 'bg-white text-black border-gray-300 hover:bg-gray-50'
-                      }`}
-                    >
-                      On
-                    </button>
-                    <button
-                      onClick={() => handleToggleReviews(product.id, product.reviewsEnabled)}
-                      className={`px-4 py-2 rounded-full text-sm font-medium transition-colors border ${
-                        !product.reviewsEnabled
-                          ? 'bg-blue-600 text-white border-black'
-                          : 'bg-white text-black border-gray-300 hover:bg-gray-50'
-                      }`}
-                    >
-                      Off
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <ProductRow
+              key={product.id}
+              product={product}
+              renderStars={renderStars}
+              renderRatingScale={renderRatingScale}
+              handleViewReviews={handleViewReviews}
+              handleToggleReviews={handleToggleReviews}
+            />
           ))}
         </div>
       </div>
@@ -390,7 +436,7 @@ const ManageReviews = () => {
       )}
 
       {/* Edit Modal */}
-      {showEditModal && (
+      {modalState.showEditModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl p-8 w-96 max-w-md">
             <div className="flex justify-between items-center mb-6">
@@ -425,7 +471,7 @@ const ManageReviews = () => {
                   onChange={(e) => setEditProductCategory(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
-                  {categories.filter(cat => cat !== 'All categories').map((category) => (
+                  {CATEGORIES.filter(cat => cat !== 'All categories').map((category) => (
                     <option key={category} value={category}>
                       {category}
                     </option>
@@ -442,7 +488,7 @@ const ManageReviews = () => {
                   onChange={(e) => setEditProductSubcategory(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
-                  {subcategories.filter(sub => sub !== 'sub categories').map((subcategory) => (
+                  {SUBCATEGORIES.filter(sub => sub !== 'sub categories').map((subcategory) => (
                     <option key={subcategory} value={subcategory}>
                       {subcategory}
                     </option>
@@ -470,7 +516,7 @@ const ManageReviews = () => {
       )}
 
       {/* Delete Confirmation Modal */}
-      {showDeleteModal && (
+      {modalState.showDeleteModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl p-8 w-96 max-w-md">
             <div className="flex justify-between items-center mb-6">
@@ -506,7 +552,7 @@ const ManageReviews = () => {
       )}
 
       {/* Toggle Confirmation Modal */}
-      {showToggleModal && (
+      {modalState.showToggleModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl p-8 w-96 max-w-md">
             <div className="flex justify-between items-center mb-6">
@@ -548,7 +594,7 @@ const ManageReviews = () => {
       )}
 
       {/* Success Modal */}
-      {showSuccessModal && (
+      {modalState.showSuccessModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl p-8 w-96 max-w-md text-center">
             <div className="mb-6">
@@ -558,7 +604,7 @@ const ManageReviews = () => {
                 </svg>
               </div>
               <h2 className="text-xl font-bold text-gray-900 mb-2">Success!</h2>
-              <p className="text-gray-600">{successMessage}</p>
+              <p className="text-gray-600">{modalState.successMessage}</p>
             </div>
             
             <button

@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
   Calendar, 
@@ -37,7 +37,8 @@ const OrderDetails = () => {
   const [showInvoice, setShowInvoice] = useState(false);
 
   // Mock order data - in real app, this would be fetched based on orderId
-  const orderData = {
+  // Memoized to prevent recreation on every render
+  const orderData = useMemo(() => ({
     id: orderId || '6743',
     status: 'Pending',
     dateRange: 'Feb 16,2022 - Feb 20,2022',
@@ -93,10 +94,10 @@ const OrderDetails = () => {
     documents: {
       name: 'aadhar card'
     }
-  };
+  }), [orderId]);
 
-  // Status options
-  const statusOptions = [
+  // Status options - memoized to prevent recreation
+  const statusOptions = useMemo(() => [
     'Pending',
     'Processing',
     'Accepted',
@@ -105,10 +106,10 @@ const OrderDetails = () => {
     'Delivered',
     'Cancelled',
     'Rejected'
-  ];
+  ], []);
 
-  // Status color mapping
-  const getStatusColor = (status) => {
+  // Status color mapping - memoized function
+  const getStatusColor = useCallback((status) => {
     const colorMap = {
       'Pending': 'bg-orange-200 text-orange-800',
       'Processing': 'bg-blue-200 text-blue-800',
@@ -120,26 +121,13 @@ const OrderDetails = () => {
       'Rejected': 'bg-red-500 text-white'
     };
     return colorMap[status] || 'bg-gray-200 text-gray-800';
-  };
-
-  // Event handlers
-  const handleStatusChange = useCallback((status) => {
-    setOrderStatus(status);
-    setShowStatusDropdown(false);
   }, []);
 
-  const handlePrint = useCallback(() => {
-    window.print();
-  }, []);
+  // Memoized current status color
+  const currentStatusColor = useMemo(() => getStatusColor(orderStatus), [orderStatus, getStatusColor]);
 
-  const handleDownload = useCallback(() => {
-    // Show invoice template for download
-    setShowInvoice(true);
-  }, []);
-
-  const handleShare = useCallback(() => {
-    // Generate invoice-formatted share text
-    const invoiceText = `
+  // Memoized invoice text for sharing
+  const invoiceShareText = useMemo(() => `
 🧾 INVOICE - Order #${orderData.id}
 
 📅 Invoice Date: ${new Date().toLocaleDateString('en-GB')}
@@ -184,20 +172,36 @@ ${orderData.items.map(item => `
 
 © 2025 YORAA. All rights reserved.
 Thank you for your business!
-    `.trim();
-    
+  `.trim(), [orderData, orderStatus]);
+
+  // Event handlers
+  const handleStatusChange = useCallback((status) => {
+    setOrderStatus(status);
+    setShowStatusDropdown(false);
+  }, []);
+
+  const handlePrint = useCallback(() => {
+    window.print();
+  }, []);
+
+  const handleDownload = useCallback(() => {
+    // Show invoice template for download
+    setShowInvoice(true);
+  }, []);
+
+  const handleShare = useCallback(() => {
     if (navigator.share) {
       navigator.share({
         title: `Invoice - Order #${orderData.id}`,
-        text: invoiceText,
+        text: invoiceShareText,
         url: window.location.href,
       }).catch(console.error);
     } else {
-      navigator.clipboard.writeText(invoiceText)
+      navigator.clipboard.writeText(invoiceShareText)
         .then(() => alert('Invoice details copied to clipboard!'))
         .catch(() => alert('Unable to copy invoice details.'));
     }
-  }, [orderData, orderStatus]);
+  }, [orderData.id, invoiceShareText]);
 
   const handleBack = useCallback(() => {
     navigate('/orders');
@@ -212,6 +216,84 @@ Thank you for your business!
     });
     alert('Order saved successfully!');
   }, [orderData.id, orderStatus, notes]);
+
+  // Memoized action buttons to prevent re-renders
+  const ActionButtons = useMemo(() => (
+    <div className="flex items-center space-x-2">
+      <button
+        onClick={handlePrint}
+        className="bg-gray-100 p-2 rounded-lg hover:bg-gray-200"
+      >
+        <Printer className="h-6 w-6 text-gray-600" />
+      </button>
+      <button 
+        onClick={handleShare}
+        className="p-2 hover:bg-gray-100 rounded"
+      >
+        <Share2 className="h-6 w-6 text-gray-600" />
+      </button>
+      <button
+        onClick={handleDownload}
+        className="p-2 hover:bg-gray-100 rounded"
+      >
+        <Download className="h-6 w-6 text-gray-600" />
+      </button>
+    </div>
+  ), [handlePrint, handleShare, handleDownload]);
+
+  const OrderItemRow = useCallback(({ item, index }) => (
+    <div className="grid grid-cols-10 gap-4 items-center py-4 border-b border-gray-100 last:border-b-0">
+      <div>
+        <img 
+          src={item.image} 
+          alt="Product" 
+          className="w-32 h-36 object-cover rounded-lg bg-gray-100"
+          loading="lazy"
+        />
+      </div>
+      <div>
+        <span className="text-xl font-medium text-blue-600 underline cursor-pointer">
+          {item.id}
+        </span>
+      </div>
+      <div className="text-xl font-medium text-gray-900">{item.date}</div>
+      <div className="text-xl font-medium text-gray-900">{item.customerName}</div>
+      <div className="text-xl font-medium text-gray-900">{item.size}</div>
+      <div className="text-xl font-medium text-gray-900">{item.quantity}</div>
+      <div className="text-xl font-medium text-gray-900">{item.sku}</div>
+      <div className="text-xl font-medium text-gray-900">{item.barcode}</div>
+      <div className="text-xl font-medium text-gray-900">{item.price}</div>
+      <div className="text-xl font-medium text-gray-900">{item.salePrice}</div>
+    </div>
+  ), []);
+
+  // Memoized order summary section
+  const OrderSummary = useMemo(() => (
+    <div className="px-6 pb-6 flex justify-end">
+      <div className="space-y-4">
+        <div className="flex justify-between text-xl font-bold text-gray-600 min-w-[200px]">
+          <span>Sub Total</span>
+          <span className="text-gray-900">{orderData.summary.subTotal}</span>
+        </div>
+        <div className="flex justify-between text-xl font-bold text-gray-600">
+          <span>Shipping Rate</span>
+          <span className="text-gray-900">{orderData.summary.shippingRate}</span>
+        </div>
+        <div className="flex justify-between text-xl font-bold text-gray-600">
+          <span>Promo</span>
+          <span className="text-gray-900">{orderData.summary.promo}</span>
+        </div>
+        <div className="flex justify-between text-xl font-bold text-gray-600">
+          <span>Points</span>
+          <span className="text-gray-900">{orderData.summary.points}</span>
+        </div>
+        <div className="flex justify-between text-xl font-bold text-gray-600 pt-2 border-t border-gray-200">
+          <span>Total</span>
+          <span className="text-gray-900">{orderData.summary.total}</span>
+        </div>
+      </div>
+    </div>
+  ), [orderData.summary]);
 
   // Show invoice template when download is clicked
   if (showInvoice) {
@@ -244,16 +326,14 @@ Thank you for your business!
         <div className="bg-white rounded-2xl shadow-sm p-6 space-y-6">
           {/* Order Header */}
           <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-6">
-                <span className="text-sm font-medium text-gray-900">Orders ID: #{orderData.id}</span>
-                <div className={`px-3 py-2 rounded-lg text-xs font-semibold ${getStatusColor(orderStatus)}`}>
-                  {orderStatus}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-6">
+                  <span className="text-sm font-medium text-gray-900">Orders ID: #{orderData.id}</span>
+                  <div className={`px-3 py-2 rounded-lg text-xs font-semibold ${currentStatusColor}`}>
+                    {orderStatus}
+                  </div>
                 </div>
-              </div>
-            </div>
-            
-            <div className="flex items-center justify-between">
+              </div>            <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
                 <Calendar className="h-6 w-6 text-gray-400" />
                 <span className="text-base font-semibold text-black">{orderData.dateRange}</span>
@@ -431,23 +511,7 @@ Thank you for your business!
           <div className="px-6 py-4 border-b border-gray-200">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-3xl font-bold text-gray-900">order</h2>
-              <div className="flex items-center space-x-2">
-                <button
-                  onClick={handlePrint}
-                  className="bg-gray-100 p-2 rounded-lg hover:bg-gray-200"
-                >
-                  <Printer className="h-6 w-6 text-gray-600" />
-                </button>
-                <button className="p-2 hover:bg-gray-100 rounded">
-                  <Share2 className="h-6 w-6 text-gray-600" />
-                </button>
-                <button
-                  onClick={handleDownload}
-                  className="p-2 hover:bg-gray-100 rounded"
-                >
-                  <Download className="h-6 w-6 text-gray-600" />
-                </button>
-              </div>
+              {ActionButtons}
             </div>
             
             {/* Table Column Headers */}
@@ -468,56 +532,12 @@ Thank you for your business!
           {/* Table Body */}
           <div className="p-6">
             {orderData.items.map((item, index) => (
-              <div key={index} className="grid grid-cols-10 gap-4 items-center py-4 border-b border-gray-100 last:border-b-0">
-                <div>
-                  <img 
-                    src={item.image} 
-                    alt="Product" 
-                    className="w-32 h-36 object-cover rounded-lg bg-gray-100"
-                  />
-                </div>
-                <div>
-                  <span className="text-xl font-medium text-blue-600 underline cursor-pointer">
-                    {item.id}
-                  </span>
-                </div>
-                <div className="text-xl font-medium text-gray-900">{item.date}</div>
-                <div className="text-xl font-medium text-gray-900">{item.customerName}</div>
-                <div className="text-xl font-medium text-gray-900">{item.size}</div>
-                <div className="text-xl font-medium text-gray-900">{item.quantity}</div>
-                <div className="text-xl font-medium text-gray-900">{item.sku}</div>
-                <div className="text-xl font-medium text-gray-900">{item.barcode}</div>
-                <div className="text-xl font-medium text-gray-900">{item.price}</div>
-                <div className="text-xl font-medium text-gray-900">{item.salePrice}</div>
-              </div>
+              <OrderItemRow key={`${item.id}-${index}`} item={item} index={index} />
             ))}
           </div>
 
           {/* Order Summary */}
-          <div className="px-6 pb-6 flex justify-end">
-            <div className="space-y-4">
-              <div className="flex justify-between text-xl font-bold text-gray-600 min-w-[200px]">
-                <span>Sub Total</span>
-                <span className="text-gray-900">{orderData.summary.subTotal}</span>
-              </div>
-              <div className="flex justify-between text-xl font-bold text-gray-600">
-                <span>Shipping Rate</span>
-                <span className="text-gray-900">{orderData.summary.shippingRate}</span>
-              </div>
-              <div className="flex justify-between text-xl font-bold text-gray-600">
-                <span>Promo</span>
-                <span className="text-gray-900">{orderData.summary.promo}</span>
-              </div>
-              <div className="flex justify-between text-xl font-bold text-gray-600">
-                <span>Points</span>
-                <span className="text-gray-900">{orderData.summary.points}</span>
-              </div>
-              <div className="flex justify-between text-xl font-bold text-gray-600 pt-2 border-t border-gray-200">
-                <span>Total</span>
-                <span className="text-gray-900">{orderData.summary.total}</span>
-              </div>
-            </div>
-          </div>
+          {OrderSummary}
         </div>
 
         {/* Footer */}

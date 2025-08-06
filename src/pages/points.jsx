@@ -15,7 +15,7 @@
  * - Responsive design with comprehensive state management
  */
 
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, memo } from 'react';
 import { ChevronDown, Search, Edit2, Trash2, Filter } from 'lucide-react';
 import TwoFactorAuth from '../components/TwoFactorAuth';
 import SuccessModal from '../components/SuccessModal';
@@ -33,6 +33,80 @@ const INITIAL_USER_DATA = {
 };
 
 const INITIAL_OTP_STATE = ['', '', '', ''];
+
+// Memoized Toggle Button component for better performance
+const ToggleButton = memo(({ 
+  isActive, 
+  onClick, 
+  children, 
+  width = "w-[69px]" 
+}) => (
+  <button
+    onClick={onClick}
+    className={`h-[34px] ${width} rounded-[100px] border flex items-center justify-center ${
+      isActive 
+        ? 'bg-[#000aff] text-white border-black' 
+        : 'bg-white text-black border-[#e4e4e4]'
+    }`}
+  >
+    <span className="text-[16px] font-medium">{children}</span>
+  </button>
+));
+
+// Memoized UserRow component for better performance
+const UserRow = memo(({ 
+  user, 
+  onAllotNow, 
+  onEditUser, 
+  onDeleteUser 
+}) => (
+  <div className="grid grid-cols-11 gap-4 items-center">
+    <div className="text-[20px] text-black text-center">{user.name}</div>
+    <div className="text-[16px] text-black text-center">{user.userId}</div>
+    <div className="text-[16px] text-black text-center">{user.phone}</div>
+    <div className="text-[16px] text-black text-center">{user.email}</div>
+    <div className="flex justify-center">
+      <div className="w-[133px] h-[47px] border-2 border-black rounded-xl flex items-center justify-center">
+        <span className="text-[21px] text-[#4379ee] font-medium">{user.totalPointsAlloted.toLocaleString()}</span>
+      </div>
+    </div>
+    <div className="flex justify-center">
+      <div className="w-[133px] h-[47px] border-2 border-black rounded-xl flex items-center justify-center">
+        <span className="text-[21px] text-black font-medium">{user.totalPointsRedeemed}</span>
+      </div>
+    </div>
+    <div className="flex justify-center">
+      <div className="w-[133px] h-[47px] border-2 border-black rounded-xl flex items-center justify-center">
+        <span className="text-[21px] text-[#ef3826] font-medium">{user.balance}</span>
+      </div>
+    </div>
+    <div className="text-[16px] text-black text-center">{user.deletedAccount ? 'Yes' : 'No'}</div>
+    <div className="flex justify-center">
+      <button
+        onClick={() => onAllotNow(user.id)}
+        className="bg-[#000aff] text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-[14px] border border-[#7280ff] shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)]"
+      >
+        Allot NOW
+      </button>
+    </div>
+    <div className="flex justify-center">
+      <button
+        onClick={() => onEditUser(user)}
+        className="p-2 hover:bg-gray-100 rounded-lg"
+      >
+        <Edit2 className="w-5 h-5 text-gray-600" />
+      </button>
+    </div>
+    <div className="flex justify-center">
+      <button
+        onClick={() => onDeleteUser(user.id)}
+        className="p-2 hover:bg-gray-100 rounded-lg"
+      >
+        <Trash2 className="w-5 h-5 text-red-600" />
+      </button>
+    </div>
+  </div>
+));
 
 const Points = () => {
   /**
@@ -98,18 +172,24 @@ const Points = () => {
   const [editTotalPointsRedeemed, setEditTotalPointsRedeemed] = useState('');
   const [editBalance, setEditBalance] = useState('');
 
-  // Users Data
-  const [users, setUsers] = useState([
+  // Users Data - Lazy initialization to prevent recreation on each render
+  const [users, setUsers] = useState(() => [
     { id: 1, ...INITIAL_USER_DATA },
     { id: 2, ...INITIAL_USER_DATA }
   ]);
 
-  // Computed Values
-  const summaryData = useMemo(() => ({
-    totalPointsAlloted: 1000000,
-    totalPointsRedeemed: 10,
-    balance: 5
-  }), []);
+  // Computed Values - Using memoized function to calculate dynamic summary
+  const summaryData = useMemo(() => {
+    const totalPointsAlloted = users.reduce((sum, user) => sum + user.totalPointsAlloted, 0);
+    const totalPointsRedeemed = users.reduce((sum, user) => sum + user.totalPointsRedeemed, 0);
+    const balance = users.reduce((sum, user) => sum + user.balance, 0);
+    
+    return {
+      totalPointsAlloted,
+      totalPointsRedeemed,
+      balance
+    };
+  }, [users]);
 
   // Helper Functions
   const resetOtpForm = useCallback(() => {
@@ -136,14 +216,38 @@ const Points = () => {
     return editUserName.trim() && editUserId.trim() && editPhoneNo.trim() && editEmailId.trim();
   }, [editUserName, editUserId, editPhoneNo, editEmailId]);
 
-  // Filtered Users
+  // Optimized input change handlers
+  const handleIssuePointsChange = useCallback((e) => {
+    setIssuePoints(e.target.value);
+  }, []);
+
+  const handlePointGenerationBasisChange = useCallback((e) => {
+    setPointGenerationBasis(e.target.value);
+  }, []);
+
+  const handlePointsToGiveChange = useCallback((e) => {
+    setPointsToGive(e.target.value);
+  }, []);
+
+  const handleSearchTermChange = useCallback((e) => {
+    setSearchTerm(e.target.value);
+  }, []);
+
+  // Filtered Users - Optimized with early return and case-insensitive search
   const filteredUsers = useMemo(() => {
+    if (!searchTerm.trim()) return users;
+    
+    const searchTermLower = searchTerm.toLowerCase();
     return users.filter(user =>
-      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.userId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase())
+      user.name.toLowerCase().includes(searchTermLower) ||
+      user.userId.toLowerCase().includes(searchTermLower) ||
+      user.email.toLowerCase().includes(searchTermLower)
     );
   }, [users, searchTerm]);
+
+  // Memoized toggle button handlers for better performance
+  const handleToggleOn = useCallback(() => handleTogglePointsSystem('on'), [handleTogglePointsSystem]);
+  const handleToggleOff = useCallback(() => handleTogglePointsSystem('off'), [handleTogglePointsSystem]);
 
   // Event Handlers - User Management
   const handleEditUser = useCallback((user) => {
@@ -282,8 +386,8 @@ const Points = () => {
     if (data?.verificationCode && data?.verificationPassword && data?.defaultPassword) {
       setShowEdit2FAModal(false);
       setShowEditSuccessModal(true);
-      // Reset 2FA form
-      setOtpCode(['', '', '', '']);
+      // Reset 2FA form using constant to avoid recreation
+      setOtpCode(INITIAL_OTP_STATE);
     } else {
       alert('Please fill in all fields');
     }
@@ -291,18 +395,10 @@ const Points = () => {
 
   const handleCancelEdit2FA = useCallback(() => {
     setShowEdit2FAModal(false);
-    // Reset 2FA form
-    setOtpCode(['', '', '', '']);
-    // Reset edit form
-    setEditingUser(null);
-    setEditUserName('');
-    setEditUserId('');
-    setEditPhoneNo('');
-    setEditEmailId('');
-    setEditTotalPointsAlloted('');
-    setEditTotalPointsRedeemed('');
-    setEditBalance('');
-  }, []);
+    // Reset forms using helper functions
+    resetOtpForm();
+    resetEditForm();
+  }, [resetOtpForm, resetEditForm]);
 
   // Already refactored - removing duplicate
   // Event Handlers - Delete Operations
@@ -313,12 +409,12 @@ const Points = () => {
 
   const handleConfirmDelete = useCallback(() => {
     if (deletingUserId) { 
-      setUsers(users.filter(user => user.id !== deletingUserId));
+      setUsers(prevUsers => prevUsers.filter(user => user.id !== deletingUserId));
       setShowDeleteModal(false);
       setShowDeleteSuccessModal(true);
       setDeletingUserId(null);
     }
-  }, [deletingUserId, users]);
+  }, [deletingUserId]);
 
   const handleCancelDelete = useCallback(() => {
     setShowDeleteModal(false);
@@ -348,26 +444,19 @@ const Points = () => {
 
       {/* Toggle Switch */}
       <div className="absolute left-[346px] top-[60px] flex items-center gap-2">
-        <button
-          onClick={() => handleTogglePointsSystem('on')}
-          className={`h-[34px] w-[69px] rounded-[100px] border border-black flex items-center justify-center ${
-            pointsSystemEnabled 
-              ? 'bg-[#000aff] text-white' 
-              : 'bg-white text-black'
-          }`}
+        <ToggleButton
+          isActive={pointsSystemEnabled}
+          onClick={handleToggleOn}
         >
-          <span className="text-[16px] font-medium">On</span>
-        </button>
-        <button
-          onClick={() => handleTogglePointsSystem('off')}
-          className={`h-[34px] w-[76px] rounded-[100px] border flex items-center justify-center ${
-            !pointsSystemEnabled 
-              ? 'bg-[#000aff] text-white border-black' 
-              : 'bg-white text-black border-[#e4e4e4]'
-          }`}
+          On
+        </ToggleButton>
+        <ToggleButton
+          isActive={!pointsSystemEnabled}
+          onClick={handleToggleOff}
+          width="w-[76px]"
         >
-          <span className="text-[16px] font-medium">Off</span>
-        </button>
+          Off
+        </ToggleButton>
       </div>
 
       {/* Issue Points Section */}
@@ -379,7 +468,7 @@ const Points = () => {
           <input
             type="text"
             value={issuePoints}
-            onChange={(e) => setIssuePoints(e.target.value)}
+            onChange={handleIssuePointsChange}
             className="w-[325px] h-[47px] px-4 border-2 border-black rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder=""
           />
@@ -394,7 +483,7 @@ const Points = () => {
         <div className="relative w-[325px]">
           <select
             value={pointGenerationBasis}
-            onChange={(e) => setPointGenerationBasis(e.target.value)}
+            onChange={handlePointGenerationBasisChange}
             className="w-full h-[47px] px-4 border-2 border-black rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none"
           >
             <option value="">Select basis</option>
@@ -415,7 +504,7 @@ const Points = () => {
         <input
           type="text"
           value={pointsToGive}
-          onChange={(e) => setPointsToGive(e.target.value)}
+          onChange={handlePointsToGiveChange}
           className="w-[325px] h-[47px] px-4 border-2 border-black rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
           placeholder=""
         />
@@ -438,7 +527,7 @@ const Points = () => {
             <input
               type="text"
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={handleSearchTermChange}
               placeholder="Search"
               className="w-full h-11 pl-10 pr-4 py-2 border border-[#d0d5dd] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] text-[16px] text-[#667085]"
             />
@@ -462,53 +551,14 @@ const Points = () => {
 
         {/* User Table Rows */}
         <div className="space-y-4">
-          {filteredUsers.map((user, index) => (
-            <div key={user.id} className="grid grid-cols-11 gap-4 items-center">
-              <div className="text-[20px] text-black text-center">{user.name}</div>
-              <div className="text-[16px] text-black text-center">{user.userId}</div>
-              <div className="text-[16px] text-black text-center">{user.phone}</div>
-              <div className="text-[16px] text-black text-center">{user.email}</div>
-              <div className="flex justify-center">
-                <div className="w-[133px] h-[47px] border-2 border-black rounded-xl flex items-center justify-center">
-                  <span className="text-[21px] text-[#4379ee] font-medium">{user.totalPointsAlloted.toLocaleString()}</span>
-                </div>
-              </div>
-              <div className="flex justify-center">
-                <div className="w-[133px] h-[47px] border-2 border-black rounded-xl flex items-center justify-center">
-                  <span className="text-[21px] text-black font-medium">{user.totalPointsRedeemed}</span>
-                </div>
-              </div>
-              <div className="flex justify-center">
-                <div className="w-[133px] h-[47px] border-2 border-black rounded-xl flex items-center justify-center">
-                  <span className="text-[21px] text-[#ef3826] font-medium">{user.balance}</span>
-                </div>
-              </div>
-              <div className="text-[16px] text-black text-center">{user.deletedAccount ? 'Yes' : 'No'}</div>
-              <div className="flex justify-center">
-                <button
-                  onClick={() => handleAllotNow(user.id)}
-                  className="bg-[#000aff] text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-[14px] border border-[#7280ff] shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)]"
-                >
-                  Allot NOW
-                </button>
-              </div>
-              <div className="flex justify-center">
-                <button
-                  onClick={() => handleEditUser(user)}
-                  className="p-2 hover:bg-gray-100 rounded-lg"
-                >
-                  <Edit2 className="w-5 h-5 text-gray-600" />
-                </button>
-              </div>
-              <div className="flex justify-center">
-                <button
-                  onClick={() => handleDeleteUser(user.id)}
-                  className="p-2 hover:bg-gray-100 rounded-lg"
-                >
-                  <Trash2 className="w-5 h-5 text-red-600" />
-                </button>
-              </div>
-            </div>
+          {filteredUsers.map((user) => (
+            <UserRow
+              key={user.id}
+              user={user}
+              onAllotNow={handleAllotNow}
+              onEditUser={handleEditUser}
+              onDeleteUser={handleDeleteUser}
+            />
           ))}
         </div>
       </div>

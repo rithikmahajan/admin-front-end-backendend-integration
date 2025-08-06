@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { ArrowLeft, Star, Upload, Edit2, Trash2, X, Check } from 'lucide-react';
 import DeleteConfirmationModal from '../components/DeleteConfirmationModal';
 import SuccessModal from '../components/SuccessModal';
@@ -63,7 +63,7 @@ const ReviewDetails = ({ productName = "Review 1", onGoBack }) => {
 
   const [imagePreview, setImagePreview] = useState(null);
 
-  const handleImageUpload = (event) => {
+  const handleImageUpload = useCallback((event) => {
     const file = event.target.files[0];
     if (file) {
       const reader = new FileReader();
@@ -73,38 +73,38 @@ const ReviewDetails = ({ productName = "Review 1", onGoBack }) => {
       };
       reader.readAsDataURL(file);
     }
-  };
+  }, []);
 
-  const handleRatingClick = (type, rating) => {
+  const handleRatingClick = useCallback((type, rating) => {
     if (showEditMainReviewModal && editingReview) {
       setEditingReview(prev => ({ ...prev, [type]: rating }));
     } else {
       setAdminReview(prev => ({ ...prev, [type]: rating }));
     }
-  };
+  }, [showEditMainReviewModal, editingReview]);
 
-  const handleEditMainReview = (review) => {
+  const handleEditMainReview = useCallback((review) => {
     setEditingReview({ ...review });
     setShowEditMainReviewModal(true);
-  };
+  }, []);
 
-  const handleEditAdminReview = () => {
+  const handleEditAdminReview = useCallback(() => {
     setShowEditAdminReviewModal(true);
-  };
+  }, []);
 
-  const handleDeleteMainReview = (review) => {
+  const handleDeleteMainReview = useCallback((review) => {
     setDeletingReview(review);
     setDeleteType('main');
     setShowDeleteConfirmModal(true);
-  };
+  }, []);
 
-  const handleDeleteStackedReview = (review) => {
+  const handleDeleteStackedReview = useCallback((review) => {
     setDeletingReview(review);
     setDeleteType('stack');
     setShowDeleteConfirmModal(true);
-  };
+  }, []);
 
-  const confirmDelete = () => {
+  const confirmDelete = useCallback(() => {
     if (deletingReview) {
       if (deleteType === 'main') {
         setCustomerReviews(prev => prev.filter(review => review.id !== deletingReview.id));
@@ -117,9 +117,9 @@ const ReviewDetails = ({ productName = "Review 1", onGoBack }) => {
       setDeletingReview(null);
       setDeleteType('');
     }
-  };
+  }, [deletingReview, deleteType]);
 
-  const handleSaveMainReview = () => {
+  const handleSaveMainReview = useCallback(() => {
     if (editingReview) {
       setCustomerReviews(prev => 
         prev.map(review => 
@@ -129,9 +129,9 @@ const ReviewDetails = ({ productName = "Review 1", onGoBack }) => {
       setShowEditMainReviewModal(false);
       setEditingReview(null);
     }
-  };
+  }, [editingReview]);
 
-  const handleCloseModals = () => {
+  const handleCloseModals = useCallback(() => {
     setShowEditMainReviewModal(false);
     setShowEditAdminReviewModal(false);
     setShowDeleteConfirmModal(false);
@@ -139,9 +139,9 @@ const ReviewDetails = ({ productName = "Review 1", onGoBack }) => {
     setEditingReview(null);
     setDeletingReview(null);
     setDeleteType('');
-  };
+  }, []);
 
-  const renderStars = (rating, onStarClick = null, size = "w-6 h-6") => {
+  const renderStars = useMemo(() => (rating, onStarClick = null, size = "w-6 h-6") => {
     return [...Array(5)].map((_, index) => (
       <Star
         key={index}
@@ -151,9 +151,9 @@ const ReviewDetails = ({ productName = "Review 1", onGoBack }) => {
         onClick={() => onStarClick && onStarClick(index + 1)}
       />
     ));
-  };
+  }, []);
 
-  const renderRatingScale = (rating, label, type, isEditable = false) => {
+  const renderRatingScale = useMemo(() => (rating, label, type, isEditable = false) => {
     return (
       <div className="flex flex-col items-start space-y-2">
         <div className="text-xs font-semibold text-gray-700">
@@ -174,9 +174,9 @@ const ReviewDetails = ({ productName = "Review 1", onGoBack }) => {
         </div>
       </div>
     );
-  };
+  }, [handleRatingClick]);
 
-  const handlePostReview = () => {
+  const handlePostReview = useCallback(() => {
     if (adminReview.message.trim() && adminReview.rating > 0) {
       const newReview = {
         id: Date.now(),
@@ -202,26 +202,41 @@ const ReviewDetails = ({ productName = "Review 1", onGoBack }) => {
       });
       setImagePreview(null);
     }
-  };
+  }, [adminReview, customerReviews.length]);
 
-  const handlePostFromStack = (reviewId) => {
+  const handlePostFromStack = useCallback((reviewId) => {
     const reviewToPost = stackedReviews.find(review => review.id === reviewId);
     if (reviewToPost) {
       setCustomerReviews(prev => [...prev, { ...reviewToPost, id: Date.now() }]);
       setStackedReviews(prev => prev.filter(review => review.id !== reviewId));
     }
-  };
+  }, [stackedReviews]);
 
-  const handleDeleteFromStack = (review) => {
+  const handleDeleteFromStack = useCallback((review) => {
     setDeletingReview(review);
     setDeleteType('stacked');
     setShowDeleteConfirmModal(true);
-  };
+  }, []);
 
-  const handleEditStackedReview = (review) => {
+  const handleEditStackedReview = useCallback((review) => {
     setEditingReview({ ...review });
     setShowEditMainReviewModal(true);
-  };
+  }, []);
+
+  // Memoized image component to prevent unnecessary re-renders
+  const ImagePreview = useMemo(() => ({ image, className = "w-full h-full object-cover" }) => {
+    return image ? (
+      <img src={image} alt="Preview" className={className} />
+    ) : (
+      <div className="w-full h-full flex items-center justify-center bg-gray-50">
+        <img 
+          src="http://localhost:3845/assets/fcfe140894624215171c88f4e69e22948fa65f2b.png" 
+          alt="Default" 
+          className={className}
+        />
+      </div>
+    );
+  }, []);
 
   return (
     <div className="bg-white min-h-screen p-6">
@@ -249,13 +264,7 @@ const ReviewDetails = ({ productName = "Review 1", onGoBack }) => {
                 <h3 className="font-bold text-gray-900 mb-2">{review.title}</h3>
                 <div className="text-sm font-medium text-gray-700 mb-2">Image Preview</div>
                 <div className="w-24 h-32 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center">
-                  {review.image ? (
-                    <img src={review.image} alt="Review" className="w-full h-full object-cover rounded-lg" />
-                  ) : (
-                    <div className="text-gray-400 text-center">
-                      <div className="text-2xl">📧</div>
-                    </div>
-                  )}
+                  <ImagePreview image={review.image} className="w-full h-full object-cover rounded-lg" />
                 </div>
               </div>
 
@@ -318,17 +327,7 @@ const ReviewDetails = ({ productName = "Review 1", onGoBack }) => {
             <div className="col-span-2">
               <div className="text-sm font-medium text-gray-700 mb-2">Image Preview</div>
               <div className="w-24 h-32 border border-gray-300 rounded-lg overflow-hidden mb-4">
-                {imagePreview ? (
-                  <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-gray-50">
-                    <img 
-                      src="http://localhost:3845/assets/fcfe140894624215171c88f4e69e22948fa65f2b.png" 
-                      alt="Default" 
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                )}
+                <ImagePreview image={imagePreview} />
               </div>
               <label className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm cursor-pointer hover:bg-blue-700 transition-colors flex items-center justify-center">
                 <Upload className="w-4 h-4 mr-2" />
@@ -347,7 +346,7 @@ const ReviewDetails = ({ productName = "Review 1", onGoBack }) => {
               <div className="text-sm font-medium text-gray-700 mb-2">Message</div>
               <textarea
                 value={adminReview.message}
-                onChange={(e) => setAdminReview(prev => ({ ...prev, message: e.target.value }))}
+                onChange={useCallback((e) => setAdminReview(prev => ({ ...prev, message: e.target.value })), [])}
                 className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-h-[120px] resize-none"
                 placeholder="Write your review message..."
               />
@@ -398,13 +397,7 @@ const ReviewDetails = ({ productName = "Review 1", onGoBack }) => {
                 <h3 className="font-bold text-gray-900 mb-2">{review.title}</h3>
                 <div className="text-sm font-medium text-gray-700 mb-2">Image Preview</div>
                 <div className="w-24 h-32 border border-gray-300 rounded-lg overflow-hidden">
-                  {review.image ? (
-                    <img src={review.image} alt="Review" className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-white text-gray-400">
-                      <div className="text-2xl">📧</div>
-                    </div>
-                  )}
+                  <ImagePreview image={review.image} />
                 </div>
               </div>
 
@@ -490,17 +483,7 @@ const ReviewDetails = ({ productName = "Review 1", onGoBack }) => {
               {/* Image Preview */}
               <div className="flex flex-col items-center">
                 <div className="w-32 h-40 border border-gray-300 rounded-lg overflow-hidden mb-4">
-                  {editingReview.image ? (
-                    <img src={editingReview.image} alt="Preview" className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gray-50">
-                      <img 
-                        src="http://localhost:3845/assets/fcfe140894624215171c88f4e69e22948fa65f2b.png" 
-                        alt="Default" 
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                  )}
+                  <ImagePreview image={editingReview.image} />
                 </div>
                 <button className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700 transition-colors flex items-center">
                   <Upload className="w-4 h-4 mr-2" />
@@ -527,7 +510,7 @@ const ReviewDetails = ({ productName = "Review 1", onGoBack }) => {
               <div>
                 <textarea
                   value={editingReview.message}
-                  onChange={(e) => setEditingReview(prev => ({ ...prev, message: e.target.value }))}
+                  onChange={useCallback((e) => setEditingReview(prev => ({ ...prev, message: e.target.value })), [])}
                   className="w-full p-4 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-h-[120px] resize-none text-sm"
                   placeholder="Manage account and services linked to your Yoraa account"
                 />
@@ -640,17 +623,7 @@ const ReviewDetails = ({ productName = "Review 1", onGoBack }) => {
               {/* Image Preview */}
               <div className="flex flex-col items-center">
                 <div className="w-32 h-40 border border-gray-300 rounded-lg overflow-hidden mb-4">
-                  {imagePreview ? (
-                    <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gray-50">
-                      <img 
-                        src="http://localhost:3845/assets/fcfe140894624215171c88f4e69e22948fa65f2b.png" 
-                        alt="Default" 
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                  )}
+                  <ImagePreview image={imagePreview} />
                 </div>
                 <button className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700 transition-colors flex items-center">
                   <Upload className="w-4 h-4 mr-2" />
@@ -668,7 +641,7 @@ const ReviewDetails = ({ productName = "Review 1", onGoBack }) => {
               <div>
                 <textarea
                   value={adminReview.message}
-                  onChange={(e) => setAdminReview(prev => ({ ...prev, message: e.target.value }))}
+                  onChange={useCallback((e) => setAdminReview(prev => ({ ...prev, message: e.target.value })), [])}
                   className="w-full p-4 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-h-[120px] resize-none text-sm"
                   placeholder="Manage account and services linked to your Yoraa account"
                 />
@@ -740,16 +713,16 @@ const ReviewDetails = ({ productName = "Review 1", onGoBack }) => {
             {/* Action Buttons */}
             <div className="flex justify-center items-center space-x-6 mt-8">
               <button
-                onClick={() => {
+                onClick={useCallback(() => {
                   handlePostReview();
                   handleCloseModals();
-                }}
+                }, [handlePostReview, handleCloseModals])}
                 className="bg-black text-white px-8 py-3 rounded-full hover:bg-gray-800 transition-colors font-medium"
               >
                 save and post
               </button>
               <button
-                onClick={() => {
+                onClick={useCallback(() => {
                   // Save for later functionality
                   if (adminReview.message.trim() && adminReview.rating > 0) {
                     const newReview = {
@@ -777,7 +750,7 @@ const ReviewDetails = ({ productName = "Review 1", onGoBack }) => {
                     setImagePreview(null);
                     handleCloseModals();
                   }
-                }}
+                }, [adminReview, stackedReviews.length, handleCloseModals])}
                 className="bg-red-500 text-white px-8 py-3 rounded-full hover:bg-red-600 transition-colors font-medium"
               >
                 save for later

@@ -29,40 +29,49 @@ import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 
-// Add custom styles for date picker
-const datePickerStyles = `
-  .date-picker-dropdown {
-    animation: slideDown 0.2s ease-out;
-  }
+// Add custom styles for date picker - moved to a singleton pattern for performance
+const createDatePickerStyles = (() => {
+  let stylesInjected = false;
   
-  @keyframes slideDown {
-    from {
-      opacity: 0;
-      transform: translateY(-10px);
+  const datePickerStyles = `
+    .date-picker-dropdown {
+      animation: slideDown 0.2s ease-out;
     }
-    to {
-      opacity: 1;
-      transform: translateY(0);
+    
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
-  }
-  
-  .date-picker-option:hover {
-    background-color: #f8fafc;
-  }
-  
-  .date-picker-option.selected {
-    background-color: #dbeafe;
-    color: #1d4ed8;
-  }
-`;
+    
+    .date-picker-option:hover {
+      background-color: #f8fafc;
+    }
+    
+    .date-picker-option.selected {
+      background-color: #dbeafe;
+      color: #1d4ed8;
+    }
+  `;
 
-// Inject styles
-if (typeof document !== 'undefined') {
-  const styleSheet = document.createElement("style");
-  styleSheet.type = "text/css";
-  styleSheet.innerText = datePickerStyles;
-  document.head.appendChild(styleSheet);
-}
+  return () => {
+    if (typeof document !== 'undefined' && !stylesInjected) {
+      const styleSheet = document.createElement("style");
+      styleSheet.type = "text/css";
+      styleSheet.innerText = datePickerStyles;
+      document.head.appendChild(styleSheet);
+      stylesInjected = true;
+    }
+  };
+})();
+
+// Inject styles once
+createDatePickerStyles();
 
 /**
  * Unified Database & Dashboard Component - Performance Optimized
@@ -205,19 +214,16 @@ const STATUS_COLORS = {
   finished: "bg-red-100 text-red-600",
 };
 
-// Memoized Status Badge Component
+// Memoized Status Badge Component - optimized with stable function reference
 const StatusBadge = memo(({ status, type = "status" }) => {
-  const getStatusColor = useCallback((status, type) => {
+  const statusColorClass = useMemo(() => {
     if (type === "error") return STATUS_COLORS.error;
     return STATUS_COLORS[status] || STATUS_COLORS.error;
-  }, []);
+  }, [status, type]);
 
   return (
     <span
-      className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
-        status,
-        type
-      )}`}
+      className={`px-3 py-1 rounded-full text-xs font-medium ${statusColorClass}`}
     >
       {status}
     </span>
@@ -338,7 +344,77 @@ const HourDropdown = ({ value, onChange, label }) => (
   </div>
 );
 
-// Date Range Picker Component
+// Performance utility functions - extracted for reuse and memoization
+const formatDateForDisplay = (date) => {
+  return date.toLocaleDateString('en-US', { 
+    month: 'short', 
+    day: 'numeric', 
+    year: 'numeric' 
+  });
+};
+
+const formatDateRange = (startDate, endDate) => {
+  const start = formatDateForDisplay(startDate);
+  const end = formatDateForDisplay(endDate);
+  return startDate.toDateString() === endDate.toDateString() ? start : `${start} – ${end}`;
+};
+
+// Memoized date calculation utility
+const calculateDateRange = (option) => {
+  const today = new Date();
+  let startDate, endDate;
+  
+  if (option.value === "custom" && option.startDate && option.endDate) {
+    return {
+      startDate: new Date(option.startDate),
+      endDate: new Date(option.endDate)
+    };
+  }
+  
+  switch (option.value) {
+    case "today":
+      startDate = endDate = new Date(today);
+      break;
+    case "yesterday":
+      startDate = endDate = new Date(today.getTime() - 24 * 60 * 60 * 1000);
+      break;
+    case "7days":
+      startDate = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+      endDate = new Date(today);
+      break;
+    case "14days":
+      startDate = new Date(today.getTime() - 14 * 24 * 60 * 60 * 1000);
+      endDate = new Date(today);
+      break;
+    case "30days":
+      startDate = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+      endDate = new Date(today);
+      break;
+    case "90days":
+      startDate = new Date(today.getTime() - 90 * 24 * 60 * 60 * 1000);
+      endDate = new Date(today);
+      break;
+    case "thisMonth":
+      startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+      endDate = new Date(today);
+      break;
+    case "lastMonth":
+      startDate = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+      endDate = new Date(today.getFullYear(), today.getMonth(), 0);
+      break;
+    case "thisYear":
+      startDate = new Date(today.getFullYear(), 0, 1);
+      endDate = new Date(today);
+      break;
+    default:
+      startDate = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+      endDate = new Date(today);
+  }
+  
+  return { startDate, endDate };
+};
+
+// Date Range Picker Component - optimized with extracted utilities
 const DateRangePicker = memo(({ selectedRange, onRangeChange, dateRange }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [showCustomPicker, setShowCustomPicker] = useState(false);
@@ -532,33 +608,40 @@ const Database = () => {
   const { productSyncData, marketplaces, syncLogs } = useMarketplaceData();
   const { inventoryProducts } = useInventoryData();
 
-  // Filtered data based on search
+  // Optimized filtered data with improved performance
+  const searchTermLower = useMemo(() => searchTerm.toLowerCase(), [searchTerm]);
+  
   const filteredSyncProducts = useMemo(() => {
-    if (!searchTerm) return productSyncData;
-    return productSyncData.filter(
-      (product) =>
-        product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.marketplace.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.sku.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [productSyncData, searchTerm]);
+    if (!searchTermLower) return productSyncData;
+    
+    return productSyncData.filter((product) => {
+      const { name, marketplace, sku } = product;
+      return (
+        name.toLowerCase().includes(searchTermLower) ||
+        marketplace.toLowerCase().includes(searchTermLower) ||
+        sku.toLowerCase().includes(searchTermLower)
+      );
+    });
+  }, [productSyncData, searchTermLower]);
 
   const filteredInventoryProducts = useMemo(() => {
+    const { category: filterCategory, subcategory: filterSubcategory } = filters;
+    
     return inventoryProducts.filter((product) => {
-      const matchesSearch =
-        !searchTerm ||
-        product.productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.sku.toLowerCase().includes(searchTerm.toLowerCase());
-
-      const matchesCategory =
-        !filters.category || product.category === filters.category;
-      const matchesSubcategory =
-        !filters.subcategory || product.subcategory === filters.subcategory;
-
-      return matchesSearch && matchesCategory && matchesSubcategory;
+      // Early returns for better performance
+      if (filterCategory && product.category !== filterCategory) return false;
+      if (filterSubcategory && product.subcategory !== filterSubcategory) return false;
+      
+      if (!searchTermLower) return true;
+      
+      const { productName, category, sku } = product;
+      return (
+        productName.toLowerCase().includes(searchTermLower) ||
+        category.toLowerCase().includes(searchTermLower) ||
+        sku.toLowerCase().includes(searchTermLower)
+      );
     });
-  }, [inventoryProducts, searchTerm, filters.category, filters.subcategory]);
+  }, [inventoryProducts, searchTermLower, filters.category, filters.subcategory]);
 
   // Event handlers
   const handleTabChange = useCallback((tab) => {
@@ -604,71 +687,12 @@ const Database = () => {
     setSearchTerm("");
   }, []);
 
-  // Date range change handler
+  // Optimized date range change handler with extracted utility
   const handleDateRangeChange = useCallback((rangeOption) => {
     setSelectedDateRange(rangeOption);
     
-    // Calculate actual dates based on selection
-    const today = new Date();
-    let startDate, endDate;
-    
-    if (rangeOption.value === "custom" && rangeOption.startDate && rangeOption.endDate) {
-      startDate = new Date(rangeOption.startDate);
-      endDate = new Date(rangeOption.endDate);
-    } else {
-      switch (rangeOption.value) {
-        case "today":
-          startDate = endDate = new Date(today);
-          break;
-        case "yesterday":
-          startDate = endDate = new Date(today.getTime() - 24 * 60 * 60 * 1000);
-          break;
-        case "7days":
-          startDate = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
-          endDate = new Date(today);
-          break;
-        case "14days":
-          startDate = new Date(today.getTime() - 14 * 24 * 60 * 60 * 1000);
-          endDate = new Date(today);
-          break;
-        case "30days":
-          startDate = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
-          endDate = new Date(today);
-          break;
-        case "90days":
-          startDate = new Date(today.getTime() - 90 * 24 * 60 * 60 * 1000);
-          endDate = new Date(today);
-          break;
-        case "thisMonth":
-          startDate = new Date(today.getFullYear(), today.getMonth(), 1);
-          endDate = new Date(today);
-          break;
-        case "lastMonth":
-          startDate = new Date(today.getFullYear(), today.getMonth() - 1, 1);
-          endDate = new Date(today.getFullYear(), today.getMonth(), 0);
-          break;
-        case "thisYear":
-          startDate = new Date(today.getFullYear(), 0, 1);
-          endDate = new Date(today);
-          break;
-        default:
-          startDate = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
-          endDate = new Date(today);
-      }
-    }
-    
-    // Format the date range for display
-    const formatDate = (date) => {
-      return date.toLocaleDateString('en-US', { 
-        month: 'short', 
-        day: 'numeric', 
-        year: 'numeric' 
-      });
-    };
-    
-    const formattedRange = startDate.toDateString() === endDate.toDateString() 
-      ? formatDate(startDate)
-      : `${formatDate(startDate)} – ${formatDate(endDate)}`;
+    const { startDate, endDate } = calculateDateRange(rangeOption);
+    const formattedRange = formatDateRange(startDate, endDate);
     
     setDateRange(formattedRange);
     
@@ -676,71 +700,12 @@ const Database = () => {
     console.log('Date range changed:', { startDate, endDate, range: formattedRange });
   }, []);
 
-  // Sales date range change handler
+  // Optimized sales date range change handler
   const handleSalesDateRangeChange = useCallback((rangeOption) => {
     setSelectedSalesDateRange(rangeOption);
     
-    // Calculate actual dates based on selection
-    const today = new Date();
-    let startDate, endDate;
-    
-    if (rangeOption.value === "custom" && rangeOption.startDate && rangeOption.endDate) {
-      startDate = new Date(rangeOption.startDate);
-      endDate = new Date(rangeOption.endDate);
-    } else {
-      switch (rangeOption.value) {
-        case "today":
-          startDate = endDate = new Date(today);
-          break;
-        case "yesterday":
-          startDate = endDate = new Date(today.getTime() - 24 * 60 * 60 * 1000);
-          break;
-        case "7days":
-          startDate = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
-          endDate = new Date(today);
-          break;
-        case "14days":
-          startDate = new Date(today.getTime() - 14 * 24 * 60 * 60 * 1000);
-          endDate = new Date(today);
-          break;
-        case "30days":
-          startDate = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
-          endDate = new Date(today);
-          break;
-        case "90days":
-          startDate = new Date(today.getTime() - 90 * 24 * 60 * 60 * 1000);
-          endDate = new Date(today);
-          break;
-        case "thisMonth":
-          startDate = new Date(today.getFullYear(), today.getMonth(), 1);
-          endDate = new Date(today);
-          break;
-        case "lastMonth":
-          startDate = new Date(today.getFullYear(), today.getMonth() - 1, 1);
-          endDate = new Date(today.getFullYear(), today.getMonth(), 0);
-          break;
-        case "thisYear":
-          startDate = new Date(today.getFullYear(), 0, 1);
-          endDate = new Date(today);
-          break;
-        default:
-          startDate = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
-          endDate = new Date(today);
-      }
-    }
-    
-    // Format the date range for display
-    const formatDate = (date) => {
-      return date.toLocaleDateString('en-US', { 
-        month: 'short', 
-        day: 'numeric', 
-        year: 'numeric' 
-      });
-    };
-    
-    const formattedRange = startDate.toDateString() === endDate.toDateString() 
-      ? formatDate(startDate)
-      : `${formatDate(startDate)} – ${formatDate(endDate)}`;
+    const { startDate, endDate } = calculateDateRange(rangeOption);
+    const formattedRange = formatDateRange(startDate, endDate);
     
     setSalesDateRange(formattedRange);
     
@@ -748,71 +713,12 @@ const Database = () => {
     console.log('Sales date range changed:', { startDate, endDate, range: formattedRange });
   }, []);
 
-  // Analytics date range change handler
+  // Optimized analytics date range change handler
   const handleAnalyticsDateRangeChange = useCallback((rangeOption) => {
     setSelectedAnalyticsDateRange(rangeOption);
     
-    // Calculate actual dates based on selection
-    const today = new Date();
-    let startDate, endDate;
-    
-    if (rangeOption.value === "custom" && rangeOption.startDate && rangeOption.endDate) {
-      startDate = new Date(rangeOption.startDate);
-      endDate = new Date(rangeOption.endDate);
-    } else {
-      switch (rangeOption.value) {
-        case "today":
-          startDate = endDate = new Date(today);
-          break;
-        case "yesterday":
-          startDate = endDate = new Date(today.getTime() - 24 * 60 * 60 * 1000);
-          break;
-        case "7days":
-          startDate = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
-          endDate = new Date(today);
-          break;
-        case "14days":
-          startDate = new Date(today.getTime() - 14 * 24 * 60 * 60 * 1000);
-          endDate = new Date(today);
-          break;
-        case "30days":
-          startDate = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
-          endDate = new Date(today);
-          break;
-        case "90days":
-          startDate = new Date(today.getTime() - 90 * 24 * 60 * 60 * 1000);
-          endDate = new Date(today);
-          break;
-        case "thisMonth":
-          startDate = new Date(today.getFullYear(), today.getMonth(), 1);
-          endDate = new Date(today);
-          break;
-        case "lastMonth":
-          startDate = new Date(today.getFullYear(), today.getMonth() - 1, 1);
-          endDate = new Date(today.getFullYear(), today.getMonth(), 0);
-          break;
-        case "thisYear":
-          startDate = new Date(today.getFullYear(), 0, 1);
-          endDate = new Date(today);
-          break;
-        default:
-          startDate = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
-          endDate = new Date(today);
-      }
-    }
-    
-    // Format the date range for display
-    const formatDate = (date) => {
-      return date.toLocaleDateString('en-US', { 
-        month: 'short', 
-        day: 'numeric', 
-        year: 'numeric' 
-      });
-    };
-    
-    const formattedRange = startDate.toDateString() === endDate.toDateString() 
-      ? formatDate(startDate)
-      : `${formatDate(startDate)} – ${formatDate(endDate)}`;
+    const { startDate, endDate } = calculateDateRange(rangeOption);
+    const formattedRange = formatDateRange(startDate, endDate);
     
     setAnalyticsDateRange(formattedRange);
     
@@ -820,71 +726,12 @@ const Database = () => {
     console.log('Analytics date range changed:', { startDate, endDate, range: formattedRange });
   }, []);
 
-  // Inventory date range change handler
+  // Optimized inventory date range change handler
   const handleInventoryDateRangeChange = useCallback((rangeOption) => {
     setSelectedInventoryDateRange(rangeOption);
     
-    // Calculate actual dates based on selection
-    const today = new Date();
-    let startDate, endDate;
-    
-    if (rangeOption.value === "custom" && rangeOption.startDate && rangeOption.endDate) {
-      startDate = new Date(rangeOption.startDate);
-      endDate = new Date(rangeOption.endDate);
-    } else {
-      switch (rangeOption.value) {
-        case "today":
-          startDate = endDate = new Date(today);
-          break;
-        case "yesterday":
-          startDate = endDate = new Date(today.getTime() - 24 * 60 * 60 * 1000);
-          break;
-        case "7days":
-          startDate = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
-          endDate = new Date(today);
-          break;
-        case "14days":
-          startDate = new Date(today.getTime() - 14 * 24 * 60 * 60 * 1000);
-          endDate = new Date(today);
-          break;
-        case "30days":
-          startDate = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
-          endDate = new Date(today);
-          break;
-        case "90days":
-          startDate = new Date(today.getTime() - 90 * 24 * 60 * 60 * 1000);
-          endDate = new Date(today);
-          break;
-        case "thisMonth":
-          startDate = new Date(today.getFullYear(), today.getMonth(), 1);
-          endDate = new Date(today);
-          break;
-        case "lastMonth":
-          startDate = new Date(today.getFullYear(), today.getMonth() - 1, 1);
-          endDate = new Date(today.getFullYear(), today.getMonth(), 0);
-          break;
-        case "thisYear":
-          startDate = new Date(today.getFullYear(), 0, 1);
-          endDate = new Date(today);
-          break;
-        default:
-          startDate = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
-          endDate = new Date(today);
-      }
-    }
-    
-    // Format the date range for display
-    const formatDate = (date) => {
-      return date.toLocaleDateString('en-US', { 
-        month: 'short', 
-        day: 'numeric', 
-        year: 'numeric' 
-      });
-    };
-    
-    const formattedRange = startDate.toDateString() === endDate.toDateString() 
-      ? formatDate(startDate)
-      : `${formatDate(startDate)} – ${formatDate(endDate)}`;
+    const { startDate, endDate } = calculateDateRange(rangeOption);
+    const formattedRange = formatDateRange(startDate, endDate);
     
     setInventoryDateRange(formattedRange);
     
@@ -892,14 +739,78 @@ const Database = () => {
     console.log('Inventory date range changed:', { startDate, endDate, range: formattedRange });
   }, []);
 
-  // Analytics refresh handler
+  // Optimized analytics refresh handler with stable reference
   const handleAnalyticsRefresh = useCallback(() => {
-    console.log('Refreshing analytics data...');
+    console.log('Refreshing analytics data...', {
+      dateRange: selectedAnalyticsDateRange,
+      timestamp: new Date().toISOString()
+    });
     // Here you would typically call your analytics API
     // Example: refetchAnalyticsData(selectedAnalyticsDateRange);
   }, [selectedAnalyticsDateRange]);
 
-  // Action handlers with useCallback for performance
+// PDF Generation Utilities - extracted for better performance and reusability
+const createProductPDFData = (product) => ({
+  basicInfo: [
+    ['Product Name', product.productName],
+    ['Category', product.category],
+    ['Subcategory', product.subcategory],
+    ['SKU', product.sku],
+    ['Barcode', product.barcode],
+    ['Status', product.status],
+    ['Returnable', product.returnable || 'N/A'],
+    ['Shipping & Returns', product.shippingReturns || 'N/A']
+  ],
+  sizeData: product.sizes?.map(size => [
+    size.size,
+    size.quantity.toString(),
+    `₹${size.salePrice}`,
+    `₹${size.actualPrice}`,
+    `₹${size.myntraPrice || 'N/A'}`,
+    `₹${size.amazonPrice || 'N/A'}`,
+    `₹${size.flipkartPrice || 'N/A'}`,
+    `₹${size.nykaPrice || 'N/A'}`
+  ]) || [],
+  details: [
+    ['Description', product.description || 'N/A'],
+    ['Manufacturing Details', product.manufacturingDetails || 'N/A'],
+    ['Meta Title', product.metaTitle || 'N/A'],
+    ['Meta Description', product.metaDescription || 'N/A'],
+    ['Slug URL', product.slugUrl || 'N/A']
+  ],
+  availability: [
+    ['Photos Available', product.photos ? 'Yes ✓' : 'No ✗'],
+    ['Size Chart Available', product.sizeChart ? 'Yes ✓' : 'No ✗']
+  ]
+});
+
+const addPDFHeader = (doc, title) => {
+  doc.setFontSize(24);
+  doc.setFont(undefined, 'bold');
+  doc.text(title, 20, 30);
+};
+
+const addPDFSection = (doc, title, startY) => {
+  doc.setFontSize(16);
+  doc.setFont(undefined, 'bold');
+  doc.text(title, 20, startY);
+  return startY + 10;
+};
+
+const addPDFTable = (doc, headers, data, startY, headColor, styles = {}) => {
+  doc.autoTable({
+    startY,
+    head: [headers],
+    body: data,
+    theme: 'grid',
+    styles: { fontSize: 10, cellPadding: 5, ...styles },
+    headStyles: { fillColor: headColor, textColor: [255, 255, 255] },
+    ...styles
+  });
+  return doc.lastAutoTable.finalY;
+};
+
+// Optimized Action handlers with useCallback for performance
   const handleEdit = useCallback((productId) => {
     console.log("Edit product:", productId);
     // Add edit functionality here
@@ -921,67 +832,33 @@ const Database = () => {
       }
 
       const doc = new jsPDF();
+      const pdfData = createProductPDFData(product);
       
       // Header
-      doc.setFontSize(24);
-      doc.setFont(undefined, 'bold');
-      doc.text('YORAA - Product Details', 20, 30);
+      addPDFHeader(doc, 'YORAA - Product Details');
       
       // Product basic info
-      doc.setFontSize(16);
-      doc.setFont(undefined, 'bold');
-      doc.text('Product Information', 20, 55);
-      
-      doc.setFontSize(12);
-      doc.setFont(undefined, 'normal');
-      const basicInfo = [
-        ['Product Name', product.productName],
-        ['Category', product.category],
-        ['Subcategory', product.subcategory],
-        ['SKU', product.sku],
-        ['Barcode', product.barcode],
-        ['Status', product.status],
-        ['Returnable', product.returnable || 'N/A'],
-        ['Shipping & Returns', product.shippingReturns || 'N/A']
-      ];
-      
-      doc.autoTable({
-        startY: 65,
-        head: [['Field', 'Value']],
-        body: basicInfo,
-        theme: 'grid',
-        styles: { fontSize: 10, cellPadding: 5 },
-        headStyles: { fillColor: [59, 130, 246], textColor: [255, 255, 255] },
-        columnStyles: { 0: { fontStyle: 'bold', fillColor: [245, 247, 250] } }
-      });
+      let currentY = addPDFSection(doc, 'Product Information', 55);
+      currentY = addPDFTable(
+        doc, 
+        ['Field', 'Value'], 
+        pdfData.basicInfo, 
+        currentY,
+        [59, 130, 246],
+        { columnStyles: { 0: { fontStyle: 'bold', fillColor: [245, 247, 250] } } }
+      );
 
       // Size and pricing information
-      let currentY = doc.lastAutoTable.finalY + 20;
-      doc.setFontSize(16);
-      doc.setFont(undefined, 'bold');
-      doc.text('Size & Pricing Details', 20, currentY);
-      
-      if (product.sizes && product.sizes.length > 0) {
-        const sizeData = product.sizes.map(size => [
-          size.size,
-          size.quantity.toString(),
-          `₹${size.salePrice}`,
-          `₹${size.actualPrice}`,
-          `₹${size.myntraPrice || 'N/A'}`,
-          `₹${size.amazonPrice || 'N/A'}`,
-          `₹${size.flipkartPrice || 'N/A'}`,
-          `₹${size.nykaPrice || 'N/A'}`
-        ]);
-        
-        doc.autoTable({
-          startY: currentY + 10,
-          head: [['Size', 'Quantity', 'Sale Price', 'Actual Price', 'Myntra', 'Amazon', 'Flipkart', 'Nykaa']],
-          body: sizeData,
-          theme: 'grid',
-          styles: { fontSize: 9, cellPadding: 4 },
-          headStyles: { fillColor: [34, 197, 94], textColor: [255, 255, 255] }
-        });
-        currentY = doc.lastAutoTable.finalY + 20;
+      if (pdfData.sizeData.length > 0) {
+        currentY = addPDFSection(doc, 'Size & Pricing Details', currentY + 20);
+        currentY = addPDFTable(
+          doc,
+          ['Size', 'Quantity', 'Sale Price', 'Actual Price', 'Myntra', 'Amazon', 'Flipkart', 'Nykaa'],
+          pdfData.sizeData,
+          currentY,
+          [34, 197, 94],
+          { styles: { fontSize: 9, cellPadding: 4 } }
+        );
       }
 
       // Product description and details
@@ -990,58 +867,34 @@ const Database = () => {
         currentY = 30;
       }
       
-      doc.setFontSize(16);
-      doc.setFont(undefined, 'bold');
-      doc.text('Product Details', 20, currentY);
-      
-      doc.setFontSize(12);
-      doc.setFont(undefined, 'normal');
-      currentY += 15;
-      
-      const details = [
-        ['Description', product.description || 'N/A'],
-        ['Manufacturing Details', product.manufacturingDetails || 'N/A'],
-        ['Meta Title', product.metaTitle || 'N/A'],
-        ['Meta Description', product.metaDescription || 'N/A'],
-        ['Slug URL', product.slugUrl || 'N/A']
-      ];
-      
-      doc.autoTable({
-        startY: currentY,
-        head: [['Field', 'Details']],
-        body: details,
-        theme: 'grid',
-        styles: { fontSize: 10, cellPadding: 5 },
-        headStyles: { fillColor: [168, 85, 247], textColor: [255, 255, 255] },
-        columnStyles: { 
-          0: { fontStyle: 'bold', fillColor: [245, 247, 250], cellWidth: 50 },
-          1: { cellWidth: 130 }
+      currentY = addPDFSection(doc, 'Product Details', currentY + 20);
+      currentY = addPDFTable(
+        doc,
+        ['Field', 'Details'],
+        pdfData.details,
+        currentY,
+        [168, 85, 247],
+        { 
+          columnStyles: { 
+            0: { fontStyle: 'bold', fillColor: [245, 247, 250], cellWidth: 50 },
+            1: { cellWidth: 130 }
+          }
         }
-      });
+      );
 
       // Availability status
-      currentY = doc.lastAutoTable.finalY + 20;
-      doc.setFontSize(16);
-      doc.setFont(undefined, 'bold');
-      doc.text('Asset Availability', 20, currentY);
-      
-      const availability = [
-        ['Photos Available', product.photos ? 'Yes ✓' : 'No ✗'],
-        ['Size Chart Available', product.sizeChart ? 'Yes ✓' : 'No ✗']
-      ];
-      
-      doc.autoTable({
-        startY: currentY + 10,
-        head: [['Asset Type', 'Status']],
-        body: availability,
-        theme: 'grid',
-        styles: { fontSize: 10, cellPadding: 5 },
-        headStyles: { fillColor: [245, 158, 11], textColor: [255, 255, 255] },
-        columnStyles: { 0: { fontStyle: 'bold', fillColor: [245, 247, 250] } }
-      });
+      currentY = addPDFSection(doc, 'Asset Availability', currentY + 20);
+      currentY = addPDFTable(
+        doc,
+        ['Asset Type', 'Status'],
+        pdfData.availability,
+        currentY,
+        [245, 158, 11],
+        { columnStyles: { 0: { fontStyle: 'bold', fillColor: [245, 247, 250] } } }
+      );
 
       // Footer
-      currentY = doc.lastAutoTable.finalY + 30;
+      currentY += 30;
       if (currentY > 250) {
         doc.addPage();
         currentY = 30;
@@ -2937,9 +2790,54 @@ const SalesAnalyticsSection = memo(
 
 SalesAnalyticsSection.displayName = "SalesAnalyticsSection";
 
-// Inventory Product Row Component
-const InventoryProductRow = memo(
-  ({ product, onEdit, onDelete, onDownload }) => (
+// Performance optimization: Virtualized table row component for large datasets
+const VirtualizedInventoryRow = memo(({ product, onEdit, onDelete, onDownload, style }) => (
+  <div style={style} className="flex hover:bg-gray-50 transition-colors duration-200 border-b border-gray-200">
+    <div className="flex-none w-32 px-4 py-4">
+      <ProductImage image={product.image} productName={product.productName} />
+    </div>
+    <div className="flex-none w-48 px-4 py-4">
+      <div className="text-sm font-medium text-gray-900 truncate">
+        {product.productName}
+      </div>
+    </div>
+    <div className="flex-none w-32 px-4 py-4">
+      <span className="text-sm text-gray-900 font-medium truncate">
+        {product.category}
+      </span>
+    </div>
+    <div className="flex-none w-32 px-4 py-4">
+      <span className="text-sm text-gray-900 font-medium truncate">
+        {product.subcategory}
+      </span>
+    </div>
+    <div className="flex-none w-24 px-4 py-4">
+      <div className="text-sm text-gray-900 font-medium">
+        ₹{product.sizes && product.sizes.length > 0 ? product.sizes[0].salePrice : 'N/A'}
+      </div>
+    </div>
+    <div className="flex-none w-28 px-4 py-4">
+      <ActionButtons
+        productId={product.id}
+        onEdit={onEdit}
+        onDelete={onDelete}
+        onDownload={onDownload}
+      />
+    </div>
+  </div>
+));
+
+VirtualizedInventoryRow.displayName = "VirtualizedInventoryRow";
+
+// Optimized Inventory Product Row Component with memoized calculations
+const InventoryProductRow = memo(({ product, onEdit, onDelete, onDownload }) => {
+  // Pre-calculate expensive operations
+  const firstPrice = useMemo(() => 
+    product.sizes && product.sizes.length > 0 ? product.sizes[0].salePrice : 'N/A',
+    [product.sizes]
+  );
+  
+  return (
     <tr className="hover:bg-gray-50 transition-colors duration-200 border-b border-gray-200">
       <td className="px-4 py-4">
         <ProductImage image={product.image} productName={product.productName} />
@@ -2961,7 +2859,7 @@ const InventoryProductRow = memo(
       </td>
       <td className="px-4 py-4">
         <div className="text-sm text-gray-900 font-medium">
-          ₹{product.sizes && product.sizes.length > 0 ? product.sizes[0].salePrice : 'N/A'}
+          ₹{firstPrice}
         </div>
       </td>
       <td className="px-4 py-4">
@@ -3034,8 +2932,8 @@ const InventoryProductRow = memo(
         </div>
       </td>
     </tr>
-  )
-);
+  );
+});
 
 InventoryProductRow.displayName = "InventoryProductRow";
 

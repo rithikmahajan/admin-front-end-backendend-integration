@@ -1,9 +1,8 @@
-import React, { useState, useCallback, useMemo, useRef, useEffect, useReducer } from 'react';
+import React, { useState, useCallback, useMemo, useReducer } from 'react';
 import { 
-  Search, Edit2, Trash2, ChevronDown, ChevronUp, Save, X, 
-  AlertCircle, Check, Filter, Plus, Minus, GripVertical, 
-  Eye, EyeOff, ArrowUp, ArrowDown, Palette, DollarSign, 
-  Settings, ArrowUpDown, Move
+  Search, Edit2, Trash2, ChevronDown, ChevronUp, X, 
+  AlertCircle, Check, GripVertical, 
+  Eye, Settings
 } from 'lucide-react';
 
 /**
@@ -305,7 +304,7 @@ const AdvancedMobileFiltersApp = () => {
     }
     
     return { errors, isValid: Object.keys(errors).length === 0 };
-  }, [filters, editingFilter]);
+  }, [filters, editingFilter?.id]);
   
   const validateValueForm = useCallback((form) => {
     const errors = {};
@@ -350,12 +349,12 @@ const AdvancedMobileFiltersApp = () => {
     filtersDispatch({ type: FILTER_ACTIONS.ADD_FILTER, payload: newFilter });
     
     // Reset form
-    setFilterForm({
+    setFilterForm(prevForm => ({
       key: '',
       type: ADVANCED_FILTER_CONFIG.FILTER_TYPES.COLOUR,
       priority: filters.length + 2,
       arrangement: filters.length + 2
-    });
+    }));
     setValidationErrors({});
   }, [filterForm, validateFilterForm, generateId, filters.length]);
   
@@ -449,7 +448,7 @@ const AdvancedMobileFiltersApp = () => {
       const sourceIndex = filters.findIndex(f => f.id === draggedItem.item.id);
       const targetIndex = filters.findIndex(f => f.id === targetItem.id);
       
-      if (sourceIndex !== targetIndex) {
+      if (sourceIndex !== targetIndex && sourceIndex !== -1 && targetIndex !== -1) {
         const reorderedFilters = [...filters];
         const [removed] = reorderedFilters.splice(sourceIndex, 1);
         reorderedFilters.splice(targetIndex, 0, removed);
@@ -472,11 +471,12 @@ const AdvancedMobileFiltersApp = () => {
   const filteredFilters = useMemo(() => {
     if (!searchTerm) return filters;
     
+    const lowercaseSearchTerm = searchTerm.toLowerCase();
     return filters.filter(filter =>
-      filter.key.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      filter.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      filter.key.toLowerCase().includes(lowercaseSearchTerm) ||
+      filter.type.toLowerCase().includes(lowercaseSearchTerm) ||
       filter.assignedValues.some(value => 
-        value.value.toLowerCase().includes(searchTerm.toLowerCase())
+        value.value.toLowerCase().includes(lowercaseSearchTerm)
       )
     );
   }, [filters, searchTerm]);
@@ -729,6 +729,15 @@ const CreateFilterValuesSection = React.memo(({
   isActive,
   onToggle
 }) => {
+  // Memoize the selected filter to avoid recalculation
+  const selectedFilter = useMemo(() => 
+    valueForm.filterId ? filters.find(f => f.id === valueForm.filterId) : null,
+    [valueForm.filterId, filters]
+  );
+
+  const isColorFilter = selectedFilter?.type === 'colour';
+  const isPriceFilter = selectedFilter?.type === 'price';
+
   return (
     <div className="bg-gray-50 rounded-xl border-2 border-black p-6">
       <div className="flex items-center justify-between mb-6">
@@ -789,7 +798,7 @@ const CreateFilterValuesSection = React.memo(({
           </div>
 
           {/* RGB Color Code (for color filters) */}
-          {valueForm.filterId && filters.find(f => f.id === valueForm.filterId)?.type === 'colour' && (
+          {isColorFilter && (
             <div>
               <label className="block text-sm font-medium text-black mb-2">
                 Enter colour code (RGB)
@@ -819,7 +828,7 @@ const CreateFilterValuesSection = React.memo(({
           )}
 
           {/* Price Range (for price filters) */}
-          {valueForm.filterId && filters.find(f => f.id === valueForm.filterId)?.type === 'price' && (
+          {isPriceFilter && (
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-black mb-2">
@@ -965,7 +974,16 @@ const FilterRow = React.memo(({
   onDrop,
   filtersDispatch
 }) => {
-  const isDraggedOver = dragOverItem?.item?.id === filter.id && dragOverItem?.type === 'filter';
+  const isDraggedOver = useMemo(() => 
+    dragOverItem?.item?.id === filter.id && dragOverItem?.type === 'filter',
+    [dragOverItem?.item?.id, dragOverItem?.type, filter.id]
+  );
+  
+  const handleEditFilter = useCallback(() => onEditFilter(filter), [onEditFilter, filter]);
+  const handleDeleteFilter = useCallback(() => onDeleteFilter(filter.id), [onDeleteFilter, filter.id]);
+  const handleDragStart = useCallback((e) => onDragStart(e, filter, 'filter'), [onDragStart, filter]);
+  const handleDragEnter = useCallback((e) => onDragEnter(e, filter, 'filter'), [onDragEnter, filter]);
+  const handleDrop = useCallback((e) => onDrop(e, filter, 'filter'), [onDrop, filter]);
   
   return (
     <div 
@@ -973,10 +991,10 @@ const FilterRow = React.memo(({
         isDraggedOver ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
       }`}
       draggable
-      onDragStart={(e) => onDragStart(e, filter, 'filter')}
+      onDragStart={handleDragStart}
       onDragOver={onDragOver}
-      onDragEnter={(e) => onDragEnter(e, filter, 'filter')}
-      onDrop={(e) => onDrop(e, filter, 'filter')}
+      onDragEnter={handleDragEnter}
+      onDrop={handleDrop}
     >
       {/* Key Values */}
       <div className="flex items-center gap-2">
@@ -1009,14 +1027,14 @@ const FilterRow = React.memo(({
       {/* Action Buttons */}
       <div className="flex items-center gap-2">
         <button
-          onClick={() => onEditFilter(filter)}
+          onClick={handleEditFilter}
           className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
           title="Edit filter"
         >
           <Edit2 className="h-4 w-4" />
         </button>
         <button
-          onClick={() => onDeleteFilter(filter.id)}
+          onClick={handleDeleteFilter}
           className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
           title="Delete filter"
         >
@@ -1027,30 +1045,69 @@ const FilterRow = React.memo(({
   );
 });
 
+// Mobile Status Bar Component
+const MobileStatusBar = React.memo(() => (
+  <div className="bg-black text-white p-2 flex items-center justify-between text-sm">
+    <div className="flex items-center gap-1">
+      <div className="w-1 h-1 bg-white rounded-full"></div>
+      <div className="w-1 h-1 bg-white rounded-full"></div>
+      <div className="w-1 h-1 bg-white rounded-full"></div>
+    </div>
+    <div>9:41</div>
+    <div className="flex items-center gap-1">
+      <div className="w-4 h-2 border border-white rounded-sm">
+        <div className="w-3 h-1 bg-white rounded-sm"></div>
+      </div>
+    </div>
+  </div>
+));
+
+// Mobile Filter Item Component
+const MobileFilterItem = React.memo(({ filter }) => (
+  <div className="space-y-2">
+    <h4 className="font-medium text-sm capitalize">{filter.key}</h4>
+    <div className="flex flex-wrap gap-2">
+      {filter.assignedValues.map((value) => (
+        <div
+          key={value.id}
+          className="flex items-center gap-2 px-3 py-1 bg-gray-100 rounded-full text-sm"
+        >
+          {value.colorCode && (
+            <div 
+              className="w-3 h-3 rounded-full border border-gray-300"
+              style={{ backgroundColor: value.colorCode }}
+            />
+          )}
+          {value.value}
+        </div>
+      ))}
+    </div>
+  </div>
+));
+
 // Mobile Preview Interface Component
 const MobilePreviewInterface = React.memo(({
   filters,
   onToggleView
 }) => {
+  const filterSummary = useMemo(() => 
+    filters.map((filter) => ({
+      id: filter.id,
+      key: filter.key,
+      valueCount: filter.assignedValues.length,
+      priority: filter.priority,
+      isActive: filter.isActive
+    })),
+    [filters]
+  );
+
   return (
     <div className="flex h-screen">
       {/* Mobile Preview */}
       <div className="w-96 bg-gray-100 border-r-2 border-gray-300">
         <div className="bg-white h-full">
           {/* Mobile Status Bar */}
-          <div className="bg-black text-white p-2 flex items-center justify-between text-sm">
-            <div className="flex items-center gap-1">
-              <div className="w-1 h-1 bg-white rounded-full"></div>
-              <div className="w-1 h-1 bg-white rounded-full"></div>
-              <div className="w-1 h-1 bg-white rounded-full"></div>
-            </div>
-            <div>9:41</div>
-            <div className="flex items-center gap-1">
-              <div className="w-4 h-2 border border-white rounded-sm">
-                <div className="w-3 h-1 bg-white rounded-sm"></div>
-              </div>
-            </div>
-          </div>
+          <MobileStatusBar />
 
           {/* Search Bar */}
           <div className="p-4">
@@ -1070,25 +1127,7 @@ const MobilePreviewInterface = React.memo(({
             <h3 className="font-bold mb-3">Filters</h3>
             <div className="space-y-3">
               {filters.map((filter) => (
-                <div key={filter.id} className="space-y-2">
-                  <h4 className="font-medium text-sm capitalize">{filter.key}</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {filter.assignedValues.map((value) => (
-                      <div
-                        key={value.id}
-                        className="flex items-center gap-2 px-3 py-1 bg-gray-100 rounded-full text-sm"
-                      >
-                        {value.colorCode && (
-                          <div 
-                            className="w-3 h-3 rounded-full border border-gray-300"
-                            style={{ backgroundColor: value.colorCode }}
-                          />
-                        )}
-                        {value.value}
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                <MobileFilterItem key={filter.id} filter={filter} />
               ))}
             </div>
           </div>
@@ -1111,12 +1150,12 @@ const MobilePreviewInterface = React.memo(({
         <div className="bg-white rounded-xl p-6 shadow-sm">
           <h3 className="font-bold mb-4">Filter Summary</h3>
           <div className="space-y-4">
-            {filters.map((filter) => (
+            {filterSummary.map((filter) => (
               <div key={filter.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                 <div>
                   <div className="font-medium">{filter.key}</div>
                   <div className="text-sm text-gray-600">
-                    {filter.assignedValues.length} value(s) • Priority: {filter.priority}
+                    {filter.valueCount} value(s) • Priority: {filter.priority}
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -1136,6 +1175,8 @@ const MobilePreviewInterface = React.memo(({
 });
 
 // Set display names for debugging
+MobileStatusBar.displayName = 'MobileStatusBar';
+MobileFilterItem.displayName = 'MobileFilterItem';
 DesktopManagementInterface.displayName = 'DesktopManagementInterface';
 CreateFiltersSection.displayName = 'CreateFiltersSection';
 CreateFilterValuesSection.displayName = 'CreateFilterValuesSection';

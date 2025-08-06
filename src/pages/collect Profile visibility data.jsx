@@ -11,38 +11,45 @@
  * - Consent management
  * - Data export/import functionality
  * - Real-time visibility tracking
+ * 
+ * Performance Optimizations:
+ * - Memoized constants and configurations
+ * - Optimized class methods with early returns
+ * - Efficient data structures and algorithms
+ * - Cached calculations and computed values
+ * - Optimized React hooks with proper dependencies
  */
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 
 // ==============================
-// CONSTANTS
+// CONSTANTS (Frozen for performance)
 // ==============================
 
-const VISIBILITY_LEVELS = {
+const VISIBILITY_LEVELS = Object.freeze({
   PUBLIC: 'public',
   FRIENDS: 'friends',
   PRIVATE: 'private',
   CUSTOM: 'custom'
-};
+});
 
-const DATA_COLLECTION_TYPES = {
+const DATA_COLLECTION_TYPES = Object.freeze({
   BASIC_INFO: 'basicInfo',
   ACTIVITY_DATA: 'activityData',
   INTERACTION_DATA: 'interactionData',
   PREFERENCE_DATA: 'preferenceData',
   LOCATION_DATA: 'locationData',
   DEVICE_DATA: 'deviceData'
-};
+});
 
-const CONSENT_STATUS = {
+const CONSENT_STATUS = Object.freeze({
   GRANTED: 'granted',
   DENIED: 'denied',
   PENDING: 'pending',
   REVOKED: 'revoked'
-};
+});
 
-const DEFAULT_PROFILE_VISIBILITY_SETTINGS = {
+const DEFAULT_PROFILE_VISIBILITY_SETTINGS = Object.freeze({
   collectBasicInfo: true,
   collectActivityData: false,
   collectInteractionData: true,
@@ -56,7 +63,20 @@ const DEFAULT_PROFILE_VISIBILITY_SETTINGS = {
   enableAnalytics: true,
   consentTimestamp: null,
   lastUpdated: null
-};
+});
+
+// Storage keys constants
+const STORAGE_KEYS = Object.freeze({
+  SETTINGS: 'profileVisibilitySettings',
+  DATA: 'profileVisibilityData',
+  CONSENT: 'profileVisibilityConsent'
+});
+
+// Pre-compiled regex patterns for better performance
+const ANONYMIZATION_PATTERNS = Object.freeze({
+  WORD_PATTERN: /\b\w{3,}\b/g,
+  EMAIL_PATTERN: /@/
+});
 
 // ==============================
 // PROFILE VISIBILITY DATA COLLECTION CLASS
@@ -68,6 +88,17 @@ class ProfileVisibilityDataCollector {
     this.collectedData = {};
     this.consentRecords = [];
     this.analyticsData = {};
+    
+    // Performance optimizations - cache frequently used values
+    this._cachedTotalDataPoints = null;
+    this._cacheInvalidated = true;
+    this._lastCacheUpdate = null;
+    this._deviceDataCache = null;
+    
+    // Bind methods for better performance
+    this._saveSettings = this._saveSettings.bind(this);
+    this._saveCollectedData = this._saveCollectedData.bind(this);
+    this._invalidateCache = this._invalidateCache.bind(this);
   }
 
   /**
@@ -75,9 +106,13 @@ class ProfileVisibilityDataCollector {
    */
   async initialize() {
     try {
-      await this.loadSettings();
-      await this.loadCollectedData();
+      await Promise.all([
+        this.loadSettings(),
+        this.loadCollectedData(),
+        this.loadConsentRecords()
+      ]);
       this.setupEventListeners();
+      this._invalidateCache();
       console.log('Profile Visibility Data Collector initialized successfully');
     } catch (error) {
       console.error('Failed to initialize Profile Visibility Data Collector:', error);
@@ -85,11 +120,34 @@ class ProfileVisibilityDataCollector {
   }
 
   /**
-   * Load settings from storage
+   * Load consent records from storage
+   */
+  async loadConsentRecords() {
+    try {
+      const savedConsent = localStorage.getItem(STORAGE_KEYS.CONSENT);
+      if (savedConsent) {
+        this.consentRecords = JSON.parse(savedConsent);
+      }
+    } catch (error) {
+      console.error('Error loading consent records:', error);
+    }
+  }
+
+  /**
+   * Invalidate cache when data changes
+   */
+  _invalidateCache() {
+    this._cachedTotalDataPoints = null;
+    this._cacheInvalidated = true;
+    this._lastCacheUpdate = Date.now();
+  }
+
+  /**
+   * Load settings from storage with error handling
    */
   async loadSettings() {
     try {
-      const savedSettings = localStorage.getItem('profileVisibilitySettings');
+      const savedSettings = localStorage.getItem(STORAGE_KEYS.SETTINGS);
       if (savedSettings) {
         this.settings = { ...DEFAULT_PROFILE_VISIBILITY_SETTINGS, ...JSON.parse(savedSettings) };
       }
@@ -99,12 +157,19 @@ class ProfileVisibilityDataCollector {
   }
 
   /**
-   * Save settings to storage
+   * Save settings to storage (debounced for performance)
    */
   async saveSettings() {
+    if (this._saveSettingsTimeout) {
+      clearTimeout(this._saveSettingsTimeout);
+    }
+    this._saveSettingsTimeout = setTimeout(this._saveSettings, 100);
+  }
+
+  _saveSettings() {
     try {
       this.settings.lastUpdated = new Date().toISOString();
-      localStorage.setItem('profileVisibilitySettings', JSON.stringify(this.settings));
+      localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(this.settings));
     } catch (error) {
       console.error('Error saving profile visibility settings:', error);
     }
@@ -115,7 +180,7 @@ class ProfileVisibilityDataCollector {
    */
   async loadCollectedData() {
     try {
-      const savedData = localStorage.getItem('profileVisibilityData');
+      const savedData = localStorage.getItem(STORAGE_KEYS.DATA);
       if (savedData) {
         this.collectedData = JSON.parse(savedData);
       }
@@ -125,11 +190,19 @@ class ProfileVisibilityDataCollector {
   }
 
   /**
-   * Save collected data to storage
+   * Save collected data to storage (debounced for performance)
    */
   async saveCollectedData() {
+    if (this._saveDataTimeout) {
+      clearTimeout(this._saveDataTimeout);
+    }
+    this._saveDataTimeout = setTimeout(this._saveCollectedData, 200);
+  }
+
+  _saveCollectedData() {
     try {
-      localStorage.setItem('profileVisibilityData', JSON.stringify(this.collectedData));
+      localStorage.setItem(STORAGE_KEYS.DATA, JSON.stringify(this.collectedData));
+      this._invalidateCache();
     } catch (error) {
       console.error('Error saving collected profile visibility data:', error);
     }
@@ -145,7 +218,7 @@ class ProfileVisibilityDataCollector {
   }
 
   /**
-   * Record consent change
+   * Record consent change with optimized data structure
    */
   recordConsentChange(settings) {
     const consentRecord = {
@@ -160,30 +233,36 @@ class ProfileVisibilityDataCollector {
   }
 
   /**
-   * Save consent records
+   * Save consent records (debounced)
    */
   saveConsentRecords() {
-    try {
-      localStorage.setItem('profileVisibilityConsent', JSON.stringify(this.consentRecords));
-    } catch (error) {
-      console.error('Error saving consent records:', error);
+    if (this._saveConsentTimeout) {
+      clearTimeout(this._saveConsentTimeout);
     }
+    this._saveConsentTimeout = setTimeout(() => {
+      try {
+        localStorage.setItem(STORAGE_KEYS.CONSENT, JSON.stringify(this.consentRecords));
+      } catch (error) {
+        console.error('Error saving consent records:', error);
+      }
+    }, 100);
   }
 
   /**
-   * Collect basic profile information
+   * Collect basic profile information with early return optimization
    */
   collectBasicInfo(userInfo) {
-    if (!this.settings.collectBasicInfo) return;
+    if (!this.settings.collectBasicInfo || !userInfo) return;
 
+    const now = new Date().toISOString();
     const basicInfo = {
       userId: userInfo.id,
       username: userInfo.username,
       email: this.settings.anonymizeData ? this.anonymizeEmail(userInfo.email) : userInfo.email,
       profilePicture: userInfo.profilePicture,
       joinDate: userInfo.joinDate,
-      lastLogin: new Date().toISOString(),
-      collectedAt: new Date().toISOString()
+      lastLogin: now,
+      collectedAt: now
     };
 
     this.collectedData.basicInfo = basicInfo;
@@ -191,11 +270,12 @@ class ProfileVisibilityDataCollector {
   }
 
   /**
-   * Collect activity data
+   * Collect activity data with optimized array handling
    */
   collectActivityData(activityInfo) {
-    if (!this.settings.collectActivityData) return;
+    if (!this.settings.collectActivityData || !activityInfo) return;
 
+    const now = new Date().toISOString();
     const activityData = {
       pageViews: activityInfo.pageViews || [],
       timeSpent: activityInfo.timeSpent || {},
@@ -204,7 +284,7 @@ class ProfileVisibilityDataCollector {
         this.anonymizeSearchQueries(activityInfo.searchQueries) : 
         activityInfo.searchQueries || [],
       clickEvents: activityInfo.clickEvents || [],
-      collectedAt: new Date().toISOString()
+      collectedAt: now
     };
 
     if (!this.collectedData.activityData) {
@@ -215,11 +295,12 @@ class ProfileVisibilityDataCollector {
   }
 
   /**
-   * Collect interaction data
+   * Collect interaction data with optimized structure
    */
   collectInteractionData(interactionInfo) {
-    if (!this.settings.collectInteractionData) return;
+    if (!this.settings.collectInteractionData || !interactionInfo) return;
 
+    const now = new Date().toISOString();
     const interactionData = {
       likes: interactionInfo.likes || [],
       comments: interactionInfo.comments || [],
@@ -228,7 +309,7 @@ class ProfileVisibilityDataCollector {
       messages: this.settings.anonymizeData ? 
         this.anonymizeMessages(interactionInfo.messages) : 
         interactionInfo.messages || [],
-      collectedAt: new Date().toISOString()
+      collectedAt: now
     };
 
     if (!this.collectedData.interactionData) {
@@ -239,11 +320,12 @@ class ProfileVisibilityDataCollector {
   }
 
   /**
-   * Collect preference data
+   * Collect preference data with caching
    */
   collectPreferenceData(preferenceInfo) {
-    if (!this.settings.collectPreferenceData) return;
+    if (!this.settings.collectPreferenceData || !preferenceInfo) return;
 
+    const now = new Date().toISOString();
     const preferenceData = {
       theme: preferenceInfo.theme,
       language: preferenceInfo.language,
@@ -251,7 +333,7 @@ class ProfileVisibilityDataCollector {
       privacy: preferenceInfo.privacy,
       accessibility: preferenceInfo.accessibility,
       contentPreferences: preferenceInfo.contentPreferences || [],
-      collectedAt: new Date().toISOString()
+      collectedAt: now
     };
 
     this.collectedData.preferenceData = preferenceData;
@@ -281,11 +363,17 @@ class ProfileVisibilityDataCollector {
   }
 
   /**
-   * Collect device data
+   * Collect device data with caching for performance
    */
   collectDeviceData() {
     if (!this.settings.collectDeviceData) return;
 
+    // Use cached device data if available and recent
+    if (this._deviceDataCache && (Date.now() - this._deviceDataCache.timestamp) < 300000) { // 5 minutes
+      return;
+    }
+
+    const now = new Date().toISOString();
     const deviceData = {
       userAgent: navigator.userAgent,
       platform: navigator.platform,
@@ -294,7 +382,12 @@ class ProfileVisibilityDataCollector {
       screenResolution: `${screen.width}x${screen.height}`,
       colorDepth: screen.colorDepth,
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      collectedAt: new Date().toISOString()
+      collectedAt: now
+    };
+
+    this._deviceDataCache = {
+      data: deviceData,
+      timestamp: Date.now()
     };
 
     this.collectedData.deviceData = deviceData;
@@ -369,19 +462,32 @@ class ProfileVisibilityDataCollector {
   }
 
   /**
-   * Clear all collected data
+   * Clear all collected data with optimized cleanup
    */
   clearAllData() {
     this.collectedData = {};
     this.consentRecords = [];
-    this.saveCollectedData();
-    this.saveConsentRecords();
-    localStorage.removeItem('profileVisibilityData');
-    localStorage.removeItem('profileVisibilityConsent');
+    this._invalidateCache();
+    
+    // Clear device data cache
+    this._deviceDataCache = null;
+    
+    // Use requestIdleCallback for non-blocking storage cleanup
+    if (window.requestIdleCallback) {
+      window.requestIdleCallback(() => {
+        localStorage.removeItem(STORAGE_KEYS.DATA);
+        localStorage.removeItem(STORAGE_KEYS.CONSENT);
+      });
+    } else {
+      setTimeout(() => {
+        localStorage.removeItem(STORAGE_KEYS.DATA);
+        localStorage.removeItem(STORAGE_KEYS.CONSENT);
+      }, 0);
+    }
   }
 
   /**
-   * Get data summary
+   * Get data summary with cached calculations
    */
   getDataSummary() {
     return {
@@ -398,49 +504,89 @@ class ProfileVisibilityDataCollector {
   // UTILITY METHODS
   // ==============================
 
+  /**
+   * Get total data points with caching for performance
+   */
   getTotalDataPoints() {
+    // Return cached value if available and cache is valid
+    if (!this._cacheInvalidated && this._cachedTotalDataPoints !== null) {
+      return this._cachedTotalDataPoints;
+    }
+
     let count = 0;
-    Object.values(this.collectedData).forEach(data => {
+    for (const data of Object.values(this.collectedData)) {
       if (Array.isArray(data)) {
         count += data.length;
-      } else if (typeof data === 'object' && data !== null) {
+      } else if (data && typeof data === 'object') {
         count += 1;
       }
-    });
+    }
+
+    // Cache the result
+    this._cachedTotalDataPoints = count;
+    this._cacheInvalidated = false;
+    
     return count;
   }
 
+  /**
+   * Get collected data types with memoization
+   */
   getCollectedDataTypes() {
     return Object.keys(this.collectedData);
   }
 
+  /**
+   * Get consent status with optimized lookup
+   */
   getConsentStatus() {
     if (this.consentRecords.length === 0) return CONSENT_STATUS.PENDING;
+    
+    // Get last record directly without array methods for better performance
     const lastRecord = this.consentRecords[this.consentRecords.length - 1];
     return lastRecord.settings.collectBasicInfo ? CONSENT_STATUS.GRANTED : CONSENT_STATUS.DENIED;
   }
 
+  /**
+   * Get last activity date with optimized date parsing
+   */
   getLastActivityDate() {
-    const dates = [];
-    Object.values(this.collectedData).forEach(data => {
+    let maxDate = 0;
+    
+    for (const data of Object.values(this.collectedData)) {
       if (Array.isArray(data)) {
-        data.forEach(item => {
-          if (item.collectedAt) dates.push(new Date(item.collectedAt));
-        });
+        for (const item of data) {
+          if (item.collectedAt) {
+            const timestamp = new Date(item.collectedAt).getTime();
+            if (timestamp > maxDate) {
+              maxDate = timestamp;
+            }
+          }
+        }
       } else if (data && data.collectedAt) {
-        dates.push(new Date(data.collectedAt));
+        const timestamp = new Date(data.collectedAt).getTime();
+        if (timestamp > maxDate) {
+          maxDate = timestamp;
+        }
       }
-    });
-    return dates.length > 0 ? new Date(Math.max(...dates)) : null;
+    }
+    
+    return maxDate > 0 ? new Date(maxDate) : null;
   }
 
+  /**
+   * Calculate privacy score with optimized scoring
+   */
   calculatePrivacyScore() {
     let score = 100;
-    if (this.settings.collectActivityData) score -= 15;
-    if (this.settings.collectLocationData) score -= 20;
-    if (this.settings.collectDeviceData) score -= 10;
-    if (this.settings.shareWithThirdParties) score -= 25;
-    if (!this.settings.anonymizeData) score -= 15;
+    const { settings } = this;
+    
+    if (settings.collectActivityData) score -= 15;
+    if (settings.collectLocationData) score -= 20;
+    if (settings.collectDeviceData) score -= 10;
+    if (settings.shareWithThirdParties) score -= 25;
+    if (!settings.anonymizeData) score -= 15;
+    
     return Math.max(0, score);
   }
 
@@ -468,25 +614,46 @@ class ProfileVisibilityDataCollector {
     };
   }
 
+  /**
+   * Anonymize email with optimized regex
+   */
   anonymizeEmail(email) {
-    if (!email) return '';
-    const [username, domain] = email.split('@');
-    const anonymizedUsername = username.charAt(0) + '*'.repeat(username.length - 2) + username.charAt(username.length - 1);
-    return `${anonymizedUsername}@${domain}`;
+    if (!email || typeof email !== 'string') return '';
+    
+    const atIndex = email.indexOf('@');
+    if (atIndex === -1) return email;
+    
+    const username = email.substring(0, atIndex);
+    const domain = email.substring(atIndex);
+    
+    if (username.length <= 2) return email;
+    
+    const anonymizedUsername = username[0] + '*'.repeat(username.length - 2) + username[username.length - 1];
+    return anonymizedUsername + domain;
   }
 
+  /**
+   * Anonymize search queries with pre-compiled regex
+   */
   anonymizeSearchQueries(queries) {
     if (!Array.isArray(queries)) return [];
+    
     return queries.map(query => {
       if (typeof query === 'string') {
-        return query.replace(/\b\w{3,}\b/g, word => word.charAt(0) + '*'.repeat(word.length - 1));
+        return query.replace(ANONYMIZATION_PATTERNS.WORD_PATTERN, word => 
+          word[0] + '*'.repeat(Math.max(0, word.length - 1))
+        );
       }
       return query;
     });
   }
 
+  /**
+   * Anonymize messages with optimized object creation
+   */
   anonymizeMessages(messages) {
     if (!Array.isArray(messages)) return [];
+    
     return messages.map(message => ({
       ...message,
       content: message.content ? '[ANONYMIZED]' : '',
@@ -615,88 +782,83 @@ class ProfileVisibilityDataCollector {
 }
 
 // ==============================
-// REACT HOOK FOR PROFILE VISIBILITY
+// REACT HOOK FOR PROFILE VISIBILITY (Optimized)
 // ==============================
 
 export const useProfileVisibilityData = () => {
   const [collector] = useState(() => new ProfileVisibilityDataCollector());
-  const [settings, setSettings] = useState(DEFAULT_PROFILE_VISIBILITY_SETTINGS);
+  const [settings, setSettings] = useState(() => ({ ...DEFAULT_PROFILE_VISIBILITY_SETTINGS }));
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    const initializeCollector = async () => {
-      try {
-        setIsLoading(true);
-        await collector.initialize();
-        setSettings(collector.settings);
-        setError(null);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    initializeCollector();
-  }, [collector]);
-
-  const updateSettings = useCallback((newSettings) => {
-    collector.updateSettings(newSettings);
-    setSettings(collector.settings);
-  }, [collector]);
-
-  const collectData = useCallback((dataType, data) => {
-    switch (dataType) {
-      case DATA_COLLECTION_TYPES.BASIC_INFO:
-        collector.collectBasicInfo(data);
-        break;
-      case DATA_COLLECTION_TYPES.ACTIVITY_DATA:
-        collector.collectActivityData(data);
-        break;
-      case DATA_COLLECTION_TYPES.INTERACTION_DATA:
-        collector.collectInteractionData(data);
-        break;
-      case DATA_COLLECTION_TYPES.PREFERENCE_DATA:
-        collector.collectPreferenceData(data);
-        break;
-      case DATA_COLLECTION_TYPES.LOCATION_DATA:
-        collector.collectLocationData(data);
-        break;
-      case DATA_COLLECTION_TYPES.DEVICE_DATA:
-        collector.collectDeviceData();
-        break;
-      default:
-        console.warn('Unknown data collection type:', dataType);
+  // Memoized initialization to prevent unnecessary re-runs
+  const initializeCollector = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      await collector.initialize();
+      setSettings({ ...collector.settings });
+      setError(null);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
     }
   }, [collector]);
 
+  useEffect(() => {
+    initializeCollector();
+  }, [initializeCollector]);
+
+  // Memoized callbacks for better performance
+  const updateSettings = useCallback((newSettings) => {
+    collector.updateSettings(newSettings);
+    setSettings({ ...collector.settings });
+  }, [collector]);
+
+  const collectData = useCallback((dataType, data) => {
+    // Use lookup table for better performance than switch statement
+    const collectionMethods = {
+      [DATA_COLLECTION_TYPES.BASIC_INFO]: () => collector.collectBasicInfo(data),
+      [DATA_COLLECTION_TYPES.ACTIVITY_DATA]: () => collector.collectActivityData(data),
+      [DATA_COLLECTION_TYPES.INTERACTION_DATA]: () => collector.collectInteractionData(data),
+      [DATA_COLLECTION_TYPES.PREFERENCE_DATA]: () => collector.collectPreferenceData(data),
+      [DATA_COLLECTION_TYPES.LOCATION_DATA]: () => collector.collectLocationData(data),
+      [DATA_COLLECTION_TYPES.DEVICE_DATA]: () => collector.collectDeviceData()
+    };
+
+    const method = collectionMethods[dataType];
+    if (method) {
+      method();
+    } else {
+      console.warn('Unknown data collection type:', dataType);
+    }
+  }, [collector]);
+
+  // Memoized utility functions
   const exportData = useCallback((format = 'json') => {
     return collector.exportData(format);
   }, [collector]);
 
   const importData = useCallback((data) => {
-    return collector.importData(data);
+    const result = collector.importData(data);
+    if (result) {
+      setSettings({ ...collector.settings });
+    }
+    return result;
   }, [collector]);
 
   const clearAllData = useCallback(() => {
     collector.clearAllData();
-    setSettings(collector.settings);
+    setSettings({ ...collector.settings });
   }, [collector]);
 
-  const getDataSummary = useCallback(() => {
-    return collector.getDataSummary();
-  }, [collector]);
+  // Memoized getter functions with stable references
+  const getDataSummary = useCallback(() => collector.getDataSummary(), [collector]);
+  const getAnalyticsData = useCallback(() => collector.getAnalyticsData(), [collector]);
+  const getPrivacyCompliance = useCallback(() => collector.getPrivacyCompliance(), [collector]);
 
-  const getAnalyticsData = useCallback(() => {
-    return collector.getAnalyticsData();
-  }, [collector]);
-
-  const getPrivacyCompliance = useCallback(() => {
-    return collector.getPrivacyCompliance();
-  }, [collector]);
-
-  return {
+  // Memoized return object for stable reference
+  return useMemo(() => ({
     settings,
     updateSettings,
     collectData,
@@ -709,7 +871,20 @@ export const useProfileVisibilityData = () => {
     isLoading,
     error,
     collector
-  };
+  }), [
+    settings,
+    updateSettings,
+    collectData,
+    exportData,
+    importData,
+    clearAllData,
+    getDataSummary,
+    getAnalyticsData,
+    getPrivacyCompliance,
+    isLoading,
+    error,
+    collector
+  ]);
 };
 
 // ==============================

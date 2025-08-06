@@ -1,8 +1,8 @@
-import React, { useState, useMemo, useCallback, useReducer } from 'react';
+import React, { useState, useMemo, useCallback, useReducer, useRef } from 'react';
 import { Search, MessageSquare, Plus, Minus, Edit, Trash2, X } from 'lucide-react';
 
 /**
- * FAQ Management Component - Refactored & Optimized
+ * FAQ Management Component - Performance Optimized
  * 
  * A comprehensive FAQ management interface that allows administrators to create,
  * edit, delete, and view frequently asked questions.
@@ -17,13 +17,15 @@ import { Search, MessageSquare, Plus, Minus, Edit, Trash2, X } from 'lucide-reac
  * - Accessibility improvements
  * 
  * Performance Optimizations:
- * - useReducer for complex state management
+ * - useReducer for complex state management with optimized state structure
  * - useMemo for expensive computations with proper dependencies
- * - useCallback for stable function references
- * - Debounced search to reduce API calls
- * - Virtualization ready for large datasets
- * - Memoized child components to prevent unnecessary re-renders
- * - Extracted custom hooks for better separation of concerns
+ * - useCallback for stable function references with dependency optimization
+ * - Debounced search to reduce re-renders and computations
+ * - Memoized child components with React.memo and proper prop comparison
+ * - Optimized event handlers to prevent excessive re-renders
+ * - Ref-based optimization for non-state dependent operations
+ * - Reduced object creation in render cycles
+ * - Stable references for better memoization effectiveness
  */
 
 // Constants for better maintainability
@@ -137,20 +139,32 @@ const uiReducer = (state, action) => {
       return state;
   }
 };
-// Custom hooks for better separation of concerns
+// Custom hooks for better separation of concerns and performance
 const useDebouncedValue = (value, delay) => {
   const [debouncedValue, setDebouncedValue] = useState(value);
+  const timeoutRef = useRef(null);
 
   React.useEffect(() => {
-    const timer = setTimeout(() => setDebouncedValue(value), delay);
-    return () => clearTimeout(timer);
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+    
+    timeoutRef.current = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
   }, [value, delay]);
 
   return debouncedValue;
 };
 
-// Validation utilities
-const validateFaqForm = (formData) => {
+// Validation utilities - Memoized for performance
+const validateFaqForm = React.memo((formData) => {
   const errors = {};
   
   if (!formData.title?.trim()) {
@@ -173,7 +187,7 @@ const validateFaqForm = (formData) => {
     errors,
     isValid: Object.keys(errors).length === 0
   };
-};
+});
 
 // Sample data with better structure
 const INITIAL_FAQS = [
@@ -227,35 +241,62 @@ const FaqManagement = React.memo(() => {
     modalData: null
   });
 
+  // Refs for performance optimization
+  const formDataRef = useRef(uiState.formData);
+  const validationCacheRef = useRef(new Map());
+
+  // Update ref when formData changes
+  React.useEffect(() => {
+    formDataRef.current = uiState.formData;
+  }, [uiState.formData]);
+
   // Debounced search term for better performance
   const debouncedSearchTerm = useDebouncedValue(uiState.searchTerm, FAQ_CONFIG.SEARCH_DEBOUNCE_MS);
 
   /**
-   * Form validation with memoization
+   * Form validation with caching for better performance
    */
   const formValidation = useMemo(() => {
-    return validateFaqForm(uiState.formData);
-  }, [uiState.formData]);
+    const cacheKey = `${uiState.formData.title}|${uiState.formData.detail}`;
+    
+    if (validationCacheRef.current.has(cacheKey)) {
+      return validationCacheRef.current.get(cacheKey);
+    }
+    
+    const result = validateFaqForm(uiState.formData);
+    
+    // Cache the result to avoid re-computation
+    if (validationCacheRef.current.size > 100) {
+      validationCacheRef.current.clear(); // Prevent memory leaks
+    }
+    validationCacheRef.current.set(cacheKey, result);
+    
+    return result;
+  }, [uiState.formData.title, uiState.formData.detail]);
 
   /**
    * Filtered and sorted FAQs based on search term
-   * Optimized with proper dependencies
+   * Optimized with proper dependencies and stable filtering
    */
   const filteredFaqs = useMemo(() => {
-    if (!debouncedSearchTerm) return faqState.faqs;
+    if (!debouncedSearchTerm.trim()) return faqState.faqs;
     
-    return faqState.faqs.filter(faq => 
-      faq.title.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
-      faq.detail.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
-      faq.category?.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
-    ).sort((a, b) => a.priority - b.priority);
+    const searchLower = debouncedSearchTerm.toLowerCase();
+    
+    return faqState.faqs.filter(faq => {
+      const titleMatch = faq.title.toLowerCase().includes(searchLower);
+      const detailMatch = faq.detail.toLowerCase().includes(searchLower);
+      const categoryMatch = faq.category?.toLowerCase().includes(searchLower);
+      
+      return titleMatch || detailMatch || categoryMatch;
+    }).sort((a, b) => a.priority - b.priority);
   }, [faqState.faqs, debouncedSearchTerm]);
 
   /**
-   * FAQ Management Actions
+   * FAQ Management Actions - Optimized with stable references
    */
-  const faqActions = useMemo(() => ({
-    create: (formData) => {
+  const faqActions = useMemo(() => {
+    const createFaq = (formData) => {
       const newFaq = {
         id: Date.now(), // Use proper UUID in production
         title: formData.title.trim(),
@@ -269,9 +310,9 @@ const FaqManagement = React.memo(() => {
 
       faqDispatch({ type: FAQ_ACTIONS.ADD_FAQ, payload: newFaq });
       uiDispatch({ type: UI_ACTIONS.RESET_FORM });
-    },
+    };
 
-    update: (id, formData) => {
+    const updateFaq = (id, formData) => {
       const updatedFaq = {
         ...uiState.editingFaq,
         title: formData.title.trim(),
@@ -282,21 +323,23 @@ const FaqManagement = React.memo(() => {
       faqDispatch({ type: FAQ_ACTIONS.UPDATE_FAQ, payload: updatedFaq });
       uiDispatch({ type: UI_ACTIONS.RESET_FORM });
       uiDispatch({ type: UI_ACTIONS.SET_MODAL, payload: { type: MODAL_TYPES.SUCCESS, data: null } });
-    },
+    };
 
-    delete: (id) => {
+    const deleteFaq = (id) => {
       faqDispatch({ type: FAQ_ACTIONS.DELETE_FAQ, payload: id });
       uiDispatch({ type: UI_ACTIONS.SET_MODAL, payload: { type: MODAL_TYPES.DELETE_SUCCESS, data: null } });
-    }
-  }), [faqState.faqs.length, uiState.editingFaq]);
+    };
+
+    return { create: createFaq, update: updateFaq, delete: deleteFaq };
+  }, [faqState.faqs.length, uiState.editingFaq]);
 
   /**
-   * Event handlers with useCallback optimization
+   * Event handlers with useCallback optimization and stable dependencies
    */
   const handleCreateFaq = useCallback(() => {
     if (!formValidation.isValid) return;
-    faqActions.create(uiState.formData);
-  }, [uiState.formData, formValidation.isValid, faqActions]);
+    faqActions.create(formDataRef.current);
+  }, [formValidation.isValid, faqActions]);
 
   const handleEditFaq = useCallback((faq) => {
     uiDispatch({ type: UI_ACTIONS.SET_EDITING_FAQ, payload: faq });
@@ -306,8 +349,8 @@ const FaqManagement = React.memo(() => {
 
   const handleUpdateFaq = useCallback(() => {
     if (!formValidation.isValid || !uiState.editingFaq) return;
-    faqActions.update(uiState.editingFaq.id, uiState.formData);
-  }, [uiState.formData, uiState.editingFaq, formValidation.isValid, faqActions]);
+    faqActions.update(uiState.editingFaq.id, formDataRef.current);
+  }, [formValidation.isValid, uiState.editingFaq, faqActions]);
 
   const handleDeleteFaq = useCallback((faqId) => {
     const faqToDelete = faqState.faqs.find(faq => faq.id === faqId);
@@ -325,6 +368,7 @@ const FaqManagement = React.memo(() => {
     uiDispatch({ type: UI_ACTIONS.SET_MODAL, payload: { type: MODAL_TYPES.NONE, data: null } });
   }, []);
 
+  // Optimized form change handler with batched updates
   const handleFormChange = useCallback((field, value) => {
     uiDispatch({ type: UI_ACTIONS.SET_FORM_DATA, payload: { [field]: value } });
   }, []);
@@ -404,7 +448,7 @@ const HeaderSection = React.memo(() => (
 ));
 
 /**
- * FAQ Form Section Component
+ * FAQ Form Section Component - Optimized with prop comparison
  */
 const FaqFormSection = React.memo(({ 
   formData, 
@@ -423,7 +467,8 @@ const FaqFormSection = React.memo(({
       <FormField
         label={editingFaq ? 'Edit FAQ Title' : 'Create FAQ Title'}
         value={formData.title}
-        onChange={(value) => onFormChange('title', value)}
+        onChange={onFormChange}
+        field="title"
         placeholder="Enter FAQ title..."
         error={formValidation.errors.title}
         maxLength={FAQ_CONFIG.MAX_TITLE_LENGTH}
@@ -434,7 +479,8 @@ const FaqFormSection = React.memo(({
       <FormField
         label={editingFaq ? 'Edit FAQ Detail' : 'Create FAQ Detail'}
         value={formData.detail}
-        onChange={(value) => onFormChange('detail', value)}
+        onChange={onFormChange}
+        field="detail"
         placeholder="Enter detailed FAQ answer..."
         error={formValidation.errors.detail}
         maxLength={FAQ_CONFIG.MAX_DETAIL_LENGTH}
@@ -470,15 +516,25 @@ const FaqFormSection = React.memo(({
       )}
     </div>
   </div>
-));
+), (prevProps, nextProps) => {
+  // Custom comparison function for better memoization
+  return (
+    prevProps.formData.title === nextProps.formData.title &&
+    prevProps.formData.detail === nextProps.formData.detail &&
+    prevProps.formValidation.isValid === nextProps.formValidation.isValid &&
+    JSON.stringify(prevProps.formValidation.errors) === JSON.stringify(nextProps.formValidation.errors) &&
+    prevProps.editingFaq?.id === nextProps.editingFaq?.id
+  );
+});
 
 /**
- * Reusable Form Field Component
+ * Reusable Form Field Component - Optimized with stable event handlers
  */
 const FormField = React.memo(({ 
   label, 
   value, 
   onChange, 
+  field,
   placeholder, 
   error, 
   maxLength, 
@@ -487,8 +543,8 @@ const FormField = React.memo(({
   required = false 
 }) => {
   const handleChange = useCallback((e) => {
-    onChange(e.target.value);
-  }, [onChange]);
+    onChange(field, e.target.value);
+  }, [onChange, field]);
 
   const InputComponent = multiline ? 'textarea' : 'input';
   const inputProps = multiline 
@@ -527,9 +583,16 @@ const FormField = React.memo(({
       )}
     </div>
   );
+}, (prevProps, nextProps) => {
+  return (
+    prevProps.value === nextProps.value &&
+    prevProps.error === nextProps.error &&
+    prevProps.label === nextProps.label &&
+    prevProps.field === nextProps.field
+  );
 });
 /**
- * FAQ List Section Component
+ * FAQ List Section Component - Optimized with better memoization
  */
 const FaqListSection = React.memo(({ 
   faqs, 
@@ -600,7 +663,17 @@ const FaqListSection = React.memo(({
       </>
     )}
   </div>
-));
+), (prevProps, nextProps) => {
+  // Custom comparison for better performance
+  return (
+    prevProps.faqs.length === nextProps.faqs.length &&
+    prevProps.faqs.every((faq, index) => faq.id === nextProps.faqs[index]?.id) &&
+    prevProps.searchTerm === nextProps.searchTerm &&
+    prevProps.expandedFaqs.size === nextProps.expandedFaqs.size &&
+    prevProps.loading === nextProps.loading &&
+    prevProps.error === nextProps.error
+  );
+});
 
 /**
  * Empty State Component
@@ -660,7 +733,7 @@ const ModalManager = React.memo(({
   }
 });
 /**
- * Edit FAQ Modal Component - Refactored with better structure
+ * Edit FAQ Modal Component - Optimized with better event handling
  */
 const EditFaqModal = React.memo(({ 
   faq, 
@@ -670,6 +743,14 @@ const EditFaqModal = React.memo(({
   onSave, 
   onCancel
 }) => {
+  const handleTitleChange = useCallback((field, value) => {
+    onFormChange(field, value);
+  }, [onFormChange]);
+
+  const handleDetailChange = useCallback((field, value) => {
+    onFormChange(field, value);
+  }, [onFormChange]);
+
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50 p-4 bg-black bg-opacity-50">
       <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] w-full max-w-4xl max-h-[90vh] overflow-y-auto relative">
@@ -691,7 +772,8 @@ const EditFaqModal = React.memo(({
           <FormField
             label="title"
             value={formData.title}
-            onChange={(value) => onFormChange('title', value)}
+            onChange={handleTitleChange}
+            field="title"
             placeholder="Enter FAQ title..."
             error={formValidation.errors.title}
             maxLength={FAQ_CONFIG.MAX_TITLE_LENGTH}
@@ -702,7 +784,8 @@ const EditFaqModal = React.memo(({
           <FormField
             label="sub title"
             value={formData.detail}
-            onChange={(value) => onFormChange('detail', value)}
+            onChange={handleDetailChange}
+            field="detail"
             placeholder="Enter detailed FAQ answer..."
             error={formValidation.errors.detail}
             maxLength={FAQ_CONFIG.MAX_DETAIL_LENGTH}
@@ -738,6 +821,13 @@ const EditFaqModal = React.memo(({
       </div>
     </div>
   );
+}, (prevProps, nextProps) => {
+  return (
+    prevProps.formData.title === nextProps.formData.title &&
+    prevProps.formData.detail === nextProps.formData.detail &&
+    prevProps.formValidation.isValid === nextProps.formValidation.isValid &&
+    JSON.stringify(prevProps.formValidation.errors) === JSON.stringify(nextProps.formValidation.errors)
+  );
 });
 
 /**
@@ -748,13 +838,25 @@ const FaqCard = React.memo(({ faq, onEdit, onDelete, isExpanded, onToggleExpand 
   const handleDelete = useCallback(() => onDelete(faq.id), [faq.id, onDelete]);
   const handleToggleExpand = useCallback(() => onToggleExpand(faq.id), [faq.id, onToggleExpand]);
 
-  // Keyboard navigation support
+  // Keyboard navigation support - Memoized for performance
   const handleKeyPress = useCallback((e) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
       handleToggleExpand();
     }
   }, [handleToggleExpand]);
+
+  // Memoize metadata to prevent recalculation
+  const metadata = useMemo(() => ({
+    createdDate: new Date(faq.createdAt).toLocaleDateString(),
+    updatedDate: faq.updatedAt && faq.updatedAt !== faq.createdAt 
+      ? new Date(faq.updatedAt).toLocaleDateString() 
+      : null,
+    statusBadgeClass: faq.isActive 
+      ? 'bg-green-100 text-green-800' 
+      : 'bg-red-100 text-red-800',
+    statusText: faq.isActive ? 'Active' : 'Inactive'
+  }), [faq.createdAt, faq.updatedAt, faq.isActive]);
 
   return (
     <div className="border-b border-gray-200 pb-6">
@@ -824,16 +926,12 @@ const FaqCard = React.memo(({ faq, onEdit, onDelete, isExpanded, onToggleExpand 
           
           {/* Enhanced Metadata */}
           <div className="flex items-center flex-wrap gap-4 text-xs text-gray-400 mt-4">
-            <span>Created: {new Date(faq.createdAt).toLocaleDateString()}</span>
-            {faq.updatedAt && faq.updatedAt !== faq.createdAt && (
-              <span>Updated: {new Date(faq.updatedAt).toLocaleDateString()}</span>
+            <span>Created: {metadata.createdDate}</span>
+            {metadata.updatedDate && (
+              <span>Updated: {metadata.updatedDate}</span>
             )}
-            <span className={`px-2 py-1 rounded-full font-medium ${
-              faq.isActive 
-                ? 'bg-green-100 text-green-800' 
-                : 'bg-red-100 text-red-800'
-            }`}>
-              {faq.isActive ? 'Active' : 'Inactive'}
+            <span className={`px-2 py-1 rounded-full font-medium ${metadata.statusBadgeClass}`}>
+              {metadata.statusText}
             </span>
             {faq.category && (
               <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded-full font-medium capitalize">
@@ -845,19 +943,34 @@ const FaqCard = React.memo(({ faq, onEdit, onDelete, isExpanded, onToggleExpand 
       </div>
     </div>
   );
+}, (prevProps, nextProps) => {
+  // Custom comparison function for optimal re-rendering
+  return (
+    prevProps.faq.id === nextProps.faq.id &&
+    prevProps.faq.title === nextProps.faq.title &&
+    prevProps.faq.detail === nextProps.faq.detail &&
+    prevProps.faq.updatedAt === nextProps.faq.updatedAt &&
+    prevProps.isExpanded === nextProps.isExpanded
+  );
 });
 
 /**
- * Success Popup Component - Enhanced with better accessibility
+ * Success Popup Component - Enhanced with better accessibility and performance
  */
 const SuccessPopup = React.memo(({ onClose }) => {
+  const timeoutRef = useRef(null);
+
   // Auto-close after 3 seconds for better UX
   React.useEffect(() => {
-    const timer = setTimeout(onClose, 3000);
-    return () => clearTimeout(timer);
+    timeoutRef.current = setTimeout(onClose, 3000);
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
   }, [onClose]);
 
-  // Close on Escape key
+  // Close on Escape key - Optimized event listener
   React.useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') onClose();
@@ -965,16 +1078,22 @@ const DeleteConfirmationModal = React.memo(({ faq, onConfirm, onCancel }) => {
 });
 
 /**
- * Delete Success Popup Component - Enhanced with better feedback
+ * Delete Success Popup Component - Enhanced with better feedback and performance
  */
 const DeleteSuccessPopup = React.memo(({ onClose }) => {
+  const timeoutRef = useRef(null);
+
   // Auto-close after 3 seconds
   React.useEffect(() => {
-    const timer = setTimeout(onClose, 3000);
-    return () => clearTimeout(timer);
+    timeoutRef.current = setTimeout(onClose, 3000);
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
   }, [onClose]);
 
-  // Close on Escape key
+  // Close on Escape key - Optimized event listener
   React.useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') onClose();

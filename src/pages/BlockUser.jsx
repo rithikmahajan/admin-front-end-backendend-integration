@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { Eye, EyeOff, Check } from 'lucide-react';
 
 // Modal types enum for better type safety
@@ -84,8 +84,17 @@ const BlockUser = () => {
   const [currentModal, setCurrentModal] = useState(MODAL_TYPES.NONE);
   const [selectedUser, setSelectedUser] = useState(null);
 
-  // Handler functions
-  const handleBlockUser = (userId) => {
+  // Memoized helper functions to prevent recreation on every render
+  const renderStars = useMemo(() => (rating) => {
+    return '★'.repeat(rating) + '☆'.repeat(5 - rating);
+  }, []);
+
+  const maskPassword = useMemo(() => (password) => {
+    return '•'.repeat(password.length);
+  }, []);
+
+  // Memoized handler functions to prevent child re-renders
+  const handleBlockUser = useCallback((userId) => {
     const user = users.find(u => u.id === userId);
     setSelectedUser(user);
     
@@ -94,19 +103,19 @@ const BlockUser = () => {
     } else {
       setCurrentModal(MODAL_TYPES.BLOCK_CONFIRM);
     }
-  };
+  }, [users]);
 
-  const confirmBlockUser = () => {
+  const confirmBlockUser = useCallback(() => {
     updateUserBlockStatus(selectedUser.id, true, 'blocked');
     setCurrentModal(MODAL_TYPES.BLOCK_SUCCESS);
-  };
+  }, [selectedUser]);
 
-  const confirmUnblockUser = () => {
+  const confirmUnblockUser = useCallback(() => {
     updateUserBlockStatus(selectedUser.id, false, 'Active');
     setCurrentModal(MODAL_TYPES.UNBLOCK_SUCCESS);
-  };
+  }, [selectedUser]);
 
-  const updateUserBlockStatus = (userId, isBlocked, accountStatus) => {
+  const updateUserBlockStatus = useCallback((userId, isBlocked, accountStatus) => {
     setUsers(prev => 
       prev.map(user => 
         user.id === userId 
@@ -114,9 +123,9 @@ const BlockUser = () => {
           : user
       )
     );
-  };
+  }, []);
 
-  const togglePasswordVisibility = (userId) => {
+  const togglePasswordVisibility = useCallback((userId) => {
     setUsers(prev => 
       prev.map(user => 
         user.id === userId 
@@ -124,24 +133,14 @@ const BlockUser = () => {
           : user
       )
     );
-  };
+  }, []);
 
-  const closeAllModals = () => {
+  const closeAllModals = useCallback(() => {
     setCurrentModal(MODAL_TYPES.NONE);
     setSelectedUser(null);
-  };
+  }, []);
 
-  // Helper function to render stars for app reviews
-  const renderStars = (rating) => {
-    return '★'.repeat(rating) + '☆'.repeat(5 - rating);
-  };
-
-  // Helper function to mask password
-  const maskPassword = (password) => {
-    return '•'.repeat(password.length);
-  };
-
-  // Reusable components
+  // Reusable components - Memoized for performance
   /**
    * ActionButton - Reusable button component with predefined variants
    * @param {Function} onClick - Click handler
@@ -149,15 +148,15 @@ const BlockUser = () => {
    * @param {ReactNode} children - Button content
    * @param {string} className - Additional CSS classes
    */
-  const ActionButton = ({ onClick, variant, children, className = '' }) => {
+  const ActionButton = React.memo(({ onClick, variant, children, className = '' }) => {
     const baseClasses = "px-4 py-2 rounded-lg font-medium transition-colors";
-    const variantClasses = {
+    const variantClasses = useMemo(() => ({
       primary: "bg-blue-600 text-white hover:bg-blue-700",
       success: "bg-green-600 text-white hover:bg-green-700",
       secondary: "bg-orange-100 text-orange-600 hover:bg-orange-200",
       dark: "bg-black text-white hover:bg-gray-800",
       icon: "p-2 rounded-lg bg-blue-100 hover:bg-blue-200"
-    };
+    }), []);
     
     return (
       <button
@@ -167,7 +166,7 @@ const BlockUser = () => {
         {children}
       </button>
     );
-  };
+  });
 
   /**
    * Modal - Reusable modal component
@@ -177,7 +176,7 @@ const BlockUser = () => {
    * @param {ReactNode} children - Modal content
    * @param {Array} actions - Array of action buttons
    */
-  const Modal = ({ isOpen, onClose, title, children, actions }) => {
+  const Modal = React.memo(({ isOpen, onClose, title, children, actions }) => {
     if (!isOpen) return null;
 
     return (
@@ -199,22 +198,22 @@ const BlockUser = () => {
         </div>
       </div>
     );
-  };
+  });
 
   /**
    * SuccessIcon - Reusable success icon component
    */
-  const SuccessIcon = () => (
+  const SuccessIcon = React.memo(() => (
     <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
       <Check className="w-8 h-8 text-green-600" />
     </div>
-  );
+  ));
 
   /**
    * UserRow - Individual user row component with comprehensive user data
    * @param {Object} user - User object with all required fields
    */
-  const UserRow = ({ user }) => (
+  const UserRow = React.memo(({ user }) => (
     <tr key={user.id} className="border-b border-gray-100 hover:bg-gray-50">
       <td className="py-4 px-4 text-gray-900 font-medium text-center tracking-[-0.4px]">{user.name}</td>
       <td className="py-4 px-4 text-gray-900 text-center tracking-[-0.4px]">{user.email}</td>
@@ -274,7 +273,7 @@ const BlockUser = () => {
         </span>
       </td>
     </tr>
-  );
+  ));
 
   return (
     <div className="min-h-screen w-full bg-white">

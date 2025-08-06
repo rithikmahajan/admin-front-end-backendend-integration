@@ -2,6 +2,136 @@ import React, { useState, useCallback, useMemo, memo } from 'react';
 import { Filter, Download, Mail, Eye, Trash2, Users } from 'lucide-react';
 import BulkSMS from './BulkSMS';
 
+// Constant data moved outside component to prevent recreation on each render
+const INITIAL_USERS = [
+  {
+    id: 1,
+    userId: 'rithikmahaj',
+    email: 'rithikmahajan27@gmail.com',
+    mobile: '9001146595',
+    userName: 'rithikmahaj',
+    userType: 'guest',
+    dob: '06/05/1999',
+    gender: 'M',
+    lastActive: '09/05/1999',
+    avgVisitTime: '8hours',
+    abandonedCart: 'yes',
+    status: 'registered'
+  }
+];
+
+const STATS = {
+  emptyCartStatus: 2000,
+  registeredUsers: 2000,
+  guests: 2000,
+  avgVisitTime: '1 min'
+};
+
+const FILTER_OPTIONS = {
+  dateRange: [
+    { value: 'last 7 days', label: 'last 7 days' },
+    { value: 'last 30 days', label: 'last 30 days' },
+    { value: 'last 90 days', label: 'last 90 days' }
+  ],
+  userType: [
+    { value: 'all', label: 'all' },
+    { value: 'registered', label: 'registered' },
+    { value: 'guest', label: 'guest' }
+  ],
+  countryRegion: [
+    { value: 'all', label: 'all' },
+    { value: 'US', label: 'United States' },
+    { value: 'IN', label: 'India' }
+  ],
+  sortBy: [
+    { value: 'last active', label: 'last active' },
+    { value: 'name', label: 'name' },
+    { value: 'email', label: 'email' }
+  ]
+};
+
+// Memoized UserRow component for better table performance
+const UserRow = memo(({ user, onViewProfile, onSendEmail, onDeleteUser }) => {
+  const handleViewClick = useCallback(() => onViewProfile(user.id), [user.id, onViewProfile]);
+  const handleEmailClick = useCallback(() => onSendEmail(user.id), [user.id, onSendEmail]);
+  const handleDeleteClick = useCallback(() => onDeleteUser(user.id), [user.id, onDeleteUser]);
+
+  const abandonedCartClass = useMemo(() => 
+    user.abandonedCart === 'yes' 
+      ? 'bg-green-100 text-green-800' 
+      : 'bg-red-100 text-red-800',
+    [user.abandonedCart]
+  );
+
+  return (
+    <tr className="hover:bg-gray-50">
+      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+        {user.userId}
+      </td>
+      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+        {user.email}
+      </td>
+      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+        {user.mobile}
+      </td>
+      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+        {user.userName}
+      </td>
+      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+        {user.userType}
+      </td>
+      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+        {user.dob}
+      </td>
+      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+        {user.gender}
+      </td>
+      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+        {user.lastActive}
+      </td>
+      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+        {user.avgVisitTime}
+      </td>
+      <td className="px-4 py-4 whitespace-nowrap">
+        <div className="flex flex-col gap-1">
+          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${abandonedCartClass}`}>
+            {user.abandonedCart}
+          </span>
+          <span className="text-xs text-gray-500">{user.status}</span>
+          <span className="text-xs text-gray-400">blocked to</span>
+        </div>
+      </td>
+      <td className="px-4 py-4 whitespace-nowrap">
+        <div className="flex gap-2">
+          <button
+            onClick={handleViewClick}
+            className="bg-green-100 text-green-800 px-3 py-1 text-xs rounded hover:bg-green-200 flex items-center gap-1"
+          >
+            <Eye className="h-3 w-3" />
+            view profile
+          </button>
+          <button
+            onClick={handleEmailClick}
+            className="bg-blue-600 text-white px-3 py-1 text-xs rounded hover:bg-blue-700 flex items-center gap-1"
+          >
+            <Mail className="h-3 w-3" />
+            send email
+          </button>
+          <button
+            onClick={handleDeleteClick}
+            className="bg-red-600 text-white px-3 py-1 text-xs rounded hover:bg-red-700 flex items-center gap-1"
+          >
+            <Trash2 className="h-3 w-3" />
+            delete user
+          </button>
+        </div>
+      </td>
+    </tr>
+  );
+});
+
+UserRow.displayName = 'UserRow';
+
 /**
  * Empty Cart Management Component
  * 
@@ -17,6 +147,8 @@ import BulkSMS from './BulkSMS';
  * - Memoized callbacks to prevent unnecessary re-renders
  * - Optimized state structure
  * - Efficient component updates
+ * - Constants moved outside component
+ * - Memoized filter options and user data
  */
 const CartAbandonmentRecovery = memo(() => {
   // Filter states
@@ -30,31 +162,19 @@ const CartAbandonmentRecovery = memo(() => {
   // Page state
   const [showBulkSMS, setShowBulkSMS] = useState(false);
 
-  // Sample users data with empty carts
-  const [users, setUsers] = useState([
-    {
-      id: 1,
-      userId: 'rithikmahaj',
-      email: 'rithikmahajan27@gmail.com',
-      mobile: '9001146595',
-      userName: 'rithikmahaj',
-      userType: 'guest',
-      dob: '06/05/1999',
-      gender: 'M',
-      lastActive: '09/05/1999',
-      avgVisitTime: '8hours',
-      abandonedCart: 'yes',
-      status: 'registered'
-    }
-  ]);
+  // Sample users data with empty carts - using constant reference
+  const [users, setUsers] = useState(INITIAL_USERS);
 
-  // Statistics
-  const stats = {
-    emptyCartStatus: 2000,
-    registeredUsers: 2000,
-    guests: 2000,
-    avgVisitTime: '1 min'
-  };
+  // Memoized filtered users for performance
+  const filteredUsers = useMemo(() => {
+    return users.filter(user => {
+      if (filters.userType !== 'all' && user.userType !== filters.userType) {
+        return false;
+      }
+      // Add more filtering logic here if needed
+      return true;
+    });
+  }, [users, filters]);
 
   // Handle filter changes
   const handleFilterChange = useCallback((field, value) => {
@@ -134,19 +254,19 @@ const CartAbandonmentRecovery = memo(() => {
         <div className="grid grid-cols-4 gap-6 mb-6">
           <div className="text-center">
             <p className="text-sm text-gray-600 mb-1">empty cart status</p>
-            <p className="text-xl font-bold text-gray-900">{stats.emptyCartStatus}</p>
+            <p className="text-xl font-bold text-gray-900">{STATS.emptyCartStatus}</p>
           </div>
           <div className="text-center">
             <p className="text-sm text-gray-600 mb-1">registered users</p>
-            <p className="text-xl font-bold text-gray-900">{stats.registeredUsers}</p>
+            <p className="text-xl font-bold text-gray-900">{STATS.registeredUsers}</p>
           </div>
           <div className="text-center">
             <p className="text-sm text-gray-600 mb-1">guests</p>
-            <p className="text-xl font-bold text-gray-900">{stats.guests}</p>
+            <p className="text-xl font-bold text-gray-900">{STATS.guests}</p>
           </div>
           <div className="text-center">
             <p className="text-sm text-gray-600 mb-1">avg visit time</p>
-            <p className="text-xl font-bold text-gray-900">{stats.avgVisitTime}</p>
+            <p className="text-xl font-bold text-gray-900">{STATS.avgVisitTime}</p>
           </div>
         </div>
 
@@ -159,9 +279,9 @@ const CartAbandonmentRecovery = memo(() => {
               onChange={(e) => handleFilterChange('dateRange', e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
             >
-              <option value="last 7 days">last 7 days</option>
-              <option value="last 30 days">last 30 days</option>
-              <option value="last 90 days">last 90 days</option>
+              {FILTER_OPTIONS.dateRange.map(option => (
+                <option key={option.value} value={option.value}>{option.label}</option>
+              ))}
             </select>
           </div>
           <div>
@@ -171,9 +291,9 @@ const CartAbandonmentRecovery = memo(() => {
               onChange={(e) => handleFilterChange('userType', e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
             >
-              <option value="all">all</option>
-              <option value="registered">registered</option>
-              <option value="guest">guest</option>
+              {FILTER_OPTIONS.userType.map(option => (
+                <option key={option.value} value={option.value}>{option.label}</option>
+              ))}
             </select>
           </div>
           <div>
@@ -183,9 +303,9 @@ const CartAbandonmentRecovery = memo(() => {
               onChange={(e) => handleFilterChange('countryRegion', e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
             >
-              <option value="all">all</option>
-              <option value="US">United States</option>
-              <option value="IN">India</option>
+              {FILTER_OPTIONS.countryRegion.map(option => (
+                <option key={option.value} value={option.value}>{option.label}</option>
+              ))}
             </select>
           </div>
           <div>
@@ -195,9 +315,9 @@ const CartAbandonmentRecovery = memo(() => {
               onChange={(e) => handleFilterChange('sortBy', e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
             >
-              <option value="last active">last active</option>
-              <option value="name">name</option>
-              <option value="email">email</option>
+              {FILTER_OPTIONS.sortBy.map(option => (
+                <option key={option.value} value={option.value}>{option.label}</option>
+              ))}
             </select>
           </div>
         </div>
@@ -258,74 +378,14 @@ const CartAbandonmentRecovery = memo(() => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {users.map((user) => (
-                <tr key={user.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {user.userId}
-                  </td>
-                  <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {user.email}
-                  </td>
-                  <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {user.mobile}
-                  </td>
-                  <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {user.userName}
-                  </td>
-                  <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {user.userType}
-                  </td>
-                  <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {user.dob}
-                  </td>
-                  <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {user.gender}
-                  </td>
-                  <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {user.lastActive}
-                  </td>
-                  <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {user.avgVisitTime}
-                  </td>
-                  <td className="px-4 py-4 whitespace-nowrap">
-                    <div className="flex flex-col gap-1">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        user.abandonedCart === 'yes' 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-red-100 text-red-800'
-                      }`}>
-                        {user.abandonedCart}
-                      </span>
-                      <span className="text-xs text-gray-500">{user.status}</span>
-                      <span className="text-xs text-gray-400">blocked to</span>
-                    </div>
-                  </td>
-                  <td className="px-4 py-4 whitespace-nowrap">
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => handleViewProfile(user.id)}
-                        className="bg-green-100 text-green-800 px-3 py-1 text-xs rounded hover:bg-green-200 flex items-center gap-1"
-                      >
-                        <Eye className="h-3 w-3" />
-                        view profile
-                      </button>
-                      <button
-                        onClick={() => handleSendEmail(user.id)}
-                        className="bg-blue-600 text-white px-3 py-1 text-xs rounded hover:bg-blue-700 flex items-center gap-1"
-                      >
-                        <Mail className="h-3 w-3" />
-                        send email
-                      </button>
-                      <button
-                        onClick={() => handleDeleteUser(user.id)}
-                        className="bg-red-600 text-white px-3 py-1 text-xs rounded hover:bg-red-700 flex items-center gap-1"
-                      >
-                        <Trash2 className="h-3 w-3" />
-                        delete user
-                      </button>
-                    </div>
-                  </td>
-                </tr>
+              {filteredUsers.map((user) => (
+                <UserRow 
+                  key={user.id} 
+                  user={user}
+                  onViewProfile={handleViewProfile}
+                  onSendEmail={handleSendEmail}
+                  onDeleteUser={handleDeleteUser}
+                />
               ))}
             </tbody>
           </table>

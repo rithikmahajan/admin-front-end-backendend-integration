@@ -62,12 +62,20 @@ import { Download, Share2, Plus, Upload, ArrowLeft, X, Edit2, Trash2, Calendar }
  * MAINTAINABILITY SCORE: Significantly improved - easier to extend, debug, and test
  */
 
-// Constants
+// Constants - moved outside component for better performance
 const TABS = [
   { id: 'sms', label: 'Send SMS' },
   { id: 'email', label: 'Send email' },
   { id: 'reports', label: 'reports' },
   { id: 'blacklist', label: 'Blacklist Numbers/Email' }
+];
+
+const REPORT_TABS = [
+  { id: 'campaign', label: 'Campaign Report' },
+  { id: 'delivery', label: 'Delivery Report' },
+  { id: 'schedule', label: 'Schedule Report' },
+  { id: 'archived', label: 'Archived Report' },
+  { id: 'credit', label: 'Credit History' }
 ];
 
 const DEFAULT_FORM_STATE = {
@@ -82,7 +90,19 @@ const DEFAULT_FORM_STATE = {
 
 const SUCCESS_POPUP_DURATION = 3000;
 
-// Utility functions
+// CSS Classes - extracted for reuse and performance
+const CSS_CLASSES = {
+  button: {
+    base: "px-4 py-2.5 rounded-lg flex items-center justify-center gap-2 text-[14px] font-medium font-inter leading-[24px] transition-colors",
+    primary: "bg-[#12b76a] text-white hover:bg-[#0fa55b]",
+    secondary: "bg-white border border-[#dde2e4] text-[#252c32] hover:bg-gray-50",
+    danger: "bg-red-600 text-white hover:bg-red-700"
+  },
+  input: "w-full bg-white border border-[#d0d5dd] rounded-[5px] px-4 py-3 text-[14px] text-[#667085] font-inter leading-[24px] shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] focus:outline-none focus:ring-2 focus:ring-blue-500",
+  label: "block text-[14px] font-semibold text-[#344054] mb-1.5 font-inter leading-[20px]"
+};
+
+// Utility functions - moved outside component
 const formatDate = () => {
   return new Date().toLocaleDateString('en-US', { 
     year: 'numeric', 
@@ -93,14 +113,24 @@ const formatDate = () => {
 
 const generateDraftName = (length) => `draft ${length + 1}`;
 
+// Optimized data structures
+const createNewDraft = (activeTab, form, draftsLength) => ({
+  id: Date.now(),
+  name: generateDraftName(draftsLength),
+  type: activeTab,
+  data: { ...form },
+  createdAt: formatDate(),
+  updatedAt: formatDate()
+});
+
 // ============================================================================
 // REUSABLE FORM COMPONENTS
 // ============================================================================
 
-// Form Field Component
+// Form Field Component - optimized
 const FormField = memo(({ label, children, className = "" }) => (
   <div className={className}>
-    <label className="block text-[14px] font-semibold text-[#344054] mb-1.5 font-inter leading-[20px]">
+    <label className={CSS_CLASSES.label}>
       {label}
     </label>
     {children}
@@ -120,7 +150,7 @@ const ReadOnlyField = memo(({ label, value, className = "" }) => (
 ));
 ReadOnlyField.displayName = 'ReadOnlyField';
 
-// Text Input Component
+// Text Input Component - optimized
 const TextInput = memo(({ label, value, onChange, placeholder, className = "" }) => (
   <FormField label={label} className={className}>
     <input
@@ -128,13 +158,13 @@ const TextInput = memo(({ label, value, onChange, placeholder, className = "" })
       value={value}
       onChange={onChange}
       placeholder={placeholder}
-      className="w-full bg-white border border-[#d0d5dd] rounded-[5px] px-4 py-3 text-[14px] text-[#667085] font-inter leading-[24px] shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+      className={CSS_CLASSES.input}
     />
   </FormField>
 ));
 TextInput.displayName = 'TextInput';
 
-// Textarea Component with CSV Upload
+// Textarea Component with CSV Upload - optimized
 const TextareaWithUpload = memo(({ 
   label, 
   value, 
@@ -143,25 +173,32 @@ const TextareaWithUpload = memo(({
   onUploadClick, 
   uploadButtonText,
   className = "" 
-}) => (
-  <FormField label={label} className={className}>
-    <div className="relative">
-      <textarea
-        value={value}
-        onChange={onChange}
-        placeholder={placeholder}
-        className="w-full h-[94px] bg-white border border-[#d0d5dd] rounded-[5px] px-4 py-3 text-[14px] text-[#667085] font-inter leading-[24px] resize-none shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] focus:outline-none focus:ring-2 focus:ring-blue-500"
-      />
-      <button
-        onClick={onUploadClick}
-        className="absolute top-3 right-3 bg-[#12b76a] text-white px-4 py-2.5 rounded-lg flex items-center gap-2 text-[14px] font-normal font-montserrat leading-[20px]"
-      >
-        <Plus className="w-5 h-5" />
-        {uploadButtonText}
-      </button>
-    </div>
-  </FormField>
-));
+}) => {
+  const textareaClass = useMemo(() => 
+    `w-full h-[94px] bg-white border border-[#d0d5dd] rounded-[5px] px-4 py-3 text-[14px] text-[#667085] font-inter leading-[24px] resize-none shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] focus:outline-none focus:ring-2 focus:ring-blue-500`,
+    []
+  );
+
+  return (
+    <FormField label={label} className={className}>
+      <div className="relative">
+        <textarea
+          value={value}
+          onChange={onChange}
+          placeholder={placeholder}
+          className={textareaClass}
+        />
+        <button
+          onClick={onUploadClick}
+          className="absolute top-3 right-3 bg-[#12b76a] text-white px-4 py-2.5 rounded-lg flex items-center gap-2 text-[14px] font-normal font-montserrat leading-[20px]"
+        >
+          <Plus className="w-5 h-5" />
+          {uploadButtonText}
+        </button>
+      </div>
+    </FormField>
+  );
+});
 TextareaWithUpload.displayName = 'TextareaWithUpload';
 
 // Message Text Component with Character Count
@@ -205,7 +242,7 @@ const MessageTextInput = memo(({
 ));
 MessageTextInput.displayName = 'MessageTextInput';
 
-// Action Button Component
+// Action Button Component - optimized with CSS classes
 const ActionButton = memo(({ 
   onClick, 
   variant = 'primary', 
@@ -213,18 +250,15 @@ const ActionButton = memo(({
   className = "",
   ...props 
 }) => {
-  const baseClasses = "px-4 py-2.5 rounded-lg flex items-center justify-center gap-2 text-[14px] font-medium font-inter leading-[24px] transition-colors";
-  
-  const variantClasses = {
-    primary: "bg-[#12b76a] text-white hover:bg-[#0fa55b]",
-    secondary: "bg-white border border-[#dde2e4] text-[#252c32] hover:bg-gray-50",
-    danger: "bg-red-600 text-white hover:bg-red-700"
-  };
+  const buttonClass = useMemo(() => 
+    `${CSS_CLASSES.button.base} ${CSS_CLASSES.button[variant]} ${className}`,
+    [variant, className]
+  );
 
   return (
     <button
       onClick={onClick}
-      className={`${baseClasses} ${variantClasses[variant]} ${className}`}
+      className={buttonClass}
       {...props}
     >
       {children}
@@ -349,7 +383,7 @@ const EmailFormContent = memo(({
 ));
 EmailFormContent.displayName = 'EmailFormContent';
 
-// Custom hooks
+// Custom hooks - optimized with better dependencies
 const useModalState = () => {
   const [modals, setModals] = useState({
     showScheduleModal: false,
@@ -383,6 +417,7 @@ const useSuccessMessage = () => {
   return [successMessage, showSuccess];
 };
 
+// Optimized form state hook with better performance
 const useFormState = (initialState) => {
   const [form, setForm] = useState(initialState);
 
@@ -406,60 +441,8 @@ const useFormState = (initialState) => {
   return [form, updateForm, resetForm];
 };
 
-/**
- * Bulk SMS Component
- * 
- * A comprehensive SMS/email management interface for bulk messaging.
- * Based on the Figma design, this component provides:
- * - Send SMS with customizable settings
- * - Send email functionality
- * - Reports and analytics
- * - Blacklist number management
- * - Message scheduling and draft saving
- * 
- * Features:
- * - Tab-based navigation (Send SMS, Send email, reports, black list numbers)
- * - Form validation and character counting  
- * - CSV upload for bulk operations
- * - Message previewing
- * - Campaign management
- */
-const BulkSMS = memo(({ onClose }) => {
-  // State management with custom hooks
-  const [modals, toggleModal] = useModalState();
-  const [successMessage, showSuccess] = useSuccessMessage();
-  
-  // Tab and report states
-  const [activeTab, setActiveTab] = useState('sms');
-  const [activeReportTab, setActiveReportTab] = useState('delivery');
-  
-  // Form states
-  const [smsForm, updateSmsForm, resetSmsForm] = useFormState({
-    ...DEFAULT_FORM_STATE,
-    numbers: ''
-  });
-  
-  const [emailForm, updateEmailForm, resetEmailForm] = useFormState({
-    ...DEFAULT_FORM_STATE,
-    emails: ''
-  });
-
-  // Data states
-  const [scheduleData, setScheduleData] = useState({
-    date: 'nov 11,2025',
-    time: '8:45 pm'
-  });
-
-  // Edit states
-  const [editingItem, setEditingItem] = useState(null);
-  const [editingReport, setEditingReport] = useState(null);
-  const [editingDraft, setEditingDraft] = useState(null);
-  
-  // Delete states
-  const [deleteItemId, setDeleteItemId] = useState(null);
-  const [deleteReportId, setDeleteReportId] = useState(null);
-  const [deleteDraftId, setDeleteDraftId] = useState(null);
-
+// New custom hook for better data management
+const useDataState = () => {
   // Blacklist data
   const [blacklistData, setBlacklistData] = useState([
     {
@@ -613,6 +596,88 @@ const BulkSMS = memo(({ onClose }) => {
     }
   ]);
 
+  return {
+    blacklistData,
+    setBlacklistData,
+    reportsData,
+    setReportsData,
+    campaignReportsData,
+    setCampaignReportsData,
+    scheduledReportsData,
+    setScheduledReportsData,
+    drafts,
+    setDrafts
+  };
+};
+
+/**
+ * Bulk SMS Component
+ * 
+ * A comprehensive SMS/email management interface for bulk messaging.
+ * Based on the Figma design, this component provides:
+ * - Send SMS with customizable settings
+ * - Send email functionality
+ * - Reports and analytics
+ * - Blacklist number management
+ * - Message scheduling and draft saving
+ * 
+ * Features:
+ * - Tab-based navigation (Send SMS, Send email, reports, black list numbers)
+ * - Form validation and character counting  
+ * - CSV upload for bulk operations
+ * - Message previewing
+ * - Campaign management
+ */
+const BulkSMS = memo(({ onClose }) => {
+  // State management with custom hooks
+  const [modals, toggleModal] = useModalState();
+  const [successMessage, showSuccess] = useSuccessMessage();
+  
+  // Tab and report states
+  const [activeTab, setActiveTab] = useState('sms');
+  const [activeReportTab, setActiveReportTab] = useState('delivery');
+  
+  // Form states
+  const [smsForm, updateSmsForm, resetSmsForm] = useFormState({
+    ...DEFAULT_FORM_STATE,
+    numbers: ''
+  });
+  
+  const [emailForm, updateEmailForm, resetEmailForm] = useFormState({
+    ...DEFAULT_FORM_STATE,
+    emails: ''
+  });
+
+  // Data management hook
+  const {
+    blacklistData,
+    setBlacklistData,
+    reportsData,
+    setReportsData,
+    campaignReportsData,
+    setCampaignReportsData,
+    scheduledReportsData,
+    setScheduledReportsData,
+    drafts,
+    setDrafts
+  } = useDataState();
+
+  // Other states
+  const [scheduleData, setScheduleData] = useState({
+    date: 'nov 11,2025',
+    time: '8:45 pm'
+  });
+
+  // Edit states
+  const [editingItem, setEditingItem] = useState(null);
+  const [editingReport, setEditingReport] = useState(null);
+  const [editingDraft, setEditingDraft] = useState(null);
+  
+  // Delete states
+  const [deleteItemId, setDeleteItemId] = useState(null);
+  const [deleteReportId, setDeleteReportId] = useState(null);
+  const [deleteDraftId, setDeleteDraftId] = useState(null);
+
   // Archived reports filter state
   const [archivedFilters, setArchivedFilters] = useState({
     fromDate: '',
@@ -621,12 +686,12 @@ const BulkSMS = memo(({ onClose }) => {
   });
 
   // ============================================================================
-  // EVENT HANDLERS
+  // OPTIMIZED EVENT HANDLERS
   // ============================================================================
 
-  // Basic action handlers
+  // Basic action handlers - optimized with specific dependencies
   const basicActionHandlers = useMemo(() => ({
-    handleTabChange: (tab) => setActiveTab(tab),
+    handleTabChange: setActiveTab,
     handleCreateCampaign: () => console.log('Creating new campaign'),
     handleDownload: () => console.log('Downloading data'),
     handleShare: () => console.log('Sharing data'),
@@ -636,27 +701,23 @@ const BulkSMS = memo(({ onClose }) => {
     handlePreview: () => console.log('Previewing message')
   }), []);
 
-  // Draft management handlers
-  const draftHandlers = useMemo(() => ({
+  // Schedule data change handler - optimized
+  const handleScheduleDataChange = useCallback((field, value) => {
+    setScheduleData(prev => ({ ...prev, [field]: value }));
+  }, []);
+
+  // Draft management handlers - split for better performance
+  const draftActionHandlers = useMemo(() => ({
     handleSaveDraft: () => {
       const currentForm = activeTab === 'sms' ? smsForm : emailForm;
-      const draftName = generateDraftName(drafts.length);
-      
-      const newDraft = {
-        id: Date.now(),
-        name: draftName,
-        type: activeTab,
-        data: { ...currentForm },
-        createdAt: formatDate(),
-        updatedAt: formatDate()
-      };
+      const newDraft = createNewDraft(activeTab, currentForm, drafts.length);
       
       setDrafts(prev => [...prev, newDraft]);
       console.log('Draft saved:', newDraft);
       
       showSuccess(
         'Draft Saved Successfully!',
-        `Your ${activeTab === 'sms' ? 'SMS' : 'email'} draft "${draftName}" has been saved.`
+        `Your ${activeTab === 'sms' ? 'SMS' : 'email'} draft "${newDraft.name}" has been saved.`
       );
       toggleModal('showSuccessPopup', true);
       setTimeout(() => toggleModal('showSuccessPopup', false), SUCCESS_POPUP_DURATION);
@@ -674,9 +735,12 @@ const BulkSMS = memo(({ onClose }) => {
       }
       toggleModal('showDraftsModal', false);
       console.log('Draft loaded:', draft);
-    },
+    }
+  }), [activeTab, smsForm, emailForm, drafts.length, showSuccess, toggleModal, updateSmsForm, updateEmailForm]);
 
-    handleEditDraft: (draft) => setEditingDraft({ ...draft }),
+  // Draft edit handlers - separated for better performance
+  const draftEditHandlers = useMemo(() => ({
+    handleEditDraft: setEditingDraft,
 
     handleSaveDraftEdit: () => {
       if (editingDraft) {
@@ -692,8 +756,11 @@ const BulkSMS = memo(({ onClose }) => {
       }
     },
 
-    handleCancelDraftEdit: () => setEditingDraft(null),
+    handleCancelDraftEdit: () => setEditingDraft(null)
+  }), [editingDraft]);
 
+  // Draft delete handlers - separated for better performance
+  const draftDeleteHandlers = useMemo(() => ({
     handleDeleteDraft: (id) => {
       setDeleteDraftId(id);
       toggleModal('showDraftDeleteConfirm', true);
@@ -712,9 +779,9 @@ const BulkSMS = memo(({ onClose }) => {
       toggleModal('showDraftDeleteConfirm', false);
       setDeleteDraftId(null);
     }
-  }), [activeTab, smsForm, emailForm, drafts.length, editingDraft, deleteDraftId, showSuccess, toggleModal, updateSmsForm, updateEmailForm]);
+  }), [deleteDraftId, toggleModal]);
 
-  // Schedule and send handlers
+  // Schedule and send handlers - optimized
   const scheduleAndSendHandlers = useMemo(() => ({
     handleScheduleLater: () => toggleModal('showScheduleModal', true),
 
@@ -732,10 +799,6 @@ const BulkSMS = memo(({ onClose }) => {
     },
 
     handleCloseScheduleModal: () => toggleModal('showScheduleModal', false),
-
-    handleScheduleDataChange: (field, value) => {
-      setScheduleData(prev => ({ ...prev, [field]: value }));
-    },
 
     handleSendNow: () => toggleModal('showSendConfirm', true),
 
@@ -755,7 +818,7 @@ const BulkSMS = memo(({ onClose }) => {
     handleCancelSend: () => toggleModal('showSendConfirm', false)
   }), [activeTab, scheduleData, showSuccess, toggleModal]);
 
-  // Blacklist management handlers
+  // Blacklist management handlers - optimized
   const blacklistHandlers = useMemo(() => ({
     handleEditBlacklistItem: (id) => {
       const item = blacklistData.find(item => item.id === id);
@@ -807,9 +870,9 @@ const BulkSMS = memo(({ onClose }) => {
     }
   }), [blacklistData, deleteItemId, editingItem, toggleModal]);
 
-  // Reports management handlers
+  // Reports management handlers - optimized with specific dependencies
   const reportsHandlers = useMemo(() => ({
-    handleReportTabChange: (tab) => setActiveReportTab(tab),
+    handleReportTabChange: setActiveReportTab,
 
     handleEditReport: (id) => {
       let data;
@@ -836,6 +899,17 @@ const BulkSMS = memo(({ onClose }) => {
       toggleModal('showDeleteReportConfirm', true);
     },
 
+    handleArchivedFilterChange: (field, value) => {
+      setArchivedFilters(prev => ({ ...prev, [field]: value }));
+    },
+
+    handleExportCSV: () => {
+      console.log('Exporting archived reports as CSV');
+    }
+  }), [activeReportTab, campaignReportsData, scheduledReportsData, reportsData, toggleModal]);
+
+  // Report edit and delete handlers - separated for better performance  
+  const reportEditDeleteHandlers = useMemo(() => ({
     handleConfirmDeleteReport: () => {
       if (deleteReportId) {
         switch (activeReportTab) {
@@ -896,24 +970,28 @@ const BulkSMS = memo(({ onClose }) => {
 
     handleEditReportChange: (field, value) => {
       setEditingReport(prev => prev ? { ...prev, [field]: value } : null);
-    },
-
-    handleArchivedFilterChange: (field, value) => {
-      setArchivedFilters(prev => ({ ...prev, [field]: value }));
-    },
-
-    handleExportCSV: () => {
-      console.log('Exporting archived reports as CSV');
     }
   }), [
-    activeReportTab, 
-    campaignReportsData, 
-    scheduledReportsData, 
-    reportsData, 
-    deleteReportId, 
-    editingReport, 
-    toggleModal
+    activeReportTab,
+    deleteReportId,
+    editingReport,
+    toggleModal,
+    setCampaignReportsData,
+    setScheduledReportsData,
+    setReportsData
   ]);
+
+  // Combined handler objects for prop passing
+  const draftHandlers = useMemo(() => ({
+    ...draftActionHandlers,
+    ...draftEditHandlers,
+    ...draftDeleteHandlers
+  }), [draftActionHandlers, draftEditHandlers, draftDeleteHandlers]);
+
+  const allReportsHandlers = useMemo(() => ({
+    ...reportsHandlers,
+    ...reportEditDeleteHandlers
+  }), [reportsHandlers, reportEditDeleteHandlers]);
 
   // ============================================================================
   // RENDER
@@ -1130,16 +1208,10 @@ const BulkSMS = memo(({ onClose }) => {
           {/* Report Tabs */}
           <div className="border-b border-[#e5e9eb]">
             <div className="flex items-center gap-8">
-              {[
-                { id: 'campaign', label: 'Campaign Report' },
-                { id: 'delivery', label: 'Delivery Report' },
-                { id: 'schedule', label: 'Schedule Report' },
-                { id: 'archived', label: 'Archived Report' },
-                { id: 'credit', label: 'Credit History' }
-              ].map((tab) => (
+              {REPORT_TABS.map((tab) => (
                 <button
                   key={tab.id}
-                  onClick={() => reportsHandlers.handleReportTabChange(tab.id)}
+                  onClick={() => allReportsHandlers.handleReportTabChange(tab.id)}
                   className={`pb-2 text-[14px] font-medium font-montserrat tracking-[-0.084px] leading-[24px] ${
                     activeReportTab === tab.id
                       ? tab.id === 'delivery'
@@ -1177,8 +1249,8 @@ const BulkSMS = memo(({ onClose }) => {
                         <input
                           type="date"
                           value={archivedFilters.fromDate}
-                          onChange={(e) => reportsHandlers.handleArchivedFilterChange('fromDate', e.target.value)}
-                          className="w-full bg-white border border-[#d0d5dd] rounded-[5px] px-4 py-3 pr-12 text-[14px] text-[#667085] font-inter leading-[24px] shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          onChange={(e) => allReportsHandlers.handleArchivedFilterChange('fromDate', e.target.value)}
+                          className={CSS_CLASSES.input}
                         />
                         <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#667085] pointer-events-none" />
                       </div>
@@ -1193,8 +1265,8 @@ const BulkSMS = memo(({ onClose }) => {
                         <input
                           type="month"
                           value={archivedFilters.monthYear}
-                          onChange={(e) => reportsHandlers.handleArchivedFilterChange('monthYear', e.target.value)}
-                          className="w-full bg-white border border-[#d0d5dd] rounded-[5px] px-4 py-3 pr-12 text-[14px] text-[#667085] font-inter leading-[24px] shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          onChange={(e) => allReportsHandlers.handleArchivedFilterChange('monthYear', e.target.value)}
+                          className={CSS_CLASSES.input}
                         />
                         <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#667085] pointer-events-none" />
                       </div>
@@ -1212,8 +1284,8 @@ const BulkSMS = memo(({ onClose }) => {
                         <input
                           type="date"
                           value={archivedFilters.toDate}
-                          onChange={(e) => reportsHandlers.handleArchivedFilterChange('toDate', e.target.value)}
-                          className="w-full bg-white border border-[#d0d5dd] rounded-[5px] px-4 py-3 pr-12 text-[14px] text-[#667085] font-inter leading-[24px] shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          onChange={(e) => allReportsHandlers.handleArchivedFilterChange('toDate', e.target.value)}
+                          className={CSS_CLASSES.input}
                         />
                         <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#667085] pointer-events-none" />
                       </div>
@@ -1225,7 +1297,7 @@ const BulkSMS = memo(({ onClose }) => {
                 <div className="flex items-center justify-center gap-4 mt-8">
                   {/* Export CSV Button */}
                   <button
-                    onClick={reportsHandlers.handleExportCSV}
+                    onClick={allReportsHandlers.handleExportCSV}
                     className="bg-black text-white px-4 py-3 rounded-3xl w-[270px] h-12 text-[14px] font-semibold font-montserrat text-center"
                   >
                     export as csv
@@ -1426,7 +1498,7 @@ const BulkSMS = memo(({ onClose }) => {
                       <div className="flex items-center justify-center gap-1">
                         {/* Edit Button */}
                         <button
-                          onClick={() => reportsHandlers.handleEditReport(item.id)}
+                          onClick={() => allReportsHandlers.handleEditReport(item.id)}
                           className="w-[26px] h-[27px] flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors p-[5px]"
                           title="Edit report"
                         >
@@ -1435,7 +1507,7 @@ const BulkSMS = memo(({ onClose }) => {
                         
                         {/* Delete Button */}
                         <button
-                          onClick={() => reportsHandlers.handleDeleteReport(item.id)}
+                          onClick={() => allReportsHandlers.handleDeleteReport(item.id)}
                           className="w-[26px] h-[27px] flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors p-[5px]"
                           title="Delete report"
                         >
@@ -1615,24 +1687,24 @@ const BulkSMS = memo(({ onClose }) => {
             <div className="flex gap-8 mb-8">
               {/* Date Input */}
               <div className="w-[285px]">
-                <input
-                  type="text"
-                  value={scheduleData.date}
-                  onChange={(e) => scheduleAndSendHandlers.handleScheduleDataChange('date', e.target.value)}
-                  className="w-full bg-white border border-[#d0d5dd] rounded-lg px-4 py-3 text-[16px] text-[#111111] font-montserrat font-semibold text-center shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="nov 11,2025"
-                />
+                  <input
+                    type="text"
+                    value={scheduleData.date}
+                    onChange={(e) => handleScheduleDataChange('date', e.target.value)}
+                    className="w-full bg-white border border-[#d0d5dd] rounded-lg px-4 py-3 text-[16px] text-[#111111] font-montserrat font-semibold text-center shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="nov 11,2025"
+                  />
               </div>
 
               {/* Time Input */}
               <div className="w-[285px]">
-                <input
-                  type="text"
-                  value={scheduleData.time}
-                  onChange={(e) => scheduleAndSendHandlers.handleScheduleDataChange('time', e.target.value)}
-                  className="w-full bg-white border border-[#d0d5dd] rounded-lg px-4 py-3 text-[16px] text-[#111111] font-montserrat font-semibold text-center shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="8:45 pm"
-                />
+                  <input
+                    type="text"
+                    value={scheduleData.time}
+                    onChange={(e) => handleScheduleDataChange('time', e.target.value)}
+                    className="w-full bg-white border border-[#d0d5dd] rounded-lg px-4 py-3 text-[16px] text-[#111111] font-montserrat font-semibold text-center shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="8:45 pm"
+                  />
               </div>
             </div>
 
@@ -1711,13 +1783,13 @@ const BulkSMS = memo(({ onClose }) => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Phone Number
                 </label>
-                <input
-                  type="text"
-                  value={editingItem.number}
-                  onChange={(e) => blacklistHandlers.handleEditItemChange('number', e.target.value)}
-                  className="w-full bg-white border border-[#d0d5dd] rounded-lg px-4 py-3 text-[14px] text-[#667085] font-inter focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Enter phone number"
-                />
+                  <input
+                    type="text"
+                    value={editingItem.number}
+                    onChange={(e) => blacklistHandlers.handleEditItemChange('number', e.target.value)}
+                    className={CSS_CLASSES.input}
+                    placeholder="Enter phone number"
+                  />
               </div>
 
               {/* Email Input */}
@@ -1725,13 +1797,13 @@ const BulkSMS = memo(({ onClose }) => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Email Address
                 </label>
-                <input
-                  type="email"
-                  value={editingItem.email}
-                  onChange={(e) => blacklistHandlers.handleEditItemChange('email', e.target.value)}
-                  className="w-full bg-white border border-[#d0d5dd] rounded-lg px-4 py-3 text-[14px] text-[#667085] font-inter focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Enter email address"
-                />
+                  <input
+                    type="email"
+                    value={editingItem.email}
+                    onChange={(e) => blacklistHandlers.handleEditItemChange('email', e.target.value)}
+                    className={CSS_CLASSES.input}
+                    placeholder="Enter email address"
+                  />
               </div>
             </div>
 
@@ -1820,8 +1892,8 @@ const BulkSMS = memo(({ onClose }) => {
                   <input
                     type="text"
                     value={editingReport.date}
-                    onChange={(e) => reportsHandlers.handleEditReportChange('date', e.target.value)}
-                    className="w-full bg-white border border-[#d0d5dd] rounded-lg px-4 py-3 text-[14px] text-[#667085] font-inter focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    onChange={(e) => allReportsHandlers.handleEditReportChange('date', e.target.value)}
+                    className={CSS_CLASSES.input}
                     placeholder="Enter date"
                   />
                 </div>
@@ -1834,8 +1906,8 @@ const BulkSMS = memo(({ onClose }) => {
                   <input
                     type="text"
                     value={editingReport.name}
-                    onChange={(e) => reportsHandlers.handleEditReportChange('name', e.target.value)}
-                    className="w-full bg-white border border-[#d0d5dd] rounded-lg px-4 py-3 text-[14px] text-[#667085] font-inter focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    onChange={(e) => allReportsHandlers.handleEditReportChange('name', e.target.value)}
+                    className={CSS_CLASSES.input}
                     placeholder="Enter name"
                   />
                 </div>
@@ -1848,8 +1920,8 @@ const BulkSMS = memo(({ onClose }) => {
                   <input
                     type="text"
                     value={editingReport.senderId}
-                    onChange={(e) => reportsHandlers.handleEditReportChange('senderId', e.target.value)}
-                    className="w-full bg-white border border-[#d0d5dd] rounded-lg px-4 py-3 text-[14px] text-[#667085] font-inter focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    onChange={(e) => allReportsHandlers.handleEditReportChange('senderId', e.target.value)}
+                    className={CSS_CLASSES.input}
                     placeholder="Enter sender ID"
                   />
                 </div>
@@ -1865,8 +1937,8 @@ const BulkSMS = memo(({ onClose }) => {
                   <input
                     type="text"
                     value={editingReport.message}
-                    onChange={(e) => reportsHandlers.handleEditReportChange('message', e.target.value)}
-                    className="w-full bg-white border border-[#d0d5dd] rounded-lg px-4 py-3 text-[14px] text-[#667085] font-inter focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    onChange={(e) => allReportsHandlers.handleEditReportChange('message', e.target.value)}
+                    className={CSS_CLASSES.input}
                     placeholder="Enter message"
                   />
                 </div>
@@ -1879,8 +1951,8 @@ const BulkSMS = memo(({ onClose }) => {
                   <input
                     type="text"
                     value={editingReport.channel}
-                    onChange={(e) => reportsHandlers.handleEditReportChange('channel', e.target.value)}
-                    className="w-full bg-white border border-[#d0d5dd] rounded-lg px-4 py-3 text-[14px] text-[#667085] font-inter focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    onChange={(e) => allReportsHandlers.handleEditReportChange('channel', e.target.value)}
+                    className={CSS_CLASSES.input}
                     placeholder="Enter channel"
                   />
                 </div>
@@ -1893,8 +1965,8 @@ const BulkSMS = memo(({ onClose }) => {
                   <input
                     type="number"
                     value={editingReport.creditUsed}
-                    onChange={(e) => reportsHandlers.handleEditReportChange('creditUsed', parseInt(e.target.value) || 0)}
-                    className="w-full bg-white border border-[#d0d5dd] rounded-lg px-4 py-3 text-[14px] text-[#667085] font-inter focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    onChange={(e) => allReportsHandlers.handleEditReportChange('creditUsed', parseInt(e.target.value) || 0)}
+                    className={CSS_CLASSES.input}
                     placeholder="Enter credit used"
                   />
                 </div>
@@ -1904,13 +1976,13 @@ const BulkSMS = memo(({ onClose }) => {
             {/* Action Buttons */}
             <div className="flex items-center justify-end gap-4 mt-6">
               <button
-                onClick={reportsHandlers.handleCancelReportEdit}
+                onClick={allReportsHandlers.handleCancelReportEdit}
                 className="bg-white border border-gray-300 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-50 transition-colors"
               >
                 Cancel
               </button>
               <button
-                onClick={reportsHandlers.handleSaveReportEdit}
+                onClick={allReportsHandlers.handleSaveReportEdit}
                 className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
               >
                 Save Changes
@@ -1944,13 +2016,13 @@ const BulkSMS = memo(({ onClose }) => {
               {/* Action Buttons */}
               <div className="flex items-center justify-center gap-4">
                 <button
-                  onClick={reportsHandlers.handleCancelDeleteReport}
+                  onClick={allReportsHandlers.handleCancelDeleteReport}
                   className="bg-white border border-gray-300 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-50 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
-                  onClick={reportsHandlers.handleConfirmDeleteReport}
+                  onClick={allReportsHandlers.handleConfirmDeleteReport}
                   className="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition-colors"
                 >
                   Delete

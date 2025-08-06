@@ -54,6 +54,48 @@ const INITIAL_MODAL_STATES = {
   selectedUsers: []
 };
 
+// Performance optimized constants
+const STATUS_BADGE_CLASSES = {
+  active: 'bg-green-100 text-green-800',
+  registered: 'bg-green-100 text-green-800',
+  inactive: 'bg-red-100 text-red-800',
+  default: 'bg-gray-100 text-gray-800'
+};
+
+const BASE_STATUS_CLASSES = 'inline-flex px-2 py-1 text-xs font-semibold rounded-full';
+
+const ACTION_BUTTON_VARIANTS = {
+  primary: 'bg-blue-600 text-white hover:bg-blue-700',
+  secondary: 'bg-green-600 text-white hover:bg-green-700',
+  danger: 'bg-red-600 text-white hover:bg-red-700'
+};
+
+const BASE_BUTTON_CLASSES = 'px-4 py-2 rounded-lg transition-colors flex items-center gap-2 text-sm';
+const DISABLED_CLASSES = 'opacity-50 cursor-not-allowed';
+
+const FORM_FIELD_CLASSES = "w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500";
+
+const USER_TABLE_FIELDS = ['userId', 'email', 'mobile', 'userName', 'userType', 'lastActive'];
+
+const STATS_LABELS = [
+  { key: 'emptyCartStatus', label: 'total users' },
+  { key: 'registeredUsers', label: 'registered users' },
+  { key: 'guests', label: 'guests' },
+  { key: 'avgVisitTime', label: 'avg engagement' }
+];
+
+const TABLE_HEADERS = [
+  'Select',
+  'user id', 
+  'email', 
+  'mobile', 
+  'user name', 
+  'user type', 
+  'last active', 
+  'status', 
+  'action'
+];
+
 /**
  * Send Promo Notification Component
  * 
@@ -147,7 +189,7 @@ const SendPromoNotification = memo(() => {
     }
   ]);
 
-  // Computed Values
+  // Computed Values - Optimized with better memoization
   const stats = useMemo(() => ({
     emptyCartStatus: 2000,
     registeredUsers: 2000,
@@ -158,6 +200,18 @@ const SendPromoNotification = memo(() => {
   const selectedUsersCount = useMemo(() => 
     users.filter(user => user.isSelected).length,
     [users]
+  );
+
+  const allUsersSelected = useMemo(() => 
+    users.length > 0 && users.every(user => user.isSelected),
+    [users]
+  );
+
+  const hasSelectedUsers = useMemo(() => selectedUsersCount > 0, [selectedUsersCount]);
+
+  const isFormValid = useMemo(() => 
+    Boolean(promoForm.title && promoForm.message),
+    [promoForm.title, promoForm.message]
   );
 
   // Event Handlers - Filter Management
@@ -175,17 +229,16 @@ const SendPromoNotification = memo(() => {
   }, []);
 
   const handleSelectAll = useCallback(() => {
-    const allSelected = users.every(user => user.isSelected);
-    setUsers(prev => prev.map(user => ({ ...user, isSelected: !allSelected })));
-  }, [users]);
+    setUsers(prev => prev.map(user => ({ ...user, isSelected: !allUsersSelected })));
+  }, [allUsersSelected]);
 
-  // Event Handlers - Bulk Actions
+  // Event Handlers - Bulk Actions - Optimized dependencies
   const handleBulkAction = useCallback((actionType) => {
-    if (selectedUsersCount === 0) return;
+    if (!hasSelectedUsers) return;
     
     console.log(`Sending promotional ${actionType} to:`, selectedUsersCount, 'users');
     setModalStates(prev => ({ ...prev, isBulkModalOpen: true }));
-  }, [selectedUsersCount]);
+  }, [hasSelectedUsers, selectedUsersCount]);
 
   const handleBulkPromoEmail = useCallback(() => handleBulkAction('email'), [handleBulkAction]);
   const handleBulkPromoSMS = useCallback(() => handleBulkAction('SMS'), [handleBulkAction]);
@@ -232,9 +285,9 @@ const SendPromoNotification = memo(() => {
     setModalStates(INITIAL_MODAL_STATES);
   }, []);
 
-  // Event Handlers - Notification Sending
+  // Event Handlers - Notification Sending - Optimized dependencies
   const handleSendPromo = useCallback(() => {
-    if (!promoForm.title || !promoForm.message) {
+    if (!isFormValid) {
       console.warn('Title and message are required');
       return;
     }
@@ -249,17 +302,12 @@ const SendPromoNotification = memo(() => {
     closeAllModals();
     
     // TODO: Implement actual notification sending logic
-  }, [promoForm, selectedUsersCount, resetPromoForm, closeAllModals]);
+  }, [promoForm, selectedUsersCount, resetPromoForm, closeAllModals, isFormValid]);
 
-  // UI Helper Functions
+  // UI Helper Functions - Optimized with pre-computed classes
   const getStatusBadgeClass = useCallback((status) => {
-    const baseClasses = 'inline-flex px-2 py-1 text-xs font-semibold rounded-full';
-    const statusClasses = {
-      active: 'bg-green-100 text-green-800',
-      registered: 'bg-green-100 text-green-800',
-      inactive: 'bg-red-100 text-red-800'
-    };
-    return `${baseClasses} ${statusClasses[status] || 'bg-gray-100 text-gray-800'}`;
+    const statusClass = STATUS_BADGE_CLASSES[status] || STATUS_BADGE_CLASSES.default;
+    return `${BASE_STATUS_CLASSES} ${statusClass}`;
   }, []);
 
   // Render Helper Components
@@ -280,20 +328,17 @@ const SendPromoNotification = memo(() => {
     </div>
   ), [handleFilterChange]);
 
+  // Render Helper Components - Optimized with pre-computed classes
   const renderActionButton = useCallback((onClick, icon, text, variant = 'primary', disabled = false) => {
     const Icon = icon;
-    const baseClasses = 'px-4 py-2 rounded-lg transition-colors flex items-center gap-2 text-sm';
-    const variantClasses = {
-      primary: 'bg-blue-600 text-white hover:bg-blue-700',
-      secondary: 'bg-green-600 text-white hover:bg-green-700',
-      danger: 'bg-red-600 text-white hover:bg-red-700'
-    };
+    const variantClass = ACTION_BUTTON_VARIANTS[variant];
+    const className = `${BASE_BUTTON_CLASSES} ${variantClass} ${disabled ? DISABLED_CLASSES : ''}`;
     
     return (
       <button
         onClick={onClick}
         disabled={disabled}
-        className={`${baseClasses} ${variantClasses[variant]} ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+        className={className}
       >
         <Icon className="h-4 w-4" />
         {text}
@@ -301,7 +346,7 @@ const SendPromoNotification = memo(() => {
     );
   }, []);
 
-  // Render Helper Components for Table
+  // Render Helper Components for Table - Optimized with constants
   const renderUserRow = useCallback((user) => (
     <tr key={user.id} className={`hover:bg-gray-50 ${user.isSelected ? 'bg-blue-50' : ''}`}>
       <td className="px-4 py-4 whitespace-nowrap">
@@ -312,7 +357,7 @@ const SendPromoNotification = memo(() => {
           className="rounded border-gray-300"
         />
       </td>
-      {['userId', 'email', 'mobile', 'userName', 'userType', 'lastActive'].map(field => (
+      {USER_TABLE_FIELDS.map(field => (
         <td key={field} className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
           {user[field]}
         </td>
@@ -351,8 +396,6 @@ const SendPromoNotification = memo(() => {
   ), [handleUserSelect, getStatusBadgeClass, handleViewProfile, handleSendPromoEmail, handleDeleteUser]);
 
   const renderFormField = useCallback((label, field, type = 'text', options = null, placeholder = '') => {
-    const commonClasses = "w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500";
-    
     return (
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -363,14 +406,14 @@ const SendPromoNotification = memo(() => {
             value={promoForm[field]}
             onChange={(e) => handlePromoFormChange(field, e.target.value)}
             rows={4}
-            className={commonClasses}
+            className={FORM_FIELD_CLASSES}
             placeholder={placeholder}
           />
         ) : type === 'select' ? (
           <select
             value={promoForm[field]}
             onChange={(e) => handlePromoFormChange(field, e.target.value)}
-            className={commonClasses}
+            className={FORM_FIELD_CLASSES}
           >
             {options.map(option => (
               <option key={option.value} value={option.value}>
@@ -383,7 +426,7 @@ const SendPromoNotification = memo(() => {
             type={type}
             value={promoForm[field]}
             onChange={(e) => handlePromoFormChange(field, e.target.value)}
-            className={commonClasses}
+            className={FORM_FIELD_CLASSES}
             placeholder={placeholder}
             min={type === 'number' ? '0' : undefined}
             max={type === 'number' && field === 'discountPercent' ? '100' : undefined}
@@ -407,14 +450,14 @@ const SendPromoNotification = memo(() => {
             Mail, 
             `Bulk Promo Email (${selectedUsersCount})`, 
             'primary',
-            selectedUsersCount === 0
+            !hasSelectedUsers
           )}
           {renderActionButton(
             handleBulkPromoSMS, 
             Mail, 
             `+ Bulk Promo SMS (${selectedUsersCount})`, 
             'primary',
-            selectedUsersCount === 0
+            !hasSelectedUsers
           )}
           {renderActionButton(
             handleExportCSV, 
@@ -426,15 +469,10 @@ const SendPromoNotification = memo(() => {
 
         {/* Statistics Cards */}
         <div className="grid grid-cols-4 gap-6 mb-6">
-          {Object.entries({
-            'total users': stats.emptyCartStatus,
-            'registered users': stats.registeredUsers,
-            'guests': stats.guests,
-            'avg engagement': stats.avgVisitTime
-          }).map(([label, value]) => (
-            <div key={label} className="text-center">
+          {STATS_LABELS.map(({ key, label }) => (
+            <div key={key} className="text-center">
               <p className="text-sm text-gray-600 mb-1">{label}</p>
-              <p className="text-xl font-bold text-gray-900">{value}</p>
+              <p className="text-xl font-bold text-gray-900">{stats[key]}</p>
             </div>
           ))}
         </div>
@@ -456,7 +494,7 @@ const SendPromoNotification = memo(() => {
             <label className="flex items-center gap-2">
               <input
                 type="checkbox"
-                checked={users.length > 0 && users.every(user => user.isSelected)}
+                checked={allUsersSelected}
                 onChange={handleSelectAll}
                 className="rounded border-gray-300"
               />
@@ -478,17 +516,7 @@ const SendPromoNotification = memo(() => {
           <table className="min-w-full">
             <thead className="bg-gray-50">
               <tr>
-                {[
-                  'Select',
-                  'user id', 
-                  'email', 
-                  'mobile', 
-                  'user name', 
-                  'user type', 
-                  'last active', 
-                  'status', 
-                  'action'
-                ].map(header => (
+                {TABLE_HEADERS.map(header => (
                   <th key={header} className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     {header}
                   </th>
@@ -538,7 +566,7 @@ const SendPromoNotification = memo(() => {
               </button>
               <button
                 onClick={handleSendPromo}
-                disabled={!promoForm.title || !promoForm.message}
+                disabled={!isFormValid}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Send Promotional Notification
@@ -583,7 +611,7 @@ const SendPromoNotification = memo(() => {
               </button>
               <button
                 onClick={handleSendPromo}
-                disabled={!promoForm.title || !promoForm.message}
+                disabled={!isFormValid}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Send to {selectedUsersCount} Users

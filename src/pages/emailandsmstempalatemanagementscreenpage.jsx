@@ -14,77 +14,81 @@ import { Plus, Upload, X, Edit2, Trash2, Bold, Italic, Underline, AlignLeft, Ali
  * - Responsive design with Montserrat font following design system
  */
 
-// Constants
-const DEFAULT_TEMPLATE = {
+// Constants - Memoized to prevent recreation on each render
+const DEFAULT_TEMPLATE = Object.freeze({
   id: null,
   name: '',
-  content: {
-    images: [],
-    texts: [],
+  content: Object.freeze({
+    images: Object.freeze([]),
+    texts: Object.freeze([]),
     layout: 'default'
-  },
+  }),
   preview: '',
   createdAt: new Date(),
   updatedAt: new Date()
-};
+});
 
-const SAMPLE_TEMPLATES = [
-  {
+const SAMPLE_TEMPLATES = Object.freeze([
+  Object.freeze({
     id: 1,
     name: 'Promotional Offer',
-    content: {
+    content: Object.freeze({
       backgroundColor: '#000000',
-      texts: [
-        { id: 'text1', content: 'WANT', fontSize: '12px', color: '#ffffff', position: { x: 50, y: 20 } },
-        { id: 'text2', content: '10% OFF', fontSize: '64px', color: '#ffffff', position: { x: 50, y: 40 } },
-        { id: 'text3', content: 'YOUR NEXT PURCHASE?', fontSize: '20px', color: '#ffffff', position: { x: 50, y: 60 } },
-        { id: 'text4', content: 'PLUS REWARD GIVEAWAY AND MORE!', fontSize: '12px', color: '#ffffff', position: { x: 50, y: 75 } },
-        { id: 'text5', content: 'What are you waiting for?', fontSize: '12px', color: '#ffffff', position: { x: 50, y: 85 } },
-        { id: 'text6', content: 'Become a Rewards member today!', fontSize: '12px', color: '#ffffff', position: { x: 50, y: 92 } }
-      ],
-      images: []
-    },
+      texts: Object.freeze([
+        Object.freeze({ id: 'text1', content: 'WANT', fontSize: '12px', color: '#ffffff', position: Object.freeze({ x: 50, y: 20 }) }),
+        Object.freeze({ id: 'text2', content: '10% OFF', fontSize: '64px', color: '#ffffff', position: Object.freeze({ x: 50, y: 40 }) }),
+        Object.freeze({ id: 'text3', content: 'YOUR NEXT PURCHASE?', fontSize: '20px', color: '#ffffff', position: Object.freeze({ x: 50, y: 60 }) }),
+        Object.freeze({ id: 'text4', content: 'PLUS REWARD GIVEAWAY AND MORE!', fontSize: '12px', color: '#ffffff', position: Object.freeze({ x: 50, y: 75 }) }),
+        Object.freeze({ id: 'text5', content: 'What are you waiting for?', fontSize: '12px', color: '#ffffff', position: Object.freeze({ x: 50, y: 85 }) }),
+        Object.freeze({ id: 'text6', content: 'Become a Rewards member today!', fontSize: '12px', color: '#ffffff', position: Object.freeze({ x: 50, y: 92 }) })
+      ]),
+      images: Object.freeze([])
+    }),
     preview: '#000000',
     createdAt: new Date('2024-01-15'),
     updatedAt: new Date('2024-01-15')
-  },
-  {
+  }),
+  Object.freeze({
     id: 2,
     name: 'Concert Giveaway',
-    content: {
+    content: Object.freeze({
       backgroundColor: '#fffb25',
-      texts: [
-        { id: 'text1', content: 'Expires in 8 days', fontSize: '12px', color: '#000000', position: { x: 50, y: 10 } },
-        { id: 'text2', content: 'YORAA Concert Giveaways', fontSize: '14px', color: '#000000', position: { x: 50, y: 25 } },
-        { id: 'text3', content: 'MEMBERS EXCLUSIVE', fontSize: '12px', color: '#000000', position: { x: 50, y: 85 } }
-      ],
-      images: []
-    },
+      texts: Object.freeze([
+        Object.freeze({ id: 'text1', content: 'Expires in 8 days', fontSize: '12px', color: '#000000', position: Object.freeze({ x: 50, y: 10 }) }),
+        Object.freeze({ id: 'text2', content: 'YORAA Concert Giveaways', fontSize: '14px', color: '#000000', position: Object.freeze({ x: 50, y: 25 }) }),
+        Object.freeze({ id: 'text3', content: 'MEMBERS EXCLUSIVE', fontSize: '12px', color: '#000000', position: Object.freeze({ x: 50, y: 85 }) })
+      ]),
+      images: Object.freeze([])
+    }),
     preview: '#fffb25',
     createdAt: new Date('2024-01-10'),
     updatedAt: new Date('2024-01-12')
-  }
-];
+  })
+]);
 
-const BASIC_TOOLS = [
-  { id: 'bold', icon: Bold, label: 'Bold' },
-  { id: 'italic', icon: Italic, label: 'Italic' },
-  { id: 'underline', icon: Underline, label: 'Underline' },
-  { id: 'align-left', icon: AlignLeft, label: 'Align Left' },
-  { id: 'align-center', icon: AlignCenter, label: 'Align Center' },
-  { id: 'align-right', icon: AlignRight, label: 'Align Right' }
-];
+const BASIC_TOOLS = Object.freeze([
+  Object.freeze({ id: 'bold', icon: Bold, label: 'Bold' }),
+  Object.freeze({ id: 'italic', icon: Italic, label: 'Italic' }),
+  Object.freeze({ id: 'underline', icon: Underline, label: 'Underline' }),
+  Object.freeze({ id: 'align-left', icon: AlignLeft, label: 'Align Left' }),
+  Object.freeze({ id: 'align-center', icon: AlignCenter, label: 'Align Center' }),
+  Object.freeze({ id: 'align-right', icon: AlignRight, label: 'Align Right' })
+]);
 
-const ADVANCED_TOOLS = [
-  { id: 'text-color', icon: Palette, label: 'Text Color' },
-  { id: 'background-color', icon: Palette, label: 'Background Color' },
-  { id: 'font-size', icon: Type, label: 'Font Size' },
-  { id: 'font-family', icon: Type, label: 'Font Family' }
-];
+const ADVANCED_TOOLS = Object.freeze([
+  Object.freeze({ id: 'text-color', icon: Palette, label: 'Text Color' }),
+  Object.freeze({ id: 'background-color', icon: Palette, label: 'Background Color' }),
+  Object.freeze({ id: 'font-size', icon: Type, label: 'Font Size' }),
+  Object.freeze({ id: 'font-family', icon: Type, label: 'Font Family' })
+]);
 
 // Custom Hooks
 const useTemplateEditor = () => {
-  const [currentTemplate, setCurrentTemplate] = useState(DEFAULT_TEMPLATE);
+  const [currentTemplate, setCurrentTemplate] = useState(() => ({
+    ...DEFAULT_TEMPLATE,
+    createdAt: new Date(),
+    updatedAt: new Date()
+  }));
   const [savedTemplates, setSavedTemplates] = useState(SAMPLE_TEMPLATES);
   const [isEditing, setIsEditing] = useState(false);
   const [draggedElement, setDraggedElement] = useState(null);
@@ -113,13 +117,15 @@ const useTemplateEditor = () => {
       }
     };
 
-    updateTemplate({
+    setCurrentTemplate(prev => ({
+      ...prev,
       content: {
-        ...currentTemplate.content,
-        texts: [...(currentTemplate.content.texts || []), newText]
-      }
-    });
-  }, [currentTemplate.content, updateTemplate]);
+        ...prev.content,
+        texts: [...(prev.content.texts || []), newText]
+      },
+      updatedAt: new Date()
+    }));
+  }, []);
 
   const addImage = useCallback((imageFile) => {
     if (!imageFile) return;
@@ -133,15 +139,17 @@ const useTemplateEditor = () => {
         size: { width: 100, height: 100 }
       };
 
-      updateTemplate({
+      setCurrentTemplate(prev => ({
+        ...prev,
         content: {
-          ...currentTemplate.content,
-          images: [...(currentTemplate.content.images || []), newImage]
-        }
-      });
+          ...prev.content,
+          images: [...(prev.content.images || []), newImage]
+        },
+        updatedAt: new Date()
+      }));
     };
     reader.readAsDataURL(imageFile);
-  }, [currentTemplate.content, updateTemplate]);
+  }, []);
 
   const saveTemplate = useCallback(() => {
     if (!currentTemplate.name.trim()) {
@@ -149,13 +157,13 @@ const useTemplateEditor = () => {
       return;
     }
 
-    const templateToSave = {
-      ...currentTemplate,
-      id: currentTemplate.id || Date.now(),
-      updatedAt: new Date()
-    };
-
     setSavedTemplates(prev => {
+      const templateToSave = {
+        ...currentTemplate,
+        id: currentTemplate.id || Date.now(),
+        updatedAt: new Date()
+      };
+
       const existingIndex = prev.findIndex(t => t.id === templateToSave.id);
       if (existingIndex >= 0) {
         const updated = [...prev];
@@ -176,6 +184,7 @@ const useTemplateEditor = () => {
   const editTemplate = useCallback((template) => {
     setCurrentTemplate(template);
     setIsEditing(true);
+    setSelectedElement(null);
   }, []);
 
   return {
@@ -199,15 +208,15 @@ const useTemplateEditor = () => {
 
 const useDragAndDrop = () => {
   const [isDragging, setIsDragging] = useState(false);
-  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const dragOffset = useRef({ x: 0, y: 0 });
 
   const handleMouseDown = useCallback((e, element) => {
     setIsDragging(true);
     const rect = e.currentTarget.getBoundingClientRect();
-    setDragOffset({
+    dragOffset.current = {
       x: e.clientX - rect.left,
       y: e.clientY - rect.top
-    });
+    };
   }, []);
 
   const handleMouseMove = useCallback((e, onPositionChange) => {
@@ -217,11 +226,11 @@ const useDragAndDrop = () => {
     if (!container) return;
 
     const containerRect = container.getBoundingClientRect();
-    const x = ((e.clientX - containerRect.left - dragOffset.x) / containerRect.width) * 100;
-    const y = ((e.clientY - containerRect.top - dragOffset.y) / containerRect.height) * 100;
+    const x = ((e.clientX - containerRect.left - dragOffset.current.x) / containerRect.width) * 100;
+    const y = ((e.clientY - containerRect.top - dragOffset.current.y) / containerRect.height) * 100;
 
     onPositionChange({ x: Math.max(0, Math.min(100, x)), y: Math.max(0, Math.min(100, y)) });
-  }, [isDragging, dragOffset]);
+  }, [isDragging]);
 
   const handleMouseUp = useCallback(() => {
     setIsDragging(false);
@@ -327,6 +336,71 @@ const TemplatePreview = memo(({ template, onElementSelect, selectedElement, onPo
     onPositionUpdate(elementId, newPosition);
   }, [onPositionUpdate]);
 
+  const hasNoContent = useMemo(() => 
+    (!template.content?.texts?.length && !template.content?.images?.length),
+    [template.content?.texts?.length, template.content?.images?.length]
+  );
+
+  const backgroundColor = useMemo(() => 
+    template.content?.backgroundColor || '#000000',
+    [template.content?.backgroundColor]
+  );
+
+  const renderedImages = useMemo(() =>
+    template.content?.images?.map((image) => (
+      <div
+        key={image.id}
+        className={`absolute cursor-move ${selectedElement?.id === image.id ? 'ring-2 ring-blue-500' : ''}`}
+        style={{
+          left: `${image.position.x}%`,
+          top: `${image.position.y}%`,
+          width: `${image.size.width}px`,
+          height: `${image.size.height}px`
+        }}
+        onMouseDown={(e) => {
+          onElementSelect(image);
+          handleMouseDown(e, image);
+        }}
+      >
+        <img
+          src={image.src}
+          alt="Template"
+          className="w-full h-full object-cover rounded"
+          draggable={false}
+        />
+      </div>
+    )) || [],
+    [template.content?.images, selectedElement?.id, onElementSelect, handleMouseDown]
+  );
+
+  const renderedTexts = useMemo(() =>
+    template.content?.texts?.map((text) => (
+      <div
+        key={text.id}
+        className={`absolute cursor-move ${selectedElement?.id === text.id ? 'ring-2 ring-blue-500' : ''}`}
+        style={{
+          left: `${text.position.x}%`,
+          top: `${text.position.y}%`,
+          transform: 'translate(-50%, -50%)',
+          fontSize: text.fontSize,
+          color: text.color,
+          fontWeight: text.style?.fontWeight || 'normal',
+          fontStyle: text.style?.fontStyle || 'normal',
+          textDecoration: text.style?.textDecoration || 'none',
+          textAlign: text.style?.textAlign || 'left',
+          fontFamily: 'Montserrat, sans-serif'
+        }}
+        onMouseDown={(e) => {
+          onElementSelect(text);
+          handleMouseDown(e, text);
+        }}
+      >
+        {text.content}
+      </div>
+    )) || [],
+    [template.content?.texts, selectedElement?.id, onElementSelect, handleMouseDown]
+  );
+
   return (
     <div className="space-y-4">
       <h3 className="text-[24px] font-bold text-[#010101] font-['Montserrat'] leading-[1.2]">
@@ -335,7 +409,7 @@ const TemplatePreview = memo(({ template, onElementSelect, selectedElement, onPo
       
       <div 
         className="template-preview relative bg-black h-[594px] w-[374px] overflow-hidden cursor-crosshair"
-        style={{ backgroundColor: template.content?.backgroundColor || '#000000' }}
+        style={{ backgroundColor }}
         onMouseMove={(e) => handleMouseMove(e, (pos) => {
           if (selectedElement) {
             updateElementPosition(selectedElement.id, pos);
@@ -345,58 +419,13 @@ const TemplatePreview = memo(({ template, onElementSelect, selectedElement, onPo
         onMouseLeave={handleMouseUp}
       >
         {/* Render Images */}
-        {template.content?.images?.map((image) => (
-          <div
-            key={image.id}
-            className={`absolute cursor-move ${selectedElement?.id === image.id ? 'ring-2 ring-blue-500' : ''}`}
-            style={{
-              left: `${image.position.x}%`,
-              top: `${image.position.y}%`,
-              width: `${image.size.width}px`,
-              height: `${image.size.height}px`
-            }}
-            onMouseDown={(e) => {
-              onElementSelect(image);
-              handleMouseDown(e, image);
-            }}
-          >
-            <img
-              src={image.src}
-              alt="Template"
-              className="w-full h-full object-cover rounded"
-              draggable={false}
-            />
-          </div>
-        ))}
+        {renderedImages}
 
         {/* Render Texts */}
-        {template.content?.texts?.map((text) => (
-          <div
-            key={text.id}
-            className={`absolute cursor-move ${selectedElement?.id === text.id ? 'ring-2 ring-blue-500' : ''}`}
-            style={{
-              left: `${text.position.x}%`,
-              top: `${text.position.y}%`,
-              transform: 'translate(-50%, -50%)',
-              fontSize: text.fontSize,
-              color: text.color,
-              fontWeight: text.style?.fontWeight || 'normal',
-              fontStyle: text.style?.fontStyle || 'normal',
-              textDecoration: text.style?.textDecoration || 'none',
-              textAlign: text.style?.textAlign || 'left',
-              fontFamily: 'Montserrat, sans-serif'
-            }}
-            onMouseDown={(e) => {
-              onElementSelect(text);
-              handleMouseDown(e, text);
-            }}
-          >
-            {text.content}
-          </div>
-        ))}
+        {renderedTexts}
 
         {/* Default template content if no custom content */}
-        {(!template.content?.texts?.length && !template.content?.images?.length) && (
+        {hasNoContent && (
           <div className="absolute inset-0 flex items-center justify-center text-white text-center font-['Montserrat'] leading-none">
             <div className="tracking-[-0.3px]">
               <p className="text-[12px] mb-0 block">WANT</p>
@@ -417,10 +446,22 @@ const TemplatePreview = memo(({ template, onElementSelect, selectedElement, onPo
 TemplatePreview.displayName = 'TemplatePreview';
 
 const BasicEditingTools = memo(({ onToolApply, selectedElement }) => {
-  const handleToolClick = useCallback((toolId) => {
-    if (!selectedElement) return;
-    onToolApply(toolId, selectedElement.id);
-  }, [onToolApply, selectedElement]);
+  const isDisabled = useMemo(() => !selectedElement, [selectedElement]);
+  
+  const renderedTools = useMemo(() => 
+    BASIC_TOOLS.map((tool) => (
+      <button
+        key={tool.id}
+        onClick={() => onToolApply(tool.id, selectedElement.id)}
+        className="p-2 hover:bg-gray-100 rounded transition-colors"
+        title={tool.label}
+        disabled={isDisabled}
+      >
+        <tool.icon className="w-5 h-5" />
+      </button>
+    )),
+    [onToolApply, selectedElement?.id, isDisabled]
+  );
 
   return (
     <div className="bg-white border border-black rounded-[100px] px-12 py-4 w-[1042px] shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)]">
@@ -432,17 +473,7 @@ const BasicEditingTools = memo(({ onToolApply, selectedElement }) => {
           place basic editing tools in here
         </span>
         <div className="flex gap-2 ml-4">
-          {BASIC_TOOLS.map((tool) => (
-            <button
-              key={tool.id}
-              onClick={() => handleToolClick(tool.id)}
-              className="p-2 hover:bg-gray-100 rounded transition-colors"
-              title={tool.label}
-              disabled={!selectedElement}
-            >
-              <tool.icon className="w-5 h-5" />
-            </button>
-          ))}
+          {renderedTools}
         </div>
       </div>
     </div>
@@ -452,10 +483,22 @@ const BasicEditingTools = memo(({ onToolApply, selectedElement }) => {
 BasicEditingTools.displayName = 'BasicEditingTools';
 
 const AdvancedEditingTools = memo(({ onToolApply, selectedElement }) => {
-  const handleToolClick = useCallback((toolId) => {
-    if (!selectedElement) return;
-    onToolApply(toolId, selectedElement.id);
-  }, [onToolApply, selectedElement]);
+  const isDisabled = useMemo(() => !selectedElement, [selectedElement]);
+  
+  const renderedTools = useMemo(() => 
+    ADVANCED_TOOLS.map((tool) => (
+      <button
+        key={tool.id}
+        onClick={() => onToolApply(tool.id, selectedElement.id)}
+        className="p-2 hover:bg-gray-100 rounded transition-colors"
+        title={tool.label}
+        disabled={isDisabled}
+      >
+        <tool.icon className="w-5 h-5" />
+      </button>
+    )),
+    [onToolApply, selectedElement?.id, isDisabled]
+  );
 
   return (
     <div className="absolute right-0 top-[142px] transform rotate-90 origin-center">
@@ -465,17 +508,7 @@ const AdvancedEditingTools = memo(({ onToolApply, selectedElement }) => {
             place advanced editing tools in here
           </span>
           <div className="flex gap-2 ml-4">
-            {ADVANCED_TOOLS.map((tool) => (
-              <button
-                key={tool.id}
-                onClick={() => handleToolClick(tool.id)}
-                className="p-2 hover:bg-gray-100 rounded transition-colors"
-                title={tool.label}
-                disabled={!selectedElement}
-              >
-                <tool.icon className="w-5 h-5" />
-              </button>
-            ))}
+            {renderedTools}
           </div>
         </div>
       </div>
@@ -486,6 +519,21 @@ const AdvancedEditingTools = memo(({ onToolApply, selectedElement }) => {
 AdvancedEditingTools.displayName = 'AdvancedEditingTools';
 
 const SavedTemplatesSection = memo(({ templates, onEdit, onDelete, onSend }) => {
+  const templateCount = useMemo(() => templates.length, [templates.length]);
+  
+  const renderedTemplates = useMemo(() =>
+    templates.map((template) => (
+      <TemplateRow
+        key={template.id}
+        template={template}
+        onEdit={onEdit}
+        onDelete={onDelete}
+        onSend={onSend}
+      />
+    )),
+    [templates, onEdit, onDelete, onSend]
+  );
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -494,7 +542,7 @@ const SavedTemplatesSection = memo(({ templates, onEdit, onDelete, onSend }) => 
             saved templates
           </h3>
           <p className="text-[24px] font-bold text-[#010101] font-['Montserrat'] leading-[1.2]">
-            templates {templates.length}
+            templates {templateCount}
           </p>
         </div>
         <h4 className="text-[24px] font-bold text-[#010101] font-['Montserrat'] leading-[1.2]">
@@ -503,81 +551,107 @@ const SavedTemplatesSection = memo(({ templates, onEdit, onDelete, onSend }) => 
       </div>
 
       <div className="space-y-8">
-        {templates.map((template) => (
-          <div key={template.id} className="flex items-center gap-8">
-            {/* Template Preview */}
-            <div 
-              className="w-[374px] h-[594px] overflow-hidden"
-              style={{ backgroundColor: template.content?.backgroundColor || '#000000' }}
-            >
-              <div className="relative h-full">
-                {template.content?.texts?.map((text) => (
-                  <div
-                    key={text.id}
-                    className="absolute font-['Montserrat'] leading-none tracking-[-0.3px]"
-                    style={{
-                      left: `${text.position.x}%`,
-                      top: `${text.position.y}%`,
-                      transform: 'translate(-50%, -50%)',
-                      fontSize: text.fontSize,
-                      color: text.color
-                    }}
-                  >
-                    {text.content}
-                  </div>
-                ))}
-                {template.content?.images?.map((image) => (
-                  <div
-                    key={image.id}
-                    className="absolute"
-                    style={{
-                      left: `${image.position.x}%`,
-                      top: `${image.position.y}%`,
-                      width: `${image.size.width}px`,
-                      height: `${image.size.height}px`
-                    }}
-                  >
-                    <img
-                      src={image.src}
-                      alt="Template"
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Send Button */}
-            <button
-              onClick={() => onSend(template.id)}
-              className="bg-[#ef3826] text-white px-12 py-4 rounded-[100px] font-['Montserrat'] font-medium hover:bg-red-600 transition-colors border border-[#000000] leading-[1.2]"
-            >
-              send now
-            </button>
-
-            {/* Action Buttons */}
-            <div className="flex gap-2 ml-auto">
-              <button
-                onClick={() => onEdit(template)}
-                className="p-2 hover:bg-gray-100 rounded transition-colors"
-                title="Edit Template"
-              >
-                <Edit2 className="w-5 h-5 text-gray-600" />
-              </button>
-              <button
-                onClick={() => onDelete(template.id)}
-                className="p-2 hover:bg-gray-100 rounded transition-colors"
-                title="Delete Template"
-              >
-                <Trash2 className="w-5 h-5 text-gray-600" />
-              </button>
-            </div>
-          </div>
-        ))}
+        {renderedTemplates}
       </div>
     </div>
   );
 });
+
+// New optimized component for individual template rows
+const TemplateRow = memo(({ template, onEdit, onDelete, onSend }) => {
+  const handleSend = useCallback(() => onSend(template.id), [onSend, template.id]);
+  const handleEdit = useCallback(() => onEdit(template), [onEdit, template]);
+  const handleDelete = useCallback(() => onDelete(template.id), [onDelete, template.id]);
+
+  const backgroundColor = useMemo(() => 
+    template.content?.backgroundColor || '#000000',
+    [template.content?.backgroundColor]
+  );
+
+  const renderedTexts = useMemo(() =>
+    template.content?.texts?.map((text) => (
+      <div
+        key={text.id}
+        className="absolute font-['Montserrat'] leading-none tracking-[-0.3px]"
+        style={{
+          left: `${text.position.x}%`,
+          top: `${text.position.y}%`,
+          transform: 'translate(-50%, -50%)',
+          fontSize: text.fontSize,
+          color: text.color
+        }}
+      >
+        {text.content}
+      </div>
+    )) || [],
+    [template.content?.texts]
+  );
+
+  const renderedImages = useMemo(() =>
+    template.content?.images?.map((image) => (
+      <div
+        key={image.id}
+        className="absolute"
+        style={{
+          left: `${image.position.x}%`,
+          top: `${image.position.y}%`,
+          width: `${image.size.width}px`,
+          height: `${image.size.height}px`
+        }}
+      >
+        <img
+          src={image.src}
+          alt="Template"
+          className="w-full h-full object-cover"
+        />
+      </div>
+    )) || [],
+    [template.content?.images]
+  );
+
+  return (
+    <div className="flex items-center gap-8">
+      {/* Template Preview */}
+      <div 
+        className="w-[374px] h-[594px] overflow-hidden"
+        style={{ backgroundColor }}
+      >
+        <div className="relative h-full">
+          {renderedTexts}
+          {renderedImages}
+        </div>
+      </div>
+
+      {/* Send Button */}
+      <button
+        onClick={handleSend}
+        className="bg-[#ef3826] text-white px-12 py-4 rounded-[100px] font-['Montserrat'] font-medium hover:bg-red-600 transition-colors border border-[#000000] leading-[1.2]"
+      >
+        send now
+      </button>
+
+      {/* Action Buttons */}
+      <div className="flex gap-2 ml-auto">
+        <button
+          onClick={handleEdit}
+          className="p-2 hover:bg-gray-100 rounded transition-colors"
+          title="Edit Template"
+        >
+          <Edit2 className="w-5 h-5 text-gray-600" />
+        </button>
+        <button
+          onClick={handleDelete}
+          className="p-2 hover:bg-gray-100 rounded transition-colors"
+          title="Delete Template"
+        >
+          <Trash2 className="w-5 h-5 text-gray-600" />
+        </button>
+      </div>
+    </div>
+  );
+});
+
+TemplateRow.displayName = 'TemplateRow';
 
 SavedTemplatesSection.displayName = 'SavedTemplatesSection';
 
@@ -601,6 +675,7 @@ TemplateNameInput.displayName = 'TemplateNameInput';
 const EmailAndSmsTemplateManagementScreenPage = () => {
   const {
     currentTemplate,
+    setCurrentTemplate,
     savedTemplates,
     isEditing,
     setIsEditing,
@@ -615,7 +690,11 @@ const EmailAndSmsTemplateManagementScreenPage = () => {
   } = useTemplateEditor();
 
   const handleNewTemplate = useCallback(() => {
-    setCurrentTemplate(DEFAULT_TEMPLATE);
+    setCurrentTemplate({
+      ...DEFAULT_TEMPLATE,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    });
     setIsEditing(true);
     setSelectedElement(null);
   }, [setCurrentTemplate, setIsEditing, setSelectedElement]);
@@ -634,18 +713,20 @@ const EmailAndSmsTemplateManagementScreenPage = () => {
   }, []);
 
   const handlePositionUpdate = useCallback((elementId, newPosition) => {
-    updateTemplate({
+    setCurrentTemplate(prev => ({
+      ...prev,
       content: {
-        ...currentTemplate.content,
-        texts: currentTemplate.content?.texts?.map(text => 
+        ...prev.content,
+        texts: prev.content?.texts?.map(text => 
           text.id === elementId ? { ...text, position: newPosition } : text
         ) || [],
-        images: currentTemplate.content?.images?.map(image => 
+        images: prev.content?.images?.map(image => 
           image.id === elementId ? { ...image, position: newPosition } : image
         ) || []
-      }
-    });
-  }, [currentTemplate.content, updateTemplate]);
+      },
+      updatedAt: new Date()
+    }));
+  }, []);
 
   const handleTemplateNameChange = useCallback((name) => {
     updateTemplate({ name });

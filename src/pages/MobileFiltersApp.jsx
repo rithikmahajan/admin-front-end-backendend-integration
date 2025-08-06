@@ -1,48 +1,62 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, memo } from 'react';
 import { Search, Plus, Trash2, Edit2, GripVertical, Palette, DollarSign } from 'lucide-react';
 
-const MobileFiltersApp = () => {
-  const [filters, setFilters] = useState([
-    {
-      id: 1,
-      key: 'Category',
-      values: [
-        { id: 101, name: 'Electronics', assigned: 'Technology', color: '#3B82F6' },
-        { id: 102, name: 'Clothing', assigned: 'Fashion', color: '#EF4444' }
-      ]
-    },
-    {
-      id: 2,
-      key: 'Brand',
-      values: [
-        { id: 201, name: 'Apple', assigned: 'Premium', color: '#10B981' },
-        { id: 202, name: 'Samsung', assigned: 'Popular', color: '#F59E0B' }
-      ]
-    }
-  ]);
+// Memoized constants to prevent recreation
+const INITIAL_FILTERS = [
+  {
+    id: 1,
+    key: 'Category',
+    values: [
+      { id: 101, name: 'Electronics', assigned: 'Technology', color: '#3B82F6' },
+      { id: 102, name: 'Clothing', assigned: 'Fashion', color: '#EF4444' }
+    ]
+  },
+  {
+    id: 2,
+    key: 'Brand',
+    values: [
+      { id: 201, name: 'Apple', assigned: 'Premium', color: '#10B981' },
+      { id: 202, name: 'Samsung', assigned: 'Popular', color: '#F59E0B' }
+    ]
+  }
+];
 
-  const [newFilter, setNewFilter] = useState({ key: '', type: 'text' });
-  const [newValue, setNewValue] = useState({ 
-    filterId: '', 
-    name: '', 
-    assigned: '', 
-    color: '#3B82F6',
-    priceMin: '',
-    priceMax: ''
-  });
+const INITIAL_NEW_FILTER = { key: '', type: 'text' };
+const INITIAL_NEW_VALUE = { 
+  filterId: '', 
+  name: '', 
+  assigned: '', 
+  color: '#3B82F6',
+  priceMin: '',
+  priceMax: ''
+};
+
+const MobileFiltersApp = () => {
+  const [filters, setFilters] = useState(INITIAL_FILTERS);
+  const [newFilter, setNewFilter] = useState(INITIAL_NEW_FILTER);
+  const [newValue, setNewValue] = useState(INITIAL_NEW_VALUE);
   const [searchTerm, setSearchTerm] = useState('');
   const [draggedItem, setDraggedItem] = useState(null);
 
-  // Filter data based on search term
+  // Memoized helper functions
+  const isValidRGB = useCallback((color) => {
+    return /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(color);
+  }, []);
+
+  // Filter data based on search term with optimized search
   const filteredData = useMemo(() => {
     if (!searchTerm) return filters;
-    return filters.filter(filter =>
-      filter.key.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      filter.values.some(value => 
-        value.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        value.assigned.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    );
+    
+    const lowerSearchTerm = searchTerm.toLowerCase();
+    return filters.filter(filter => {
+      const keyMatch = filter.key.toLowerCase().includes(lowerSearchTerm);
+      if (keyMatch) return true;
+      
+      return filter.values.some(value => 
+        value.name.toLowerCase().includes(lowerSearchTerm) ||
+        value.assigned.toLowerCase().includes(lowerSearchTerm)
+      );
+    });
   }, [filters, searchTerm]);
 
   // Drag and drop functions  
@@ -86,7 +100,7 @@ const MobileFiltersApp = () => {
     };
     
     setFilters(prev => [...prev, filter]);
-    setNewFilter({ key: '', type: 'text' });
+    setNewFilter(INITIAL_NEW_FILTER);
   }, [newFilter]);
 
   const deleteFilter = useCallback((filterId) => {
@@ -112,14 +126,7 @@ const MobileFiltersApp = () => {
         : filter
     ));
     
-    setNewValue({ 
-      filterId: '', 
-      name: '', 
-      assigned: '', 
-      color: '#3B82F6',
-      priceMin: '',
-      priceMax: ''
-    });
+    setNewValue(INITIAL_NEW_VALUE);
   }, [newValue]);
 
   const deleteFilterValue = useCallback((filterId, valueId) => {
@@ -130,11 +137,8 @@ const MobileFiltersApp = () => {
     ));
   }, []);
 
-  const isValidRGB = (color) => {
-    return /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(color);
-  };
-
-  const FilterCard = ({ filter }) => (
+  // Memoized FilterCard component to prevent unnecessary re-renders
+  const FilterCard = memo(({ filter }) => (
     <div 
       className="bg-white rounded-lg border border-gray-200 shadow-sm mb-4"
       draggable
@@ -185,7 +189,38 @@ const MobileFiltersApp = () => {
         ))}
       </div>
     </div>
-  );
+  ), [handleDragStart, handleDragOver, handleDrop, deleteFilter, deleteFilterValue]);
+
+  // Optimized input change handlers
+  const handleNewFilterKeyChange = useCallback((e) => {
+    setNewFilter(prev => ({ ...prev, key: e.target.value }));
+  }, []);
+
+  const handleNewValueChange = useCallback((field) => (e) => {
+    const value = e.target.value;
+    setNewValue(prev => ({ ...prev, [field]: value }));
+  }, []);
+
+  const handleColorChange = useCallback((e) => {
+    const value = e.target.value;
+    if (isValidRGB(value) || value === '') {
+      setNewValue(prev => ({ ...prev, color: value }));
+    }
+  }, [isValidRGB]);
+
+  const handleSearchChange = useCallback((e) => {
+    setSearchTerm(e.target.value);
+  }, []);
+
+  // Memoized active filters computation
+  const activeFilters = useMemo(() => {
+    return filters.flatMap(filter => 
+      filter.values.map(value => ({
+        ...value,
+        filterKey: filter.key
+      }))
+    );
+  }, [filters]);
 
   return (
     <div className="min-h-screen bg-gray-50 p-4">
@@ -203,7 +238,7 @@ const MobileFiltersApp = () => {
             type="text"
             placeholder="Search filters..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={handleSearchChange}
             className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>
@@ -219,7 +254,7 @@ const MobileFiltersApp = () => {
               type="text"
               placeholder="Filter key (e.g., Category, Brand)"
               value={newFilter.key}
-              onChange={(e) => setNewFilter(prev => ({ ...prev, key: e.target.value }))}
+              onChange={handleNewFilterKeyChange}
               className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
             <button
@@ -242,7 +277,7 @@ const MobileFiltersApp = () => {
             <div className="space-y-3">
               <select
                 value={newValue.filterId}
-                onChange={(e) => setNewValue(prev => ({ ...prev, filterId: e.target.value }))}
+                onChange={handleNewValueChange('filterId')}
                 className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="">Select filter</option>
@@ -255,7 +290,7 @@ const MobileFiltersApp = () => {
                 type="text"
                 placeholder="Value name"
                 value={newValue.name}
-                onChange={(e) => setNewValue(prev => ({ ...prev, name: e.target.value }))}
+                onChange={handleNewValueChange('name')}
                 className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
               
@@ -263,7 +298,7 @@ const MobileFiltersApp = () => {
                 type="text"
                 placeholder="Assigned value"
                 value={newValue.assigned}
-                onChange={(e) => setNewValue(prev => ({ ...prev, assigned: e.target.value }))}
+                onChange={handleNewValueChange('assigned')}
                 className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
               
@@ -272,18 +307,14 @@ const MobileFiltersApp = () => {
                 <input
                   type="color"
                   value={newValue.color}
-                  onChange={(e) => setNewValue(prev => ({ ...prev, color: e.target.value }))}
+                  onChange={handleNewValueChange('color')}
                   className="w-12 h-8 border border-gray-200 rounded cursor-pointer"
                 />
                 <input
                   type="text"
                   placeholder="#3B82F6"
                   value={newValue.color}
-                  onChange={(e) => {
-                    if (isValidRGB(e.target.value) || e.target.value === '') {
-                      setNewValue(prev => ({ ...prev, color: e.target.value }));
-                    }
-                  }}
+                  onChange={handleColorChange}
                   className="flex-1 px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm font-mono"
                 />
               </div>
@@ -294,7 +325,7 @@ const MobileFiltersApp = () => {
                   type="number"
                   placeholder="Min price"
                   value={newValue.priceMin}
-                  onChange={(e) => setNewValue(prev => ({ ...prev, priceMin: e.target.value }))}
+                  onChange={handleNewValueChange('priceMin')}
                   className="flex-1 px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
                 <span className="text-gray-400">-</span>
@@ -302,7 +333,7 @@ const MobileFiltersApp = () => {
                   type="number"
                   placeholder="Max price"
                   value={newValue.priceMax}
-                  onChange={(e) => setNewValue(prev => ({ ...prev, priceMax: e.target.value }))}
+                  onChange={handleNewValueChange('priceMax')}
                   className="flex-1 px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
@@ -337,18 +368,16 @@ const MobileFiltersApp = () => {
           <div className="bg-gray-100 rounded-lg p-4 min-h-32">
             <div className="text-sm text-gray-600 mb-2">Active Filters:</div>
             <div className="flex flex-wrap gap-2">
-              {filters.flatMap(filter => 
-                filter.values.map(value => (
-                  <span 
-                    key={value.id}
-                    className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-white border border-gray-200"
-                    style={{ borderLeftColor: value.color, borderLeftWidth: '3px' }}
-                  >
-                    {filter.key}: {value.name}
-                    {value.assigned && <span className="ml-1 text-gray-500">({value.assigned})</span>}
-                  </span>
-                ))
-              )}
+              {activeFilters.map(value => (
+                <span 
+                  key={value.id}
+                  className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-white border border-gray-200"
+                  style={{ borderLeftColor: value.color, borderLeftWidth: '3px' }}
+                >
+                  {value.filterKey}: {value.name}
+                  {value.assigned && <span className="ml-1 text-gray-500">({value.assigned})</span>}
+                </span>
+              ))}
             </div>
           </div>
         </div>
