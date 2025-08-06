@@ -40,6 +40,7 @@ import CollectLocationData from "./pages/collectlocationdata";
 import GetAutoInvoiceMailing from "./pages/get auto invoice mailing";
 import HuggingFaceApiOpenClose from "./pages/hugging face api open close";
 import Profile from "./pages/Profile";
+import EmailAndSmsTemplateManagementScreenPage from "./pages/emailandsmstempalatemanagementscreenpage";
 
 const App = () => {
   return (
@@ -113,6 +114,7 @@ const App = () => {
           <Route path="/settings/location-data" element={<CollectLocationData />} />
           <Route path="/settings/auto-invoice" element={<GetAutoInvoiceMailing />} />
           <Route path="/settings/hugging-face" element={<HuggingFaceApiOpenClose />} />
+          <Route path="/settings/email-sms-templates" element={<EmailAndSmsTemplateManagementScreenPage />} />
         </Route>
       </Routes>
     </>

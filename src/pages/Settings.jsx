@@ -3193,6 +3193,13 @@ const Settings = () => {
           hasRoute={true}
           routePath="/settings/hugging-face"
         />
+        <ToggleSwitch 
+          enabled={true}
+          label="Email and SMS Template Management"
+          settingKey="emailSmsTemplates"
+          hasRoute={true}
+          routePath="/settings/email-sms-templates"
+        />
       </div>
 
       {/* Discount Setting */}
