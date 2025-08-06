@@ -1,24 +1,54 @@
-import React, { useState, useCallback, useMemo } from 'react';
-import TwoFactorAuth from '../components/TwoFactorAuth';
-import DeleteConfirmationModal from '../components/DeleteConfirmationModal';
-import SizeChartModal from '../components/SizeChartModal';
-import SuccessModal from '../components/SuccessModal';
+import React, { useState, useCallback, useMemo } from "react";
+import {
+  Search,
+  Settings,
+  RotateCw,
+  User,
+  CheckCircle,
+  Wallet,
+  Truck,
+  Tags,
+  Package,
+  BarChart,
+  ShoppingCart,
+  PackageCheck,
+  BarChart2,
+  CreditCard,
+  Lock,
+  Unlock,
+  ShoppingCartIcon,
+  Box,
+  BoxIcon,
+  CreditCardIcon,
+  IndianRupee,
+  File,
+  X,
+  Trash,
+  Pen,
+  BotOffIcon,
+  Building,
+  Factory,
+} from "lucide-react";
+import TwoFactorAuth from "../components/TwoFactorAuth";
+import DeleteConfirmationModal from "../components/DeleteConfirmationModal";
+import SizeChartModal from "../components/SizeChartModal";
+import SuccessModal from "../components/SuccessModal";
 
 // Enhanced Database Dashboard based on Figma designs
 const DatabaseDashboard = () => {
-  const [activeTab, setActiveTab] = useState('users');
-  const [searchTerm, setSearchTerm] = useState('');
+  const [activeTab, setActiveTab] = useState("users");
+  const [searchTerm, setSearchTerm] = useState("");
   const [showPassword, setShowPassword] = useState({});
   const [showSensitiveData, setShowSensitiveData] = useState({});
   const [protectedFields, setProtectedFields] = useState({
     email: true,
     phone: true,
     address: true,
-    dateOfBirth: true
+    dateOfBirth: true,
   });
   const [documentPreview, setDocumentPreview] = useState(null);
   const [sizeChartPreview, setSizeChartPreview] = useState(null);
-  
+
   // Product editing states
   const [editingProduct, setEditingProduct] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -26,10 +56,10 @@ const DatabaseDashboard = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [productToDelete, setProductToDelete] = useState(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [successMessage, setSuccessMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState("");
   const [showSizeChartEditModal, setShowSizeChartEditModal] = useState(false);
   const [editingSizeCharts, setEditingSizeCharts] = useState([]);
-  
+
   // Mock products state (for manipulation)
   const [products, setProducts] = useState(() => [
     {
@@ -37,55 +67,98 @@ const DatabaseDashboard = () => {
       article: "Summer Midi Dress Collection",
       image: "/api/placeholder/120/140",
       variants: [
-        { color: "floral-red", size: "S", sku: "ZARA-DRS-FLR-S-001", stock: 25 },
-        { color: "floral-blue", size: "M", sku: "ZARA-DRS-FLB-M-002", stock: 18 },
-        { color: "solid-black", size: "L", sku: "ZARA-DRS-SLB-L-003", stock: 22 },
-        { color: "floral-pink", size: "L", sku: "ZARA-DRS-FLP-L-004", stock: 14 },
-        { color: "solid-white", size: "XL", sku: "ZARA-DRS-SLW-XL-005", stock: 8 }
+        {
+          color: "floral-red",
+          size: "S",
+          sku: "ZARA-DRS-FLR-S-001",
+          stock: 25,
+        },
+        {
+          color: "floral-blue",
+          size: "M",
+          sku: "ZARA-DRS-FLB-M-002",
+          stock: 18,
+        },
+        {
+          color: "solid-black",
+          size: "L",
+          sku: "ZARA-DRS-SLB-L-003",
+          stock: 22,
+        },
+        {
+          color: "floral-pink",
+          size: "L",
+          sku: "ZARA-DRS-FLP-L-004",
+          stock: 14,
+        },
+        {
+          color: "solid-white",
+          size: "XL",
+          sku: "ZARA-DRS-SLW-XL-005",
+          stock: 8,
+        },
       ],
       status: "returnable",
-      description: "Elegant midi dress perfect for summer occasions. Features a flowing silhouette with delicate floral prints and breathable fabric. Ideal for both casual outings and semi-formal events.",
-      manufacturingDetails: "Made in Spain with premium European fabrics. 100% Viscose with anti-wrinkle treatment. Eco-friendly dyeing process certified by OEKO-TEX Standard 100.",
-      shippingReturns: "Free shipping on orders above ₹799. 30-day return policy. Free exchange within 15 days. International shipping to Europe and North America.",
+      description:
+        "Elegant midi dress perfect for summer occasions. Features a flowing silhouette with delicate floral prints and breathable fabric. Ideal for both casual outings and semi-formal events.",
+      manufacturingDetails:
+        "Made in Spain with premium European fabrics. 100% Viscose with anti-wrinkle treatment. Eco-friendly dyeing process certified by OEKO-TEX Standard 100.",
+      shippingReturns:
+        "Free shipping on orders above ₹799. 30-day return policy. Free exchange within 15 days. International shipping to Europe and North America.",
       sizeCharts: [
-        { id: 1, type: "inch", url: "/charts/women_dress_zara_inch.jpg", name: "Women's Dress Size Chart (Inches)" },
-        { id: 2, type: "cm", url: "/charts/women_dress_zara_cm.jpg", name: "Women's Dress Size Chart (CM)" },
-        { id: 3, type: "measurement", url: "/charts/dress_measurement_guide.jpg", name: "How to Measure Guide" }
+        {
+          id: 1,
+          type: "inch",
+          url: "/charts/women_dress_zara_inch.jpg",
+          name: "Women's Dress Size Chart (Inches)",
+        },
+        {
+          id: 2,
+          type: "cm",
+          url: "/charts/women_dress_zara_cm.jpg",
+          name: "Women's Dress Size Chart (CM)",
+        },
+        {
+          id: 3,
+          type: "measurement",
+          url: "/charts/dress_measurement_guide.jpg",
+          name: "How to Measure Guide",
+        },
       ],
       category: "women/dress",
       brand: "Zara",
       launchDate: "2025-05-20",
       rating: 4.4,
-      reviewCount: 178
-    }
+      reviewCount: 178,
+    },
   ]);
-  
+
   // 2FA states for password viewing
   const [show2FAModal, setShow2FAModal] = useState(false);
   const [pending2FAUserId, setPending2FAUserId] = useState(null);
   const [show2FASuccess, setShow2FASuccess] = useState(false);
   const [authenticated2FAUsers, setAuthenticated2FAUsers] = useState(new Set());
-  
+
   // Filter states
   const [filters, setFilters] = useState({
     users: {
-      gender: 'all',
-      accountStatus: 'all',
-      pointRange: 'all',
-      dateRange: 'all'
+      gender: "all",
+      accountStatus: "all",
+      pointRange: "all",
+      dateRange: "all",
     },
     orders: {
-      deliveryStatus: 'all',
-      paymentStatus: 'all',
-      dateRange: 'all',
-      priceRange: 'all'
+      deliveryStatus: "all",
+      paymentStatus: "all",
+      dateRange: "all",
+      priceRange: "all",
     },
     products: {
-      status: 'all',
-      brand: 'all',
-      category: 'all',
-      stockLevel: 'all'
-    }
+      status: "all",
+      brand: "all",
+      category: "all",
+      stockLevel: "all",
+    },
   });
 
   // Mock data for User Data View (View 1) - Based on Figma Design
@@ -96,7 +169,7 @@ const DatabaseDashboard = () => {
       email: "rajesh.sharma@gmail.com",
       phone: {
         countryCode: "+91",
-        number: "9876543210"
+        number: "9876543210",
       },
       dateOfBirth: "15/06/1995", // DD/MM/YYYY format
       address: {
@@ -104,20 +177,20 @@ const DatabaseDashboard = () => {
         city: "Mumbai",
         state: "Maharashtra",
         pincode: "400001",
-        landmark: "Near Metro Station"
+        landmark: "Near Metro Station",
       },
       deleteAccount: false,
       username: "rajesh_kumar_95",
       appReviews: {
         rating: 4.5,
         reviewCount: 23,
-        lastReviewDate: "2025-07-20"
+        lastReviewDate: "2025-07-20",
       },
       gender: "male",
       password: "R@j3sh#Secure2025!",
       pointBalance: 1250,
       accountCreated: "2023-01-15",
-      lastLogin: "2025-08-05"
+      lastLogin: "2025-08-05",
     },
     {
       id: 2,
@@ -125,7 +198,7 @@ const DatabaseDashboard = () => {
       email: "priya.singh@hotmail.com",
       phone: {
         countryCode: "+91",
-        number: "8765432109"
+        number: "8765432109",
       },
       dateOfBirth: "22/03/1990",
       address: {
@@ -133,20 +206,20 @@ const DatabaseDashboard = () => {
         city: "Delhi",
         state: "Delhi",
         pincode: "110001",
-        landmark: "Opposite City Mall"
+        landmark: "Opposite City Mall",
       },
       deleteAccount: false,
       username: "priya_fashion_lover",
       appReviews: {
         rating: 4.8,
         reviewCount: 45,
-        lastReviewDate: "2025-08-01"
+        lastReviewDate: "2025-08-01",
       },
       gender: "female",
       password: "Pr!ya@Delhi2024#",
       pointBalance: 2750,
       accountCreated: "2022-11-08",
-      lastLogin: "2025-08-06"
+      lastLogin: "2025-08-06",
     },
     {
       id: 3,
@@ -154,7 +227,7 @@ const DatabaseDashboard = () => {
       email: "ali.khan@yahoo.com",
       phone: {
         countryCode: "+971",
-        number: "501234567"
+        number: "501234567",
       },
       dateOfBirth: "10/12/1988",
       address: {
@@ -162,20 +235,20 @@ const DatabaseDashboard = () => {
         city: "Dubai",
         state: "Dubai",
         pincode: "00000",
-        landmark: "Business Bay Metro"
+        landmark: "Business Bay Metro",
       },
       deleteAccount: true,
       username: "ali_dubai_shopper",
       appReviews: {
         rating: 3.9,
         reviewCount: 12,
-        lastReviewDate: "2025-06-15"
+        lastReviewDate: "2025-06-15",
       },
       gender: "male",
       password: "Ali@Dubai123!",
       pointBalance: 580,
       accountCreated: "2024-03-22",
-      lastLogin: "2025-07-10"
+      lastLogin: "2025-07-10",
     },
     {
       id: 4,
@@ -183,7 +256,7 @@ const DatabaseDashboard = () => {
       email: "sarah.williams@outlook.com",
       phone: {
         countryCode: "+1",
-        number: "5551234567"
+        number: "5551234567",
       },
       dateOfBirth: "28/09/1992",
       address: {
@@ -191,21 +264,21 @@ const DatabaseDashboard = () => {
         city: "New York",
         state: "New York",
         pincode: "10001",
-        landmark: "Times Square Area"
+        landmark: "Times Square Area",
       },
       deleteAccount: false,
       username: "sarah_ny_fashion",
       appReviews: {
         rating: 4.9,
         reviewCount: 67,
-        lastReviewDate: "2025-08-04"
+        lastReviewDate: "2025-08-04",
       },
       gender: "female",
       password: "S@rah#NYC2025!",
       pointBalance: 3420,
       accountCreated: "2023-05-14",
-      lastLogin: "2025-08-06"
-    }
+      lastLogin: "2025-08-06",
+    },
   ];
 
   // Mock data for Order Data View (View 2) - Based on Figma Design
@@ -217,14 +290,14 @@ const DatabaseDashboard = () => {
       name: "Rajesh Kumar Sharma",
       phone: {
         countryCode: "+91",
-        number: "9876543210"
+        number: "9876543210",
       },
       address: {
         street: "123, MG Road, Sector 15",
         city: "Mumbai",
         state: "Maharashtra",
         pincode: "400001",
-        landmark: "Near Metro Station"
+        landmark: "Near Metro Station",
       },
       sku: "men/tshirt/insomniac tshirt/2025/07/28/12345678",
       barcode: "12345678901234",
@@ -232,31 +305,31 @@ const DatabaseDashboard = () => {
         website: 899,
         app: 849,
         wholesale: 699,
-        marketplace: 920
+        marketplace: 920,
       },
       hsnCode: "61091000",
       documents: [
-        { 
-          type: "invoice", 
-          name: "invoice_001.pdf", 
+        {
+          type: "invoice",
+          name: "invoice_001.pdf",
           url: "/docs/invoice_001.pdf",
           sides: "single",
-          uploadDate: "2025-07-28"
+          uploadDate: "2025-07-28",
         },
-        { 
-          type: "receipt", 
-          name: "receipt_001_front.jpg", 
+        {
+          type: "receipt",
+          name: "receipt_001_front.jpg",
           url: "/docs/receipt_001_front.jpg",
           sides: "front",
-          uploadDate: "2025-07-28"
+          uploadDate: "2025-07-28",
         },
-        { 
-          type: "receipt", 
-          name: "receipt_001_back.jpg", 
+        {
+          type: "receipt",
+          name: "receipt_001_back.jpg",
           url: "/docs/receipt_001_back.jpg",
           sides: "back",
-          uploadDate: "2025-07-28"
-        }
+          uploadDate: "2025-07-28",
+        },
       ],
       paymentStatus: "completed",
       invoiceDetails: {
@@ -264,10 +337,10 @@ const DatabaseDashboard = () => {
         amount: 849,
         date: "2025-07-28",
         taxAmount: 127.35,
-        totalAmount: 976.35
+        totalAmount: 976.35,
       },
       orderDate: "2025-07-28",
-      deliveryStatus: "delivered"
+      deliveryStatus: "delivered",
     },
     {
       id: "ORD002",
@@ -276,14 +349,14 @@ const DatabaseDashboard = () => {
       name: "Priya Patel Singh",
       phone: {
         countryCode: "+91",
-        number: "8765432109"
+        number: "8765432109",
       },
       address: {
         street: "456, Park Avenue, Block B",
         city: "Delhi",
         state: "Delhi",
         pincode: "110001",
-        landmark: "Opposite City Mall"
+        landmark: "Opposite City Mall",
       },
       sku: "women/dress/summer floral dress/2025/08/01/87654321",
       barcode: "87654321098765",
@@ -291,24 +364,24 @@ const DatabaseDashboard = () => {
         website: 1299,
         app: 1199,
         wholesale: 899,
-        marketplace: 1350
+        marketplace: 1350,
       },
       hsnCode: "62043200",
       documents: [
-        { 
-          type: "invoice", 
-          name: "invoice_002.pdf", 
+        {
+          type: "invoice",
+          name: "invoice_002.pdf",
           url: "/docs/invoice_002.pdf",
           sides: "single",
-          uploadDate: "2025-08-01"
+          uploadDate: "2025-08-01",
         },
-        { 
-          type: "warranty", 
-          name: "warranty_card.jpg", 
+        {
+          type: "warranty",
+          name: "warranty_card.jpg",
           url: "/docs/warranty_card.jpg",
           sides: "single",
-          uploadDate: "2025-08-01"
-        }
+          uploadDate: "2025-08-01",
+        },
       ],
       paymentStatus: "pending",
       invoiceDetails: {
@@ -316,10 +389,10 @@ const DatabaseDashboard = () => {
         amount: 1199,
         date: "2025-08-01",
         taxAmount: 179.85,
-        totalAmount: 1378.85
+        totalAmount: 1378.85,
       },
       orderDate: "2025-08-01",
-      deliveryStatus: "processing"
+      deliveryStatus: "processing",
     },
     {
       id: "ORD003",
@@ -328,14 +401,14 @@ const DatabaseDashboard = () => {
       name: "Sarah Johnson Williams",
       phone: {
         countryCode: "+1",
-        number: "5551234567"
+        number: "5551234567",
       },
       address: {
         street: "321, Broadway Street, Apt 4B",
         city: "New York",
         state: "New York",
         pincode: "10001",
-        landmark: "Times Square Area"
+        landmark: "Times Square Area",
       },
       sku: "women/jeans/skinny blue jeans/2025/08/03/11223344",
       barcode: "11223344556677",
@@ -343,31 +416,31 @@ const DatabaseDashboard = () => {
         website: 2499,
         app: 2299,
         wholesale: 1799,
-        marketplace: 2650
+        marketplace: 2650,
       },
       hsnCode: "62034200",
       documents: [
-        { 
-          type: "invoice", 
-          name: "invoice_003.pdf", 
+        {
+          type: "invoice",
+          name: "invoice_003.pdf",
           url: "/docs/invoice_003.pdf",
           sides: "single",
-          uploadDate: "2025-08-03"
+          uploadDate: "2025-08-03",
         },
-        { 
-          type: "customs", 
-          name: "customs_declaration_front.jpg", 
+        {
+          type: "customs",
+          name: "customs_declaration_front.jpg",
           url: "/docs/customs_front.jpg",
           sides: "front",
-          uploadDate: "2025-08-03"
+          uploadDate: "2025-08-03",
         },
-        { 
-          type: "customs", 
-          name: "customs_declaration_back.jpg", 
+        {
+          type: "customs",
+          name: "customs_declaration_back.jpg",
           url: "/docs/customs_back.jpg",
           sides: "back",
-          uploadDate: "2025-08-03"
-        }
+          uploadDate: "2025-08-03",
+        },
       ],
       paymentStatus: "completed",
       invoiceDetails: {
@@ -375,128 +448,165 @@ const DatabaseDashboard = () => {
         amount: 2299,
         date: "2025-08-03",
         taxAmount: 344.85,
-        totalAmount: 2643.85
+        totalAmount: 2643.85,
       },
       orderDate: "2025-08-03",
-      deliveryStatus: "shipped"
-    }
+      deliveryStatus: "shipped",
+    },
   ];
 
   // Filter functions
   const filteredUsers = useMemo(() => {
-    return mockUsers.filter(user => {
+    return mockUsers.filter((user) => {
       // Search filter
-      const searchMatch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      const searchMatch =
+        user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
         user.username.toLowerCase().includes(searchTerm.toLowerCase());
-      
+
       // Gender filter
-      const genderMatch = filters.users.gender === 'all' || user.gender === filters.users.gender;
-      
+      const genderMatch =
+        filters.users.gender === "all" || user.gender === filters.users.gender;
+
       // Account status filter
-      const statusMatch = filters.users.accountStatus === 'all' || 
-        (filters.users.accountStatus === 'active' && !user.deleteAccount) ||
-        (filters.users.accountStatus === 'deleted' && user.deleteAccount);
-      
+      const statusMatch =
+        filters.users.accountStatus === "all" ||
+        (filters.users.accountStatus === "active" && !user.deleteAccount) ||
+        (filters.users.accountStatus === "deleted" && user.deleteAccount);
+
       // Point range filter
-      const pointMatch = filters.users.pointRange === 'all' ||
-        (filters.users.pointRange === 'low' && user.pointBalance < 500) ||
-        (filters.users.pointRange === 'medium' && user.pointBalance >= 500 && user.pointBalance < 1000) ||
-        (filters.users.pointRange === 'high' && user.pointBalance >= 1000);
-      
+      const pointMatch =
+        filters.users.pointRange === "all" ||
+        (filters.users.pointRange === "low" && user.pointBalance < 500) ||
+        (filters.users.pointRange === "medium" &&
+          user.pointBalance >= 500 &&
+          user.pointBalance < 1000) ||
+        (filters.users.pointRange === "high" && user.pointBalance >= 1000);
+
       return searchMatch && genderMatch && statusMatch && pointMatch;
     });
   }, [searchTerm, filters.users]);
 
   const filteredOrders = useMemo(() => {
-    return mockOrders.filter(order => {
+    return mockOrders.filter((order) => {
       // Search filter
-      const searchMatch = order.orderId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      const searchMatch =
+        order.orderId.toLowerCase().includes(searchTerm.toLowerCase()) ||
         order.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         order.sku.toLowerCase().includes(searchTerm.toLowerCase());
-      
+
       // Delivery status filter
-      const deliveryMatch = filters.orders.deliveryStatus === 'all' || 
+      const deliveryMatch =
+        filters.orders.deliveryStatus === "all" ||
         order.deliveryStatus === filters.orders.deliveryStatus;
-      
+
       // Payment status filter
-      const paymentMatch = filters.orders.paymentStatus === 'all' || 
+      const paymentMatch =
+        filters.orders.paymentStatus === "all" ||
         order.paymentStatus === filters.orders.paymentStatus;
-      
+
       return searchMatch && deliveryMatch && paymentMatch;
     });
   }, [searchTerm, filters.orders]);
 
   const filteredProducts = useMemo(() => {
-    return products.filter(product => {
+    return products.filter((product) => {
       // Search filter
-      const searchMatch = product.article.toLowerCase().includes(searchTerm.toLowerCase());
-      
+      const searchMatch = product.article
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase());
+
       // Status filter
-      const statusMatch = filters.products.status === 'all' || product.status === filters.products.status;
-      
+      const statusMatch =
+        filters.products.status === "all" ||
+        product.status === filters.products.status;
+
       // Brand filter
-      const brandMatch = filters.products.brand === 'all' || product.brand === filters.products.brand;
-      
+      const brandMatch =
+        filters.products.brand === "all" ||
+        product.brand === filters.products.brand;
+
       // Category filter
-      const categoryMatch = filters.products.category === 'all' || 
+      const categoryMatch =
+        filters.products.category === "all" ||
         product.category.includes(filters.products.category);
-      
+
       // Stock level filter
-      const totalStock = product.variants.reduce((sum, variant) => sum + variant.stock, 0);
-      const stockMatch = filters.products.stockLevel === 'all' ||
-        (filters.products.stockLevel === 'low' && totalStock < 50) ||
-        (filters.products.stockLevel === 'medium' && totalStock >= 50 && totalStock < 150) ||
-        (filters.products.stockLevel === 'high' && totalStock >= 150);
-      
-      return searchMatch && statusMatch && brandMatch && categoryMatch && stockMatch;
+      const totalStock = product.variants.reduce(
+        (sum, variant) => sum + variant.stock,
+        0
+      );
+      const stockMatch =
+        filters.products.stockLevel === "all" ||
+        (filters.products.stockLevel === "low" && totalStock < 50) ||
+        (filters.products.stockLevel === "medium" &&
+          totalStock >= 50 &&
+          totalStock < 150) ||
+        (filters.products.stockLevel === "high" && totalStock >= 150);
+
+      return (
+        searchMatch && statusMatch && brandMatch && categoryMatch && stockMatch
+      );
     });
   }, [searchTerm, filters.products, products]);
 
   // Toggle password visibility with 2FA authentication
-  const togglePassword = useCallback((userId) => {
-    // If user is already authenticated, just toggle password visibility
-    if (authenticated2FAUsers.has(userId)) {
-      setShowPassword(prev => ({
-        ...prev,
-        [userId]: !prev[userId]
-      }));
-    } else {
-      // Require 2FA authentication first
-      setPending2FAUserId(userId);
-      setShow2FAModal(true);
-    }
-  }, [authenticated2FAUsers]);
+  const togglePassword = useCallback(
+    (userId) => {
+      // If user is already authenticated, just toggle password visibility
+      if (authenticated2FAUsers.has(userId)) {
+        setShowPassword((prev) => ({
+          ...prev,
+          [userId]: !prev[userId],
+        }));
+      } else {
+        // Require 2FA authentication first
+        setPending2FAUserId(userId);
+        setShow2FAModal(true);
+      }
+    },
+    [authenticated2FAUsers]
+  );
 
   // Handle 2FA submission for password viewing
-  const handle2FASubmit = useCallback((data) => {
-    if (data && data.verificationCode.length === 4 && data.emailPassword && data.defaultPassword) {
-      setShow2FAModal(false);
-      setShow2FASuccess(true);
-      
-      // Add user to authenticated users
-      setAuthenticated2FAUsers(prev => new Set([...prev, pending2FAUserId]));
-      
-      // Show password after authentication
-      setTimeout(() => {
-        setShowPassword(prev => ({
-          ...prev,
-          [pending2FAUserId]: true
-        }));
-        setShow2FASuccess(false);
-        setPending2FAUserId(null);
-      }, 2000);
-      
-      console.log('2FA Authentication Data for password viewing:', {
-        userId: pending2FAUserId,
-        verificationCode: data.verificationCode,
-        emailPassword: data.emailPassword,
-        defaultPassword: data.defaultPassword
-      });
-    } else {
-      alert('Please fill in all fields');
-    }
-  }, [pending2FAUserId]);
+  const handle2FASubmit = useCallback(
+    (data) => {
+      if (
+        data &&
+        data.verificationCode.length === 4 &&
+        data.emailPassword &&
+        data.defaultPassword
+      ) {
+        setShow2FAModal(false);
+        setShow2FASuccess(true);
+
+        // Add user to authenticated users
+        setAuthenticated2FAUsers(
+          (prev) => new Set([...prev, pending2FAUserId])
+        );
+
+        // Show password after authentication
+        setTimeout(() => {
+          setShowPassword((prev) => ({
+            ...prev,
+            [pending2FAUserId]: true,
+          }));
+          setShow2FASuccess(false);
+          setPending2FAUserId(null);
+        }, 2000);
+
+        console.log("2FA Authentication Data for password viewing:", {
+          userId: pending2FAUserId,
+          verificationCode: data.verificationCode,
+          emailPassword: data.emailPassword,
+          defaultPassword: data.defaultPassword,
+        });
+      } else {
+        alert("Please fill in all fields");
+      }
+    },
+    [pending2FAUserId]
+  );
 
   // Handle 2FA cancellation
   const handleCancel2FA = useCallback(() => {
@@ -512,61 +622,75 @@ const DatabaseDashboard = () => {
 
   // Sensitive data protection functions
   const maskEmail = useCallback((email) => {
-    if (!email) return '';
-    const [username, domain] = email.split('@');
-    if (username.length <= 2) return '••••@' + domain;
-    return username.charAt(0) + '••••' + username.charAt(username.length - 1) + '@' + domain;
+    if (!email) return "";
+    const [username, domain] = email.split("@");
+    if (username.length <= 2) return "••••@" + domain;
+    return (
+      username.charAt(0) +
+      "••••" +
+      username.charAt(username.length - 1) +
+      "@" +
+      domain
+    );
   }, []);
 
   const maskPhone = useCallback((phone) => {
-    if (!phone) return '';
+    if (!phone) return "";
     const phoneStr = phone.toString();
-    if (phoneStr.length <= 4) return '••••';
-    return phoneStr.slice(0, 2) + '••••' + phoneStr.slice(-2);
+    if (phoneStr.length <= 4) return "••••";
+    return phoneStr.slice(0, 2) + "••••" + phoneStr.slice(-2);
   }, []);
 
   const maskAddress = useCallback((address) => {
     if (!address) return {};
     return {
-      street: address.street ? address.street.charAt(0) + '•••••' + address.street.slice(-2) : '',
-      city: address.city || '',
-      state: address.state || '',
-      pincode: address.pincode ? '••••••' : '',
-      landmark: address.landmark ? '•••••' : ''
+      street: address.street
+        ? address.street.charAt(0) + "•••••" + address.street.slice(-2)
+        : "",
+      city: address.city || "",
+      state: address.state || "",
+      pincode: address.pincode ? "••••••" : "",
+      landmark: address.landmark ? "•••••" : "",
     };
   }, []);
 
   const maskDateOfBirth = useCallback((date) => {
-    if (!date) return '';
-    const parts = date.split('/');
+    if (!date) return "";
+    const parts = date.split("/");
     if (parts.length === 3) {
-      return '••/' + parts[1] + '/' + parts[2]; // Hide day, show month/year
+      return "••/" + parts[1] + "/" + parts[2]; // Hide day, show month/year
     }
-    return '••/••/••••';
+    return "••/••/••••";
   }, []);
 
-  const toggleSensitiveData = useCallback((userId, field) => {
-    // Check if user is authenticated for 2FA (required for any sensitive data)
-    if (!authenticated2FAUsers.has(userId)) {
-      setPending2FAUserId(userId);
-      setShow2FAModal(true);
-      return;
-    }
+  const toggleSensitiveData = useCallback(
+    (userId, field) => {
+      // Check if user is authenticated for 2FA (required for any sensitive data)
+      if (!authenticated2FAUsers.has(userId)) {
+        setPending2FAUserId(userId);
+        setShow2FAModal(true);
+        return;
+      }
 
-    setShowSensitiveData(prev => ({
-      ...prev,
-      [`${userId}_${field}`]: !prev[`${userId}_${field}`]
-    }));
-  }, [authenticated2FAUsers]);
+      setShowSensitiveData((prev) => ({
+        ...prev,
+        [`${userId}_${field}`]: !prev[`${userId}_${field}`],
+      }));
+    },
+    [authenticated2FAUsers]
+  );
 
-  const isSensitiveDataVisible = useCallback((userId, field) => {
-    return showSensitiveData[`${userId}_${field}`] || false;
-  }, [showSensitiveData]);
+  const isSensitiveDataVisible = useCallback(
+    (userId, field) => {
+      return showSensitiveData[`${userId}_${field}`] || false;
+    },
+    [showSensitiveData]
+  );
 
   const toggleFieldProtection = useCallback((field) => {
-    setProtectedFields(prev => ({
+    setProtectedFields((prev) => ({
       ...prev,
-      [field]: !prev[field]
+      [field]: !prev[field],
     }));
   }, []);
 
@@ -582,25 +706,25 @@ const DatabaseDashboard = () => {
 
   // Filter handler
   const updateFilter = useCallback((tab, filterType, value) => {
-    setFilters(prev => ({
+    setFilters((prev) => ({
       ...prev,
       [tab]: {
         ...prev[tab],
-        [filterType]: value
-      }
+        [filterType]: value,
+      },
     }));
   }, []);
 
   // Reset filters
   const resetFilters = useCallback((tab) => {
-    setFilters(prev => ({
+    setFilters((prev) => ({
       ...prev,
       [tab]: {
         ...Object.keys(prev[tab]).reduce((acc, key) => {
-          acc[key] = 'all';
+          acc[key] = "all";
           return acc;
-        }, {})
-      }
+        }, {}),
+      },
     }));
   }, []);
 
@@ -614,7 +738,7 @@ const DatabaseDashboard = () => {
       shippingReturns: product.shippingReturns,
       status: product.status,
       brand: product.brand,
-      category: product.category
+      category: product.category,
     });
     setShowEditModal(true);
   }, []);
@@ -626,10 +750,10 @@ const DatabaseDashboard = () => {
 
   const confirmDeleteProduct = useCallback(() => {
     if (productToDelete) {
-      setProducts(prev => prev.filter(p => p.id !== productToDelete.id));
+      setProducts((prev) => prev.filter((p) => p.id !== productToDelete.id));
       setShowDeleteModal(false);
       setProductToDelete(null);
-      setSuccessMessage('Product deleted successfully!');
+      setSuccessMessage("Product deleted successfully!");
       setShowSuccessModal(true);
     }
   }, [productToDelete]);
@@ -641,15 +765,15 @@ const DatabaseDashboard = () => {
 
   const handleSaveProductChanges = useCallback(() => {
     if (editingProduct && editFormData) {
-      setProducts(prev => prev.map(p => 
-        p.id === editingProduct.id 
-          ? { ...p, ...editFormData }
-          : p
-      ));
+      setProducts((prev) =>
+        prev.map((p) =>
+          p.id === editingProduct.id ? { ...p, ...editFormData } : p
+        )
+      );
       setShowEditModal(false);
       setEditingProduct(null);
       setEditFormData({});
-      setSuccessMessage('Product updated successfully!');
+      setSuccessMessage("Product updated successfully!");
       setShowSuccessModal(true);
     }
   }, [editingProduct, editFormData]);
@@ -661,9 +785,9 @@ const DatabaseDashboard = () => {
   }, []);
 
   const handleEditFormChange = useCallback((field, value) => {
-    setEditFormData(prev => ({
+    setEditFormData((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
   }, []);
 
@@ -675,15 +799,17 @@ const DatabaseDashboard = () => {
 
   const handleSaveSizeCharts = useCallback(() => {
     if (editingProduct) {
-      setProducts(prev => prev.map(p => 
-        p.id === editingProduct.id 
-          ? { ...p, sizeCharts: editingSizeCharts }
-          : p
-      ));
+      setProducts((prev) =>
+        prev.map((p) =>
+          p.id === editingProduct.id
+            ? { ...p, sizeCharts: editingSizeCharts }
+            : p
+        )
+      );
       setShowSizeChartEditModal(false);
       setEditingProduct(null);
       setEditingSizeCharts([]);
-      setSuccessMessage('Size charts updated successfully!');
+      setSuccessMessage("Size charts updated successfully!");
       setShowSuccessModal(true);
     }
   }, [editingProduct, editingSizeCharts]);
@@ -699,547 +825,401 @@ const DatabaseDashboard = () => {
       id: Date.now(),
       type: "cm",
       url: "/api/placeholder/600/800",
-      name: "New Size Chart"
+      name: "New Size Chart",
     };
-    setEditingSizeCharts(prev => [...prev, newChart]);
+    setEditingSizeCharts((prev) => [...prev, newChart]);
   }, []);
 
   const handleRemoveSizeChart = useCallback((chartId) => {
-    setEditingSizeCharts(prev => prev.filter(chart => chart.id !== chartId));
+    setEditingSizeCharts((prev) =>
+      prev.filter((chart) => chart.id !== chartId)
+    );
   }, []);
 
   const handleSizeChartChange = useCallback((chartId, field, value) => {
-    setEditingSizeCharts(prev => prev.map(chart => 
-      chart.id === chartId 
-        ? { ...chart, [field]: value }
-        : chart
-    ));
+    setEditingSizeCharts((prev) =>
+      prev.map((chart) =>
+        chart.id === chartId ? { ...chart, [field]: value } : chart
+      )
+    );
   }, []);
 
+  const FilterSelect = ({ icon, label, value, onChange, options }) => (
+    <div>
+      <label className="text-sm font-medium text-gray-700 flex mb-1 items-center gap-1">
+        {icon}
+        {label}
+      </label>
+      <select
+        value={value}
+        onChange={onChange}
+        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+      >
+        {options.map((opt) => (
+          <option key={opt.value} value={opt.value}>
+            {opt.label}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+
+  const Badge = ({ color, icon, label }) => (
+    <span
+      className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-${color} text-gray-700`}
+    >
+      {icon}
+      {label}
+    </span>
+  );
+
   return (
-    <div style={{
-      padding: '20px 20px 20px 10px',
-      backgroundColor: '#f9fafb',
-      minHeight: '100vh'
-    }}>
-      <div style={{
-        maxWidth: 'none',
-        margin: '0',
-        width: '100%'
-      }}>
-        {/* Header */}
-        <div style={{
-          backgroundColor: 'white',
-          borderRadius: '8px',
-          border: '1px solid #e5e7eb',
-          marginBottom: '20px',
-          padding: '20px'
-        }}>
-          <h1 style={{
-            fontSize: '28px',
-            fontWeight: 'bold',
-            color: '#111827',
-            margin: '0 0 15px 0'
-          }}>
-            📊 Database Dashboard
+    <div className="px-5 py-5 pl-2.5 bg-gray-50 min-h-screen">
+      <div className="max-w-none m-0 w-full">
+        {/* Header Section */}
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm mb-6 p-6">
+          <h1 className="text-3xl font-bold text-gray-900 mb-6">
+            Database Dashboard
           </h1>
-          
+
           {/* Search Bar */}
-          <div style={{
-            display: 'flex',
-            gap: '15px',
-            alignItems: 'center'
-          }}>
-            <input
-              type="text"
-              placeholder="Search database..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              style={{
-                flex: 1,
-                padding: '10px 15px',
-                border: '1px solid #d1d5db',
-                borderRadius: '6px',
-                fontSize: '14px'
-              }}
-            />
-            <button style={{
-              padding: '10px 20px',
-              backgroundColor: '#3b82f6',
-              color: 'white',
-              border: 'none',
-              borderRadius: '6px',
-              cursor: 'pointer'
-            }}>
-              🔍 Search
+          <div className="flex flex-col sm:flex-row sm:items-center sm:gap-4 gap-3">
+            <div className="relative w-full sm:flex-1">
+              <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
+                <Search className="w-5 h-5" />
+              </span>
+              <input
+                type="text"
+                placeholder="Search database..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+              />
+            </div>
+
+            <button className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md transition focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center gap-2">
+              <Search className="w-5 h-5" />
+              Search
             </button>
           </div>
         </div>
 
         {/* Advanced Filters */}
-        <div style={{
-          backgroundColor: 'white',
-          borderRadius: '8px',
-          border: '1px solid #e5e7eb',
-          marginBottom: '20px',
-          padding: '20px'
-        }}>
-          <div style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: '15px'
-          }}>
-            <h3 style={{
-              fontSize: '16px',
-              fontWeight: '600',
-              color: '#374151',
-              margin: 0,
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px'
-            }}>
-              🔧 Advanced Filters
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm mb-6 p-6">
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+              <Settings className="w-5 h-5 text-gray-600" />
+              Advanced Filters
             </h3>
             <button
               onClick={() => resetFilters(activeTab)}
-              style={{
-                padding: '6px 12px',
-                backgroundColor: '#f3f4f6',
-                border: '1px solid #d1d5db',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                fontSize: '12px',
-                color: '#374151'
-              }}
+              className="flex items-center gap-2 px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-md text-sm font-medium transition"
             >
-              🔄 Reset Filters
+              <RotateCw className="w-4 h-4" />
+              Reset Filters
             </button>
           </div>
 
           {/* User Filters */}
-          {activeTab === 'users' && (
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-              gap: '15px'
-            }}>
-              <div>
-                <label style={{ fontSize: '12px', fontWeight: '500', color: '#374151', display: 'block', marginBottom: '5px' }}>
-                  👤 Gender
-                </label>
-                <select
-                  value={filters.users.gender}
-                  onChange={(e) => updateFilter('users', 'gender', e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '8px 12px',
-                    border: '1px solid #d1d5db',
-                    borderRadius: '4px',
-                    fontSize: '14px'
-                  }}
-                >
-                  <option value="all">All Genders</option>
-                  <option value="male">Male</option>
-                  <option value="female">Female</option>
-                </select>
-              </div>
-
-              <div>
-                <label style={{ fontSize: '12px', fontWeight: '500', color: '#374151', display: 'block', marginBottom: '5px' }}>
-                  ✅ Account Status
-                </label>
-                <select
-                  value={filters.users.accountStatus}
-                  onChange={(e) => updateFilter('users', 'accountStatus', e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '8px 12px',
-                    border: '1px solid #d1d5db',
-                    borderRadius: '4px',
-                    fontSize: '14px'
-                  }}
-                >
-                  <option value="all">All Status</option>
-                  <option value="active">Active</option>
-                  <option value="deleted">Deleted</option>
-                </select>
-              </div>
-
-              <div>
-                <label style={{ fontSize: '12px', fontWeight: '500', color: '#374151', display: 'block', marginBottom: '5px' }}>
-                  💰 Point Range
-                </label>
-                <select
-                  value={filters.users.pointRange}
-                  onChange={(e) => updateFilter('users', 'pointRange', e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '8px 12px',
-                    border: '1px solid #d1d5db',
-                    borderRadius: '4px',
-                    fontSize: '14px'
-                  }}
-                >
-                  <option value="all">All Points</option>
-                  <option value="low">Low (&lt; 500)</option>
-                  <option value="medium">Medium (500-999)</option>
-                  <option value="high">High (≥ 1000)</option>
-                </select>
-              </div>
+          {activeTab === "users" && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <FilterSelect
+                icon={<User className="w-4 h-4 text-gray-500" />}
+                label="Gender"
+                value={filters.users.gender}
+                onChange={(e) =>
+                  updateFilter("users", "gender", e.target.value)
+                }
+                options={[
+                  { value: "all", label: "All Genders" },
+                  { value: "male", label: "Male" },
+                  { value: "female", label: "Female" },
+                ]}
+              />
+              <FilterSelect
+                icon={<CheckCircle className="w-4 h-4 text-gray-500" />}
+                label="Account Status"
+                value={filters.users.accountStatus}
+                onChange={(e) =>
+                  updateFilter("users", "accountStatus", e.target.value)
+                }
+                options={[
+                  { value: "all", label: "All Status" },
+                  { value: "active", label: "Active" },
+                  { value: "deleted", label: "Deleted" },
+                ]}
+              />
+              <FilterSelect
+                icon={<Wallet className="w-4 h-4 text-gray-500" />}
+                label="Point Range"
+                value={filters.users.pointRange}
+                onChange={(e) =>
+                  updateFilter("users", "pointRange", e.target.value)
+                }
+                options={[
+                  { value: "all", label: "All Points" },
+                  { value: "low", label: "Low (< 500)" },
+                  { value: "medium", label: "Medium (500-999)" },
+                  { value: "high", label: "High (≥ 1000)" },
+                ]}
+              />
             </div>
           )}
 
           {/* Order Filters */}
-          {activeTab === 'orders' && (
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-              gap: '15px'
-            }}>
-              <div>
-                <label style={{ fontSize: '12px', fontWeight: '500', color: '#374151', display: 'block', marginBottom: '5px' }}>
-                  🚚 Delivery Status
-                </label>
-                <select
-                  value={filters.orders.deliveryStatus}
-                  onChange={(e) => updateFilter('orders', 'deliveryStatus', e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '8px 12px',
-                    border: '1px solid #d1d5db',
-                    borderRadius: '4px',
-                    fontSize: '14px'
-                  }}
-                >
-                  <option value="all">All Delivery Status</option>
-                  <option value="pending">Pending</option>
-                  <option value="shipped">Shipped</option>
-                  <option value="delivered">Delivered</option>
-                  <option value="cancelled">Cancelled</option>
-                </select>
-              </div>
-
-              <div>
-                <label style={{ fontSize: '12px', fontWeight: '500', color: '#374151', display: 'block', marginBottom: '5px' }}>
-                  💳 Payment Status
-                </label>
-                <select
-                  value={filters.orders.paymentStatus}
-                  onChange={(e) => updateFilter('orders', 'paymentStatus', e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '8px 12px',
-                    border: '1px solid #d1d5db',
-                    borderRadius: '4px',
-                    fontSize: '14px'
-                  }}
-                >
-                  <option value="all">All Payment Status</option>
-                  <option value="pending">Pending</option>
-                  <option value="completed">Completed</option>
-                  <option value="failed">Failed</option>
-                  <option value="refunded">Refunded</option>
-                </select>
-              </div>
+          {activeTab === "orders" && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <FilterSelect
+                icon={<Truck className="w-4 h-4 text-gray-500" />}
+                label="Delivery Status"
+                value={filters.orders.deliveryStatus}
+                onChange={(e) =>
+                  updateFilter("orders", "deliveryStatus", e.target.value)
+                }
+                options={[
+                  { value: "all", label: "All Delivery Status" },
+                  { value: "pending", label: "Pending" },
+                  { value: "shipped", label: "Shipped" },
+                  { value: "delivered", label: "Delivered" },
+                  { value: "cancelled", label: "Cancelled" },
+                ]}
+              />
+              <FilterSelect
+                icon={<Wallet className="w-4 h-4 text-gray-500" />}
+                label="Payment Status"
+                value={filters.orders.paymentStatus}
+                onChange={(e) =>
+                  updateFilter("orders", "paymentStatus", e.target.value)
+                }
+                options={[
+                  { value: "all", label: "All Payment Status" },
+                  { value: "pending", label: "Pending" },
+                  { value: "completed", label: "Completed" },
+                  { value: "failed", label: "Failed" },
+                  { value: "refunded", label: "Refunded" },
+                ]}
+              />
             </div>
           )}
 
           {/* Product Filters */}
-          {activeTab === 'products' && (
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-              gap: '15px'
-            }}>
-              <div>
-                <label style={{ fontSize: '12px', fontWeight: '500', color: '#374151', display: 'block', marginBottom: '5px' }}>
-                  🔄 Return Status
-                </label>
-                <select
-                  value={filters.products.status}
-                  onChange={(e) => updateFilter('products', 'status', e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '8px 12px',
-                    border: '1px solid #d1d5db',
-                    borderRadius: '4px',
-                    fontSize: '14px'
-                  }}
-                >
-                  <option value="all">All Status</option>
-                  <option value="returnable">Returnable</option>
-                  <option value="non-returnable">Non-Returnable</option>
-                </select>
-              </div>
-
-              <div>
-                <label style={{ fontSize: '12px', fontWeight: '500', color: '#374151', display: 'block', marginBottom: '5px' }}>
-                  🏷️ Brand
-                </label>
-                <select
-                  value={filters.products.brand}
-                  onChange={(e) => updateFilter('products', 'brand', e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '8px 12px',
-                    border: '1px solid #d1d5db',
-                    borderRadius: '4px',
-                    fontSize: '14px'
-                  }}
-                >
-                  <option value="all">All Brands</option>
-                  <option value="Adidas">Adidas</option>
-                  <option value="Nike">Nike</option>
-                  <option value="Zara">Zara</option>
-                </select>
-              </div>
-
-              <div>
-                <label style={{ fontSize: '12px', fontWeight: '500', color: '#374151', display: 'block', marginBottom: '5px' }}>
-                  📦 Category
-                </label>
-                <select
-                  value={filters.products.category}
-                  onChange={(e) => updateFilter('products', 'category', e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '8px 12px',
-                    border: '1px solid #d1d5db',
-                    borderRadius: '4px',
-                    fontSize: '14px'
-                  }}
-                >
-                  <option value="all">All Categories</option>
-                  <option value="tshirt">T-Shirts</option>
-                  <option value="shoes">Shoes</option>
-                  <option value="dress">Dresses</option>
-                </select>
-              </div>
-
-              <div>
-                <label style={{ fontSize: '12px', fontWeight: '500', color: '#374151', display: 'block', marginBottom: '5px' }}>
-                  📊 Stock Level
-                </label>
-                <select
-                  value={filters.products.stockLevel}
-                  onChange={(e) => updateFilter('products', 'stockLevel', e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '8px 12px',
-                    border: '1px solid #d1d5db',
-                    borderRadius: '4px',
-                    fontSize: '14px'
-                  }}
-                >
-                  <option value="all">All Stock Levels</option>
-                  <option value="low">Low (&lt; 50)</option>
-                  <option value="medium">Medium (50-149)</option>
-                  <option value="high">High (≥ 150)</option>
-                </select>
-              </div>
+          {activeTab === "products" && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <FilterSelect
+                icon={<RotateCw className="w-4 h-4 text-gray-500" />}
+                label="Return Status"
+                value={filters.products.status}
+                onChange={(e) =>
+                  updateFilter("products", "status", e.target.value)
+                }
+                options={[
+                  { value: "all", label: "All Status" },
+                  { value: "returnable", label: "Returnable" },
+                  { value: "non-returnable", label: "Non-Returnable" },
+                ]}
+              />
+              <FilterSelect
+                icon={<Tags className="w-4 h-4 text-gray-500" />}
+                label="Brand"
+                value={filters.products.brand}
+                onChange={(e) =>
+                  updateFilter("products", "brand", e.target.value)
+                }
+                options={[
+                  { value: "all", label: "All Brands" },
+                  { value: "Adidas", label: "Adidas" },
+                  { value: "Nike", label: "Nike" },
+                  { value: "Zara", label: "Zara" },
+                ]}
+              />
+              <FilterSelect
+                icon={<Package className="w-4 h-4 text-gray-500" />}
+                label="Category"
+                value={filters.products.category}
+                onChange={(e) =>
+                  updateFilter("products", "category", e.target.value)
+                }
+                options={[
+                  { value: "all", label: "All Categories" },
+                  { value: "tshirt", label: "T-Shirts" },
+                  { value: "shoes", label: "Shoes" },
+                  { value: "dress", label: "Dresses" },
+                ]}
+              />
+              <FilterSelect
+                icon={<BarChart className="w-4 h-4 text-gray-500" />}
+                label="Stock Level"
+                value={filters.products.stockLevel}
+                onChange={(e) =>
+                  updateFilter("products", "stockLevel", e.target.value)
+                }
+                options={[
+                  { value: "all", label: "All Stock Levels" },
+                  { value: "low", label: "Low (< 50)" },
+                  { value: "medium", label: "Medium (50-149)" },
+                  { value: "high", label: "High (≥ 150)" },
+                ]}
+              />
             </div>
           )}
         </div>
 
         {/* Tab Navigation */}
-        <div style={{
-          backgroundColor: 'white',
-          borderRadius: '8px',
-          border: '1px solid #e5e7eb',
-          marginBottom: '20px'
-        }}>
-          <div style={{
-            display: 'flex',
-            borderBottom: '1px solid #e5e7eb'
-          }}>
-            {[
-              { key: 'users', label: '👤 User Data', desc: 'Profile & Account Info' },
-              { key: 'orders', label: '🛒 Order Data', desc: 'Order History & Details' },
-              { key: 'products', label: '📦 Product Data', desc: 'Inventory & Variants' }
-            ].map(({ key, label, desc }) => (
-              <button
-                key={key}
-                onClick={() => setActiveTab(key)}
-                style={{
-                  flex: 1,
-                  padding: '20px',
-                  border: 'none',
-                  backgroundColor: activeTab === key ? '#eff6ff' : 'transparent',
-                  borderBottom: activeTab === key ? '3px solid #3b82f6' : '3px solid transparent',
-                  cursor: 'pointer',
-                  textAlign: 'center'
-                }}
-              >
-                <div style={{
-                  fontSize: '16px',
-                  fontWeight: '600',
-                  color: activeTab === key ? '#1e40af' : '#374151',
-                  marginBottom: '5px'
-                }}>
-                  {label}
-                </div>
-                <div style={{
-                  fontSize: '12px',
-                  color: '#6b7280'
-                }}>
-                  {desc}
-                </div>
-              </button>
-            ))}
+        <div className="bg-white rounded-xl border border-gray-200 mb-6 shadow overflow-hidden">
+  <div className="flex divide-x divide-gray-200">
+    {[
+      {
+        key: "users",
+        icon: <User className="w-4 h-4" />,
+        label: "User Data",
+        desc: "Profile & Account Info",
+      },
+      {
+        key: "orders",
+        icon: <ShoppingCart className="w-4 h-4" />,
+        label: "Order Data",
+        desc: "Order History & Details",
+      },
+      {
+        key: "products",
+        icon: <PackageCheck className="w-4 h-4" />,
+        label: "Product Data",
+        desc: "Inventory & Variants",
+      },
+    ].map(({ key, label, icon, desc }) => {
+      const isActive = activeTab === key;
+      return (
+        <button
+          key={key}
+          onClick={() => setActiveTab(key)}
+          className={`flex-1 px-6 py-5 text-left transition-all duration-200 outline-none group ${
+            isActive
+              ? "bg-blue-600 text-white shadow-inner"
+              : "bg-white hover:bg-gray-50"
+          }`}
+        >
+          <div
+            className={`flex items-center gap-2 mb-1 text-base font-semibold ${
+              isActive ? "text-white" : "text-gray-800"
+            }`}
+          >
+            {icon}
+            {label}
           </div>
-        </div>
+          <div
+            className={`text-sm ${
+              isActive ? "text-blue-100" : "text-gray-500"
+            }`}
+          >
+            {desc}
+          </div>
+        </button>
+      );
+    })}
+  </div>
+</div>
+
 
         {/* Content Area */}
-        <div style={{
-          backgroundColor: 'white',
-          borderRadius: '8px',
-          border: '1px solid #e5e7eb',
-          padding: '20px'
-        }}>
+        <div className="bg-white rounded-[8px] border border-gray-200 p-[20px]">
           {/* Filter Summary */}
-          <div style={{
-            backgroundColor: '#f8fafc',
-            border: '1px solid #e2e8f0',
-            borderRadius: '6px',
-            padding: '12px',
-            marginBottom: '20px',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            flexWrap: 'wrap',
-            gap: '10px'
-          }}>
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '15px',
-              fontSize: '14px',
-              color: '#374151'
-            }}>
-              <span style={{ fontWeight: '600' }}>
-                📊 Results: {
-                  activeTab === 'users' ? filteredUsers.length :
-                  activeTab === 'orders' ? filteredOrders.length :
-                  filteredProducts.length
-                } items
+          <div className="bg-slate-50 border border-gray-300 rounded-md p-4 mb-6 flex justify-between items-center flex-wrap gap-3 text-sm">
+            {/* Left Summary */}
+            <div className="flex items-center gap-4 text-gray-700 flex-wrap">
+              <span className="flex items-center gap-1 font-semibold">
+                <BarChart2 className="w-4 h-4 text-gray-600" />
+                Results:{" "}
+                {activeTab === "users"
+                  ? filteredUsers.length
+                  : activeTab === "orders"
+                  ? filteredOrders.length
+                  : filteredProducts.length}{" "}
+                items
               </span>
+
               {searchTerm && (
-                <span style={{
-                  padding: '4px 8px',
-                  backgroundColor: '#dbeafe',
-                  borderRadius: '4px',
-                  fontSize: '12px'
-                }}>
-                  🔍 Search: "{searchTerm}"
+                <span className="flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
+                  <Search className="w-4 h-4" />"{searchTerm}"
                 </span>
               )}
             </div>
-            <div style={{
-              display: 'flex',
-              gap: '8px',
-              flexWrap: 'wrap'
-            }}>
-              {/* Active filter indicators */}
-              {activeTab === 'users' && (
+
+            {/* Right Active Filters */}
+            <div className="flex gap-2 flex-wrap">
+              {activeTab === "users" && (
                 <>
-                  {filters.users.gender !== 'all' && (
-                    <span style={{
-                      padding: '4px 8px',
-                      backgroundColor: '#fef3c7',
-                      borderRadius: '4px',
-                      fontSize: '12px'
-                    }}>
-                      👤 {filters.users.gender}
-                    </span>
+                  {filters.users.gender !== "all" && (
+                    <Badge
+                      color="amber-100"
+                      icon={<User className="w-4 h-4" />}
+                      label={filters.users.gender}
+                    />
                   )}
-                  {filters.users.accountStatus !== 'all' && (
-                    <span style={{
-                      padding: '4px 8px',
-                      backgroundColor: '#d1fae5',
-                      borderRadius: '4px',
-                      fontSize: '12px'
-                    }}>
-                      ✅ {filters.users.accountStatus}
-                    </span>
+                  {filters.users.accountStatus !== "all" && (
+                    <Badge
+                      color="emerald-100"
+                      icon={<CheckCircle className="w-4 h-4" />}
+                      label={filters.users.accountStatus}
+                    />
                   )}
-                  {filters.users.pointRange !== 'all' && (
-                    <span style={{
-                      padding: '4px 8px',
-                      backgroundColor: '#f0fdf4',
-                      borderRadius: '4px',
-                      fontSize: '12px'
-                    }}>
-                      💰 {filters.users.pointRange} points
-                    </span>
+                  {filters.users.pointRange !== "all" && (
+                    <Badge
+                      color="green-50"
+                      icon={<Wallet className="w-4 h-4" />}
+                      label={`${filters.users.pointRange} points`}
+                    />
                   )}
                 </>
               )}
-              {activeTab === 'orders' && (
+
+              {activeTab === "orders" && (
                 <>
-                  {filters.orders.deliveryStatus !== 'all' && (
-                    <span style={{
-                      padding: '4px 8px',
-                      backgroundColor: '#dbeafe',
-                      borderRadius: '4px',
-                      fontSize: '12px'
-                    }}>
-                      🚚 {filters.orders.deliveryStatus}
-                    </span>
+                  {filters.orders.deliveryStatus !== "all" && (
+                    <Badge
+                      color="blue-100"
+                      icon={<Truck className="w-4 h-4" />}
+                      label={filters.orders.deliveryStatus}
+                    />
                   )}
-                  {filters.orders.paymentStatus !== 'all' && (
-                    <span style={{
-                      padding: '4px 8px',
-                      backgroundColor: '#fef3c7',
-                      borderRadius: '4px',
-                      fontSize: '12px'
-                    }}>
-                      💳 {filters.orders.paymentStatus}
-                    </span>
+                  {filters.orders.paymentStatus !== "all" && (
+                    <Badge
+                      color="amber-100"
+                      icon={<CreditCard className="w-4 h-4" />}
+                      label={filters.orders.paymentStatus}
+                    />
                   )}
                 </>
               )}
-              {activeTab === 'products' && (
+
+              {activeTab === "products" && (
                 <>
-                  {filters.products.status !== 'all' && (
-                    <span style={{
-                      padding: '4px 8px',
-                      backgroundColor: '#f0fdf4',
-                      borderRadius: '4px',
-                      fontSize: '12px'
-                    }}>
-                      🔄 {filters.products.status}
-                    </span>
+                  {filters.products.status !== "all" && (
+                    <Badge
+                      color="green-50"
+                      icon={<RotateCw className="w-4 h-4" />}
+                      label={filters.products.status}
+                    />
                   )}
-                  {filters.products.brand !== 'all' && (
-                    <span style={{
-                      padding: '4px 8px',
-                      backgroundColor: '#fef2f2',
-                      borderRadius: '4px',
-                      fontSize: '12px'
-                    }}>
-                      🏷️ {filters.products.brand}
-                    </span>
+                  {filters.products.brand !== "all" && (
+                    <Badge
+                      color="rose-50"
+                      icon={<Tags className="w-4 h-4" />}
+                      label={filters.products.brand}
+                    />
                   )}
-                  {filters.products.category !== 'all' && (
-                    <span style={{
-                      padding: '4px 8px',
-                      backgroundColor: '#ede9fe',
-                      borderRadius: '4px',
-                      fontSize: '12px'
-                    }}>
-                      📦 {filters.products.category}
-                    </span>
+                  {filters.products.category !== "all" && (
+                    <Badge
+                      color="indigo-100"
+                      icon={<Package className="w-4 h-4" />}
+                      label={filters.products.category}
+                    />
                   )}
-                  {filters.products.stockLevel !== 'all' && (
-                    <span style={{
-                      padding: '4px 8px',
-                      backgroundColor: '#ecfdf5',
-                      borderRadius: '4px',
-                      fontSize: '12px'
-                    }}>
-                      📊 {filters.products.stockLevel} stock
-                    </span>
+                  {filters.products.stockLevel !== "all" && (
+                    <Badge
+                      color="emerald-50"
+                      icon={<BarChart2 className="w-4 h-4" />}
+                      label={`${filters.products.stockLevel} stock`}
+                    />
                   )}
                 </>
               )}
@@ -1247,235 +1227,251 @@ const DatabaseDashboard = () => {
           </div>
 
           {/* User Data View */}
-          {activeTab === 'users' && (
+          {activeTab === "users" && (
             <div>
-              <h2 style={{
-                fontSize: '20px',
-                fontWeight: '600',
-                color: '#111827',
-                marginBottom: '20px'
-              }}>
-                👤 User Profile Data
+              <h2 className="text-[20px] font-semibold flex items-center gap-2 text-gray-900 mb-[20px]">
+                <User /> User Profile Data
               </h2>
 
               {/* Sensitive Data Protection Controls */}
-              <div style={{
-                backgroundColor: '#f8fafc',
-                border: '1px solid #e2e8f0',
-                borderRadius: '8px',
-                padding: '16px',
-                marginBottom: '20px'
-              }}>
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px',
-                  marginBottom: '12px'
-                }}>
-                  <span style={{
-                    fontSize: '16px',
-                    fontWeight: '600',
-                    color: '#1e293b'
-                  }}>
-                    🔒 Data Privacy Controls
+              <div className="bg-slate-50 border border-gray-200 rounded-lg p-4 mb-[20px]">
+                <div className="flex items-center gap-3 mb-3">
+                  <span className="text-[16px] font-semibold flex items-center gap-2 text-slate-800">
+                    <Lock /> Data Privacy Controls
                   </span>
-                  <span style={{
-                    fontSize: '12px',
-                    color: '#64748b',
-                    backgroundColor: '#e2e8f0',
-                    padding: '2px 8px',
-                    borderRadius: '12px'
-                  }}>
+                  <span className="text-[12px] text-slate-500 bg-gray-200 px-2 py-[2px] rounded-full">
                     Admin Only
                   </span>
                 </div>
-                
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                  gap: '12px'
-                }}>
-                  {Object.entries(protectedFields).map(([field, isProtected]) => (
-                    <label key={field} style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      cursor: 'pointer',
-                      padding: '8px',
-                      borderRadius: '6px',
-                      backgroundColor: isProtected ? '#fef2f2' : '#f0fdf4',
-                      border: isProtected ? '1px solid #fecaca' : '1px solid #bbf7d0'
-                    }}>
-                      <input
-                        type="checkbox"
-                        checked={isProtected}
-                        onChange={() => toggleFieldProtection(field)}
-                        style={{ margin: 0 }}
-                      />
-                      <span style={{
-                        fontSize: '13px',
-                        fontWeight: '500',
-                        color: isProtected ? '#dc2626' : '#16a34a'
-                      }}>
-                        {isProtected ? '🔒' : '🔓'} Protect {field.charAt(0).toUpperCase() + field.slice(1).replace(/([A-Z])/g, ' $1')}
-                      </span>
-                    </label>
-                  ))}
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {Object.entries(protectedFields).map(
+                    ([field, isProtected]) => {
+                      const formattedField =
+                        field.charAt(0).toUpperCase() +
+                        field.slice(1).replace(/([A-Z])/g, " $1");
+
+                      return (
+                        <label
+                          key={field}
+                          className={`flex items-center gap-2 cursor-pointer p-3 rounded-md border transition-colors ${
+                            isProtected
+                              ? "bg-green-50 border-green-200 text-green-600"
+                              : "bg-red-50 border-red-200 text-red-600"
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isProtected}
+                            onChange={() => toggleFieldProtection(field)}
+                            className="sr-only"
+                          />
+                          <span className="flex items-center gap-2 text-sm font-medium">
+                            {isProtected ? (
+                              <Lock className="w-4 h-4" />
+                            ) : (
+                              <Unlock className="w-4 h-4" />
+                            )}
+                            Protect {formattedField}
+                          </span>
+                        </label>
+                      );
+                    }
+                  )}
                 </div>
-                
-                <div style={{
-                  marginTop: '12px',
-                  padding: '8px',
-                  backgroundColor: '#fef3c7',
-                  border: '1px solid #f59e0b',
-                  borderRadius: '6px',
-                  fontSize: '12px',
-                  color: '#92400e'
-                }}>
-                  ⚠️ Protected fields require 2FA authentication to view. Users must verify identity before accessing sensitive data.
+
+                <div className="mt-3 p-2 bg-amber-100 border border-amber-500 rounded-md text-[12px] text-amber-900">
+                  ⚠️ Protected fields require 2FA authentication to view. Users
+                  must verify identity before accessing sensitive data.
                 </div>
               </div>
-              
-              <div style={{ overflowX: 'auto' }}>
-                <table style={{
-                  width: '100%',
-                  borderCollapse: 'collapse',
-                  fontSize: '14px'
-                }}>
+
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse text-[14px]">
                   <thead>
-                    <tr style={{ backgroundColor: '#f9fafb' }}>
-                      <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #e5e7eb', minWidth: '150px' }}>Name</th>
-                      <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #e5e7eb', minWidth: '200px' }}>Email</th>
-                      <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #e5e7eb', minWidth: '160px' }}>Phone</th>
-                      <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #e5e7eb', minWidth: '120px' }}>DOB</th>
-                      <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #e5e7eb', minWidth: '250px' }}>Address</th>
-                      <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #e5e7eb', minWidth: '150px' }}>Username</th>
-                      <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #e5e7eb', minWidth: '120px' }}>App Reviews</th>
-                      <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #e5e7eb', minWidth: '100px' }}>Gender</th>
-                      <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #e5e7eb', minWidth: '180px' }}>Password</th>
-                      <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #e5e7eb', minWidth: '120px' }}>Points</th>
-                      <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #e5e7eb', minWidth: '120px' }}>Account Status</th>
+                    <tr className="bg-gray-50">
+                      <th className="p-3 text-left border-b border-gray-200 min-w-[150px]">
+                        Name
+                      </th>
+                      <th className="p-3 text-left border-b border-gray-200 min-w-[200px]">
+                        Email
+                      </th>
+                      <th className="p-3 text-left border-b border-gray-200 min-w-[160px]">
+                        Phone
+                      </th>
+                      <th className="p-3 text-left border-b border-gray-200 min-w-[120px]">
+                        DOB
+                      </th>
+                      <th className="p-3 text-left border-b border-gray-200 min-w-[250px]">
+                        Address
+                      </th>
+                      <th className="p-3 text-left border-b border-gray-200 min-w-[150px]">
+                        Username
+                      </th>
+                      <th className="p-3 text-left border-b border-gray-200 min-w-[120px]">
+                        App Reviews
+                      </th>
+                      <th className="p-3 text-left border-b border-gray-200 min-w-[100px]">
+                        Gender
+                      </th>
+                      <th className="p-3 text-left border-b border-gray-200 min-w-[180px]">
+                        Password
+                      </th>
+                      <th className="p-3 text-left border-b border-gray-200 min-w-[120px]">
+                        Points
+                      </th>
+                      <th className="p-3 text-left border-b border-gray-200 min-w-[120px]">
+                        Account Status
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
                     {filteredUsers.map((user) => (
                       <tr key={user.id}>
-                        <td style={{ padding: '12px', borderBottom: '1px solid #f3f4f6' }}>
-                          <div style={{ fontWeight: '600' }}>{user.name}</div>
-                          <div style={{ fontSize: '11px', color: '#6b7280' }}>
+                        <td className="p-3 border-b border-gray-100">
+                          <div className="font-semibold">{user.name}</div>
+                          <div className="text-[11px] text-gray-500">
                             Created: {user.accountCreated}
                           </div>
                         </td>
-                        <td style={{ padding: '12px', borderBottom: '1px solid #f3f4f6' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <td className="p-3 border-b border-gray-100">
+                          <div className="flex items-center gap-2">
                             <span>
-                              {protectedFields.email && !isSensitiveDataVisible(user.id, 'email') 
-                                ? maskEmail(user.email) 
+                              {protectedFields.email &&
+                              !isSensitiveDataVisible(user.id, "email")
+                                ? maskEmail(user.email)
                                 : user.email}
                             </span>
                             {protectedFields.email && (
                               <button
-                                onClick={() => toggleSensitiveData(user.id, 'email')}
-                                style={{
-                                  padding: '4px 8px',
-                                  fontSize: '12px',
-                                  border: authenticated2FAUsers.has(user.id) ? '1px solid #10b981' : '1px solid #d1d5db',
-                                  borderRadius: '4px',
-                                  cursor: 'pointer',
-                                  backgroundColor: authenticated2FAUsers.has(user.id) ? '#f0fdf4' : 'white',
-                                  color: authenticated2FAUsers.has(user.id) ? '#065f46' : '#374151'
-                                }}
+                                onClick={() =>
+                                  toggleSensitiveData(user.id, "email")
+                                }
+                                className={`px-2 py-1 text-[12px] rounded border cursor-pointer ${
+                                  authenticated2FAUsers.has(user.id)
+                                    ? "border-green-500 bg-green-50 text-green-800"
+                                    : "border-gray-300 bg-white text-gray-700"
+                                }`}
                               >
-                                {isSensitiveDataVisible(user.id, 'email') ? '🙈' : authenticated2FAUsers.has(user.id) ? '✅👁️' : '🔐👁️'}
+                                {isSensitiveDataVisible(user.id, "email")
+                                  ? "🙈"
+                                  : authenticated2FAUsers.has(user.id)
+                                  ? "✅👁️"
+                                  : "🔐👁️"}
                               </button>
                             )}
                           </div>
-                          <div style={{ fontSize: '11px', color: '#6b7280' }}>
+                          <div className="text-[11px] text-gray-500">
                             Last Login: {user.lastLogin}
                           </div>
                         </td>
-                        <td style={{ padding: '12px', borderBottom: '1px solid #f3f4f6' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <select style={{
-                              padding: '2px 4px',
-                              border: '1px solid #d1d5db',
-                              borderRadius: '3px',
-                              fontSize: '12px',
-                              backgroundColor: '#f9fafb'
-                            }} value={user.phone.countryCode} disabled>
+                        <td className="p-3 border-b border-gray-100">
+                          <div className="flex items-center gap-2">
+                            <select
+                              className="px-1 py-[2px] border border-gray-300 rounded text-[12px] bg-gray-50"
+                              value={user.phone.countryCode}
+                              disabled
+                            >
                               <option value="+91">🇮🇳 +91</option>
                               <option value="+1">🇺🇸 +1</option>
                               <option value="+971">🇦🇪 +971</option>
                             </select>
                             <span>
-                              {protectedFields.phone && !isSensitiveDataVisible(user.id, 'phone') 
-                                ? maskPhone(user.phone.number) 
+                              {protectedFields.phone &&
+                              !isSensitiveDataVisible(user.id, "phone")
+                                ? maskPhone(user.phone.number)
                                 : user.phone.number}
                             </span>
                             {protectedFields.phone && (
                               <button
-                                onClick={() => toggleSensitiveData(user.id, 'phone')}
-                                style={{
-                                  padding: '4px 8px',
-                                  fontSize: '12px',
-                                  border: authenticated2FAUsers.has(user.id) ? '1px solid #10b981' : '1px solid #d1d5db',
-                                  borderRadius: '4px',
-                                  cursor: 'pointer',
-                                  backgroundColor: authenticated2FAUsers.has(user.id) ? '#f0fdf4' : 'white',
-                                  color: authenticated2FAUsers.has(user.id) ? '#065f46' : '#374151'
-                                }}
+                                onClick={() =>
+                                  toggleSensitiveData(user.id, "phone")
+                                }
+                                className={`px-2 py-1 text-[12px] rounded border cursor-pointer ${
+                                  authenticated2FAUsers.has(user.id)
+                                    ? "border-green-500 bg-green-50 text-green-800"
+                                    : "border-gray-300 bg-white text-gray-700"
+                                }`}
                               >
-                                {isSensitiveDataVisible(user.id, 'phone') ? '🙈' : authenticated2FAUsers.has(user.id) ? '✅👁️' : '🔐👁️'}
+                                {isSensitiveDataVisible(user.id, "phone")
+                                  ? "🙈"
+                                  : authenticated2FAUsers.has(user.id)
+                                  ? "✅👁️"
+                                  : "🔐👁️"}
                               </button>
                             )}
                           </div>
                         </td>
-                        <td style={{ padding: '12px', borderBottom: '1px solid #f3f4f6' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <td className="p-3 border-b border-gray-100">
+                          <div className="flex items-center gap-2">
                             <div>
-                              <div style={{ fontWeight: '500' }}>
-                                {protectedFields.dateOfBirth && !isSensitiveDataVisible(user.id, 'dateOfBirth') 
-                                  ? maskDateOfBirth(user.dateOfBirth) 
+                              <div className="font-medium">
+                                {protectedFields.dateOfBirth &&
+                                !isSensitiveDataVisible(user.id, "dateOfBirth")
+                                  ? maskDateOfBirth(user.dateOfBirth)
                                   : user.dateOfBirth}
                               </div>
-                              <div style={{ fontSize: '11px', color: '#6b7280' }}>DD/MM/YYYY</div>
+                              <div className="text-[11px] text-gray-500">
+                                DD/MM/YYYY
+                              </div>
                             </div>
                             {protectedFields.dateOfBirth && (
                               <button
-                                onClick={() => toggleSensitiveData(user.id, 'dateOfBirth')}
-                                style={{
-                                  padding: '4px 8px',
-                                  fontSize: '12px',
-                                  border: authenticated2FAUsers.has(user.id) ? '1px solid #10b981' : '1px solid #d1d5db',
-                                  borderRadius: '4px',
-                                  cursor: 'pointer',
-                                  backgroundColor: authenticated2FAUsers.has(user.id) ? '#f0fdf4' : 'white',
-                                  color: authenticated2FAUsers.has(user.id) ? '#065f46' : '#374151'
-                                }}
+                                onClick={() =>
+                                  toggleSensitiveData(user.id, "dateOfBirth")
+                                }
+                                className={`px-2 py-1 text-[12px] rounded border cursor-pointer ${
+                                  authenticated2FAUsers.has(user.id)
+                                    ? "border-green-500 bg-green-50 text-green-800"
+                                    : "border-gray-300 bg-white text-gray-700"
+                                }`}
                               >
-                                {isSensitiveDataVisible(user.id, 'dateOfBirth') ? '🙈' : authenticated2FAUsers.has(user.id) ? '✅👁️' : '🔐👁️'}
+                                {isSensitiveDataVisible(user.id, "dateOfBirth")
+                                  ? "🙈"
+                                  : authenticated2FAUsers.has(user.id)
+                                  ? "✅👁️"
+                                  : "🔐👁️"}
                               </button>
                             )}
                           </div>
                         </td>
-                        <td style={{ padding: '12px', borderBottom: '1px solid #f3f4f6' }}>
-                          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
-                            <div style={{ flex: 1 }}>
-                              {protectedFields.address && !isSensitiveDataVisible(user.id, 'address') ? (
+                        <td className="p-3 border-b border-gray-100">
+                          <div className="flex items-start gap-2">
+                            <div className="flex-1">
+                              {protectedFields.address &&
+                              !isSensitiveDataVisible(user.id, "address") ? (
                                 <div>
-                                  <div><strong>Street:</strong> {maskAddress(user.address).street}</div>
-                                  <div><strong>City:</strong> {maskAddress(user.address).city}, {maskAddress(user.address).state}</div>
-                                  <div><strong>PIN:</strong> {maskAddress(user.address).pincode}</div>
-                                  <div style={{ fontSize: '11px', color: '#6b7280' }}>
+                                  <div>
+                                    <strong>Street:</strong>{" "}
+                                    {maskAddress(user.address).street}
+                                  </div>
+                                  <div>
+                                    <strong>City:</strong>{" "}
+                                    {maskAddress(user.address).city},{" "}
+                                    {maskAddress(user.address).state}
+                                  </div>
+                                  <div>
+                                    <strong>PIN:</strong>{" "}
+                                    {maskAddress(user.address).pincode}
+                                  </div>
+                                  <div className="text-[11px] text-gray-500">
                                     📍 {maskAddress(user.address).landmark}
                                   </div>
                                 </div>
                               ) : (
                                 <div>
-                                  <div><strong>Street:</strong> {user.address.street}</div>
-                                  <div><strong>City:</strong> {user.address.city}, {user.address.state}</div>
-                                  <div><strong>PIN:</strong> {user.address.pincode}</div>
-                                  <div style={{ fontSize: '11px', color: '#6b7280' }}>
+                                  <div>
+                                    <strong>Street:</strong>{" "}
+                                    {user.address.street}
+                                  </div>
+                                  <div>
+                                    <strong>City:</strong> {user.address.city},{" "}
+                                    {user.address.state}
+                                  </div>
+                                  <div>
+                                    <strong>PIN:</strong> {user.address.pincode}
+                                  </div>
+                                  <div className="text-[11px] text-gray-500">
                                     📍 {user.address.landmark}
                                   </div>
                                 </div>
@@ -1483,104 +1479,102 @@ const DatabaseDashboard = () => {
                             </div>
                             {protectedFields.address && (
                               <button
-                                onClick={() => toggleSensitiveData(user.id, 'address')}
-                                style={{
-                                  padding: '4px 8px',
-                                  fontSize: '12px',
-                                  border: authenticated2FAUsers.has(user.id) ? '1px solid #10b981' : '1px solid #d1d5db',
-                                  borderRadius: '4px',
-                                  cursor: 'pointer',
-                                  backgroundColor: authenticated2FAUsers.has(user.id) ? '#f0fdf4' : 'white',
-                                  color: authenticated2FAUsers.has(user.id) ? '#065f46' : '#374151',
-                                  whiteSpace: 'nowrap'
-                                }}
+                                onClick={() =>
+                                  toggleSensitiveData(user.id, "address")
+                                }
+                                className={`px-2 py-1 text-[12px] rounded border cursor-pointer whitespace-nowrap ${
+                                  authenticated2FAUsers.has(user.id)
+                                    ? "border-green-500 bg-green-50 text-green-800"
+                                    : "border-gray-300 bg-white text-gray-700"
+                                }`}
                               >
-                                {isSensitiveDataVisible(user.id, 'address') ? '🙈' : authenticated2FAUsers.has(user.id) ? '✅👁️' : '🔐👁️'}
+                                {isSensitiveDataVisible(user.id, "address")
+                                  ? "🙈"
+                                  : authenticated2FAUsers.has(user.id)
+                                  ? "✅👁️"
+                                  : "🔐👁️"}
                               </button>
                             )}
                           </div>
                         </td>
-                        <td style={{ padding: '12px', borderBottom: '1px solid #f3f4f6' }}>
-                          <div style={{ fontWeight: '500' }}>@{user.username}</div>
+                        <td className="p-3 border-b border-gray-100 font-medium">
+                          @{user.username}
                         </td>
-                        <td style={{ padding: '12px', borderBottom: '1px solid #f3f4f6' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <td className="p-3 border-b border-gray-100">
+                          <div className="flex items-center gap-1">
                             <span>⭐</span>
-                            <span style={{ fontWeight: '600' }}>{user.appReviews.rating}</span>
-                            <span style={{ color: '#6b7280' }}>/5</span>
+                            <span className="font-semibold">
+                              {user.appReviews.rating}
+                            </span>
+                            <span className="text-gray-500">/5</span>
                           </div>
-                          <div style={{ fontSize: '11px', color: '#6b7280' }}>
+                          <div className="text-[11px] text-gray-500">
                             {user.appReviews.reviewCount} reviews
                           </div>
-                          <div style={{ fontSize: '10px', color: '#9ca3af' }}>
+                          <div className="text-[10px] text-gray-400">
                             Last: {user.appReviews.lastReviewDate}
                           </div>
                         </td>
-                        <td style={{ padding: '12px', borderBottom: '1px solid #f3f4f6' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            <span>{user.gender === 'male' ? '👨' : '👩'}</span>
-                            <span style={{ textTransform: 'capitalize' }}>{user.gender}</span>
+                        <td className="p-3 border-b border-gray-100">
+                          <div className="flex items-center gap-1">
+                            <span>{user.gender === "male" ? "👨" : "👩"}</span>
+                            <span className="capitalize">{user.gender}</span>
                           </div>
                         </td>
-                        <td style={{ padding: '12px', borderBottom: '1px solid #f3f4f6' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '5px' }}>
-                            <span style={{ fontFamily: 'monospace', fontSize: '12px' }}>
-                              {showPassword[user.id] ? user.password : '••••••••••••••••'}
+                        <td className="p-3 border-b border-gray-100">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="font-mono text-[12px]">
+                              {showPassword[user.id]
+                                ? user.password
+                                : "••••••••••••••••"}
                             </span>
                             <button
                               onClick={() => togglePassword(user.id)}
-                              style={{
-                                padding: '4px 8px',
-                                fontSize: '12px',
-                                border: authenticated2FAUsers.has(user.id) ? '1px solid #10b981' : '1px solid #d1d5db',
-                                borderRadius: '4px',
-                                cursor: 'pointer',
-                                backgroundColor: authenticated2FAUsers.has(user.id) ? '#f0fdf4' : 'white',
-                                color: authenticated2FAUsers.has(user.id) ? '#065f46' : '#374151'
-                              }}
+                              className={`px-2 py-1 text-[12px] rounded border cursor-pointer ${
+                                authenticated2FAUsers.has(user.id)
+                                  ? "border-green-500 bg-green-50 text-green-800"
+                                  : "border-gray-300 bg-white text-gray-700"
+                              }`}
                             >
-                              {showPassword[user.id] ? '🙈' : authenticated2FAUsers.has(user.id) ? '✅👁️' : '��👁️'}
+                              {showPassword[user.id]
+                                ? "🙈"
+                                : authenticated2FAUsers.has(user.id)
+                                ? "✅👁️"
+                                : "🔐👁️"}
                             </button>
                           </div>
-                          <div style={{ 
-                            fontSize: '10px', 
-                            color: authenticated2FAUsers.has(user.id) ? '#059669' : '#ef4444',
-                            backgroundColor: authenticated2FAUsers.has(user.id) ? '#f0fdf4' : '#fef2f2',
-                            padding: '3px 6px',
-                            borderRadius: '3px',
-                            border: authenticated2FAUsers.has(user.id) ? '1px solid #bbf7d0' : '1px solid #fecaca'
-                          }}>
-                            {authenticated2FAUsers.has(user.id) ? '✅ 2FA Authenticated' : '🔐 Requires 2FA Authentication'}
+                          <div
+                            className={`text-[10px] px-2 py-[3px] rounded border ${
+                              authenticated2FAUsers.has(user.id)
+                                ? "text-green-600 bg-green-50 border-green-200"
+                                : "text-red-500 bg-red-50 border-red-200"
+                            }`}
+                          >
+                            {authenticated2FAUsers.has(user.id)
+                              ? "✅ 2FA Authenticated"
+                              : "🔐 Requires 2FA Authentication"}
                           </div>
                         </td>
-                        <td style={{ padding: '12px', borderBottom: '1px solid #f3f4f6' }}>
-                          <div style={{ 
-                            display: 'flex', 
-                            alignItems: 'center', 
-                            gap: '6px',
-                            padding: '6px 10px',
-                            backgroundColor: '#f0fdf4',
-                            borderRadius: '6px',
-                            border: '1px solid #bbf7d0'
-                          }}>
+                        <td className="p-3 border-b border-gray-100">
+                          <div className="flex items-center gap-1 px-2 py-1 bg-green-50 border border-green-200 rounded-md">
                             <span>💰</span>
-                            <span style={{ fontWeight: '600', color: '#15803d' }}>
+                            <span className="font-semibold text-green-700">
                               {user.pointBalance}
                             </span>
-                            <span style={{ fontSize: '11px', color: '#6b7280' }}>pts</span>
+                            <span className="text-[11px] text-gray-500">
+                              pts
+                            </span>
                           </div>
                         </td>
-                        <td style={{ padding: '12px', borderBottom: '1px solid #f3f4f6' }}>
-                          <span style={{
-                            color: user.deleteAccount ? '#ef4444' : '#10b981',
-                            fontWeight: '600',
-                            padding: '4px 8px',
-                            borderRadius: '4px',
-                            backgroundColor: user.deleteAccount ? '#fef2f2' : '#f0fdf4',
-                            border: user.deleteAccount ? '1px solid #fecaca' : '1px solid #bbf7d0',
-                            fontSize: '12px'
-                          }}>
-                            {user.deleteAccount ? '❌ Deleted' : '✅ Active'}
+                        <td className="p-3 border-b border-gray-100">
+                          <span
+                            className={`px-2 py-1 text-[12px] font-semibold rounded border ${
+                              user.deleteAccount
+                                ? "text-red-500 bg-red-50 border-red-200"
+                                : "text-green-600 bg-green-50 border-green-200"
+                            }`}
+                          >
+                            {user.deleteAccount ? "❌ Deleted" : "✅ Active"}
                           </span>
                         </td>
                       </tr>
@@ -1592,257 +1586,161 @@ const DatabaseDashboard = () => {
           )}
 
           {/* Order Data View */}
-          {activeTab === 'orders' && (
+          {activeTab === "orders" && (
             <div>
-              <h2 style={{
-                fontSize: '20px',
-                fontWeight: '600',
-                color: '#111827',
-                marginBottom: '20px'
-              }}>
-                🛒 Order History Data
+              <h2 className="text-xl font-semibold text-gray-900 mb-5">
+                <ShoppingCartIcon className="h-6 w-6 inline-block mr-1" /> Order History Data
               </h2>
-              
+
               {filteredOrders.map((order) => (
-                <div key={order.id} style={{
-                  border: '1px solid #e5e7eb',
-                  borderRadius: '8px',
-                  padding: '20px',
-                  marginBottom: '20px',
-                  backgroundColor: '#fefefe'
-                }}>
+                <div
+                  key={order.id}
+                  className="border border-gray-200 rounded-lg p-5 mb-5 bg-white"
+                >
                   {/* Order Header */}
-                  <div style={{ 
-                    borderBottom: '1px solid #e5e7eb', 
-                    paddingBottom: '15px', 
-                    marginBottom: '20px',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center'
-                  }}>
+                  <div className="border-b border-gray-200 pb-4 mb-5 flex justify-between items-center">
                     <div>
-                      <h3 style={{ 
-                        color: '#3b82f6', 
-                        margin: '0 0 5px 0', 
-                        cursor: 'pointer',
-                        fontSize: '18px',
-                        fontWeight: '600'
-                      }}>
-                        🔗 Order ID: {order.orderId}
+                      <h3 className="text-blue-500 text-lg font-semibold mb-1 cursor-pointer">
+                        <Box className="inline-block mr-1" /> Order ID: {order.orderId}
                       </h3>
-                      <div style={{ fontSize: '12px', color: '#6b7280' }}>
-                        Order Date: {order.orderDate} | Status: 
-                        <span style={{
-                          marginLeft: '5px',
-                          padding: '2px 6px',
-                          borderRadius: '3px',
-                          backgroundColor: order.deliveryStatus === 'delivered' ? '#d1fae5' : 
-                                          order.deliveryStatus === 'shipped' ? '#dbeafe' : '#fef3c7',
-                          color: order.deliveryStatus === 'delivered' ? '#065f46' : 
-                                 order.deliveryStatus === 'shipped' ? '#1e3a8a' : '#92400e',
-                          fontSize: '11px',
-                          fontWeight: '500'
-                        }}>
+                      <div className="text-xs text-gray-500">
+                        Order Date: {order.orderDate} | Status:
+                        <span
+                          className={`ml-1 px-2 py-0.5 rounded text-xs font-medium ${
+                            order.deliveryStatus === "delivered"
+                              ? "bg-green-100 text-green-800"
+                              : order.deliveryStatus === "shipped"
+                              ? "bg-blue-100 text-blue-800"
+                              : "bg-yellow-100 text-yellow-800"
+                          }`}
+                        >
                           {order.deliveryStatus.toUpperCase()}
                         </span>
                       </div>
                     </div>
-                    <div style={{
-                      padding: '8px 12px',
-                      backgroundColor: order.paymentStatus === 'completed' ? '#d1fae5' : '#fef3c7',
-                      color: order.paymentStatus === 'completed' ? '#065f46' : '#92400e',
-                      borderRadius: '6px',
-                      fontSize: '12px',
-                      fontWeight: '600'
-                    }}>
-                      💳 {order.paymentStatus.toUpperCase()}
+                    <div
+                      className={`px-3 py-1 rounded text-xs font-semibold ${
+                        order.paymentStatus === "completed"
+                          ? "bg-green-100 text-green-800"
+                          : "bg-yellow-100 text-yellow-800"
+                      }`}
+                    >
+                      <CreditCard className="inline-block mr-1" /> {order.paymentStatus.toUpperCase()}
                     </div>
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '25px' }}>
+                  <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                     {/* Customer Information */}
-                    <div style={{
-                      backgroundColor: '#f8fafc',
-                      padding: '15px',
-                      borderRadius: '6px',
-                      border: '1px solid #e2e8f0'
-                    }}>
-                      <h4 style={{ margin: '0 0 12px 0', color: '#374151', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        � Customer Details
+                    <div className="bg-slate-50 p-4 rounded-md border border-slate-200">
+                      <h4 className="mb-3 text-slate-700 flex items-center gap-2">
+                        <User className="h-5 w-5 inline-block mr-1" /> Customer Details
                       </h4>
-                      <div style={{ marginBottom: '8px' }}>
+                      <div className="mb-2">
                         <strong>Name:</strong> {order.name}
                       </div>
-                      <div style={{ marginBottom: '8px' }}>
+                      <div className="mb-2">
                         <strong>Email:</strong> {order.email}
                       </div>
-                      <div style={{ marginBottom: '12px' }}>
-                        <strong>Phone:</strong> 
-                        <span style={{
-                          marginLeft: '8px',
-                          padding: '2px 6px',
-                          backgroundColor: '#e0e7ff',
-                          borderRadius: '3px',
-                          fontSize: '12px'
-                        }}>
+                      <div className="mb-3">
+                        <strong>Phone:</strong>
+                        <span className="ml-2 px-2 py-0.5 bg-indigo-100 rounded text-xs">
                           {order.phone.countryCode} {order.phone.number}
                         </span>
                       </div>
-                      <div style={{ 
-                        padding: '8px',
-                        backgroundColor: 'white',
-                        border: '1px solid #d1d5db',
-                        borderRadius: '4px',
-                        fontSize: '12px'
-                      }}>
-                        <div><strong>📍 Address:</strong></div>
+                      <div className="p-2 bg-white border border-gray-300 rounded text-xs">
+                        <div>
+                          <strong>📍 Address:</strong>
+                        </div>
                         <div>{order.address.street}</div>
-                        <div>{order.address.city}, {order.address.state}</div>
+                        <div>
+                          {order.address.city}, {order.address.state}
+                        </div>
                         <div>PIN: {order.address.pincode}</div>
-                        <div style={{ color: '#6b7280', fontStyle: 'italic' }}>
+                        <div className="text-gray-500 italic">
                           Landmark: {order.address.landmark}
                         </div>
                       </div>
                     </div>
-                    
+
                     {/* Product Details */}
-                    <div style={{
-                      backgroundColor: '#f0fdf4',
-                      padding: '15px',
-                      borderRadius: '6px',
-                      border: '1px solid #bbf7d0'
-                    }}>
-                      <h4 style={{ margin: '0 0 12px 0', color: '#374151', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        📦 Product Information
+                    <div className="bg-green-50 p-4 rounded-md border border-green-200">
+                      <h4 className="mb-3 text-slate-700 flex items-center gap-2">
+                        <Box className="h-5 w-5 inline-block mr-1" /> Product Information
                       </h4>
-                      <div style={{ marginBottom: '8px' }}>
+                      <div className="mb-2">
                         <strong>SKU Format:</strong>
-                        <div style={{
-                          fontFamily: 'monospace',
-                          fontSize: '11px',
-                          padding: '6px 8px',
-                          backgroundColor: 'white',
-                          border: '1px solid #d1d5db',
-                          borderRadius: '3px',
-                          marginTop: '4px',
-                          wordBreak: 'break-all'
-                        }}>
+                        <div className="font-mono text-xs p-2 bg-white border border-gray-300 rounded mt-1 break-all">
                           {order.sku}
                         </div>
                       </div>
-                      <div style={{ marginBottom: '8px' }}>
+                      <div className="mb-2">
                         <strong>Barcode (14-digit):</strong>
-                        <div style={{
-                          fontFamily: 'monospace',
-                          fontSize: '12px',
-                          fontWeight: '600',
-                          letterSpacing: '1px'
-                        }}>
+                        <div className="font-mono text-sm font-semibold tracking-wider">
                           {order.barcode}
                         </div>
                       </div>
                       <div>
                         <strong>HSN Code (8-digit):</strong>
-                        <span style={{
-                          marginLeft: '8px',
-                          fontFamily: 'monospace',
-                          fontWeight: '600',
-                          color: '#059669'
-                        }}>
+                        <span className="ml-2 font-mono font-semibold text-emerald-600">
                           {order.hsnCode}
                         </span>
                       </div>
                     </div>
-                    
+
                     {/* Pricing Information */}
-                    <div style={{
-                      backgroundColor: '#fefce8',
-                      padding: '15px',
-                      borderRadius: '6px',
-                      border: '1px solid #fde047'
-                    }}>
-                      <h4 style={{ margin: '0 0 12px 0', color: '#374151', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        💰 Multi-Platform Pricing
+                    <div className="bg-yellow-50 p-4 rounded-md border border-yellow-300">
+                      <h4 className="mb-3 text-slate-700 flex items-center gap-2">
+                        <IndianRupee className="h-5 w-5 inline-block mr-1" /> Multi-Platform Pricing
                       </h4>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                        <div style={{ fontSize: '12px' }}>
+                      <div className="grid grid-cols-2 gap-2 text-sm">
+                        <div>
                           <strong>Website:</strong> ₹{order.prices.website}
                         </div>
-                        <div style={{ fontSize: '12px' }}>
+                        <div>
                           <strong>App:</strong> ₹{order.prices.app}
                         </div>
-                        <div style={{ fontSize: '12px' }}>
+                        <div>
                           <strong>Wholesale:</strong> ₹{order.prices.wholesale}
                         </div>
-                        <div style={{ fontSize: '12px' }}>
-                          <strong>Marketplace:</strong> ₹{order.prices.marketplace}
+                        <div>
+                          <strong>Marketplace:</strong> ₹
+                          {order.prices.marketplace}
                         </div>
                       </div>
                     </div>
                   </div>
-                  
+
                   {/* Documents Section */}
-                  <div style={{ 
-                    marginTop: '20px', 
-                    padding: '15px', 
-                    backgroundColor: '#f1f5f9', 
-                    borderRadius: '6px',
-                    border: '1px solid #cbd5e1'
-                  }}>
-                    <h4 style={{ margin: '0 0 12px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      📄 Document Management
+                  <div className="mt-5 p-4 bg-slate-100 border border-slate-300 rounded-md">
+                    <h4 className="mb-3 flex items-center gap-2">
+                      <File className="h-5 w-5 inline-block mr-1" /> Document Management
                     </h4>
-                    <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '12px' }}>
+                    <div className="flex gap-2 flex-wrap mb-3">
                       {order.documents.map((doc, idx) => (
                         <button
                           key={idx}
                           onClick={() => openDocumentPreview(doc)}
-                          style={{
-                            padding: '8px 12px',
-                            backgroundColor: '#3b82f6',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '4px',
-                            cursor: 'pointer',
-                            fontSize: '12px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '6px'
-                          }}
+                          className="px-3 py-2 bg-blue-500 text-white text-xs rounded flex items-center gap-1 hover:bg-blue-600"
                         >
-                          📄 View {doc.type}
-                          {doc.sides !== 'single' && (
-                            <span style={{
-                              fontSize: '10px',
-                              backgroundColor: 'rgba(255,255,255,0.2)',
-                              padding: '2px 4px',
-                              borderRadius: '2px'
-                            }}>
+                          <File className="h-5 w-5 inline-block mr-1" /> View {doc.type}
+                          {doc.sides !== "single" && (
+                            <span className="text-[10px] bg-white/20 px-1 rounded">
                               {doc.sides}
                             </span>
                           )}
                         </button>
                       ))}
                     </div>
-                    
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+
+                    <div className="flex justify-between items-center">
                       <div>
-                        <button
-                          style={{
-                            padding: '8px 16px',
-                            backgroundColor: '#059669',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '4px',
-                            cursor: 'pointer',
-                            fontSize: '12px'
-                          }}
-                        >
-                          📋 Invoice Details - {order.invoiceDetails.invoiceNo}
+                        <button className="px-4 py-2 bg-emerald-600 text-white rounded text-xs">
+                          <File className="h-5 w-5 inline-block mr-1" /> Invoice Details - {order.invoiceDetails.invoiceNo}
                         </button>
                       </div>
-                      <div style={{ fontSize: '12px', color: '#6b7280' }}>
-                        Total Amount: ₹{order.invoiceDetails.totalAmount} (incl. ₹{order.invoiceDetails.taxAmount} tax)
+                      <div className="text-xs text-gray-500">
+                        Total Amount: ₹{order.invoiceDetails.totalAmount} (incl.
+                        ₹{order.invoiceDetails.taxAmount} tax)
                       </div>
                     </div>
                   </div>
@@ -1852,248 +1750,152 @@ const DatabaseDashboard = () => {
           )}
 
           {/* Product Data View */}
-          {activeTab === 'products' && (
+          {activeTab === "products" && (
             <div>
-              <h2 style={{
-                fontSize: '20px',
-                fontWeight: '600',
-                color: '#111827',
-                marginBottom: '20px'
-              }}>
-                📦 Product Inventory Data
+              <h2 className="text-[20px] font-semibold text-[#111827] mb-[20px]">
+                <Box className="h-5 w-5 inline-block mr-1" /> Product Inventory Data
               </h2>
-              
+
               {filteredProducts.map((product) => (
-                <div key={product.id} style={{
-                  border: '1px solid #e5e7eb',
-                  borderRadius: '8px',
-                  padding: '20px',
-                  marginBottom: '20px',
-                  backgroundColor: '#fefefe'
-                }}>
+                <div
+                  key={product.id}
+                  className="border border-[#e5e7eb] rounded-[8px] p-[20px] mb-[20px] bg-[#fefefe]"
+                >
                   {/* Product Header */}
-                  <div style={{ 
-                    borderBottom: '1px solid #e5e7eb', 
-                    paddingBottom: '15px', 
-                    marginBottom: '20px',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center'
-                  }}>
+                  <div className="border-b border-[#e5e7eb] pb-[15px] mb-[20px] flex justify-between items-center">
                     <div>
-                      <h3 style={{ margin: '0 0 5px 0', fontSize: '18px', fontWeight: '600' }}>
+                      <h3 className="m-0 text-[18px] font-semibold">
                         {product.article}
                       </h3>
-                      <div style={{ fontSize: '12px', color: '#6b7280' }}>
-                        Brand: {product.brand} | Category: {product.category} | Launched: {product.launchDate}
+                      <div className="text-[12px] text-[#6b7280]">
+                        Brand: {product.brand} | Category: {product.category} |
+                        Launched: {product.launchDate}
                       </div>
-                      <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '3px' }}>
+                      <div className="text-[12px] text-[#6b7280] mt-[3px]">
                         ⭐ {product.rating}/5 ({product.reviewCount} reviews)
                       </div>
                     </div>
-                    <div style={{
-                      padding: '8px 12px',
-                      backgroundColor: product.status === 'returnable' ? '#d1fae5' : '#fef2f2',
-                      color: product.status === 'returnable' ? '#065f46' : '#dc2626',
-                      borderRadius: '6px',
-                      fontSize: '12px',
-                      fontWeight: '600'
-                    }}>
-                      {product.status === 'returnable' ? '✅ RETURNABLE' : '❌ NON-RETURNABLE'}
+                    <div
+                      className={
+                        `px-[12px] py-[8px] rounded-[6px] text-[12px] font-semibold ` +
+                        (product.status === "returnable"
+                          ? "bg-[#d1fae5] text-[#065f46]"
+                          : "bg-[#fef2f2] text-[#dc2626]")
+                      }
+                    >
+                      {product.status === "returnable"
+                        ? <CheckCircle /> + "RETURNABLE"
+                        : <X /> + "NON-RETURNABLE"}
                     </div>
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: '250px 1fr', gap: '25px' }}>
+                  <div className="grid grid-cols-[250px_1fr] gap-[25px]">
                     {/* Product Image */}
                     <div>
-                      <div style={{
-                        width: '230px',
-                        height: '230px',
-                        backgroundColor: '#f3f4f6',
-                        borderRadius: '8px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '72px',
-                        border: '2px solid #e5e7eb'
-                      }}>
-                        {product.category.includes('tshirt') ? '👕' : 
-                         product.category.includes('shoes') ? '👟' : 
-                         product.category.includes('dress') ? '👗' : '📦'}
+                      <div className="w-[230px] h-[230px] bg-[#f3f4f6] rounded-[8px] flex items-center justify-center text-[72px] border-2 border-[#e5e7eb]">
+                        {product.category.includes("tshirt")
+                          ? "👕"
+                          : product.category.includes("shoes")
+                          ? "👟"
+                          : product.category.includes("dress")
+                          ? "👗"
+                          : "📦"}
                       </div>
-                      <div style={{ 
-                        marginTop: '10px', 
-                        textAlign: 'center', 
-                        fontSize: '11px', 
-                        color: '#6b7280' 
-                      }}>
+                      <div className="mt-[10px] text-center text-[11px] text-[#6b7280]">
                         Product Image Preview
                       </div>
                     </div>
-                    
+
                     {/* Product Details */}
                     <div>
                       {/* Color & Size Variants */}
-                      <div style={{ marginBottom: '20px' }}>
-                        <h4 style={{ margin: '0 0 10px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          🎨 Available Variants ({product.variants.length} total)
+                      <div className="mb-[20px]">
+                        <h4 className="m-0 mb-[10px] flex items-center gap-[8px]">
+                          🎨 Available Variants ({product.variants.length}{" "}
+                          total)
                         </h4>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '8px' }}>
+                        <div className="grid grid-cols-[repeat(auto-fill,minmax(140px,1fr))] gap-[8px]">
                           {product.variants.map((variant, idx) => (
-                            <div key={idx} style={{
-                              padding: '8px 10px',
-                              backgroundColor: '#f8fafc',
-                              border: '1px solid #e2e8f0',
-                              borderRadius: '6px',
-                              fontSize: '11px',
-                              textAlign: 'center'
-                            }}>
-                              <div style={{ fontWeight: '600', textTransform: 'capitalize' }}>
+                            <div
+                              key={idx}
+                              className="p-[8px] px-[10px] bg-[#f8fafc] border border-[#e2e8f0] rounded-[6px] text-[11px] text-center"
+                            >
+                              <div className="font-semibold capitalize">
                                 {variant.color} - {variant.size}
                               </div>
-                              <div style={{ color: '#6b7280', fontSize: '10px' }}>
+                              <div className="text-[#6b7280] text-[10px]">
                                 SKU: {variant.sku}
                               </div>
-                              <div style={{ 
-                                color: variant.stock > 20 ? '#059669' : variant.stock > 10 ? '#d97706' : '#dc2626',
-                                fontSize: '10px',
-                                fontWeight: '600'
-                              }}>
+                              <div
+                                className={
+                                  `text-[10px] font-semibold ` +
+                                  (variant.stock > 20
+                                    ? "text-[#059669]"
+                                    : variant.stock > 10
+                                    ? "text-[#d97706]"
+                                    : "text-[#dc2626]")
+                                }
+                              >
                                 Stock: {variant.stock}
                               </div>
                             </div>
                           ))}
                         </div>
                       </div>
-                      
+
                       {/* Product Information */}
-                      <div style={{ marginBottom: '15px' }}>
-                        <h4 style={{ margin: '0 0 8px 0', color: '#374151' }}>📝 Product Description</h4>
-                        <p style={{ 
-                          margin: '0', 
-                          color: '#6b7280', 
-                          fontSize: '13px', 
-                          lineHeight: '1.5',
-                          backgroundColor: '#f9fafb',
-                          padding: '10px',
-                          borderRadius: '4px',
-                          border: '1px solid #e5e7eb'
-                        }}>
+                      <div className="mb-[15px]">
+                        <h4 className="m-0 mb-[8px] text-[#374151]">
+                          <File /> Product Description
+                        </h4>
+                        <p className="m-0 text-[#6b7280] text-[13px] leading-[1.5] bg-[#f9fafb] p-[10px] rounded-[4px] border border-[#e5e7eb]">
                           {product.description}
                         </p>
                       </div>
-                      
-                      <div style={{ marginBottom: '15px' }}>
-                        <h4 style={{ margin: '0 0 8px 0', color: '#374151' }}>🏭 Manufacturing Details</h4>
-                        <p style={{ 
-                          margin: '0', 
-                          color: '#6b7280', 
-                          fontSize: '13px',
-                          backgroundColor: '#f0fdf4',
-                          padding: '10px',
-                          borderRadius: '4px',
-                          border: '1px solid #bbf7d0'
-                        }}>
+
+                      <div className="mb-[15px]">
+                        <h4 className="m-0 mb-[8px] text-[#374151]">
+                          <Factory /> Manufacturing Details
+                        </h4>
+                        <p className="m-0 text-[#6b7280] text-[13px] bg-[#f0fdf4] p-[10px] rounded-[4px] border border-[#bbf7d0]">
                           {product.manufacturingDetails}
                         </p>
                       </div>
-                      
-                      <div style={{ marginBottom: '20px' }}>
-                        <h4 style={{ margin: '0 0 8px 0', color: '#374151' }}>🚚 Shipping & Returns Policy</h4>
-                        <p style={{ 
-                          margin: '0', 
-                          color: '#6b7280', 
-                          fontSize: '13px',
-                          backgroundColor: '#fef3c7',
-                          padding: '10px',
-                          borderRadius: '4px',
-                          border: '1px solid #fde047'
-                        }}>
+
+                      <div className="mb-[20px]">
+                        <h4 className="m-0 mb-[8px] text-[#374151]">
+                          <Truck /> Shipping & Returns Policy
+                        </h4>
+                        <p className="m-0 text-[#6b7280] text-[13px] bg-[#fef3c7] p-[10px] rounded-[4px] border border-[#fde047]">
                           {product.shippingReturns}
                         </p>
                       </div>
-                      
+
                       {/* Action Buttons */}
-                      <div style={{ 
-                        display: 'flex', 
-                        gap: '10px', 
-                        flexWrap: 'wrap',
-                        padding: '15px',
-                        backgroundColor: '#f8fafc',
-                        borderRadius: '6px',
-                        border: '1px solid #e2e8f0'
-                      }}>
+                      <div className="flex gap-[10px] flex-wrap p-[15px] bg-[#f8fafc] rounded-[6px] border border-[#e2e8f0]">
                         <button
                           onClick={() => openSizeChart(product.sizeCharts)}
-                          style={{
-                            padding: '10px 16px',
-                            backgroundColor: '#8b5cf6',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '6px',
-                            cursor: 'pointer',
-                            fontSize: '12px',
-                            fontWeight: '600',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '6px'
-                          }}
+                          className="px-[16px] py-[10px] bg-[#8b5cf6] text-white border-none rounded-[6px] cursor-pointer text-[12px] font-semibold flex items-center gap-[6px]"
                         >
-                          📏 View Size Charts ({product.sizeCharts.length})
+                          <Pen className="h-4 w-4" /> View Size Charts ({product.sizeCharts.length})
                         </button>
-                        <button 
+                        <button
                           onClick={() => handleEditSizeCharts(product)}
-                          style={{
-                            padding: '10px 16px',
-                            backgroundColor: '#06b6d4',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '6px',
-                            cursor: 'pointer',
-                            fontSize: '12px',
-                            fontWeight: '600',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '6px'
-                          }}
+                          className="px-[16px] py-[10px] bg-[#06b6d4] text-white border-none rounded-[6px] cursor-pointer text-[12px] font-semibold flex items-center gap-[6px]"
                         >
-                          📏 Edit Size Charts
+                          <Pen className="h-4 w-4" /> Edit Size Charts
                         </button>
-                        <button 
+                        <button
                           onClick={() => handleEditProduct(product)}
-                          style={{
-                            padding: '10px 16px',
-                            backgroundColor: '#f59e0b',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '6px',
-                            cursor: 'pointer',
-                            fontSize: '12px',
-                            fontWeight: '600',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '6px'
-                          }}
+                          className="px-[16px] py-[10px] bg-[#f59e0b] text-white border-none rounded-[6px] cursor-pointer text-[12px] font-semibold flex items-center gap-[6px]"
                         >
-                          ✏️ Edit Product
+                          <Pen className="h-4 w-4" /> Edit Product
                         </button>
-                        <button 
+                        <button
                           onClick={() => handleDeleteProduct(product)}
-                          style={{
-                            padding: '10px 16px',
-                            backgroundColor: '#ef4444',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '6px',
-                            cursor: 'pointer',
-                            fontSize: '12px',
-                            fontWeight: '600',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '6px'
-                          }}
+                          className="px-[16px] py-[10px] bg-[#ef4444] text-white border-none rounded-[6px] cursor-pointer text-[12px] font-semibold flex items-center gap-[6px]"
                         >
-                          🗑️ Delete Product
+                          <Trash className="h-4 w-4" /> Delete Product
                         </button>
                       </div>
                     </div>
@@ -2107,113 +1909,50 @@ const DatabaseDashboard = () => {
 
       {/* Document Preview Modal */}
       {documentPreview && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0,0,0,0.7)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1000
-        }}>
-          <div style={{
-            backgroundColor: 'white',
-            borderRadius: '8px',
-            padding: '20px',
-            maxWidth: '700px',
-            width: '90%',
-            maxHeight: '80vh',
-            overflowY: 'auto'
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+        <div className="fixed inset-0 bg-[rgba(0,0,0,0.7)] flex items-center justify-center z-[1000]">
+          <div className="bg-white rounded-[8px] p-[20px] max-w-[700px] w-[90%] max-h-[80vh] overflow-y-auto">
+            {/* Header */}
+            <div className="flex justify-between items-center mb-[20px]">
               <div>
-                <h3 style={{ margin: 0 }}>📄 Document Preview</h3>
-                <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px' }}>
-                  {documentPreview.type.toUpperCase()} | {documentPreview.sides.toUpperCase()} | Uploaded: {documentPreview.uploadDate}
+                <h3 className="m-0">📄 Document Preview</h3>
+                <div className="text-[12px] text-[#6b7280] mt-[4px]">
+                  {documentPreview.type.toUpperCase()} |{" "}
+                  {documentPreview.sides.toUpperCase()} | Uploaded:{" "}
+                  {documentPreview.uploadDate}
                 </div>
               </div>
               <button
                 onClick={() => setDocumentPreview(null)}
-                style={{
-                  padding: '8px 12px',
-                  backgroundColor: '#ef4444',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                  fontWeight: '600'
-                }}
+                className="px-[12px] py-[8px] bg-[#ef4444] text-white border-none rounded-[4px] cursor-pointer font-semibold"
               >
                 ✕ Close
               </button>
             </div>
-            
-            <div style={{
-              border: '1px solid #e5e7eb',
-              borderRadius: '6px',
-              overflow: 'hidden',
-              marginBottom: '15px'
-            }}>
-              <div style={{
-                height: '450px',
-                backgroundColor: '#f3f4f6',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '72px'
-              }}>
+
+            {/* Document Box */}
+            <div className="border border-[#e5e7eb] rounded-[6px] overflow-hidden mb-[15px]">
+              <div className="h-[450px] bg-[#f3f4f6] flex items-center justify-center text-[72px]">
                 📄
               </div>
             </div>
-            
-            <div style={{
-              textAlign: 'center',
-              padding: '15px',
-              backgroundColor: '#f8fafc',
-              borderRadius: '6px',
-              border: '1px solid #e2e8f0'
-            }}>
-              <div style={{ fontWeight: '600', marginBottom: '8px' }}>
+
+            {/* Metadata & Actions */}
+            <div className="text-center p-[15px] bg-[#f8fafc] rounded-[6px] border border-[#e2e8f0]">
+              <div className="font-semibold mb-[8px]">
                 {documentPreview.name}
               </div>
-              <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '12px' }}>
-                Document Type: {documentPreview.type} | Sides: {documentPreview.sides}
+              <div className="text-[12px] text-[#6b7280] mb-[12px]">
+                Document Type: {documentPreview.type} | Sides:{" "}
+                {documentPreview.sides}
               </div>
-              <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' }}>
-                <button style={{
-                  padding: '6px 12px',
-                  backgroundColor: '#3b82f6',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                  fontSize: '12px'
-                }}>
+              <div className="flex gap-[10px] justify-center flex-wrap">
+                <button className="px-[12px] py-[6px] bg-[#3b82f6] text-white text-[12px] rounded-[4px] cursor-pointer">
                   📥 Download
                 </button>
-                <button style={{
-                  padding: '6px 12px',
-                  backgroundColor: '#059669',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                  fontSize: '12px'
-                }}>
+                <button className="px-[12px] py-[6px] bg-[#059669] text-white text-[12px] rounded-[4px] cursor-pointer">
                   🔍 Zoom
                 </button>
-                <button style={{
-                  padding: '6px 12px',
-                  backgroundColor: '#dc2626',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                  fontSize: '12px'
-                }}>
+                <button className="px-[12px] py-[6px] bg-[#dc2626] text-white text-[12px] rounded-[4px] cursor-pointer">
                   🗑️ Delete
                 </button>
               </div>
@@ -2224,103 +1963,62 @@ const DatabaseDashboard = () => {
 
       {/* Size Chart Modal */}
       {sizeChartPreview && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0,0,0,0.7)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1000
-        }}>
-          <div style={{
-            backgroundColor: 'white',
-            borderRadius: '8px',
-            padding: '20px',
-            maxWidth: '900px',
-            width: '90%',
-            maxHeight: '80vh',
-            overflowY: 'auto'
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-              <h3 style={{ margin: 0 }}>📏 Size Charts Reference</h3>
+        <div className="fixed inset-0 bg-[rgba(0,0,0,0.7)] flex items-center justify-center z-[1000]">
+          <div className="bg-white rounded-[8px] p-[20px] max-w-[900px] w-[90%] max-h-[80vh] overflow-y-auto">
+            {/* Header */}
+            <div className="flex justify-between items-center mb-[20px]">
+              <h3 className="m-0">📏 Size Charts Reference</h3>
               <button
                 onClick={() => setSizeChartPreview(null)}
-                style={{
-                  padding: '8px 12px',
-                  backgroundColor: '#ef4444',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                  fontWeight: '600'
-                }}
+                className="px-[12px] py-[8px] bg-[#ef4444] text-white border-none rounded-[4px] cursor-pointer font-semibold"
               >
                 ✕ Close
               </button>
             </div>
-            <div style={{ 
-              display: 'grid', 
-              gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', 
-              gap: '20px' 
-            }}>
+
+            {/* Grid of charts */}
+            <div className="grid gap-[20px] grid-cols-[repeat(auto-fit,minmax(250px,1fr))]">
               {sizeChartPreview.map((chart, idx) => (
-                <div key={idx} style={{
-                  border: '1px solid #e5e7eb',
-                  borderRadius: '6px',
-                  overflow: 'hidden'
-                }}>
-                  <div style={{
-                    padding: '12px',
-                    backgroundColor: '#f8fafc',
-                    borderBottom: '1px solid #e5e7eb',
-                    textAlign: 'center'
-                  }}>
-                    <h4 style={{ margin: 0, textTransform: 'uppercase', fontWeight: '600' }}>
+                <div
+                  key={idx}
+                  className="border border-[#e5e7eb] rounded-[6px] overflow-hidden"
+                >
+                  {/* Chart header */}
+                  <div className="p-[12px] bg-[#f8fafc] border-b border-[#e5e7eb] text-center">
+                    <h4 className="m-0 uppercase font-semibold">
                       {chart.type} SIZE CHART
                     </h4>
-                    <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '4px' }}>
+                    <div className="text-[11px] text-[#6b7280] mt-[4px]">
                       {chart.name}
                     </div>
                   </div>
-                  <div style={{
-                    height: '320px',
-                    backgroundColor: '#f3f4f6',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '64px'
-                  }}>
+
+                  {/* Placeholder area */}
+                  <div className="h-[320px] bg-[#f3f4f6] flex items-center justify-center text-[64px]">
                     📏
                   </div>
-                  <div style={{
-                    padding: '10px',
-                    backgroundColor: '#fafafa',
-                    textAlign: 'center',
-                    fontSize: '11px',
-                    color: '#6b7280'
-                  }}>
+
+                  {/* Footer */}
+                  <div className="p-[10px] bg-[#fafafa] text-center text-[11px] text-[#6b7280]">
                     Click to view full size chart
                   </div>
                 </div>
               ))}
             </div>
-            <div style={{
-              marginTop: '20px',
-              padding: '15px',
-              backgroundColor: '#f0fdf4',
-              borderRadius: '6px',
-              border: '1px solid #bbf7d0'
-            }}>
-              <div style={{ fontSize: '12px', color: '#374151' }}>
+
+            {/* Notes Section */}
+            <div className="mt-[20px] p-[15px] bg-[#f0fdf4] rounded-[6px] border border-[#bbf7d0]">
+              <div className="text-[12px] text-[#374151]">
                 <strong>📋 Size Chart Notes:</strong>
-                <ul style={{ margin: '8px 0', paddingLeft: '20px' }}>
+                <ul className="mt-[8px] pl-[20px] list-disc">
                   <li>All measurements are in inches/cm as specified</li>
-                  <li>Size charts may vary between different product variants</li>
-                  <li>Refer to individual product specifications for exact measurements</li>
+                  <li>
+                    Size charts may vary between different product variants
+                  </li>
+                  <li>
+                    Refer to individual product specifications for exact
+                    measurements
+                  </li>
                   <li>Contact customer support for size recommendations</li>
                 </ul>
               </div>
@@ -2341,60 +2039,22 @@ const DatabaseDashboard = () => {
 
       {/* 2FA Success Modal */}
       {show2FASuccess && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0,0,0,0.7)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1000
-        }}>
-          <div style={{
-            backgroundColor: 'white',
-            borderRadius: '8px',
-            padding: '30px',
-            maxWidth: '400px',
-            width: '90%',
-            textAlign: 'center',
-            boxShadow: '0px 4px 120px 2px rgba(0,0,0,0.25)'
-          }}>
-            <div style={{
-              fontSize: '48px',
-              marginBottom: '20px'
-            }}>
-              ✅
-            </div>
-            <h3 style={{
-              fontSize: '24px',
-              fontWeight: '600',
-              color: '#059669',
-              margin: '0 0 15px 0'
-            }}>
+        <div className="fixed inset-0 bg-[rgba(0,0,0,0.7)] flex items-center justify-center z-[1000]">
+          <div className="bg-white rounded-[8px] p-[30px] max-w-[400px] w-[90%] text-center shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)]">
+            <div className="text-[48px] mb-[20px]">✅</div>
+
+            <h3 className="text-[24px] font-semibold text-[#059669] mb-[15px] m-0">
               Authentication Successful!
             </h3>
-            <p style={{
-              fontSize: '14px',
-              color: '#6b7280',
-              margin: '0 0 25px 0'
-            }}>
-              You can now view sensitive password information. This session will remain authenticated for your convenience.
+
+            <p className="text-[14px] text-[#6b7280] mb-[25px] m-0">
+              You can now view sensitive password information. This session will
+              remain authenticated for your convenience.
             </p>
+
             <button
               onClick={handleClose2FASuccess}
-              style={{
-                padding: '10px 20px',
-                backgroundColor: '#059669',
-                color: 'white',
-                border: 'none',
-                borderRadius: '6px',
-                cursor: 'pointer',
-                fontSize: '14px',
-                fontWeight: '600'
-              }}
+              className="px-[20px] py-[10px] bg-[#059669] text-white border-none rounded-[6px] cursor-pointer text-[14px] font-semibold"
             >
               Continue
             </button>
@@ -2404,200 +2064,139 @@ const DatabaseDashboard = () => {
 
       {/* Product Edit Modal */}
       {showEditModal && editingProduct && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0,0,0,0.7)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1000
-        }}>
-          <div style={{
-            backgroundColor: 'white',
-            borderRadius: '8px',
-            padding: '30px',
-            maxWidth: '800px',
-            width: '90%',
-            maxHeight: '80vh',
-            overflowY: 'auto',
-            boxShadow: '0px 4px 120px 2px rgba(0,0,0,0.25)'
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px' }}>
-              <h3 style={{ margin: 0, fontSize: '24px', fontWeight: '600' }}>✏️ Edit Product</h3>
+        <div className="fixed inset-0 bg-[rgba(0,0,0,0.7)] flex items-center justify-center z-[1000]">
+          <div className="bg-white rounded-[8px] p-[30px] max-w-[800px] w-[90%] max-h-[80vh] overflow-y-auto shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)]">
+            {/* Header */}
+            <div className="flex justify-between items-center mb-[25px]">
+              <h3 className="m-0 text-[24px] font-semibold">✏️ Edit Product</h3>
               <button
                 onClick={handleCancelEdit}
-                style={{
-                  padding: '8px 12px',
-                  backgroundColor: '#ef4444',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                  fontWeight: '600'
-                }}
+                className="px-[12px] py-[8px] bg-[#ef4444] text-white border-none rounded-[4px] cursor-pointer font-semibold"
               >
                 ✕ Cancel
               </button>
             </div>
-            
-            <div style={{ display: 'grid', gap: '20px' }}>
+
+            {/* Form Body */}
+            <div className="grid gap-[20px]">
+              {/* Article */}
               <div>
-                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>Article Name</label>
+                <label className="block mb-[8px] font-semibold">
+                  Article Name
+                </label>
                 <input
                   type="text"
-                  value={editFormData.article || ''}
-                  onChange={(e) => handleEditFormChange('article', e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '12px',
-                    border: '1px solid #d1d5db',
-                    borderRadius: '6px',
-                    fontSize: '14px'
-                  }}
+                  value={editFormData.article || ""}
+                  onChange={(e) =>
+                    handleEditFormChange("article", e.target.value)
+                  }
+                  className="w-full p-[12px] border border-[#d1d5db] rounded-[6px] text-[14px]"
                 />
               </div>
-              
+
+              {/* Description */}
               <div>
-                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>Description</label>
+                <label className="block mb-[8px] font-semibold">
+                  Description
+                </label>
                 <textarea
-                  value={editFormData.description || ''}
-                  onChange={(e) => handleEditFormChange('description', e.target.value)}
+                  value={editFormData.description || ""}
+                  onChange={(e) =>
+                    handleEditFormChange("description", e.target.value)
+                  }
                   rows="4"
-                  style={{
-                    width: '100%',
-                    padding: '12px',
-                    border: '1px solid #d1d5db',
-                    borderRadius: '6px',
-                    fontSize: '14px',
-                    resize: 'vertical'
-                  }}
+                  className="w-full p-[12px] border border-[#d1d5db] rounded-[6px] text-[14px] resize-y"
                 />
               </div>
-              
+
+              {/* Manufacturing Details */}
               <div>
-                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>Manufacturing Details</label>
+                <label className="block mb-[8px] font-semibold">
+                  Manufacturing Details
+                </label>
                 <textarea
-                  value={editFormData.manufacturingDetails || ''}
-                  onChange={(e) => handleEditFormChange('manufacturingDetails', e.target.value)}
+                  value={editFormData.manufacturingDetails || ""}
+                  onChange={(e) =>
+                    handleEditFormChange("manufacturingDetails", e.target.value)
+                  }
                   rows="3"
-                  style={{
-                    width: '100%',
-                    padding: '12px',
-                    border: '1px solid #d1d5db',
-                    borderRadius: '6px',
-                    fontSize: '14px',
-                    resize: 'vertical'
-                  }}
+                  className="w-full p-[12px] border border-[#d1d5db] rounded-[6px] text-[14px] resize-y"
                 />
               </div>
-              
+
+              {/* Shipping & Returns */}
               <div>
-                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>Shipping & Returns</label>
+                <label className="block mb-[8px] font-semibold">
+                  Shipping & Returns
+                </label>
                 <textarea
-                  value={editFormData.shippingReturns || ''}
-                  onChange={(e) => handleEditFormChange('shippingReturns', e.target.value)}
+                  value={editFormData.shippingReturns || ""}
+                  onChange={(e) =>
+                    handleEditFormChange("shippingReturns", e.target.value)
+                  }
                   rows="3"
-                  style={{
-                    width: '100%',
-                    padding: '12px',
-                    border: '1px solid #d1d5db',
-                    borderRadius: '6px',
-                    fontSize: '14px',
-                    resize: 'vertical'
-                  }}
+                  className="w-full p-[12px] border border-[#d1d5db] rounded-[6px] text-[14px] resize-y"
                 />
               </div>
-              
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px' }}>
+
+              {/* Grid Section */}
+              <div className="grid gap-[15px] grid-cols-[repeat(auto-fit,minmax(200px,1fr))]">
+                {/* Status */}
                 <div>
-                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>Status</label>
+                  <label className="block mb-[8px] font-semibold">Status</label>
                   <select
-                    value={editFormData.status || ''}
-                    onChange={(e) => handleEditFormChange('status', e.target.value)}
-                    style={{
-                      width: '100%',
-                      padding: '12px',
-                      border: '1px solid #d1d5db',
-                      borderRadius: '6px',
-                      fontSize: '14px'
-                    }}
+                    value={editFormData.status || ""}
+                    onChange={(e) =>
+                      handleEditFormChange("status", e.target.value)
+                    }
+                    className="w-full p-[12px] border border-[#d1d5db] rounded-[6px] text-[14px]"
                   >
                     <option value="returnable">Returnable</option>
                     <option value="non-returnable">Non-Returnable</option>
                   </select>
                 </div>
-                
+
+                {/* Brand */}
                 <div>
-                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>Brand</label>
+                  <label className="block mb-[8px] font-semibold">Brand</label>
                   <input
                     type="text"
-                    value={editFormData.brand || ''}
-                    onChange={(e) => handleEditFormChange('brand', e.target.value)}
-                    style={{
-                      width: '100%',
-                      padding: '12px',
-                      border: '1px solid #d1d5db',
-                      borderRadius: '6px',
-                      fontSize: '14px'
-                    }}
+                    value={editFormData.brand || ""}
+                    onChange={(e) =>
+                      handleEditFormChange("brand", e.target.value)
+                    }
+                    className="w-full p-[12px] border border-[#d1d5db] rounded-[6px] text-[14px]"
                   />
                 </div>
-                
+
+                {/* Category */}
                 <div>
-                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>Category</label>
+                  <label className="block mb-[8px] font-semibold">
+                    Category
+                  </label>
                   <input
                     type="text"
-                    value={editFormData.category || ''}
-                    onChange={(e) => handleEditFormChange('category', e.target.value)}
-                    style={{
-                      width: '100%',
-                      padding: '12px',
-                      border: '1px solid #d1d5db',
-                      borderRadius: '6px',
-                      fontSize: '14px'
-                    }}
+                    value={editFormData.category || ""}
+                    onChange={(e) =>
+                      handleEditFormChange("category", e.target.value)
+                    }
+                    className="w-full p-[12px] border border-[#d1d5db] rounded-[6px] text-[14px]"
                   />
                 </div>
               </div>
             </div>
-            
-            <div style={{ 
-              display: 'flex', 
-              gap: '12px', 
-              marginTop: '30px',
-              justifyContent: 'flex-end'
-            }}>
+
+            {/* Action Buttons */}
+            <div className="flex gap-[12px] mt-[30px] justify-end">
               <button
                 onClick={handleCancelEdit}
-                style={{
-                  padding: '12px 24px',
-                  backgroundColor: '#6b7280',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '6px',
-                  cursor: 'pointer',
-                  fontSize: '14px',
-                  fontWeight: '600'
-                }}
+                className="px-[24px] py-[12px] bg-[#6b7280] text-white border-none rounded-[6px] cursor-pointer text-[14px] font-semibold"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSaveProductChanges}
-                style={{
-                  padding: '12px 24px',
-                  backgroundColor: '#059669',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '6px',
-                  cursor: 'pointer',
-                  fontSize: '14px',
-                  fontWeight: '600'
-                }}
+                className="px-[24px] py-[12px] bg-[#059669] text-white border-none rounded-[6px] cursor-pointer text-[14px] font-semibold"
               >
                 💾 Save Changes
               </button>
@@ -2608,183 +2207,116 @@ const DatabaseDashboard = () => {
 
       {/* Size Chart Edit Modal */}
       {showSizeChartEditModal && editingProduct && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0,0,0,0.7)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1000
-        }}>
-          <div style={{
-            backgroundColor: 'white',
-            borderRadius: '8px',
-            padding: '30px',
-            maxWidth: '900px',
-            width: '90%',
-            maxHeight: '80vh',
-            overflowY: 'auto',
-            boxShadow: '0px 4px 120px 2px rgba(0,0,0,0.25)'
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px' }}>
-              <h3 style={{ margin: 0, fontSize: '24px', fontWeight: '600' }}>📏 Edit Size Charts</h3>
+        <div className="fixed inset-0 bg-[rgba(0,0,0,0.7)] flex items-center justify-center z-[1000]">
+          <div className="bg-white rounded-[8px] p-[30px] max-w-[900px] w-[90%] max-h-[80vh] overflow-y-auto shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)]">
+            <div className="flex justify-between items-center mb-[25px]">
+              <h3 className="m-0 text-[24px] font-semibold">
+                📏 Edit Size Charts
+              </h3>
               <button
                 onClick={handleCancelSizeChartEdit}
-                style={{
-                  padding: '8px 12px',
-                  backgroundColor: '#ef4444',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                  fontWeight: '600'
-                }}
+                className="px-[12px] py-[8px] bg-[#ef4444] text-white border-none rounded-[4px] cursor-pointer font-semibold"
               >
                 ✕ Cancel
               </button>
             </div>
-            
-            <div style={{ marginBottom: '20px' }}>
+
+            <div className="mb-[20px]">
               <button
                 onClick={handleAddSizeChart}
-                style={{
-                  padding: '10px 16px',
-                  backgroundColor: '#3b82f6',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '6px',
-                  cursor: 'pointer',
-                  fontSize: '12px',
-                  fontWeight: '600',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px'
-                }}
+                className="px-[16px] py-[10px] bg-[#3b82f6] text-white border-none rounded-[6px] cursor-pointer text-[12px] font-semibold flex items-center gap-[6px]"
               >
                 ➕ Add Size Chart
               </button>
             </div>
-            
-            <div style={{ display: 'grid', gap: '20px' }}>
+
+            <div className="grid gap-5">
               {editingSizeCharts.map((chart, index) => (
-                <div key={chart.id} style={{
-                  border: '1px solid #e5e7eb',
-                  borderRadius: '8px',
-                  padding: '20px',
-                  backgroundColor: '#f9fafb'
-                }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-                    <h4 style={{ margin: 0, fontSize: '16px', fontWeight: '600' }}>Size Chart {index + 1}</h4>
+                <div
+                  key={chart.id}
+                  className="p-5 border border-[#e5e7eb] rounded-lg shadow-sm bg-[#f9fafb]"
+                >
+                  <div className="flex justify-between items-center mb-4">
+                    <h4 className="text-lg font-semibold">
+                      Size Chart {index + 1}
+                    </h4>
                     <button
                       onClick={() => handleRemoveSizeChart(chart.id)}
-                      style={{
-                        padding: '6px 10px',
-                        backgroundColor: '#ef4444',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '4px',
-                        cursor: 'pointer',
-                        fontSize: '12px'
-                      }}
+                      className="py-2 px-4 bg-[#ef4444] text-white rounded-lg font-semibold text-sm"
                     >
                       🗑️ Remove
                     </button>
                   </div>
-                  
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px' }}>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     <div>
-                      <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>Chart Type</label>
+                      <label className="block mb-2 font-semibold">
+                        Chart Type
+                      </label>
                       <select
                         value={chart.type}
-                        onChange={(e) => handleSizeChartChange(chart.id, 'type', e.target.value)}
-                        style={{
-                          width: '100%',
-                          padding: '10px',
-                          border: '1px solid #d1d5db',
-                          borderRadius: '6px',
-                          fontSize: '14px'
-                        }}
+                        onChange={(e) =>
+                          handleSizeChartChange(
+                            chart.id,
+                            "type",
+                            e.target.value
+                          )
+                        }
+                        className="w-full p-[10px] border border-gray-300 rounded-lg text-sm"
                       >
                         <option value="inch">Inches</option>
                         <option value="cm">Centimeters</option>
                         <option value="measurement">Measurement Guide</option>
                       </select>
                     </div>
-                    
+
                     <div>
-                      <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>Chart Name</label>
+                      <label className="block mb-2 font-semibold">
+                        Chart Name
+                      </label>
                       <input
                         type="text"
                         value={chart.name}
-                        onChange={(e) => handleSizeChartChange(chart.id, 'name', e.target.value)}
-                        style={{
-                          width: '100%',
-                          padding: '10px',
-                          border: '1px solid #d1d5db',
-                          borderRadius: '6px',
-                          fontSize: '14px'
-                        }}
+                        onChange={(e) =>
+                          handleSizeChartChange(
+                            chart.id,
+                            "name",
+                            e.target.value
+                          )
+                        }
+                        className="w-full p-[10px] border border-gray-300 rounded-lg text-sm"
                       />
                     </div>
-                    
+
                     <div>
-                      <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>Image URL</label>
+                      <label className="block mb-2 font-semibold">
+                        Image URL
+                      </label>
                       <input
                         type="text"
                         value={chart.url}
-                        onChange={(e) => handleSizeChartChange(chart.id, 'url', e.target.value)}
+                        onChange={(e) =>
+                          handleSizeChartChange(chart.id, "url", e.target.value)
+                        }
                         placeholder="/charts/size_chart.jpg"
-                        style={{
-                          width: '100%',
-                          padding: '10px',
-                          border: '1px solid #d1d5db',
-                          borderRadius: '6px',
-                          fontSize: '14px'
-                        }}
+                        className="w-full p-[10px] border border-gray-300 rounded-lg text-sm"
                       />
                     </div>
                   </div>
                 </div>
               ))}
             </div>
-            
-            <div style={{ 
-              display: 'flex', 
-              gap: '12px', 
-              marginTop: '30px',
-              justifyContent: 'flex-end'
-            }}>
+
+            <div className="flex justify-end mt-6 gap-4">
               <button
                 onClick={handleCancelSizeChartEdit}
-                style={{
-                  padding: '12px 24px',
-                  backgroundColor: '#6b7280',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '6px',
-                  cursor: 'pointer',
-                  fontSize: '14px',
-                  fontWeight: '600'
-                }}
+                className="py-3 px-6 bg-[#6b7280] text-white rounded-lg font-semibold text-sm cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSaveSizeCharts}
-                style={{
-                  padding: '12px 24px',
-                  backgroundColor: '#059669',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '6px',
-                  cursor: 'pointer',
-                  fontSize: '14px',
-                  fontWeight: '600'
-                }}
+                className="py-3 px-6 bg-[#059669] text-white rounded-lg font-semibold text-sm cursor-pointer"
               >
                 📏 Save Size Charts
               </button>
