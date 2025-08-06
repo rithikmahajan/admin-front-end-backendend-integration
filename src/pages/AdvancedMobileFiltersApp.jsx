@@ -3,14 +3,14 @@ import {
   Search, Edit2, Trash2, ChevronDown, ChevronUp, Save, X, 
   AlertCircle, Check, Filter, Plus, Minus, GripVertical, 
   Eye, EyeOff, ArrowUp, ArrowDown, Palette, DollarSign, 
-  Settings, ArrowUpDown, Move, Smartphone, Monitor
+  Settings, ArrowUpDown, Move
 } from 'lucide-react';
 
 /**
- * Zara-Style Advanced Filters Management System
+ * Advanced Mobile Filters Management System - Based on Figma Desktop Interface
  * 
  * Complete Features Implementation:
- * - Create filters with key-value pairs (based on Figma admin design)
+ * - Create filters with key-value pairs
  * - Assign multiple values to each filter key
  * - RGB color code support with real-time preview
  * - Price range selector functionality
@@ -19,69 +19,60 @@ import {
  * - Comprehensive arrangement priority management
  * - Mobile preview with desktop management interface
  * - Live updates and state persistence
- * - Zara-style UI design matching Figma specifications
  */
 
-// Zara Filter Configuration based on Figma Design
-const ZARA_FILTER_CONFIG = {
+// Advanced Filter Configuration based on Figma Design
+const ADVANCED_FILTER_CONFIG = {
   FILTER_TYPES: {
     COLOUR: 'colour',
     SIZE: 'size', 
     PRICE: 'price',
     SORT_BY: 'sort by',
-    SHORT_BY: 'short by',
-    CATEGORY: 'category'
+    SHORT_BY: 'short by'
   },
   
-  // Color presets with exact RGB codes (Zara-style colors)
+  // Color presets with exact RGB codes
   COLOR_PRESETS: [
-    { name: 'Black', code: '#000000' },
-    { name: 'White', code: '#FFFFFF' },
     { name: 'Red', code: '#FF0000' },
-    { name: 'Navy', code: '#000080' },
-    { name: 'Beige', code: '#F5F5DC' },
-    { name: 'Green', code: '#008000' },
+    { name: 'Green', code: '#00FF00' },
+    { name: 'Blue', code: '#0000FF' },
+    { name: 'Yellow', code: '#FFFF00' },
     { name: 'Pink', code: '#FF69B4' },
-    { name: 'Grey', code: '#808080' },
-    { name: 'Brown', code: '#8B4513' },
-    { name: 'Blue', code: '#0000FF' }
+    { name: 'Orange', code: '#FFA500' },
+    { name: 'Purple', code: '#800080' },
+    { name: 'Cyan', code: '#00FFFF' }
   ],
 
-  // Size variations (Zara-style sizing)
-  SIZE_OPTIONS: [
-    'XS', 'S', 'M', 'L', 'XL', 'XXL', 
-    '34', '36', '38', '40', '42', '44', '46', '48',
-    '6', '8', '10', '12', '14', '16', '18',
-    'ONE SIZE'
-  ],
+  // Size variations  
+  SIZE_OPTIONS: ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'small', 'medium', 'large', '28', '30', '32', '34', '36', '38', '40', '42'],
   
-  // Sort and filter options (Zara-style)
+  // Sort and filter options
   SORT_OPTIONS: [
-    'newest',
-    'price low to high',
-    'price high to low', 
-    'most popular',
-    'best rated',
-    'featured'
+    'ascending price',
+    'descending price', 
+    'newest first',
+    'oldest first',
+    'popularity',
+    'rating'
   ],
   
   CATEGORY_OPTIONS: [
-    'woman',
-    'man', 
+    'men',
+    'women', 
     'kids',
-    'baby',
-    'home',
-    'beauty'
+    'boys',
+    'girls',
+    'unisex'
   ],
 
-  // Zara-style price ranges
+  // Default price ranges
   PRICE_RANGES: [
-    { min: 0, max: 1000, label: '₹0 - ₹1,000' },
+    { min: 0, max: 500, label: '₹0 - ₹500' },
+    { min: 500, max: 1000, label: '₹500 - ₹1,000' },
     { min: 1000, max: 2500, label: '₹1,000 - ₹2,500' },
     { min: 2500, max: 5000, label: '₹2,500 - ₹5,000' },
     { min: 5000, max: 10000, label: '₹5,000 - ₹10,000' },
-    { min: 10000, max: 20000, label: '₹10,000 - ₹20,000' },
-    { min: 20000, max: 50000, label: '₹20,000 - ₹50,000' }
+    { min: 10000, max: 25000, label: '₹10,000 - ₹25,000' }
   ]
 };
 
@@ -169,34 +160,34 @@ const filterReducer = (state, action) => {
   }
 };
 
-// Initial Zara-style filter data based on Figma design
-const INITIAL_ZARA_FILTERS = [
+// Initial sophisticated filter data based on Figma design
+const INITIAL_ADVANCED_FILTERS = [
   {
     id: 1,
     key: 'colour',
-    type: ZARA_FILTER_CONFIG.FILTER_TYPES.COLOUR,
+    type: ADVANCED_FILTER_CONFIG.FILTER_TYPES.COLOUR,
     priority: 1,
     isActive: true,
     createdAt: new Date().toISOString(),
     assignedValues: [
       { 
         id: 1, 
-        value: 'Black', 
-        colorCode: '#000000', 
+        value: 'Red', 
+        colorCode: '#FF0000', 
         isActive: true, 
         priority: 1 
       },
       { 
         id: 2, 
-        value: 'White', 
-        colorCode: '#FFFFFF', 
+        value: 'Green', 
+        colorCode: '#00FF00', 
         isActive: true, 
         priority: 2 
       },
       { 
         id: 3, 
-        value: 'Red', 
-        colorCode: '#FF0000', 
+        value: 'Pink', 
+        colorCode: '#FF69B4', 
         isActive: true, 
         priority: 3 
       }
@@ -205,72 +196,62 @@ const INITIAL_ZARA_FILTERS = [
   {
     id: 2,
     key: 'size',
-    type: ZARA_FILTER_CONFIG.FILTER_TYPES.SIZE,
+    type: ADVANCED_FILTER_CONFIG.FILTER_TYPES.SIZE,
     priority: 2,
     isActive: true,
     createdAt: new Date().toISOString(),
     assignedValues: [
-      { id: 4, value: 'XS', isActive: true, priority: 1 },
-      { id: 5, value: 'S', isActive: true, priority: 2 },
-      { id: 6, value: 'M', isActive: true, priority: 3 },
-      { id: 7, value: 'L', isActive: true, priority: 4 }
+      { id: 4, value: 'small', isActive: true, priority: 1 },
+      { id: 5, value: 'large', isActive: true, priority: 2 }
     ]
   },
   {
     id: 3,
     key: 'price',
-    type: ZARA_FILTER_CONFIG.FILTER_TYPES.PRICE,
+    type: ADVANCED_FILTER_CONFIG.FILTER_TYPES.PRICE,
     priority: 3,
     isActive: true,
     createdAt: new Date().toISOString(),
     assignedValues: [
       { 
-        id: 8, 
-        value: '₹1,000 - ₹5,000', 
-        priceRange: { min: 1000, max: 5000 }, 
+        id: 6, 
+        value: '₹500 - ₹5,000', 
+        priceRange: { min: 500, max: 5000 }, 
         isActive: true, 
         priority: 1 
-      },
-      { 
-        id: 9, 
-        value: '₹5,000 - ₹10,000', 
-        priceRange: { min: 5000, max: 10000 }, 
-        isActive: true, 
-        priority: 2 
       }
     ]
   },
   {
     id: 4,
-    key: 'sort by',
-    type: ZARA_FILTER_CONFIG.FILTER_TYPES.SORT_BY,
+    key: 'short by',
+    type: ADVANCED_FILTER_CONFIG.FILTER_TYPES.SHORT_BY,
     priority: 4,
     isActive: true,
     createdAt: new Date().toISOString(),
     assignedValues: [
-      { id: 10, value: 'newest', isActive: true, priority: 1 },
-      { id: 11, value: 'price low to high', isActive: true, priority: 2 },
-      { id: 12, value: 'price high to low', isActive: true, priority: 3 }
+      { id: 7, value: 'ascending price', isActive: true, priority: 1 },
+      { id: 8, value: 'descending price', isActive: true, priority: 2 }
     ]
   },
   {
     id: 5,
-    key: 'category',
-    type: ZARA_FILTER_CONFIG.FILTER_TYPES.CATEGORY,
+    key: 'sort by',
+    type: ADVANCED_FILTER_CONFIG.FILTER_TYPES.SORT_BY,
     priority: 5,
     isActive: true,
     createdAt: new Date().toISOString(),
     assignedValues: [
-      { id: 13, value: 'woman', isActive: true, priority: 1 },
-      { id: 14, value: 'man', isActive: true, priority: 2 },
-      { id: 15, value: 'kids', isActive: true, priority: 3 }
+      { id: 9, value: 'men', isActive: true, priority: 1 },
+      { id: 10, value: 'women', isActive: true, priority: 2 },
+      { id: 11, value: 'kids', isActive: true, priority: 3 }
     ]
   }
 ];
 
-const Filters = () => {
+const AdvancedMobileFiltersApp = () => {
   // Advanced state management with useReducer
-  const [filters, filtersDispatch] = useReducer(filterReducer, INITIAL_ZARA_FILTERS);
+  const [filters, filtersDispatch] = useReducer(filterReducer, INITIAL_ADVANCED_FILTERS);
   
   // UI States
   const [currentView, setCurrentView] = useState('management'); // 'management', 'mobile-preview'
@@ -280,7 +261,7 @@ const Filters = () => {
   // Form states for creating filters and values
   const [filterForm, setFilterForm] = useState({
     key: '',
-    type: ZARA_FILTER_CONFIG.FILTER_TYPES.COLOUR,
+    type: ADVANCED_FILTER_CONFIG.FILTER_TYPES.COLOUR,
     priority: filters.length + 1,
     arrangement: 1
   });
@@ -288,7 +269,7 @@ const Filters = () => {
   const [valueForm, setValueForm] = useState({
     filterId: null,
     value: '',
-    colorCode: '#000000',
+    colorCode: '#FF0000',
     priceRange: { min: 0, max: 1000 },
     priority: 1
   });
@@ -371,7 +352,7 @@ const Filters = () => {
     // Reset form
     setFilterForm({
       key: '',
-      type: ZARA_FILTER_CONFIG.FILTER_TYPES.COLOUR,
+      type: ADVANCED_FILTER_CONFIG.FILTER_TYPES.COLOUR,
       priority: filters.length + 2,
       arrangement: filters.length + 2
     });
@@ -389,14 +370,13 @@ const Filters = () => {
     
     if (!validation.isValid) return;
     
-    const selectedFilter = filters.find(f => f.id === valueForm.filterId);
     const newValue = {
       id: generateId(),
       value: valueForm.value.trim(),
       isActive: true,
       priority: parseInt(valueForm.priority) || 1,
-      ...(selectedFilter?.type === 'colour' && valueForm.colorCode && { colorCode: valueForm.colorCode }),
-      ...(selectedFilter?.type === 'price' && valueForm.priceRange && { priceRange: valueForm.priceRange })
+      ...(valueForm.colorCode && { colorCode: valueForm.colorCode }),
+      ...(valueForm.priceRange && { priceRange: valueForm.priceRange })
     };
     
     filtersDispatch({ 
@@ -408,12 +388,12 @@ const Filters = () => {
     setValueForm({
       filterId: null,
       value: '',
-      colorCode: '#000000',
+      colorCode: '#FF0000',
       priceRange: { min: 0, max: 1000 },
       priority: 1
     });
     setValidationErrors({});
-  }, [valueForm, validateValueForm, generateId, filters]);
+  }, [valueForm, validateValueForm, generateId]);
   
   const updateFilter = useCallback((filterId, updates) => {
     filtersDispatch({ 
@@ -505,7 +485,7 @@ const Filters = () => {
   return (
     <div className="min-h-screen bg-white">
       {currentView === 'management' ? (
-        <ZaraDesktopManagementInterface
+        <DesktopManagementInterface
           filters={filteredFilters}
           filterForm={filterForm}
           valueForm={valueForm}
@@ -536,7 +516,7 @@ const Filters = () => {
           filtersDispatch={filtersDispatch}
         />
       ) : (
-        <ZaraMobilePreviewInterface
+        <MobilePreviewInterface
           filters={filters}
           onToggleView={() => setCurrentView('management')}
         />
@@ -545,8 +525,8 @@ const Filters = () => {
   );
 };
 
-// Zara Desktop Management Interface Component
-const ZaraDesktopManagementInterface = React.memo(({
+// Desktop Management Interface Component
+const DesktopManagementInterface = React.memo(({
   filters,
   filterForm,
   valueForm,
@@ -577,40 +557,40 @@ const ZaraDesktopManagementInterface = React.memo(({
   filtersDispatch
 }) => {
   return (
-    <div className="p-8 max-w-7xl mx-auto bg-white">
-      {/* Zara-style Header */}
-      <div className="flex items-center justify-between mb-8 pb-6 border-b-2 border-black">
+    <div className="p-6 max-w-7xl mx-auto">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-black mb-2 tracking-wide">FILTERS MANAGEMENT</h1>
-          <p className="text-gray-600 text-lg">Create, manage, and arrange filters with real-time preview</p>
+          <h1 className="text-2xl font-bold text-black mb-2">Advanced Filters Management</h1>
+          <p className="text-gray-600">Create, manage, and arrange filters with real-time drag & drop</p>
         </div>
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-4">
           <div className="relative">
-            <Search className="h-5 w-5 text-gray-400 absolute left-4 top-3.5" />
+            <Search className="h-4 w-4 text-gray-400 absolute left-3 top-3" />
             <input
               type="text"
               placeholder="Search filters..."
               value={searchTerm}
               onChange={(e) => onSearchTermChange(e.target.value)}
-              className="pl-12 pr-6 py-3 border-2 border-black rounded-none focus:outline-none focus:border-gray-600 w-80 text-lg"
+              className="pl-10 pr-4 py-2 border-2 border-black rounded-xl focus:outline-none focus:border-blue-600 w-64"
             />
           </div>
           <button
             onClick={onToggleView}
-            className="px-6 py-3 bg-black text-white font-medium hover:bg-gray-800 transition-colors flex items-center gap-3 text-lg"
+            className="px-4 py-2 bg-black text-white rounded-full hover:bg-gray-800 transition-colors flex items-center gap-2"
           >
-            <Smartphone className="h-5 w-5" />
-            PREVIEW APP
+            <Eye className="h-4 w-4" />
+            Mobile Preview
           </button>
         </div>
       </div>
 
-      {/* Main Content Grid - Zara Style */}
+      {/* Main Content */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
         
         {/* Create Filters Section */}
         <div className="space-y-6">
-          <ZaraCreateFiltersSection
+          <CreateFiltersSection
             filterForm={filterForm}
             validationErrors={validationErrors}
             onFormChange={onFilterFormChange}
@@ -622,7 +602,7 @@ const ZaraDesktopManagementInterface = React.memo(({
 
         {/* Create Filter Values Section */}
         <div className="space-y-6">
-          <ZaraCreateFilterValuesSection
+          <CreateFilterValuesSection
             valueForm={valueForm}
             filters={filters}
             validationErrors={validationErrors}
@@ -635,7 +615,7 @@ const ZaraDesktopManagementInterface = React.memo(({
 
         {/* Saved Filters Section */}
         <div className="space-y-6">
-          <ZaraSavedFiltersSection
+          <SavedFiltersSection
             filters={filters}
             editingFilter={editingFilter}
             editingValue={editingValue}
@@ -661,8 +641,8 @@ const ZaraDesktopManagementInterface = React.memo(({
   );
 });
 
-// Zara Create Filters Section Component
-const ZaraCreateFiltersSection = React.memo(({
+// Create Filters Section Component
+const CreateFiltersSection = React.memo(({
   filterForm,
   validationErrors,
   onFormChange,
@@ -671,61 +651,43 @@ const ZaraCreateFiltersSection = React.memo(({
   onToggle
 }) => {
   return (
-    <div className="bg-gray-50 border-2 border-black">
-      <div className="flex items-center justify-between p-6 bg-black text-white">
-        <h2 className="text-xl font-bold tracking-wide">CREATE FILTERS</h2>
+    <div className="bg-gray-50 rounded-xl border-2 border-black p-6">
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-xl font-bold text-black">Create filters</h2>
         <button
           onClick={onToggle}
-          className="p-2 hover:bg-gray-800 transition-colors"
+          className="p-2 hover:bg-gray-200 rounded-lg transition-colors"
         >
-          {isActive ? <ChevronUp className="h-6 w-6" /> : <ChevronDown className="h-6 w-6" />}
+          {isActive ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
         </button>
       </div>
 
       {isActive && (
-        <div className="p-6 space-y-6">
+        <div className="space-y-4">
           {/* Filter Key Input */}
           <div>
-            <label className="block text-sm font-bold text-black mb-3 uppercase tracking-wide">
+            <label className="block text-sm font-medium text-black mb-2">
               Filter key (eg: size)
             </label>
             <input
               type="text"
               value={filterForm.key}
               onChange={(e) => onFormChange({ ...filterForm, key: e.target.value })}
-              placeholder="Enter filter key"
-              className="w-full px-4 py-4 border-2 border-black focus:outline-none focus:border-gray-600 text-lg"
+              placeholder="filter key (eg: size)"
+              className="w-full px-4 py-3 border-2 border-black rounded-xl focus:outline-none focus:border-blue-600"
             />
             {validationErrors.key && (
-              <p className="mt-2 text-sm text-red-600 flex items-center gap-2">
+              <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
                 <AlertCircle className="h-4 w-4" />
                 {validationErrors.key}
               </p>
             )}
           </div>
 
-          {/* Filter Type Selection */}
-          <div>
-            <label className="block text-sm font-bold text-black mb-3 uppercase tracking-wide">
-              Filter Type
-            </label>
-            <select
-              value={filterForm.type}
-              onChange={(e) => onFormChange({ ...filterForm, type: e.target.value })}
-              className="w-full px-4 py-4 border-2 border-black focus:outline-none focus:border-gray-600 text-lg"
-            >
-              {Object.entries(ZARA_FILTER_CONFIG.FILTER_TYPES).map(([key, value]) => (
-                <option key={key} value={value} className="uppercase">
-                  {value}
-                </option>
-              ))}
-            </select>
-          </div>
-
           {/* Arrangement Priority */}
           <div>
-            <label className="block text-sm font-bold text-black mb-3 uppercase tracking-wide">
-              Arrangement Priority
+            <label className="block text-sm font-medium text-black mb-2">
+              Arrangement
             </label>
             <input
               type="number"
@@ -734,10 +696,10 @@ const ZaraCreateFiltersSection = React.memo(({
               placeholder="1"
               min="1"
               max="999"
-              className="w-full px-4 py-4 border-2 border-black focus:outline-none focus:border-gray-600 text-lg"
+              className="w-full px-4 py-3 border-2 border-black rounded-xl focus:outline-none focus:border-blue-600"
             />
             {validationErrors.priority && (
-              <p className="mt-2 text-sm text-red-600 flex items-center gap-2">
+              <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
                 <AlertCircle className="h-4 w-4" />
                 {validationErrors.priority}
               </p>
@@ -747,9 +709,9 @@ const ZaraCreateFiltersSection = React.memo(({
           {/* Create Filter Button */}
           <button
             onClick={onCreateFilter}
-            className="w-full bg-black text-white py-4 font-bold text-lg tracking-wide hover:bg-gray-800 transition-colors uppercase"
+            className="w-full bg-black text-white py-3 rounded-full font-medium hover:bg-gray-800 transition-colors"
           >
-            Create Filter
+            Create filter
           </button>
         </div>
       )}
@@ -757,8 +719,8 @@ const ZaraCreateFiltersSection = React.memo(({
   );
 });
 
-// Zara Create Filter Values Section Component
-const ZaraCreateFilterValuesSection = React.memo(({
+// Create Filter Values Section Component
+const CreateFilterValuesSection = React.memo(({
   valueForm,
   filters,
   validationErrors,
@@ -767,41 +729,39 @@ const ZaraCreateFilterValuesSection = React.memo(({
   isActive,
   onToggle
 }) => {
-  const selectedFilter = filters.find(f => f.id === valueForm.filterId);
-
   return (
-    <div className="bg-gray-50 border-2 border-black">
-      <div className="flex items-center justify-between p-6 bg-black text-white">
-        <h2 className="text-xl font-bold tracking-wide">CREATE FILTER VALUE</h2>
+    <div className="bg-gray-50 rounded-xl border-2 border-black p-6">
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-xl font-bold text-black">Create filter value</h2>
         <button
           onClick={onToggle}
-          className="p-2 hover:bg-gray-800 transition-colors"
+          className="p-2 hover:bg-gray-200 rounded-lg transition-colors"
         >
-          {isActive ? <ChevronUp className="h-6 w-6" /> : <ChevronDown className="h-6 w-6" />}
+          {isActive ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
         </button>
       </div>
 
       {isActive && (
-        <div className="p-6 space-y-6">
+        <div className="space-y-4">
           {/* Choose Filter Key */}
           <div>
-            <label className="block text-sm font-bold text-black mb-3 uppercase tracking-wide">
-              Choose Filter Key
+            <label className="block text-sm font-medium text-black mb-2">
+              Choose filter key
             </label>
             <select
               value={valueForm.filterId || ''}
               onChange={(e) => onFormChange({ ...valueForm, filterId: parseInt(e.target.value) || null })}
-              className="w-full px-4 py-4 border-2 border-black focus:outline-none focus:border-gray-600 text-lg"
+              className="w-full px-4 py-3 border-2 border-black rounded-xl focus:outline-none focus:border-blue-600"
             >
               <option value="">Select filter key...</option>
               {filters.map(filter => (
-                <option key={filter.id} value={filter.id} className="uppercase">
+                <option key={filter.id} value={filter.id}>
                   {filter.key}
                 </option>
               ))}
             </select>
             {validationErrors.filterId && (
-              <p className="mt-2 text-sm text-red-600 flex items-center gap-2">
+              <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
                 <AlertCircle className="h-4 w-4" />
                 {validationErrors.filterId}
               </p>
@@ -810,18 +770,18 @@ const ZaraCreateFilterValuesSection = React.memo(({
 
           {/* Assign Value */}
           <div>
-            <label className="block text-sm font-bold text-black mb-3 uppercase tracking-wide">
-              Assign Value
+            <label className="block text-sm font-medium text-black mb-2">
+              Assign value
             </label>
             <input
               type="text"
               value={valueForm.value}
               onChange={(e) => onFormChange({ ...valueForm, value: e.target.value })}
-              placeholder="Enter value"
-              className="w-full px-4 py-4 border-2 border-black focus:outline-none focus:border-gray-600 text-lg"
+              placeholder="filter key (eg: size)"
+              className="w-full px-4 py-3 border-2 border-black rounded-xl focus:outline-none focus:border-blue-600"
             />
             {validationErrors.value && (
-              <p className="mt-2 text-sm text-red-600 flex items-center gap-2">
+              <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
                 <AlertCircle className="h-4 w-4" />
                 {validationErrors.value}
               </p>
@@ -829,131 +789,67 @@ const ZaraCreateFilterValuesSection = React.memo(({
           </div>
 
           {/* RGB Color Code (for color filters) */}
-          {selectedFilter?.type === 'colour' && (
+          {valueForm.filterId && filters.find(f => f.id === valueForm.filterId)?.type === 'colour' && (
             <div>
-              <label className="block text-sm font-bold text-black mb-3 uppercase tracking-wide">
-                Enter Colour Code (RGB)
+              <label className="block text-sm font-medium text-black mb-2">
+                Enter colour code (RGB)
               </label>
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
                 <input
                   type="color"
                   value={valueForm.colorCode}
                   onChange={(e) => onFormChange({ ...valueForm, colorCode: e.target.value })}
-                  className="w-16 h-16 border-2 border-black cursor-pointer"
+                  className="w-12 h-10 border-2 border-black rounded"
                 />
                 <input
                   type="text"
                   value={valueForm.colorCode}
                   onChange={(e) => onFormChange({ ...valueForm, colorCode: e.target.value })}
-                  placeholder="#000000"
-                  className="flex-1 px-4 py-4 border-2 border-black focus:outline-none focus:border-gray-600 text-lg"
+                  placeholder="#FF0000"
+                  className="flex-1 px-4 py-3 border-2 border-black rounded-xl focus:outline-none focus:border-blue-600"
                 />
               </div>
               {validationErrors.colorCode && (
-                <p className="mt-2 text-sm text-red-600 flex items-center gap-2">
+                <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
                   <AlertCircle className="h-4 w-4" />
                   {validationErrors.colorCode}
                 </p>
               )}
-              
-              {/* Color Presets */}
-              <div className="mt-4">
-                <p className="text-sm font-bold text-black mb-3 uppercase tracking-wide">Quick Colors</p>
-                <div className="grid grid-cols-5 gap-2">
-                  {ZARA_FILTER_CONFIG.COLOR_PRESETS.map((color) => (
-                    <button
-                      key={color.name}
-                      onClick={() => onFormChange({ 
-                        ...valueForm, 
-                        colorCode: color.code,
-                        value: color.name 
-                      })}
-                      className="w-12 h-12 border-2 border-black hover:scale-110 transition-transform"
-                      style={{ backgroundColor: color.code }}
-                      title={color.name}
-                    />
-                  ))}
-                </div>
-              </div>
             </div>
           )}
 
           {/* Price Range (for price filters) */}
-          {selectedFilter?.type === 'price' && (
-            <div className="space-y-4">
-              <label className="block text-sm font-bold text-black mb-3 uppercase tracking-wide">
-                Price Range
-              </label>
-              
-              {/* Quick Price Range Presets */}
-              <div className="grid grid-cols-1 gap-2 mb-4">
-                {ZARA_FILTER_CONFIG.PRICE_RANGES.map((range, index) => (
-                  <button
-                    key={index}
-                    onClick={() => onFormChange({ 
-                      ...valueForm, 
-                      priceRange: { min: range.min, max: range.max },
-                      value: range.label 
-                    })}
-                    className="p-3 border-2 border-black hover:bg-black hover:text-white transition-colors text-left font-medium"
-                  >
-                    {range.label}
-                  </button>
-                ))}
+          {valueForm.filterId && filters.find(f => f.id === valueForm.filterId)?.type === 'price' && (
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-black mb-2">
+                  Start value
+                </label>
+                <input
+                  type="number"
+                  value={valueForm.priceRange.min}
+                  onChange={(e) => onFormChange({ 
+                    ...valueForm, 
+                    priceRange: { ...valueForm.priceRange, min: parseInt(e.target.value) || 0 }
+                  })}
+                  placeholder="start value"
+                  className="w-full px-4 py-3 border-2 border-black rounded-xl focus:outline-none focus:border-blue-600"
+                />
               </div>
-              
-              {/* Custom Price Range */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-bold text-black mb-2 uppercase">
-                    Start Value (₹)
-                  </label>
-                  <input
-                    type="number"
-                    value={valueForm.priceRange.min}
-                    onChange={(e) => onFormChange({ 
-                      ...valueForm, 
-                      priceRange: { ...valueForm.priceRange, min: parseInt(e.target.value) || 0 }
-                    })}
-                    placeholder="0"
-                    className="w-full px-4 py-3 border-2 border-black focus:outline-none focus:border-gray-600 text-lg"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-bold text-black mb-2 uppercase">
-                    End Value (₹)
-                  </label>
-                  <input
-                    type="number"
-                    value={valueForm.priceRange.max}
-                    onChange={(e) => onFormChange({ 
-                      ...valueForm, 
-                      priceRange: { ...valueForm.priceRange, max: parseInt(e.target.value) || 1000 }
-                    })}
-                    placeholder="1000"
-                    className="w-full px-4 py-3 border-2 border-black focus:outline-none focus:border-gray-600 text-lg"
-                  />
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Size Options (for size filters) */}
-          {selectedFilter?.type === 'size' && (
-            <div>
-              <label className="block text-sm font-bold text-black mb-3 uppercase tracking-wide">
-                Quick Size Options
-              </label>
-              <div className="grid grid-cols-4 gap-2">
-                {ZARA_FILTER_CONFIG.SIZE_OPTIONS.map((size) => (
-                  <button
-                    key={size}
-                    onClick={() => onFormChange({ ...valueForm, value: size })}
-                    className="p-3 border-2 border-black hover:bg-black hover:text-white transition-colors font-medium"
-                  >
-                    {size}
-                  </button>
-                ))}
+              <div>
+                <label className="block text-sm font-medium text-black mb-2">
+                  End value
+                </label>
+                <input
+                  type="number"
+                  value={valueForm.priceRange.max}
+                  onChange={(e) => onFormChange({ 
+                    ...valueForm, 
+                    priceRange: { ...valueForm.priceRange, max: parseInt(e.target.value) || 1000 }
+                  })}
+                  placeholder="end value"
+                  className="w-full px-4 py-3 border-2 border-black rounded-xl focus:outline-none focus:border-blue-600"
+                />
               </div>
             </div>
           )}
@@ -961,9 +857,9 @@ const ZaraCreateFilterValuesSection = React.memo(({
           {/* Create Filter Value Button */}
           <button
             onClick={onCreateValue}
-            className="w-full bg-black text-white py-4 font-bold text-lg tracking-wide hover:bg-gray-800 transition-colors uppercase"
+            className="w-full bg-black text-white py-3 rounded-full font-medium hover:bg-gray-800 transition-colors"
           >
-            Create Filter Value
+            Create filter value
           </button>
         </div>
       )}
@@ -971,8 +867,8 @@ const ZaraCreateFilterValuesSection = React.memo(({
   );
 });
 
-// Zara Saved Filters Section Component
-const ZaraSavedFiltersSection = React.memo(({
+// Saved Filters Section Component
+const SavedFiltersSection = React.memo(({
   filters,
   editingFilter,
   editingValue,
@@ -993,30 +889,30 @@ const ZaraSavedFiltersSection = React.memo(({
   filtersDispatch
 }) => {
   return (
-    <div className="bg-gray-50 border-2 border-black">
-      <div className="flex items-center justify-between p-6 bg-black text-white">
-        <h2 className="text-xl font-bold tracking-wide">SAVED FILTERS</h2>
+    <div className="bg-gray-50 rounded-xl border-2 border-black p-6">
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-xl font-bold text-black">saved filters</h2>
         <button
           onClick={onToggle}
-          className="p-2 hover:bg-gray-800 transition-colors"
+          className="p-2 hover:bg-gray-200 rounded-lg transition-colors"
         >
-          {isActive ? <ChevronUp className="h-6 w-6" /> : <ChevronDown className="h-6 w-6" />}
+          {isActive ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
         </button>
       </div>
 
       {isActive && (
-        <div className="p-6 space-y-4">
+        <div className="space-y-4">
           {/* Header Row */}
-          <div className="grid grid-cols-4 gap-4 text-sm font-bold text-black pb-3 border-b-2 border-gray-300 uppercase tracking-wide">
+          <div className="grid grid-cols-4 gap-4 text-sm font-bold text-black pb-2 border-b-2 border-gray-300">
             <div>Key Values</div>
             <div>Assigned Values</div>
-            <div>Arrangement</div>
-            <div>Actions</div>
+            <div>Arrangement number</div>
+            <div>Action</div>
           </div>
 
           {/* Filter Rows */}
           {filters.map((filter, index) => (
-            <ZaraFilterRow
+            <FilterRow
               key={filter.id}
               filter={filter}
               index={index}
@@ -1039,10 +935,8 @@ const ZaraSavedFiltersSection = React.memo(({
           ))}
 
           {filters.length === 0 && (
-            <div className="text-center py-12 text-gray-500">
-              <Filter className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-              <p className="text-lg font-medium">No filters created yet</p>
-              <p className="text-sm">Create your first filter to get started</p>
+            <div className="text-center py-8 text-gray-500">
+              No filters created yet. Create your first filter to get started.
             </div>
           )}
         </div>
@@ -1051,8 +945,8 @@ const ZaraSavedFiltersSection = React.memo(({
   );
 });
 
-// Zara Filter Row Component with Drag & Drop
-const ZaraFilterRow = React.memo(({
+// Filter Row Component with Drag & Drop
+const FilterRow = React.memo(({
   filter,
   index,
   editingFilter,
@@ -1075,9 +969,9 @@ const ZaraFilterRow = React.memo(({
   
   return (
     <div 
-      className={`grid grid-cols-4 gap-4 p-4 bg-white border-2 transition-all ${
+      className={`grid grid-cols-4 gap-4 p-4 bg-white rounded-xl shadow-sm border transition-all ${
         isDraggedOver ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
-      } hover:border-black cursor-move`}
+      }`}
       draggable
       onDragStart={(e) => onDragStart(e, filter, 'filter')}
       onDragOver={onDragOver}
@@ -1085,103 +979,77 @@ const ZaraFilterRow = React.memo(({
       onDrop={(e) => onDrop(e, filter, 'filter')}
     >
       {/* Key Values */}
-      <div className="flex items-center gap-3">
-        <GripVertical className="h-5 w-5 text-gray-400 cursor-grab" />
-        <div className="bg-black text-white px-3 py-2 font-bold text-sm uppercase tracking-wide">
-          {filter.key}
+      <div className="flex items-center gap-2">
+        <GripVertical className="h-4 w-4 text-gray-400 cursor-grab" />
+        <div className="bg-white px-3 py-2 rounded-xl shadow-sm border">
+          <span className="text-sm font-medium">{filter.key}</span>
         </div>
       </div>
 
       {/* Assigned Values */}
       <div className="space-y-2">
         {filter.assignedValues.map((value) => (
-          <div key={value.id} className="bg-gray-100 px-3 py-2 border border-gray-300 flex items-center gap-2 text-sm">
+          <div key={value.id} className="bg-white px-3 py-2 rounded-xl shadow-sm border flex items-center gap-2">
             {value.colorCode && (
               <div 
-                className="w-4 h-4 border border-gray-400"
+                className="w-3 h-3 rounded-full border border-gray-300"
                 style={{ backgroundColor: value.colorCode }}
               />
             )}
-            <span className="flex-1 font-medium">{value.value}</span>
-            <button
-              onClick={() => onDeleteValue(filter.id, value.id)}
-              className="text-red-600 hover:text-red-800 p-1"
-              title="Delete value"
-            >
-              <X className="h-3 w-3" />
-            </button>
+            <span className="text-sm flex-1">{value.value}</span>
           </div>
         ))}
-        {filter.assignedValues.length === 0 && (
-          <div className="text-gray-400 text-sm italic">No values assigned</div>
-        )}
       </div>
 
       {/* Arrangement Number */}
       <div className="flex items-center">
-        <span className="text-2xl font-bold text-black">{filter.priority}</span>
+        <span className="text-lg font-bold">{filter.priority}</span>
       </div>
 
       {/* Action Buttons */}
       <div className="flex items-center gap-2">
         <button
           onClick={() => onEditFilter(filter)}
-          className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+          className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
           title="Edit filter"
         >
           <Edit2 className="h-4 w-4" />
         </button>
         <button
           onClick={() => onDeleteFilter(filter.id)}
-          className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 transition-colors"
+          className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
           title="Delete filter"
         >
           <Trash2 className="h-4 w-4" />
-        </button>
-        <button
-          onClick={() => filtersDispatch({ type: FILTER_ACTIONS.TOGGLE_FILTER_STATUS, payload: filter.id })}
-          className={`p-2 transition-colors ${
-            filter.isActive 
-              ? 'text-green-600 hover:text-green-800 hover:bg-green-50' 
-              : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'
-          }`}
-          title={filter.isActive ? 'Deactivate filter' : 'Activate filter'}
-        >
-          {filter.isActive ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
         </button>
       </div>
     </div>
   );
 });
 
-// Zara Mobile Preview Interface Component
-const ZaraMobilePreviewInterface = React.memo(({
+// Mobile Preview Interface Component
+const MobilePreviewInterface = React.memo(({
   filters,
   onToggleView
 }) => {
   return (
-    <div className="flex h-screen bg-gray-100">
-      {/* Mobile Preview Device Frame */}
-      <div className="w-96 bg-black p-4 border-r-4 border-black">
-        <div className="bg-white h-full rounded-lg overflow-hidden shadow-2xl">
+    <div className="flex h-screen">
+      {/* Mobile Preview */}
+      <div className="w-96 bg-gray-100 border-r-2 border-gray-300">
+        <div className="bg-white h-full">
           {/* Mobile Status Bar */}
-          <div className="bg-black text-white p-3 flex items-center justify-between text-sm">
+          <div className="bg-black text-white p-2 flex items-center justify-between text-sm">
             <div className="flex items-center gap-1">
               <div className="w-1 h-1 bg-white rounded-full"></div>
               <div className="w-1 h-1 bg-white rounded-full"></div>
               <div className="w-1 h-1 bg-white rounded-full"></div>
             </div>
-            <div className="font-bold">9:41</div>
+            <div>9:41</div>
             <div className="flex items-center gap-1">
-              <div className="w-5 h-3 border border-white rounded-sm">
-                <div className="w-4 h-2 bg-white rounded-sm"></div>
+              <div className="w-4 h-2 border border-white rounded-sm">
+                <div className="w-3 h-1 bg-white rounded-sm"></div>
               </div>
             </div>
-          </div>
-
-          {/* Zara App Header */}
-          <div className="p-4 border-b border-gray-200">
-            <h1 className="text-2xl font-bold text-black tracking-widest text-center">ZARA</h1>
           </div>
 
           {/* Search Bar */}
@@ -1191,30 +1059,28 @@ const ZaraMobilePreviewInterface = React.memo(({
               <input
                 type="text"
                 placeholder="Search products..."
-                className="w-full pl-10 pr-4 py-2 border-2 border-black focus:outline-none"
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg"
                 readOnly
               />
             </div>
           </div>
 
-          {/* Filters Display */}
-          <div className="px-4 pb-4 max-h-96 overflow-y-auto">
-            <h3 className="font-bold mb-4 text-lg uppercase tracking-wide">Filters</h3>
-            <div className="space-y-4">
-              {filters.filter(f => f.isActive).map((filter) => (
-                <div key={filter.id} className="space-y-3">
-                  <h4 className="font-bold text-sm uppercase tracking-wider text-black border-b border-gray-300 pb-1">
-                    {filter.key}
-                  </h4>
+          {/* Filters */}
+          <div className="px-4 pb-4">
+            <h3 className="font-bold mb-3">Filters</h3>
+            <div className="space-y-3">
+              {filters.map((filter) => (
+                <div key={filter.id} className="space-y-2">
+                  <h4 className="font-medium text-sm capitalize">{filter.key}</h4>
                   <div className="flex flex-wrap gap-2">
-                    {filter.assignedValues.filter(v => v.isActive).map((value) => (
+                    {filter.assignedValues.map((value) => (
                       <div
                         key={value.id}
-                        className="flex items-center gap-2 px-3 py-2 border-2 border-black text-sm font-medium hover:bg-black hover:text-white transition-colors cursor-pointer"
+                        className="flex items-center gap-2 px-3 py-1 bg-gray-100 rounded-full text-sm"
                       >
                         {value.colorCode && (
                           <div 
-                            className="w-4 h-4 border border-gray-400"
+                            className="w-3 h-3 rounded-full border border-gray-300"
                             style={{ backgroundColor: value.colorCode }}
                           />
                         )}
@@ -1226,80 +1092,43 @@ const ZaraMobilePreviewInterface = React.memo(({
               ))}
             </div>
           </div>
-
-          {/* Sample Products */}
-          <div className="px-4 pb-4">
-            <div className="grid grid-cols-2 gap-2">
-              <div className="bg-gray-100 aspect-square flex items-center justify-center text-gray-500 text-xs">
-                PRODUCT
-              </div>
-              <div className="bg-gray-100 aspect-square flex items-center justify-center text-gray-500 text-xs">
-                PRODUCT
-              </div>
-            </div>
-          </div>
         </div>
       </div>
 
-      {/* Controls Panel */}
-      <div className="flex-1 p-8 bg-white">
-        <div className="flex items-center justify-between mb-8">
-          <h2 className="text-2xl font-bold tracking-wide uppercase">Mobile Preview</h2>
+      {/* Controls */}
+      <div className="flex-1 p-6 bg-gray-50">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-bold">Mobile Preview</h2>
           <button
             onClick={onToggleView}
-            className="px-6 py-3 bg-black text-white font-bold tracking-wide hover:bg-gray-800 transition-colors flex items-center gap-3 uppercase"
+            className="px-4 py-2 bg-black text-white rounded-full hover:bg-gray-800 transition-colors flex items-center gap-2"
           >
-            <Monitor className="h-5 w-5" />
+            <Settings className="h-4 w-4" />
             Back to Management
           </button>
         </div>
 
-        <div className="bg-gray-50 border-2 border-black p-6">
-          <h3 className="font-bold mb-6 text-xl uppercase tracking-wide">Filter Summary</h3>
+        <div className="bg-white rounded-xl p-6 shadow-sm">
+          <h3 className="font-bold mb-4">Filter Summary</h3>
           <div className="space-y-4">
             {filters.map((filter) => (
-              <div key={filter.id} className="flex items-center justify-between p-4 bg-white border-2 border-gray-200">
+              <div key={filter.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                 <div>
-                  <div className="font-bold text-lg uppercase tracking-wide">{filter.key}</div>
-                  <div className="text-sm text-gray-600 mt-1">
-                    {filter.assignedValues.length} value(s) • Priority: {filter.priority} • Type: {filter.type}
-                  </div>
-                  <div className="flex flex-wrap gap-1 mt-2">
-                    {filter.assignedValues.slice(0, 3).map((value) => (
-                      <span key={value.id} className="text-xs bg-gray-200 px-2 py-1 border">
-                        {value.value}
-                      </span>
-                    ))}
-                    {filter.assignedValues.length > 3 && (
-                      <span className="text-xs text-gray-500">+{filter.assignedValues.length - 3} more</span>
-                    )}
+                  <div className="font-medium">{filter.key}</div>
+                  <div className="text-sm text-gray-600">
+                    {filter.assignedValues.length} value(s) • Priority: {filter.priority}
                   </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <div className={`px-3 py-1 text-sm font-bold border-2 ${
-                    filter.isActive 
-                      ? 'bg-green-100 text-green-800 border-green-300' 
-                      : 'bg-red-100 text-red-800 border-red-300'
-                  }`}>
-                    {filter.isActive ? 'ACTIVE' : 'INACTIVE'}
-                  </div>
+                <div className="flex items-center gap-2">
                   {filter.isActive ? (
-                    <Check className="h-5 w-5 text-green-600" />
+                    <Check className="h-4 w-4 text-green-600" />
                   ) : (
-                    <X className="h-5 w-5 text-red-600" />
+                    <X className="h-4 w-4 text-red-600" />
                   )}
                 </div>
               </div>
             ))}
           </div>
-          
-          {filters.length === 0 && (
-            <div className="text-center py-12 text-gray-500">
-              <Filter className="h-16 w-16 mx-auto mb-4 text-gray-300" />
-              <p className="text-xl font-bold uppercase tracking-wide">No Filters Available</p>
-              <p className="text-sm mt-2">Create filters in the management panel to see them here</p>
-            </div>
-          )}
         </div>
       </div>
     </div>
@@ -1307,11 +1136,11 @@ const ZaraMobilePreviewInterface = React.memo(({
 });
 
 // Set display names for debugging
-ZaraDesktopManagementInterface.displayName = 'ZaraDesktopManagementInterface';
-ZaraCreateFiltersSection.displayName = 'ZaraCreateFiltersSection';
-ZaraCreateFilterValuesSection.displayName = 'ZaraCreateFilterValuesSection';
-ZaraSavedFiltersSection.displayName = 'ZaraSavedFiltersSection';
-ZaraFilterRow.displayName = 'ZaraFilterRow';
-ZaraMobilePreviewInterface.displayName = 'ZaraMobilePreviewInterface';
+DesktopManagementInterface.displayName = 'DesktopManagementInterface';
+CreateFiltersSection.displayName = 'CreateFiltersSection';
+CreateFilterValuesSection.displayName = 'CreateFilterValuesSection';
+SavedFiltersSection.displayName = 'SavedFiltersSection';
+FilterRow.displayName = 'FilterRow';
+MobilePreviewInterface.displayName = 'MobilePreviewInterface';
 
-export default Filters;
+export default AdvancedMobileFiltersApp;

@@ -1,5 +1,7 @@
 import { Routes, Route } from "react-router-dom";
 import Layout from "./layout/Layout";
+import MobileFiltersApp from './pages/MobileFiltersApp';
+import AdvancedMobileFiltersApp from './pages/AdvancedMobileFiltersApp';
 
 // Import all page components
 import Dashboard from "./pages/dashboard";
@@ -46,7 +48,13 @@ const App = () => {
   return (
     <>
       <Routes>
-        {/* All routes wrapped in Layout to show sidebar and admin interface */}
+        {/* Mobile Filters App - standalone route without Layout */}
+        <Route path="/mobile-filters-app" element={<MobileFiltersApp />} />
+        
+        {/* Advanced Mobile Filters App - enhanced desktop management interface */}
+        <Route path="/advanced-mobile-filters" element={<AdvancedMobileFiltersApp />} />
+        
+        {/* All other routes wrapped in Layout to show sidebar and admin interface */}
         <Route element={<Layout />}>
           {/* ===== DASHBOARD & MAIN ===== */}
           <Route path="/" element={<Dashboard />} />
