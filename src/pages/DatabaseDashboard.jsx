@@ -18,16 +18,23 @@ import {
   Unlock,
   ShoppingCartIcon,
   Box,
-  BoxIcon,
-  CreditCardIcon,
   IndianRupee,
   File,
   X,
   Trash,
   Pen,
-  BotOffIcon,
-  Building,
   Factory,
+  MapPin,
+  Eye,
+  EyeOff,
+  Star,
+  Mars,
+  Venus,
+  Palette,
+  Plus,
+  PencilRuler,
+  RulerDimensionLine,
+  ScrollText,
 } from "lucide-react";
 import TwoFactorAuth from "../components/TwoFactorAuth";
 import DeleteConfirmationModal from "../components/DeleteConfirmationModal";
@@ -550,16 +557,19 @@ const DatabaseDashboard = () => {
 
   // Optimized filtered data with more efficient filtering
   const searchLower = useMemo(() => searchTerm.toLowerCase(), [searchTerm]);
-  
+
   const filteredUsers = useMemo(() => {
     return MOCK_USERS.filter((user) => {
       // Early return for search filter if it fails
       if (searchLower && !user.name.toLowerCase().includes(searchLower)) {
         return false;
       }
-      
+
       // Gender filter
-      if (filters.users.gender !== "all" && user.gender !== filters.users.gender) {
+      if (
+        filters.users.gender !== "all" &&
+        user.gender !== filters.users.gender
+      ) {
         return false;
       }
 
@@ -579,7 +589,8 @@ const DatabaseDashboard = () => {
         const points = user.pointBalance;
         if (
           (filters.users.pointRange === "low" && points >= 500) ||
-          (filters.users.pointRange === "medium" && (points < 500 || points >= 1000)) ||
+          (filters.users.pointRange === "medium" &&
+            (points < 500 || points >= 1000)) ||
           (filters.users.pointRange === "high" && points < 1000)
         ) {
           return false;
@@ -593,21 +604,27 @@ const DatabaseDashboard = () => {
   const filteredOrders = useMemo(() => {
     return MOCK_ORDERS.filter((order) => {
       // Early return for search filter if it fails
-      if (searchLower && 
-          !order.name.toLowerCase().includes(searchLower) &&
-          !order.orderId.toLowerCase().includes(searchLower)) {
+      if (
+        searchLower &&
+        !order.name.toLowerCase().includes(searchLower) &&
+        !order.orderId.toLowerCase().includes(searchLower)
+      ) {
         return false;
       }
 
       // Delivery status filter
-      if (filters.orders.deliveryStatus !== "all" && 
-          order.deliveryStatus !== filters.orders.deliveryStatus) {
+      if (
+        filters.orders.deliveryStatus !== "all" &&
+        order.deliveryStatus !== filters.orders.deliveryStatus
+      ) {
         return false;
       }
 
       // Payment status filter
-      if (filters.orders.paymentStatus !== "all" && 
-          order.paymentStatus !== filters.orders.paymentStatus) {
+      if (
+        filters.orders.paymentStatus !== "all" &&
+        order.paymentStatus !== filters.orders.paymentStatus
+      ) {
         return false;
       }
 
@@ -623,27 +640,39 @@ const DatabaseDashboard = () => {
       }
 
       // Status filter
-      if (filters.products.status !== "all" && product.status !== filters.products.status) {
+      if (
+        filters.products.status !== "all" &&
+        product.status !== filters.products.status
+      ) {
         return false;
       }
 
       // Brand filter
-      if (filters.products.brand !== "all" && product.brand !== filters.products.brand) {
+      if (
+        filters.products.brand !== "all" &&
+        product.brand !== filters.products.brand
+      ) {
         return false;
       }
 
       // Category filter
-      if (filters.products.category !== "all" && 
-          !product.category.includes(filters.products.category)) {
+      if (
+        filters.products.category !== "all" &&
+        !product.category.includes(filters.products.category)
+      ) {
         return false;
       }
 
       // Stock level filter with optimized calculation
       if (filters.products.stockLevel !== "all") {
-        const totalStock = product.variants.reduce((sum, variant) => sum + variant.stock, 0);
+        const totalStock = product.variants.reduce(
+          (sum, variant) => sum + variant.stock,
+          0
+        );
         if (
           (filters.products.stockLevel === "low" && totalStock >= 50) ||
-          (filters.products.stockLevel === "medium" && (totalStock < 50 || totalStock >= 150)) ||
+          (filters.products.stockLevel === "medium" &&
+            (totalStock < 50 || totalStock >= 150)) ||
           (filters.products.stockLevel === "high" && totalStock < 150)
         ) {
           return false;
@@ -820,7 +849,7 @@ const DatabaseDashboard = () => {
     setFilters((prev) => {
       // Only update if value actually changed
       if (prev[tab][filterType] === value) return prev;
-      
+
       return {
         ...prev,
         [tab]: {
@@ -838,7 +867,7 @@ const DatabaseDashboard = () => {
         acc[key] = "all";
         return acc;
       }, {});
-      
+
       return {
         ...prev,
         [tab]: resetValues,
@@ -968,36 +997,48 @@ const DatabaseDashboard = () => {
   }, []);
 
   // Memoize tab configuration to prevent recreation
-  const tabConfig = useMemo(() => [
-    {
-      key: "users",
-      icon: <User className="w-4 h-4" />,
-      label: "User Data",
-      desc: "Profile & Account Info",
-    },
-    {
-      key: "orders",
-      icon: <ShoppingCart className="w-4 h-4" />,
-      label: "Order Data",
-      desc: "Order History & Details",
-    },
-    {
-      key: "products",
-      icon: <PackageCheck className="w-4 h-4" />,
-      label: "Product Data",
-      desc: "Inventory & Variants",
-    },
-  ], []);
+  const tabConfig = useMemo(
+    () => [
+      {
+        key: "users",
+        icon: <User className="w-4 h-4" />,
+        label: "User Data",
+        desc: "Profile & Account Info",
+      },
+      {
+        key: "orders",
+        icon: <ShoppingCart className="w-4 h-4" />,
+        label: "Order Data",
+        desc: "Order History & Details",
+      },
+      {
+        key: "products",
+        icon: <PackageCheck className="w-4 h-4" />,
+        label: "Product Data",
+        desc: "Inventory & Variants",
+      },
+    ],
+    []
+  );
 
   // Memoize result count for performance
   const currentResultCount = useMemo(() => {
     switch (activeTab) {
-      case "users": return filteredUsers.length;
-      case "orders": return filteredOrders.length;
-      case "products": return filteredProducts.length;
-      default: return 0;
+      case "users":
+        return filteredUsers.length;
+      case "orders":
+        return filteredOrders.length;
+      case "products":
+        return filteredProducts.length;
+      default:
+        return 0;
     }
-  }, [activeTab, filteredUsers.length, filteredOrders.length, filteredProducts.length]);
+  }, [
+    activeTab,
+    filteredUsers.length,
+    filteredOrders.length,
+    filteredProducts.length,
+  ]);
 
   // Optimize search input handler
   const handleSearchChange = useCallback((e) => {
@@ -1186,7 +1227,6 @@ const DatabaseDashboard = () => {
             })}
           </div>
         </div>
-
 
         {/* Content Area */}
         <div className="bg-white rounded-[8px] border border-gray-200 p-[20px]">
@@ -1415,11 +1455,13 @@ const DatabaseDashboard = () => {
                                     : "border-gray-300 bg-white text-gray-700"
                                 }`}
                               >
-                                {isSensitiveDataVisible(user.id, "email")
-                                  ? "🙈"
-                                  : authenticated2FAUsers.has(user.id)
-                                  ? "✅👁️"
-                                  : "🔐👁️"}
+                                {isSensitiveDataVisible(user.id, "email") ? (
+                                  "🙈"
+                                ) : authenticated2FAUsers.has(user.id) ? (
+                                  <Eye className="w-4 h-4" />
+                                ) : (
+                                  <EyeOff className="w-4 h-4" />
+                                )}
                               </button>
                             )}
                           </div>
@@ -1455,11 +1497,13 @@ const DatabaseDashboard = () => {
                                     : "border-gray-300 bg-white text-gray-700"
                                 }`}
                               >
-                                {isSensitiveDataVisible(user.id, "phone")
-                                  ? "🙈"
-                                  : authenticated2FAUsers.has(user.id)
-                                  ? "✅👁️"
-                                  : "🔐👁️"}
+                                {isSensitiveDataVisible(user.id, "phone") ? (
+                                  "🙈"
+                                ) : authenticated2FAUsers.has(user.id) ? (
+                                  <Eye className="w-4 h-4" />
+                                ) : (
+                                  <EyeOff className="w-4 h-4" />
+                                )}
                               </button>
                             )}
                           </div>
@@ -1488,11 +1532,16 @@ const DatabaseDashboard = () => {
                                     : "border-gray-300 bg-white text-gray-700"
                                 }`}
                               >
-                                {isSensitiveDataVisible(user.id, "dateOfBirth")
-                                  ? "🙈"
-                                  : authenticated2FAUsers.has(user.id)
-                                  ? "✅👁️"
-                                  : "🔐👁️"}
+                                {isSensitiveDataVisible(
+                                  user.id,
+                                  "dateOfBirth"
+                                ) ? (
+                                  "🙈"
+                                ) : authenticated2FAUsers.has(user.id) ? (
+                                  <Eye className="w-4 h-4" />
+                                ) : (
+                                  <EyeOff className="w-4 h-4" />
+                                )}
                               </button>
                             )}
                           </div>
@@ -1517,7 +1566,8 @@ const DatabaseDashboard = () => {
                                     {maskAddress(user.address).pincode}
                                   </div>
                                   <div className="text-[11px] text-gray-500">
-                                    📍 {maskAddress(user.address).landmark}
+                                    <MapPin className="h-4 w-4 inline-block" />{" "}
+                                    {maskAddress(user.address).landmark}
                                   </div>
                                 </div>
                               ) : (
@@ -1534,7 +1584,8 @@ const DatabaseDashboard = () => {
                                     <strong>PIN:</strong> {user.address.pincode}
                                   </div>
                                   <div className="text-[11px] text-gray-500">
-                                    📍 {user.address.landmark}
+                                    <MapPin className="h-4 w-4 inline-block" />{" "}
+                                    {user.address.landmark}
                                   </div>
                                 </div>
                               )}
@@ -1550,11 +1601,13 @@ const DatabaseDashboard = () => {
                                     : "border-gray-300 bg-white text-gray-700"
                                 }`}
                               >
-                                {isSensitiveDataVisible(user.id, "address")
-                                  ? "🙈"
-                                  : authenticated2FAUsers.has(user.id)
-                                  ? "✅👁️"
-                                  : "🔐👁️"}
+                                {isSensitiveDataVisible(user.id, "address") ? (
+                                  "🙈"
+                                ) : authenticated2FAUsers.has(user.id) ? (
+                                  <Eye className="w-4 h-4" />
+                                ) : (
+                                  <EyeOff className="w-4 h-4" />
+                                )}
                               </button>
                             )}
                           </div>
@@ -1564,7 +1617,9 @@ const DatabaseDashboard = () => {
                         </td>
                         <td className="p-3 border-b border-gray-100">
                           <div className="flex items-center gap-1">
-                            <span>⭐</span>
+                            <span>
+                              <Star className="w-4 h-4" />
+                            </span>
                             <span className="font-semibold">
                               {user.appReviews.rating}
                             </span>
@@ -1579,7 +1634,13 @@ const DatabaseDashboard = () => {
                         </td>
                         <td className="p-3 border-b border-gray-100">
                           <div className="flex items-center gap-1">
-                            <span>{user.gender === "male" ? "👨" : "👩"}</span>
+                            <span>
+                              {user.gender === "male" ? (
+                                <Mars className="w-4 h-4 inline-block" />
+                              ) : (
+                                <Venus className="w-4 h-4 inline-block" />
+                              )}
+                            </span>
                             <span className="capitalize">{user.gender}</span>
                           </div>
                         </td>
@@ -1598,11 +1659,13 @@ const DatabaseDashboard = () => {
                                   : "border-gray-300 bg-white text-gray-700"
                               }`}
                             >
-                              {showPassword[user.id]
-                                ? "🙈"
-                                : authenticated2FAUsers.has(user.id)
-                                ? "✅👁️"
-                                : "🔐👁️"}
+                              {showPassword[user.id] ? (
+                                "🙈"
+                              ) : authenticated2FAUsers.has(user.id) ? (
+                                <Eye className="w-4 h-4" />
+                              ) : (
+                                <EyeOff className="w-4 h-4" />
+                              )}
                             </button>
                           </div>
                           <div
@@ -1613,20 +1676,12 @@ const DatabaseDashboard = () => {
                             }`}
                           >
                             {authenticated2FAUsers.has(user.id)
-                              ? "✅ 2FA Authenticated"
-                              : "🔐 Requires 2FA Authentication"}
+                              ? "2FA Authenticated"
+                              : "Requires 2FA Authentication"}
                           </div>
                         </td>
                         <td className="p-3 border-b border-gray-100">
-                          <div className="flex items-center gap-1 px-2 py-1 bg-green-50 border border-green-200 rounded-md">
-                            <span>💰</span>
-                            <span className="font-semibold text-green-700">
-                              {user.pointBalance}
-                            </span>
-                            <span className="text-[11px] text-gray-500">
-                              pts
-                            </span>
-                          </div>
+                          {user.pointBalance}
                         </td>
                         <td className="p-3 border-b border-gray-100">
                           <span
@@ -1636,7 +1691,7 @@ const DatabaseDashboard = () => {
                                 : "text-green-600 bg-green-50 border-green-200"
                             }`}
                           >
-                            {user.deleteAccount ? "❌ Deleted" : "✅ Active"}
+                            {user.deleteAccount ? "Deleted" : "Active"}
                           </span>
                         </td>
                       </tr>
@@ -1651,7 +1706,8 @@ const DatabaseDashboard = () => {
           {activeTab === "orders" && (
             <div>
               <h2 className="text-xl font-semibold text-gray-900 mb-5">
-                <ShoppingCartIcon className="h-6 w-6 inline-block mr-1" /> Order History Data
+                <ShoppingCartIcon className="h-6 w-6 inline-block mr-1" /> Order
+                History Data
               </h2>
 
               {filteredOrders.map((order) => (
@@ -1663,7 +1719,8 @@ const DatabaseDashboard = () => {
                   <div className="border-b border-gray-200 pb-4 mb-5 flex justify-between items-center">
                     <div>
                       <h3 className="text-blue-500 text-lg font-semibold mb-1 cursor-pointer">
-                        <Box className="inline-block mr-1" /> Order ID: {order.orderId}
+                        <Box className="inline-block mr-1" /> Order ID:{" "}
+                        {order.orderId}
                       </h3>
                       <div className="text-xs text-gray-500">
                         Order Date: {order.orderDate} | Status:
@@ -1687,33 +1744,37 @@ const DatabaseDashboard = () => {
                           : "bg-yellow-100 text-yellow-800"
                       }`}
                     >
-                      <CreditCard className="inline-block mr-1" /> {order.paymentStatus.toUpperCase()}
+                      <CreditCard className="inline-block mr-1" />{" "}
+                      {order.paymentStatus.toUpperCase()}
                     </div>
                   </div>
 
                   <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                     {/* Customer Information */}
                     <div className="bg-slate-50 p-4 rounded-md border border-slate-200">
-                      <h4 className="mb-3 text-slate-700 flex items-center gap-2">
-                        <User className="h-5 w-5 inline-block mr-1" /> Customer Details
+                      <h4 className="mb-3 text-slate-700 flex items-center gap-2 font-semibold">
+                        <User className="h-5 w-5 inline-block mr-1" /> Customer
+                        Details
                       </h4>
                       <div className="mb-2">
-                        <strong>Name:</strong> {order.name}
-                      </div>
-                      <div className="mb-2">
-                        <strong>Email:</strong> {order.email}
-                      </div>
-                      <div className="mb-3">
-                        <strong>Phone:</strong>
-                        <span className="ml-2 px-2 py-0.5 bg-indigo-100 rounded text-xs">
-                          {order.phone.countryCode} {order.phone.number}
-                        </span>
+                        <div className="space-y-2 flex flex-col">
+                          <div>
+                            <b>Name:</b> {order.name}
+                          </div>
+                          <div>
+                            <b>Email:</b> {order.email}
+                          </div>
+                          <div>
+                            <b>Phone:</b> {order.phone.countryCode}{" "}
+                            {order.phone.number}
+                          </div>
+                        </div>
                       </div>
                       <div className="p-2 bg-white border border-gray-300 rounded text-xs">
-                        <div>
-                          <strong>📍 Address:</strong>
+                        <div className="font-semibold mb-1 flex items-center gap-1">
+                          <MapPin className="w-h h-4" /> Address:
                         </div>
-                        <div>{order.address.street}</div>
+                        {order.address.street}
                         <div>
                           {order.address.city}, {order.address.state}
                         </div>
@@ -1726,47 +1787,48 @@ const DatabaseDashboard = () => {
 
                     {/* Product Details */}
                     <div className="bg-green-50 p-4 rounded-md border border-green-200">
-                      <h4 className="mb-3 text-slate-700 flex items-center gap-2">
-                        <Box className="h-5 w-5 inline-block mr-1" /> Product Information
+                      <h4 className="mb-3 text-slate-700 flex items-center gap-2 font-semibold">
+                        <Box className="h-5 w-5 inline-block mr-1" /> Product
+                        Information
                       </h4>
                       <div className="mb-2">
-                        <strong>SKU Format:</strong>
+                        <div className="font-semibold">SKU Format:</div>
                         <div className="font-mono text-xs p-2 bg-white border border-gray-300 rounded mt-1 break-all">
                           {order.sku}
                         </div>
                       </div>
                       <div className="mb-2">
-                        <strong>Barcode (14-digit):</strong>
-                        <div className="font-mono text-sm font-semibold tracking-wider">
-                          {order.barcode}
-                        </div>
+                        <div className="font-semibold">Barcode (14-digit):</div>
+                        <div className="font-mono">{order.barcode}</div>
                       </div>
                       <div>
-                        <strong>HSN Code (8-digit):</strong>
-                        <span className="ml-2 font-mono font-semibold text-emerald-600">
+                        <div className="font-semibold">HSN Code (8-digit):</div>
+                        <div className="font-mono text-emerald-600">
                           {order.hsnCode}
-                        </span>
+                        </div>
                       </div>
                     </div>
 
                     {/* Pricing Information */}
                     <div className="bg-yellow-50 p-4 rounded-md border border-yellow-300">
-                      <h4 className="mb-3 text-slate-700 flex items-center gap-2">
-                        <IndianRupee className="h-5 w-5 inline-block mr-1" /> Multi-Platform Pricing
+                      <h4 className="mb-3 text-slate-700 flex items-center gap-2 font-semibold">
+                        <IndianRupee className="h-5 w-5 inline-block mr-1" />{" "}
+                        Multi-Platform Pricing
                       </h4>
-                      <div className="grid grid-cols-2 gap-2 text-sm">
-                        <div>
-                          <strong>Website:</strong> ₹{order.prices.website}
-                        </div>
-                        <div>
-                          <strong>App:</strong> ₹{order.prices.app}
-                        </div>
-                        <div>
-                          <strong>Wholesale:</strong> ₹{order.prices.wholesale}
-                        </div>
-                        <div>
-                          <strong>Marketplace:</strong> ₹
-                          {order.prices.marketplace}
+                      <div className="mb-2">
+                        <div className="space-y-2 flex flex-col">
+                          <div>
+                            <b>Website:</b> ₹{order.prices.website}
+                          </div>
+                          <div>
+                            <b>App:</b> ₹{order.prices.app}
+                          </div>
+                          <div>
+                            <b>Wholesale:</b> ₹{order.prices.wholesale}
+                          </div>
+                          <div>
+                            <b>Marketplace:</b> ₹{order.prices.marketplace}
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -1775,7 +1837,8 @@ const DatabaseDashboard = () => {
                   {/* Documents Section */}
                   <div className="mt-5 p-4 bg-slate-100 border border-slate-300 rounded-md">
                     <h4 className="mb-3 flex items-center gap-2">
-                      <File className="h-5 w-5 inline-block mr-1" /> Document Management
+                      <File className="h-5 w-5 inline-block mr-1" /> Document
+                      Management
                     </h4>
                     <div className="flex gap-2 flex-wrap mb-3">
                       {order.documents.map((doc, idx) => (
@@ -1784,7 +1847,8 @@ const DatabaseDashboard = () => {
                           onClick={() => openDocumentPreview(doc)}
                           className="px-3 py-2 bg-blue-500 text-white text-xs rounded flex items-center gap-1 hover:bg-blue-600"
                         >
-                          <File className="h-5 w-5 inline-block mr-1" /> View {doc.type}
+                          <File className="h-5 w-5 inline-block mr-1" /> View{" "}
+                          {doc.type}
                           {doc.sides !== "single" && (
                             <span className="text-[10px] bg-white/20 px-1 rounded">
                               {doc.sides}
@@ -1797,7 +1861,8 @@ const DatabaseDashboard = () => {
                     <div className="flex justify-between items-center">
                       <div>
                         <button className="px-4 py-2 bg-emerald-600 text-white rounded text-xs">
-                          <File className="h-5 w-5 inline-block mr-1" /> Invoice Details - {order.invoiceDetails.invoiceNo}
+                          <File className="h-5 w-5 inline-block mr-1" /> Invoice
+                          Details - {order.invoiceDetails.invoiceNo}
                         </button>
                       </div>
                       <div className="text-xs text-gray-500">
@@ -1815,7 +1880,8 @@ const DatabaseDashboard = () => {
           {activeTab === "products" && (
             <div>
               <h2 className="text-[20px] font-semibold text-[#111827] mb-[20px]">
-                <Box className="h-5 w-5 inline-block mr-1" /> Product Inventory Data
+                <Box className="h-5 w-5 inline-block mr-1" /> Product Inventory
+                Data
               </h2>
 
               {filteredProducts.map((product) => (
@@ -1834,7 +1900,8 @@ const DatabaseDashboard = () => {
                         Launched: {product.launchDate}
                       </div>
                       <div className="text-[12px] text-[#6b7280] mt-[3px]">
-                        ⭐ {product.rating}/5 ({product.reviewCount} reviews)
+                        <Star className="w-4 h-4 inline-block" />{" "}
+                        {product.rating}/5 ({product.reviewCount} reviews)
                       </div>
                     </div>
                     <div
@@ -1869,12 +1936,12 @@ const DatabaseDashboard = () => {
                     </div>
 
                     {/* Product Details */}
-                    <div>
+                    <div className="space-y-6">
                       {/* Color & Size Variants */}
-                      <div className="mb-[20px]">
-                        <h4 className="m-0 mb-[10px] flex items-center gap-[8px]">
-                          🎨 Available Variants ({product.variants.length}{" "}
-                          total)
+                      <div>
+                        <h4 className="m-0 mb-[8px] text-[#374151] flex items-center gap-2">
+                          <Palette /> Available Variants (
+                          {product.variants.length} total)
                         </h4>
                         <div className="grid grid-cols-[repeat(auto-fill,minmax(140px,1fr))] gap-[8px]">
                           {product.variants.map((variant, idx) => (
@@ -1906,8 +1973,8 @@ const DatabaseDashboard = () => {
                       </div>
 
                       {/* Product Information */}
-                      <div className="mb-[15px]">
-                        <h4 className="m-0 mb-[8px] text-[#374151]">
+                      <div>
+                        <h4 className="m-0 mb-[8px] text-[#374151] flex items-center gap-2">
                           <File /> Product Description
                         </h4>
                         <p className="m-0 text-[#6b7280] text-[13px] leading-[1.5] bg-[#f9fafb] p-[10px] rounded-[4px] border border-[#e5e7eb]">
@@ -1915,8 +1982,8 @@ const DatabaseDashboard = () => {
                         </p>
                       </div>
 
-                      <div className="mb-[15px]">
-                        <h4 className="m-0 mb-[8px] text-[#374151]">
+                      <div>
+                        <h4 className="m-0 mb-[8px] text-[#374151] flex items-center gap-2">
                           <Factory /> Manufacturing Details
                         </h4>
                         <p className="m-0 text-[#6b7280] text-[13px] bg-[#f0fdf4] p-[10px] rounded-[4px] border border-[#bbf7d0]">
@@ -1924,8 +1991,8 @@ const DatabaseDashboard = () => {
                         </p>
                       </div>
 
-                      <div className="mb-[20px]">
-                        <h4 className="m-0 mb-[8px] text-[#374151]">
+                      <div>
+                        <h4 className="m-0 mb-[8px] text-[#374151] flex items-center gap-2">
                           <Truck /> Shipping & Returns Policy
                         </h4>
                         <p className="m-0 text-[#6b7280] text-[13px] bg-[#fef3c7] p-[10px] rounded-[4px] border border-[#fde047]">
@@ -1939,7 +2006,8 @@ const DatabaseDashboard = () => {
                           onClick={() => openSizeChart(product.sizeCharts)}
                           className="px-[16px] py-[10px] bg-[#8b5cf6] text-white border-none rounded-[6px] cursor-pointer text-[12px] font-semibold flex items-center gap-[6px]"
                         >
-                          <Pen className="h-4 w-4" /> View Size Charts ({product.sizeCharts.length})
+                          <Eye className="h-4 w-4" /> View Size Charts (
+                          {product.sizeCharts.length})
                         </button>
                         <button
                           onClick={() => handleEditSizeCharts(product)}
@@ -2029,12 +2097,14 @@ const DatabaseDashboard = () => {
           <div className="bg-white rounded-[8px] p-[20px] max-w-[900px] w-[90%] max-h-[80vh] overflow-y-auto">
             {/* Header */}
             <div className="flex justify-between items-center mb-[20px]">
-              <h3 className="m-0">📏 Size Charts Reference</h3>
+              <h3 className="flex items-center gap-2 font-semibold">
+                <RulerDimensionLine /> Size Charts Reference
+              </h3>
               <button
                 onClick={() => setSizeChartPreview(null)}
                 className="px-[12px] py-[8px] bg-[#ef4444] text-white border-none rounded-[4px] cursor-pointer font-semibold"
               >
-                ✕ Close
+                <X className="h-6 w-6" />
               </button>
             </div>
 
@@ -2056,8 +2126,8 @@ const DatabaseDashboard = () => {
                   </div>
 
                   {/* Placeholder area */}
-                  <div className="h-[320px] bg-[#f3f4f6] flex items-center justify-center text-[64px]">
-                    📏
+                  <div className="h-[320px] bg-[#f3f4f6] flex items-center justify-center">
+                    <PencilRuler className="h-10 w-10" />
                   </div>
 
                   {/* Footer */}
@@ -2070,8 +2140,10 @@ const DatabaseDashboard = () => {
 
             {/* Notes Section */}
             <div className="mt-[20px] p-[15px] bg-[#f0fdf4] rounded-[6px] border border-[#bbf7d0]">
-              <div className="text-[12px] text-[#374151]">
-                <strong>📋 Size Chart Notes:</strong>
+              <div className="text-sm text-[#374151]">
+                <div className="flex items-center gap-2 font-semibold">
+                  <ScrollText className="w-4 h-4" /> Size Chart Notes:
+                </div>
                 <ul className="mt-[8px] pl-[20px] list-disc">
                   <li>All measurements are in inches/cm as specified</li>
                   <li>
@@ -2130,12 +2202,14 @@ const DatabaseDashboard = () => {
           <div className="bg-white rounded-[8px] p-[30px] max-w-[800px] w-[90%] max-h-[80vh] overflow-y-auto shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)]">
             {/* Header */}
             <div className="flex justify-between items-center mb-[25px]">
-              <h3 className="m-0 text-[24px] font-semibold">✏️ Edit Product</h3>
+              <h3 className="text-[24px] font-semibold flex items-center gap-2">
+                <Pen /> Edit Product
+              </h3>
               <button
                 onClick={handleCancelEdit}
                 className="px-[12px] py-[8px] bg-[#ef4444] text-white border-none rounded-[4px] cursor-pointer font-semibold"
               >
-                ✕ Cancel
+                <X className="h-6 w-6" />
               </button>
             </div>
 
@@ -2260,7 +2334,7 @@ const DatabaseDashboard = () => {
                 onClick={handleSaveProductChanges}
                 className="px-[24px] py-[12px] bg-[#059669] text-white border-none rounded-[6px] cursor-pointer text-[14px] font-semibold"
               >
-                💾 Save Changes
+                Save Changes
               </button>
             </div>
           </div>
@@ -2272,14 +2346,14 @@ const DatabaseDashboard = () => {
         <div className="fixed inset-0 bg-[rgba(0,0,0,0.7)] flex items-center justify-center z-[1000]">
           <div className="bg-white rounded-[8px] p-[30px] max-w-[900px] w-[90%] max-h-[80vh] overflow-y-auto shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)]">
             <div className="flex justify-between items-center mb-[25px]">
-              <h3 className="m-0 text-[24px] font-semibold">
-                📏 Edit Size Charts
+              <h3 className="m-0 text-[24px] font-semibold flex items-center gap-2">
+                <PencilRuler className="h-6 w-6" /> Edit Size Charts
               </h3>
               <button
                 onClick={handleCancelSizeChartEdit}
-                className="px-[12px] py-[8px] bg-[#ef4444] text-white border-none rounded-[4px] cursor-pointer font-semibold"
+                className="p-1 bg-[#ef4444] text-white border-none rounded-[4px] cursor-pointer font-semibold"
               >
-                ✕ Cancel
+                <X className="h-6 w-6" />
               </button>
             </div>
 
@@ -2288,7 +2362,7 @@ const DatabaseDashboard = () => {
                 onClick={handleAddSizeChart}
                 className="px-[16px] py-[10px] bg-[#3b82f6] text-white border-none rounded-[6px] cursor-pointer text-[12px] font-semibold flex items-center gap-[6px]"
               >
-                ➕ Add Size Chart
+                <Plus className="h-5 w-5" /> Add Size Chart
               </button>
             </div>
 
@@ -2304,9 +2378,9 @@ const DatabaseDashboard = () => {
                     </h4>
                     <button
                       onClick={() => handleRemoveSizeChart(chart.id)}
-                      className="py-2 px-4 bg-[#ef4444] text-white rounded-lg font-semibold text-sm"
+                      className="text-[#ef4444] rounded-lg font-semibold text-sm"
                     >
-                      🗑️ Remove
+                      <Trash className="h-5 w-5" />
                     </button>
                   </div>
 
@@ -2378,9 +2452,9 @@ const DatabaseDashboard = () => {
               </button>
               <button
                 onClick={handleSaveSizeCharts}
-                className="py-3 px-6 bg-[#059669] text-white rounded-lg font-semibold text-sm cursor-pointer"
+                className="py-3 px-6 bg-[#059669] text-white rounded-lg font-semibold text-sm cursor-pointer flex items-center gap-2"
               >
-                📏 Save Size Charts
+                <PencilRuler className="h-4 w-4" /> Save Size Charts
               </button>
             </div>
           </div>
