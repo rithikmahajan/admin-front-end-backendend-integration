@@ -1,13 +1,13 @@
 /**
  * Points Management System Component
- * 
+ *
  * A comprehensive points management interface that allows administrators to:
  * - Enable/disable the points system with 2FA verification
  * - Manage user points allocation and redemption
  * - View and edit user accounts and their point balances
  * - Delete user accounts with confirmation
  * - Search and filter user accounts
- * 
+ *
  * Features:
  * - Two-factor authentication for system changes
  * - Real-time user management with CRUD operations
@@ -15,94 +15,106 @@
  * - Responsive design with comprehensive state management
  */
 
-import React, { useState, useCallback, useMemo, memo } from 'react';
-import { ChevronDown, Search, Edit2, Trash2, Filter } from 'lucide-react';
-import TwoFactorAuth from '../components/TwoFactorAuth';
-import SuccessModal from '../components/SuccessModal';
+import React, { useState, useCallback, useMemo, memo } from "react";
+import { ChevronDown, Search, Edit2, Trash2, Filter } from "lucide-react";
+import TwoFactorAuth from "../components/TwoFactorAuth";
+import SuccessModal from "../components/SuccessModal";
 
 // Constants
 const INITIAL_USER_DATA = {
-  name: 'user name',
-  userId: 'user id',
-  phone: 'phone no.',
-  email: 'email id',
+  name: "user name",
+  userId: "user id",
+  phone: "phone no.",
+  email: "email id",
   totalPointsAlloted: 1000000,
   totalPointsRedeemed: 10,
   balance: 5,
-  deletedAccount: false
+  deletedAccount: false,
 };
 
-const INITIAL_OTP_STATE = ['', '', '', ''];
+const INITIAL_OTP_STATE = ["", "", "", ""];
 
 // Memoized Toggle Button component for better performance
-const ToggleButton = memo(({ 
-  isActive, 
-  onClick, 
-  children, 
-  width = "w-[69px]" 
-}) => (
-  <button
-    onClick={onClick}
-    className={`h-[34px] ${width} rounded-[100px] border flex items-center justify-center ${
-      isActive 
-        ? 'bg-[#000aff] text-white border-black' 
-        : 'bg-white text-black border-[#e4e4e4]'
-    }`}
-  >
-    <span className="text-[16px] font-medium">{children}</span>
-  </button>
-));
+const ToggleButton = memo(
+  ({ isActive, onClick, children, width = "w-[72px]" }) => (
+    <button
+      onClick={onClick}
+      className={`h-9 ${width} rounded-full border text-sm font-medium transition-colors duration-150 flex items-center justify-center
+        ${
+          isActive
+            ? "bg-blue-600 text-white border-blue-700 shadow-sm"
+            : "bg-white text-gray-800 border-gray-300 hover:bg-gray-50"
+        }`}
+    >
+      {children}
+    </button>
+  )
+);
 
 // Memoized UserRow component for better performance
-const UserRow = memo(({ 
-  user, 
-  onAllotNow, 
-  onEditUser, 
-  onDeleteUser 
-}) => (
-  <div className="grid grid-cols-11 gap-4 items-center">
-    <div className="text-[20px] text-black text-center">{user.name}</div>
-    <div className="text-[16px] text-black text-center">{user.userId}</div>
-    <div className="text-[16px] text-black text-center">{user.phone}</div>
-    <div className="text-[16px] text-black text-center">{user.email}</div>
-    <div className="flex justify-center">
-      <div className="w-[133px] h-[47px] border-2 border-black rounded-xl flex items-center justify-center">
-        <span className="text-[21px] text-[#4379ee] font-medium">{user.totalPointsAlloted.toLocaleString()}</span>
-      </div>
+const UserRow = memo(({ user, onAllotNow, onEditUser, onDeleteUser }) => (
+  <div className="grid grid-cols-11 gap-4 items-center px-4 py-3 bg-white hover:bg-gray-50 transition rounded-md shadow-sm">
+    <div className="text-sm font-medium text-gray-900 text-center">
+      {user.name}
     </div>
-    <div className="flex justify-center">
-      <div className="w-[133px] h-[47px] border-2 border-black rounded-xl flex items-center justify-center">
-        <span className="text-[21px] text-black font-medium">{user.totalPointsRedeemed}</span>
-      </div>
+    <div className="text-sm text-gray-700 text-center">{user.userId}</div>
+    <div className="text-sm text-gray-700 text-center">{user.phone}</div>
+    <div className="text-sm text-gray-700 text-center truncate">
+      {user.email}
     </div>
-    <div className="flex justify-center">
-      <div className="w-[133px] h-[47px] border-2 border-black rounded-xl flex items-center justify-center">
-        <span className="text-[21px] text-[#ef3826] font-medium">{user.balance}</span>
-      </div>
+
+    <div className="text-center">
+      <span className="inline-block px-3 py-1 text-sm font-semibold text-blue-600 bg-blue-50 border border-blue-200 rounded-lg">
+        {user.totalPointsAlloted.toLocaleString()}
+      </span>
     </div>
-    <div className="text-[16px] text-black text-center">{user.deletedAccount ? 'Yes' : 'No'}</div>
-    <div className="flex justify-center">
+
+    <div className="text-center">
+      <span className="inline-block px-3 py-1 text-sm font-semibold text-gray-800 bg-gray-100 border border-gray-300 rounded-lg">
+        {user.totalPointsRedeemed}
+      </span>
+    </div>
+
+    <div className="text-center">
+      <span className="inline-block px-3 py-1 text-sm font-semibold text-red-600 bg-red-50 border border-red-200 rounded-lg">
+        {user.balance}
+      </span>
+    </div>
+
+    <div className="text-sm text-gray-700 text-center">
+      {user.deletedAccount ? (
+        <span className="text-red-500 font-semibold">Yes</span>
+      ) : (
+        <span className="text-green-600 font-semibold">No</span>
+      )}
+    </div>
+
+    <div className="text-center">
       <button
         onClick={() => onAllotNow(user.id)}
-        className="bg-[#000aff] text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-[14px] border border-[#7280ff] shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)]"
+        className="px-4 py-1.5 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition"
       >
-        Allot NOW
+        Allot
       </button>
     </div>
-    <div className="flex justify-center">
+
+    <div className="text-center">
       <button
         onClick={() => onEditUser(user)}
-        className="p-2 hover:bg-gray-100 rounded-lg"
+        className="p-2 rounded-full hover:bg-gray-100 transition"
+        title="Edit user"
       >
         <Edit2 className="w-5 h-5 text-gray-600" />
       </button>
     </div>
-    <div className="flex justify-center">
+
+    <div className="text-center">
       <button
         onClick={() => onDeleteUser(user.id)}
-        className="p-2 hover:bg-gray-100 rounded-lg"
+        className="p-2 rounded-full hover:bg-gray-100 transition"
+        title="Delete user"
       >
-        <Trash2 className="w-5 h-5 text-red-600" />
+        <Trash2 className="w-5 h-5 text-red-500" />
       </button>
     </div>
   </div>
@@ -111,22 +123,22 @@ const UserRow = memo(({
 const Points = () => {
   /**
    * REFACTORING IMPROVEMENTS APPLIED:
-   * 
+   *
    * 1. Performance Optimizations:
    *    - Added useCallback for event handlers to prevent unnecessary re-renders
    *    - Added useMemo for filtered data and computed values
    *    - Extracted constants to prevent recreation on each render
-   * 
+   *
    * 2. State Management:
    *    - Grouped related state variables logically
    *    - Created helper functions for state resets
    *    - Better state initialization patterns
-   * 
+   *
    * 3. Code Organization:
    *    - Moved constants outside component
    *    - Organized functions by functionality
    *    - Added comprehensive documentation
-   * 
+   *
    * 4. Maintainability:
    *    - Consistent naming conventions
    *    - Better error handling
@@ -135,20 +147,22 @@ const Points = () => {
 
   // Points System State
   const [pointsSystemEnabled, setPointsSystemEnabled] = useState(true);
-  const [issuePoints, setIssuePoints] = useState('');
-  const [pointGenerationBasis, setPointGenerationBasis] = useState('');
-  const [pointsToGive, setPointsToGive] = useState('');
-  const [searchTerm, setSearchTerm] = useState('');
+  const [issuePoints, setIssuePoints] = useState("");
+  const [pointGenerationBasis, setPointGenerationBasis] = useState("");
+  const [pointsToGive, setPointsToGive] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
 
   // Modal States - System Toggle
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
-  const [showOffConfirmationModal, setShowOffConfirmationModal] = useState(false);
+  const [showOffConfirmationModal, setShowOffConfirmationModal] =
+    useState(false);
   const [show2FAModal, setShow2FAModal] = useState(false);
   const [showOff2FAModal, setShowOff2FAModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showOffSuccessModal, setShowOffSuccessModal] = useState(false);
   const [showFinalSuccessModal, setShowFinalSuccessModal] = useState(false);
-  const [showOffFinalSuccessModal, setShowOffFinalSuccessModal] = useState(false);
+  const [showOffFinalSuccessModal, setShowOffFinalSuccessModal] =
+    useState(false);
 
   // Modal States - User Management
   const [showEditModal, setShowEditModal] = useState(false);
@@ -164,30 +178,36 @@ const Points = () => {
   const [deletingUserId, setDeletingUserId] = useState(null);
   // eslint-disable-next-line no-unused-vars
   const [editingUser, setEditingUser] = useState(null);
-  const [editUserName, setEditUserName] = useState('');
-  const [editUserId, setEditUserId] = useState('');
-  const [editPhoneNo, setEditPhoneNo] = useState('');
-  const [editEmailId, setEditEmailId] = useState('');
-  const [editTotalPointsAlloted, setEditTotalPointsAlloted] = useState('');
-  const [editTotalPointsRedeemed, setEditTotalPointsRedeemed] = useState('');
-  const [editBalance, setEditBalance] = useState('');
+  const [editUserName, setEditUserName] = useState("");
+  const [editUserId, setEditUserId] = useState("");
+  const [editPhoneNo, setEditPhoneNo] = useState("");
+  const [editEmailId, setEditEmailId] = useState("");
+  const [editTotalPointsAlloted, setEditTotalPointsAlloted] = useState("");
+  const [editTotalPointsRedeemed, setEditTotalPointsRedeemed] = useState("");
+  const [editBalance, setEditBalance] = useState("");
 
   // Users Data - Lazy initialization to prevent recreation on each render
   const [users, setUsers] = useState(() => [
     { id: 1, ...INITIAL_USER_DATA },
-    { id: 2, ...INITIAL_USER_DATA }
+    { id: 2, ...INITIAL_USER_DATA },
   ]);
 
   // Computed Values - Using memoized function to calculate dynamic summary
   const summaryData = useMemo(() => {
-    const totalPointsAlloted = users.reduce((sum, user) => sum + user.totalPointsAlloted, 0);
-    const totalPointsRedeemed = users.reduce((sum, user) => sum + user.totalPointsRedeemed, 0);
+    const totalPointsAlloted = users.reduce(
+      (sum, user) => sum + user.totalPointsAlloted,
+      0
+    );
+    const totalPointsRedeemed = users.reduce(
+      (sum, user) => sum + user.totalPointsRedeemed,
+      0
+    );
     const balance = users.reduce((sum, user) => sum + user.balance, 0);
-    
+
     return {
       totalPointsAlloted,
       totalPointsRedeemed,
-      balance
+      balance,
     };
   }, [users]);
 
@@ -198,22 +218,27 @@ const Points = () => {
 
   const resetEditForm = useCallback(() => {
     setEditingUser(null);
-    setEditUserName('');
-    setEditUserId('');
-    setEditPhoneNo('');
-    setEditEmailId('');
-    setEditTotalPointsAlloted('');
-    setEditTotalPointsRedeemed('');
-    setEditBalance('');
+    setEditUserName("");
+    setEditUserId("");
+    setEditPhoneNo("");
+    setEditEmailId("");
+    setEditTotalPointsAlloted("");
+    setEditTotalPointsRedeemed("");
+    setEditBalance("");
   }, []);
 
   const validateOtpForm = useCallback(() => {
-    const otpString = otpCode.join('');
+    const otpString = otpCode.join("");
     return otpString.length === 4;
   }, [otpCode]);
 
   const validateEditForm = useCallback(() => {
-    return editUserName.trim() && editUserId.trim() && editPhoneNo.trim() && editEmailId.trim();
+    return (
+      editUserName.trim() &&
+      editUserId.trim() &&
+      editPhoneNo.trim() &&
+      editEmailId.trim()
+    );
   }, [editUserName, editUserId, editPhoneNo, editEmailId]);
 
   // Optimized input change handlers
@@ -236,18 +261,15 @@ const Points = () => {
   // Filtered Users - Optimized with early return and case-insensitive search
   const filteredUsers = useMemo(() => {
     if (!searchTerm.trim()) return users;
-    
+
     const searchTermLower = searchTerm.toLowerCase();
-    return users.filter(user =>
-      user.name.toLowerCase().includes(searchTermLower) ||
-      user.userId.toLowerCase().includes(searchTermLower) ||
-      user.email.toLowerCase().includes(searchTermLower)
+    return users.filter(
+      (user) =>
+        user.name.toLowerCase().includes(searchTermLower) ||
+        user.userId.toLowerCase().includes(searchTermLower) ||
+        user.email.toLowerCase().includes(searchTermLower)
     );
   }, [users, searchTerm]);
-
-  // Memoized toggle button handlers for better performance
-  const handleToggleOn = useCallback(() => handleTogglePointsSystem('on'), [handleTogglePointsSystem]);
-  const handleToggleOff = useCallback(() => handleTogglePointsSystem('off'), [handleTogglePointsSystem]);
 
   // Event Handlers - User Management
   const handleEditUser = useCallback((user) => {
@@ -262,20 +284,32 @@ const Points = () => {
     setShowEditModal(true);
   }, []);
 
-  const handleAllotNow = useCallback((userId) => {
-    const user = users.find(u => u.id === userId);
-    if (user) {
-      handleEditUser(user);
-    }
-  }, [users, handleEditUser]);
+  const handleAllotNow = useCallback(
+    (userId) => {
+      const user = users.find((u) => u.id === userId);
+      if (user) {
+        handleEditUser(user);
+      }
+    },
+    [users, handleEditUser]
+  );
 
   const handleTogglePointsSystem = useCallback((status) => {
-    if (status === 'on') {
+    if (status === "on") {
       setShowConfirmationModal(true);
-    } else if (status === 'off') {
+    } else if (status === "off") {
       setShowOffConfirmationModal(true);
     }
   }, []);
+
+  const handleToggleOn = useCallback(
+    () => handleTogglePointsSystem("on"),
+    [handleTogglePointsSystem]
+  );
+  const handleToggleOff = useCallback(
+    () => handleTogglePointsSystem("off"),
+    [handleTogglePointsSystem]
+  );
 
   const handleConfirmToggleOn = useCallback(() => {
     setShowConfirmationModal(false);
@@ -302,19 +336,26 @@ const Points = () => {
       setShowSuccessModal(true);
       resetOtpForm();
     } else {
-      alert('Please fill in all fields');
+      alert("Please fill in all fields");
     }
   }, [validateOtpForm, resetOtpForm]);
 
-  const handleOff2FASubmit = useCallback((data) => {
-    if (data?.verificationCode && data?.verificationPassword && data?.defaultPassword) {
-      setShowOff2FAModal(false);
-      setShowOffSuccessModal(true);
-      resetOtpForm();
-    } else {
-      alert('Please fill in all fields');
-    }
-  }, [resetOtpForm]);
+  const handleOff2FASubmit = useCallback(
+    (data) => {
+      if (
+        data?.verificationCode &&
+        data?.verificationPassword &&
+        data?.defaultPassword
+      ) {
+        setShowOff2FAModal(false);
+        setShowOffSuccessModal(true);
+        resetOtpForm();
+      } else {
+        alert("Please fill in all fields");
+      }
+    },
+    [resetOtpForm]
+  );
 
   const handleSuccessModalDone = useCallback(() => {
     setShowSuccessModal(false);
@@ -373,7 +414,7 @@ const Points = () => {
       setShowEditModal(false);
       setShowEdit2FAModal(true);
     } else {
-      alert('Please fill in all fields');
+      alert("Please fill in all fields");
     }
   }, [validateEditForm]);
 
@@ -383,13 +424,17 @@ const Points = () => {
   }, [resetEditForm]);
 
   const handleEdit2FASubmit = useCallback((data) => {
-    if (data?.verificationCode && data?.verificationPassword && data?.defaultPassword) {
+    if (
+      data?.verificationCode &&
+      data?.verificationPassword &&
+      data?.defaultPassword
+    ) {
       setShowEdit2FAModal(false);
       setShowEditSuccessModal(true);
       // Reset 2FA form using constant to avoid recreation
       setOtpCode(INITIAL_OTP_STATE);
     } else {
-      alert('Please fill in all fields');
+      alert("Please fill in all fields");
     }
   }, []);
 
@@ -408,8 +453,10 @@ const Points = () => {
   }, []);
 
   const handleConfirmDelete = useCallback(() => {
-    if (deletingUserId) { 
-      setUsers(prevUsers => prevUsers.filter(user => user.id !== deletingUserId));
+    if (deletingUserId) {
+      setUsers((prevUsers) =>
+        prevUsers.filter((user) => user.id !== deletingUserId)
+      );
       setShowDeleteModal(false);
       setShowDeleteSuccessModal(true);
       setDeletingUserId(null);
@@ -436,121 +483,158 @@ const Points = () => {
   }, [resetEditForm]);
 
   return (
-    <div className="bg-white min-h-screen relative">
-      {/* Header */}
-      <div className="absolute left-[50px] top-[60px]">
-        <h1 className="text-[32px] font-bold text-black leading-6 mb-2">point management</h1>
-      </div>
+    <div className="min-h-screen bg-gray-50 px-10 py-8">
+      {/* Page Header */}
+      <h1 className="text-3xl font-bold text-gray-900 mb-8">
+        Point Management
+      </h1>
 
-      {/* Toggle Switch */}
-      <div className="absolute left-[346px] top-[60px] flex items-center gap-2">
-        <ToggleButton
-          isActive={pointsSystemEnabled}
-          onClick={handleToggleOn}
-        >
-          On
-        </ToggleButton>
-        <ToggleButton
-          isActive={!pointsSystemEnabled}
-          onClick={handleToggleOff}
-          width="w-[76px]"
-        >
-          Off
-        </ToggleButton>
-      </div>
+      {/* Top Section */}
+      <div className="grid grid-cols-3 gap-10 mb-12">
+        {/* Form Card */}
+        <div className="col-span-2 bg-white p-6 rounded-2xl shadow">
+          <h2 className="text-xl font-semibold text-gray-800 mb-6">
+            Configure Points
+          </h2>
 
-      {/* Issue Points Section */}
-      <div className="absolute left-[50px] top-[195px]">
-        <label className="block text-[21px] font-medium text-black mb-4">
-          Issue points
-        </label>
-        <div className="flex items-center gap-4">
-          <input
-            type="text"
-            value={issuePoints}
-            onChange={handleIssuePointsChange}
-            className="w-[325px] h-[47px] px-4 border-2 border-black rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder=""
-          />
+          {/* Toggle */}
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Points System
+            </label>
+            <div className="flex gap-4">
+              <ToggleButton
+                isActive={pointsSystemEnabled}
+                onClick={() => handleTogglePointsSystem("on")}
+              >
+                On
+              </ToggleButton>
+              <ToggleButton
+                isActive={!pointsSystemEnabled}
+                onClick={() => handleTogglePointsSystem("off")}
+              >
+                Off
+              </ToggleButton>
+            </div>
+          </div>
+
+          {/* Inputs */}
+          <div className="space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Issue points
+              </label>
+              <input
+                type="number"
+                value={issuePoints}
+                onChange={handleIssuePointsChange}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Point generation basis
+              </label>
+              <div className="relative">
+                <select
+                  value={pointGenerationBasis}
+                  onChange={handlePointGenerationBasisChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Select basis</option>
+                  <option value="purchase">Purchase Amount</option>
+                  <option value="referral">Referral</option>
+                  <option value="signup">Sign Up</option>
+                  <option value="review">Product Review</option>
+                </select>
+                <ChevronDown className="absolute right-3 top-3 w-4 h-4 text-gray-500 pointer-events-none" />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Give points to user
+              </label>
+              <input
+                type="text"
+                value={pointsToGive}
+                onChange={handlePointsToGiveChange}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Summary Card */}
+        <div className="bg-white p-6 rounded-2xl shadow">
+          <h2 className="text-xl font-semibold text-gray-800 mb-6">Summary</h2>
+          <ul className="space-y-4 text-sm">
+            <li className="flex justify-between">
+              <span className="text-gray-600">Total Alloted</span>
+              <span className="text-blue-600 font-semibold">
+                {summaryData.totalPointsAlloted.toLocaleString()}
+              </span>
+            </li>
+            <li className="flex justify-between">
+              <span className="text-gray-600">Total Redeemed</span>
+              <span className="font-semibold">
+                {summaryData.totalPointsRedeemed}
+              </span>
+            </li>
+            <li className="flex justify-between">
+              <span className="text-gray-600">Balance</span>
+              <span className="text-red-500 font-semibold">
+                {summaryData.balance}
+              </span>
+            </li>
+          </ul>
         </div>
       </div>
 
-      {/* Point Generation Basis */}
-      <div className="absolute left-[50px] top-[293px]">
-        <label className="block text-[21px] font-medium text-black mb-4">
-          point generated on basis
-        </label>
-        <div className="relative w-[325px]">
-          <select
-            value={pointGenerationBasis}
-            onChange={handlePointGenerationBasisChange}
-            className="w-full h-[47px] px-4 border-2 border-black rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none"
-          >
-            <option value="">Select basis</option>
-            <option value="purchase">Purchase Amount</option>
-            <option value="referral">Referral</option>
-            <option value="signup">Sign Up</option>
-            <option value="review">Product Review</option>
-          </select>
-          <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 w-[18px] h-[18px] text-gray-600 pointer-events-none" />
-        </div>
-      </div>
+      {/* User Table */}
+      <div>
+        <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+          Select User
+        </h2>
 
-      {/* Give Points to User */}
-      <div className="absolute left-[50px] top-[384px]">
-        <label className="block text-[21px] font-medium text-black mb-4">
-          give points to user
-        </label>
-        <input
-          type="text"
-          value={pointsToGive}
-          onChange={handlePointsToGiveChange}
-          className="w-[325px] h-[47px] px-4 border-2 border-black rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
-          placeholder=""
-        />
-      </div>
-
-      {/* Select User Section */}
-      <div className="absolute left-[50px] top-[538px]">
-        <h2 className="text-[32px] font-bold text-black leading-6 mb-6">Select user</h2>
-        
-        {/* Search and Filter */}
-        <div className="flex gap-4 mb-6">
-          <button className="flex items-center gap-2 px-4 py-2 border border-[#d0d5dd] rounded-lg hover:bg-gray-50 bg-white shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)]">
-            <Filter className="w-5 h-5 text-[#344054]" />
-            <span className="text-[14px] text-[#344054]">Filters</span>
+        {/* Filters and Search */}
+        <div className="flex items-center gap-4 mb-6">
+          <button className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 border border-gray-300 rounded-md bg-white hover:bg-gray-100">
+            <Filter className="w-4 h-4" />
+            Filters
           </button>
-          <div className="relative w-[320px]">
-            <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
-              <Search className="w-5 h-5 text-[#667085]" />
+          <div className="relative w-80">
+            <div className="absolute left-3 top-2.5 text-gray-400">
+              <Search className="w-4 h-4" />
             </div>
             <input
               type="text"
               value={searchTerm}
               onChange={handleSearchTermChange}
-              placeholder="Search"
-              className="w-full h-11 pl-10 pr-4 py-2 border border-[#d0d5dd] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] text-[16px] text-[#667085]"
+              placeholder="Search by name, ID, email..."
+              className="w-full pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
         </div>
 
-        {/* User Table Header */}
-        <div className="grid grid-cols-11 gap-4 mb-4">
-          <div className="text-[20px] text-black text-center">user name</div>
-          <div className="text-[16px] text-black text-center">user id</div>
-          <div className="text-[16px] text-black text-center">phone no.</div>
-          <div className="text-[16px] text-black text-center">email id</div>
-          <div className="text-[16px] text-black text-center">total points alloted</div>
-          <div className="text-[16px] text-black text-center">total points redeemed</div>
-          <div className="text-[16px] text-black text-center">balance</div>
-          <div className="text-[16px] text-black text-center">deleted account</div>
-          <div className="text-[16px] text-black text-center">allot points</div>
-          <div className="text-[16px] text-black text-center">edit</div>
-          <div className="text-[16px] text-black text-center">delete</div>
+        {/* Table Header */}
+        <div className="grid grid-cols-11 gap-2 px-4 py-2 bg-gray-100 text-xs font-medium text-gray-700 rounded-t-md">
+          <div>User Name</div>
+          <div>User ID</div>
+          <div>Phone No.</div>
+          <div>Email ID</div>
+          <div>Total Alloted</div>
+          <div>Redeemed</div>
+          <div>Balance</div>
+          <div>Deleted?</div>
+          <div>Allot</div>
+          <div>Edit</div>
+          <div>Delete</div>
         </div>
 
-        {/* User Table Rows */}
-        <div className="space-y-4">
+        {/* Table Rows */}
+        <div className="divide-y">
           {filteredUsers.map((user) => (
             <UserRow
               key={user.id}
@@ -563,57 +647,39 @@ const Points = () => {
         </div>
       </div>
 
-      {/* Summary Sidebar */}
-      <div className="absolute right-[50px] top-[109px] w-[280px]">
-        <h3 className="text-[24px] font-bold text-black leading-6 mb-6">Summary</h3>
-        
-        <div className="space-y-6">
-          <div className="flex justify-between items-center">
-            <span className="text-[21px] text-black">total points alloted</span>
-            <span className="text-[21px] text-[#4379ee] font-medium">
-              {summaryData.totalPointsAlloted.toLocaleString()}
-            </span>
-          </div>
-          
-          <div className="flex justify-between items-center">
-            <span className="text-[21px] text-black">total points redeemed</span>
-            <span className="text-[21px] text-black font-medium">
-              {summaryData.totalPointsRedeemed}
-            </span>
-          </div>
-          
-          <div className="flex justify-between items-center">
-            <span className="text-[21px] text-black">balance</span>
-            <span className="text-[21px] text-[#ef3826] font-medium">
-              {summaryData.balance}
-            </span>
-          </div>
-        </div>
-      </div>
-
       {/* Confirmation Modal */}
       {showConfirmationModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-md mx-4 overflow-clip">
             {/* Close button - positioned exactly as in Figma */}
-            <button 
+            <button
               onClick={handleCancelToggle}
               className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700"
             >
               <div className="absolute bottom-[17.18%] left-[17.18%] right-[17.18%] top-[17.17%]">
-                <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <svg
+                  className="w-full h-full"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </div>
             </button>
-            
+
             {/* Modal content - positioned exactly as in Figma */}
             <div className="absolute top-[60px] left-1/2 transform -translate-x-1/2 w-[165px] text-center">
               <p className="font-bold text-black text-[18px] leading-[22px] tracking-[-0.41px] font-['Montserrat']">
                 Are you sure you want to turn points system on
               </p>
             </div>
-            
+
             {/* Button Container - positioned exactly as in Figma */}
             <div className="absolute top-[189px] left-1/2 transform -translate-x-1/2 flex gap-4">
               {/* Yes Button */}
@@ -623,7 +689,7 @@ const Points = () => {
               >
                 yes
               </button>
-              
+
               {/* Cancel Button */}
               <button
                 onClick={handleCancelToggle}
@@ -632,7 +698,7 @@ const Points = () => {
                 Cancel
               </button>
             </div>
-            
+
             {/* Modal height spacer to ensure proper modal size */}
             <div className="h-[280px]"></div>
           </div>
@@ -644,24 +710,34 @@ const Points = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-md mx-4 overflow-clip">
             {/* Close button - positioned exactly as in Figma */}
-            <button 
+            <button
               onClick={handleCancelOffToggle}
               className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700"
             >
               <div className="absolute bottom-[17.18%] left-[17.18%] right-[17.18%] top-[17.17%]">
-                <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <svg
+                  className="w-full h-full"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </div>
             </button>
-            
+
             {/* Modal content - positioned exactly as in Figma */}
             <div className="absolute top-[60px] left-1/2 transform -translate-x-1/2 w-[165px] text-center">
               <p className="font-bold text-black text-[18px] leading-[22px] tracking-[-0.41px] font-['Montserrat']">
                 Are you sure you want to turn points system off
               </p>
             </div>
-            
+
             {/* Button Container - positioned exactly as in Figma */}
             <div className="absolute top-[189px] left-1/2 transform -translate-x-1/2 flex gap-4">
               {/* Yes Button */}
@@ -671,7 +747,7 @@ const Points = () => {
               >
                 yes
               </button>
-              
+
               {/* Cancel Button */}
               <button
                 onClick={handleCancelOffToggle}
@@ -680,7 +756,7 @@ const Points = () => {
                 Cancel
               </button>
             </div>
-            
+
             {/* Modal height spacer to ensure proper modal size */}
             <div className="h-[280px]"></div>
           </div>
@@ -745,20 +821,32 @@ const Points = () => {
       {/* Edit User Modal */}
       {showEditModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative overflow-hidden" style={{ width: '1540px', height: '400px' }}>
-            
+          <div
+            className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative overflow-hidden"
+            style={{ width: "1540px", height: "400px" }}
+          >
             {/* Close button - positioned as in Figma */}
-            <button 
+            <button
               onClick={handleCancelEdit}
               className="absolute right-6 top-3 w-6 h-6 text-gray-500 hover:text-gray-700 z-10"
             >
               <div className="absolute bottom-[17.18%] left-[17.18%] right-[17.18%] top-[17.17%]">
-                <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <svg
+                  className="w-full h-full"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </div>
             </button>
-            
+
             {/* Title - positioned as in Figma */}
             <div className="absolute left-1/2 top-[27px] transform -translate-x-1/2 -translate-y-1/2">
               <h2 className="font-['Montserrat'] text-2xl font-bold text-black text-center">
@@ -768,10 +856,11 @@ const Points = () => {
 
             {/* Form fields layout based on Figma - horizontal arrangement */}
             <div className="absolute top-[83px] left-1/2 transform -translate-x-1/2 flex items-start gap-4">
-              
               {/* User Name */}
               <div className="flex flex-col items-center">
-                <div className="text-[16px] text-black text-center mb-2">user name</div>
+                <div className="text-[16px] text-black text-center mb-2">
+                  user name
+                </div>
                 <div className="h-[47px] w-[148px] border-2 border-black rounded-xl flex items-center justify-center">
                   <input
                     type="text"
@@ -784,7 +873,9 @@ const Points = () => {
 
               {/* User ID */}
               <div className="flex flex-col items-center">
-                <div className="text-[16px] text-black text-center mb-2">user id</div>
+                <div className="text-[16px] text-black text-center mb-2">
+                  user id
+                </div>
                 <div className="h-[47px] w-[133px] border-2 border-black rounded-xl flex items-center justify-center">
                   <input
                     type="text"
@@ -797,7 +888,9 @@ const Points = () => {
 
               {/* Phone No */}
               <div className="flex flex-col items-center">
-                <div className="text-[16px] text-black text-center mb-2">phone no.</div>
+                <div className="text-[16px] text-black text-center mb-2">
+                  phone no.
+                </div>
                 <div className="h-[47px] w-[133px] border-2 border-black rounded-xl flex items-center justify-center">
                   <input
                     type="text"
@@ -810,7 +903,9 @@ const Points = () => {
 
               {/* Email ID */}
               <div className="flex flex-col items-center">
-                <div className="text-[16px] text-black text-center mb-2">email id</div>
+                <div className="text-[16px] text-black text-center mb-2">
+                  email id
+                </div>
                 <div className="h-[47px] w-[189px] border-2 border-black rounded-xl flex items-center justify-center">
                   <input
                     type="text"
@@ -823,7 +918,9 @@ const Points = () => {
 
               {/* Total Points Alloted */}
               <div className="flex flex-col items-center">
-                <div className="text-[16px] text-black text-center mb-2">total points alloted</div>
+                <div className="text-[16px] text-black text-center mb-2">
+                  total points alloted
+                </div>
                 <div className="h-[47px] w-[169px] border-2 border-black rounded-xl flex items-center justify-center">
                   <input
                     type="number"
@@ -836,7 +933,9 @@ const Points = () => {
 
               {/* Total Points Redeemed */}
               <div className="flex flex-col items-center">
-                <div className="text-[16px] text-black text-center mb-2">total points redeemed</div>
+                <div className="text-[16px] text-black text-center mb-2">
+                  total points redeemed
+                </div>
                 <div className="h-[47px] w-[149px] border-2 border-black rounded-xl flex items-center justify-center">
                   <input
                     type="number"
@@ -849,7 +948,9 @@ const Points = () => {
 
               {/* Balance */}
               <div className="flex flex-col items-center">
-                <div className="text-[16px] text-black text-center mb-2">balance</div>
+                <div className="text-[16px] text-black text-center mb-2">
+                  balance
+                </div>
                 <div className="h-[47px] w-[133px] border-2 border-black rounded-xl flex items-center justify-center">
                   <input
                     type="number"
@@ -911,24 +1012,34 @@ const Points = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-md mx-4 overflow-clip">
             {/* Close button */}
-            <button 
+            <button
               onClick={handleCancelDelete}
               className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700"
             >
               <div className="absolute bottom-[17.18%] left-[17.18%] right-[17.18%] top-[17.17%]">
-                <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <svg
+                  className="w-full h-full"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </div>
             </button>
-            
+
             {/* Modal content */}
             <div className="absolute top-[60px] left-1/2 transform -translate-x-1/2 w-[200px] text-center">
               <p className="font-bold text-black text-[18px] leading-[22px] tracking-[-0.41px] font-['Montserrat']">
                 Are you sure you want to delete this user?
               </p>
             </div>
-            
+
             {/* Button Container */}
             <div className="absolute top-[189px] left-1/2 transform -translate-x-1/2 flex gap-4">
               <button
@@ -937,7 +1048,7 @@ const Points = () => {
               >
                 Delete
               </button>
-              
+
               <button
                 onClick={handleCancelDelete}
                 className="border border-[#e4e4e4] text-black rounded-[100px] w-[149px] h-12 font-medium text-[16px] leading-[19.2px] font-['Montserrat'] hover:bg-gray-50 transition-colors flex items-center justify-center"
@@ -945,7 +1056,7 @@ const Points = () => {
                 Cancel
               </button>
             </div>
-            
+
             {/* Modal height spacer */}
             <div className="h-[280px]"></div>
           </div>
