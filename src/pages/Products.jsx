@@ -186,12 +186,12 @@ const Products = () => {
   ));
 
   return (
-    <div className={`${getTailwindClasses.spacing.container} space-y-4 sm:space-y-6`}>
+  <div className={`${getTailwindClasses.spacing.container} mt-14 space-y-4 sm:space-y-6`}>
       {/* Page header */}
       <div className={`${getTailwindClasses.flex.responsive}`}>
         <div>
           <h1 className={getTailwindClasses.heading.h1}>Products</h1>
-          <p className={`${getTailwindClasses.text.body} text-gray-600 mt-1`}>Manage your product inventory</p>
+          <p className={`${getTailwindClasses.text.body} text-gray-600 mt-3`}>Manage your product inventory</p>
         </div>
         <button className={`${getTailwindClasses.button.primary} flex items-center space-x-2`}>
           <Plus size={responsive.isMobile ? 16 : 20} />

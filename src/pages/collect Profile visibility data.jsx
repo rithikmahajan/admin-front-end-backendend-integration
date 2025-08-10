@@ -1,55 +1,46 @@
-/**
- * Profile Visibility Data Collection Module
- * 
- * This module handles all profile visibility data collection functionality
- * including data gathering, privacy controls, analytics, and user consent management.
- * 
- * Features:
- * - User profile data collection
- * - Privacy preference management
- * - Data analytics and insights
- * - Consent management
- * - Data export/import functionality
- * - Real-time visibility tracking
- * 
- * Performance Optimizations:
- * - Memoized constants and configurations
- * - Optimized class methods with early returns
- * - Efficient data structures and algorithms
- * - Cached calculations and computed values
- * - Optimized React hooks with proper dependencies
- */
-
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from "react";
+import {
+  User,
+  Shield,
+  Eye,
+  Settings,
+  Download,
+  Upload,
+  Trash2,
+  BarChart3,
+  Lock,
+  CheckCircle,
+  AlertCircle,
+} from "lucide-react";
 
 // ==============================
-// CONSTANTS (Frozen for performance)
+// CONSTANTS
 // ==============================
 
 const VISIBILITY_LEVELS = Object.freeze({
-  PUBLIC: 'public',
-  FRIENDS: 'friends',
-  PRIVATE: 'private',
-  CUSTOM: 'custom'
+  PUBLIC: "public",
+  FRIENDS: "friends",
+  PRIVATE: "private",
+  CUSTOM: "custom",
 });
 
 const DATA_COLLECTION_TYPES = Object.freeze({
-  BASIC_INFO: 'basicInfo',
-  ACTIVITY_DATA: 'activityData',
-  INTERACTION_DATA: 'interactionData',
-  PREFERENCE_DATA: 'preferenceData',
-  LOCATION_DATA: 'locationData',
-  DEVICE_DATA: 'deviceData'
+  BASIC_INFO: "basicInfo",
+  ACTIVITY_DATA: "activityData",
+  INTERACTION_DATA: "interactionData",
+  PREFERENCE_DATA: "preferenceData",
+  LOCATION_DATA: "locationData",
+  DEVICE_DATA: "deviceData",
 });
 
 const CONSENT_STATUS = Object.freeze({
-  GRANTED: 'granted',
-  DENIED: 'denied',
-  PENDING: 'pending',
-  REVOKED: 'revoked'
+  GRANTED: "granted",
+  DENIED: "denied",
+  PENDING: "pending",
+  REVOKED: "revoked",
 });
 
-const DEFAULT_PROFILE_VISIBILITY_SETTINGS = Object.freeze({
+const DEFAULT_SETTINGS = Object.freeze({
   collectBasicInfo: true,
   collectActivityData: false,
   collectInteractionData: true,
@@ -57,741 +48,441 @@ const DEFAULT_PROFILE_VISIBILITY_SETTINGS = Object.freeze({
   collectLocationData: false,
   collectDeviceData: false,
   visibilityLevel: VISIBILITY_LEVELS.FRIENDS,
-  dataRetentionPeriod: 365, // days
+  dataRetentionPeriod: 365,
   anonymizeData: false,
   shareWithThirdParties: false,
   enableAnalytics: true,
   consentTimestamp: null,
-  lastUpdated: null
-});
-
-// Storage keys constants
-const STORAGE_KEYS = Object.freeze({
-  SETTINGS: 'profileVisibilitySettings',
-  DATA: 'profileVisibilityData',
-  CONSENT: 'profileVisibilityConsent'
-});
-
-// Pre-compiled regex patterns for better performance
-const ANONYMIZATION_PATTERNS = Object.freeze({
-  WORD_PATTERN: /\b\w{3,}\b/g,
-  EMAIL_PATTERN: /@/
+  lastUpdated: null,
 });
 
 // ==============================
-// PROFILE VISIBILITY DATA COLLECTION CLASS
+// IN-MEMORY STORAGE SYSTEM
 // ==============================
 
-class ProfileVisibilityDataCollector {
+class InMemoryStorage {
   constructor() {
-    this.settings = { ...DEFAULT_PROFILE_VISIBILITY_SETTINGS };
-    this.collectedData = {};
-    this.consentRecords = [];
-    this.analyticsData = {};
-    
-    // Performance optimizations - cache frequently used values
-    this._cachedTotalDataPoints = null;
-    this._cacheInvalidated = true;
-    this._lastCacheUpdate = null;
-    this._deviceDataCache = null;
-    
-    // Bind methods for better performance
-    this._saveSettings = this._saveSettings.bind(this);
-    this._saveCollectedData = this._saveCollectedData.bind(this);
-    this._invalidateCache = this._invalidateCache.bind(this);
+    this.data = new Map();
   }
 
-  /**
-   * Initialize the profile visibility data collection
-   */
-  async initialize() {
-    try {
-      await Promise.all([
-        this.loadSettings(),
-        this.loadCollectedData(),
-        this.loadConsentRecords()
-      ]);
-      this.setupEventListeners();
-      this._invalidateCache();
-      console.log('Profile Visibility Data Collector initialized successfully');
-    } catch (error) {
-      console.error('Failed to initialize Profile Visibility Data Collector:', error);
-    }
+  getItem(key) {
+    return this.data.get(key) || null;
   }
 
-  /**
-   * Load consent records from storage
-   */
-  async loadConsentRecords() {
-    try {
-      const savedConsent = localStorage.getItem(STORAGE_KEYS.CONSENT);
-      if (savedConsent) {
-        this.consentRecords = JSON.parse(savedConsent);
-      }
-    } catch (error) {
-      console.error('Error loading consent records:', error);
-    }
+  setItem(key, value) {
+    this.data.set(key, value);
   }
 
-  /**
-   * Invalidate cache when data changes
-   */
-  _invalidateCache() {
-    this._cachedTotalDataPoints = null;
-    this._cacheInvalidated = true;
-    this._lastCacheUpdate = Date.now();
+  removeItem(key) {
+    this.data.delete(key);
   }
 
-  /**
-   * Load settings from storage with error handling
-   */
-  async loadSettings() {
-    try {
-      const savedSettings = localStorage.getItem(STORAGE_KEYS.SETTINGS);
-      if (savedSettings) {
-        this.settings = { ...DEFAULT_PROFILE_VISIBILITY_SETTINGS, ...JSON.parse(savedSettings) };
-      }
-    } catch (error) {
-      console.error('Error loading profile visibility settings:', error);
-    }
-  }
-
-  /**
-   * Save settings to storage (debounced for performance)
-   */
-  async saveSettings() {
-    if (this._saveSettingsTimeout) {
-      clearTimeout(this._saveSettingsTimeout);
-    }
-    this._saveSettingsTimeout = setTimeout(this._saveSettings, 100);
-  }
-
-  _saveSettings() {
-    try {
-      this.settings.lastUpdated = new Date().toISOString();
-      localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(this.settings));
-    } catch (error) {
-      console.error('Error saving profile visibility settings:', error);
-    }
-  }
-
-  /**
-   * Load collected data from storage
-   */
-  async loadCollectedData() {
-    try {
-      const savedData = localStorage.getItem(STORAGE_KEYS.DATA);
-      if (savedData) {
-        this.collectedData = JSON.parse(savedData);
-      }
-    } catch (error) {
-      console.error('Error loading collected profile visibility data:', error);
-    }
-  }
-
-  /**
-   * Save collected data to storage (debounced for performance)
-   */
-  async saveCollectedData() {
-    if (this._saveDataTimeout) {
-      clearTimeout(this._saveDataTimeout);
-    }
-    this._saveDataTimeout = setTimeout(this._saveCollectedData, 200);
-  }
-
-  _saveCollectedData() {
-    try {
-      localStorage.setItem(STORAGE_KEYS.DATA, JSON.stringify(this.collectedData));
-      this._invalidateCache();
-    } catch (error) {
-      console.error('Error saving collected profile visibility data:', error);
-    }
-  }
-
-  /**
-   * Update profile visibility settings
-   */
-  updateSettings(newSettings) {
-    this.settings = { ...this.settings, ...newSettings };
-    this.saveSettings();
-    this.recordConsentChange(newSettings);
-  }
-
-  /**
-   * Record consent change with optimized data structure
-   */
-  recordConsentChange(settings) {
-    const consentRecord = {
-      timestamp: new Date().toISOString(),
-      settings: { ...settings },
-      ipAddress: this.getUserIPAddress(),
-      userAgent: navigator.userAgent
-    };
-    
-    this.consentRecords.push(consentRecord);
-    this.saveConsentRecords();
-  }
-
-  /**
-   * Save consent records (debounced)
-   */
-  saveConsentRecords() {
-    if (this._saveConsentTimeout) {
-      clearTimeout(this._saveConsentTimeout);
-    }
-    this._saveConsentTimeout = setTimeout(() => {
-      try {
-        localStorage.setItem(STORAGE_KEYS.CONSENT, JSON.stringify(this.consentRecords));
-      } catch (error) {
-        console.error('Error saving consent records:', error);
-      }
-    }, 100);
-  }
-
-  /**
-   * Collect basic profile information with early return optimization
-   */
-  collectBasicInfo(userInfo) {
-    if (!this.settings.collectBasicInfo || !userInfo) return;
-
-    const now = new Date().toISOString();
-    const basicInfo = {
-      userId: userInfo.id,
-      username: userInfo.username,
-      email: this.settings.anonymizeData ? this.anonymizeEmail(userInfo.email) : userInfo.email,
-      profilePicture: userInfo.profilePicture,
-      joinDate: userInfo.joinDate,
-      lastLogin: now,
-      collectedAt: now
-    };
-
-    this.collectedData.basicInfo = basicInfo;
-    this.saveCollectedData();
-  }
-
-  /**
-   * Collect activity data with optimized array handling
-   */
-  collectActivityData(activityInfo) {
-    if (!this.settings.collectActivityData || !activityInfo) return;
-
-    const now = new Date().toISOString();
-    const activityData = {
-      pageViews: activityInfo.pageViews || [],
-      timeSpent: activityInfo.timeSpent || {},
-      featuresUsed: activityInfo.featuresUsed || [],
-      searchQueries: this.settings.anonymizeData ? 
-        this.anonymizeSearchQueries(activityInfo.searchQueries) : 
-        activityInfo.searchQueries || [],
-      clickEvents: activityInfo.clickEvents || [],
-      collectedAt: now
-    };
-
-    if (!this.collectedData.activityData) {
-      this.collectedData.activityData = [];
-    }
-    this.collectedData.activityData.push(activityData);
-    this.saveCollectedData();
-  }
-
-  /**
-   * Collect interaction data with optimized structure
-   */
-  collectInteractionData(interactionInfo) {
-    if (!this.settings.collectInteractionData || !interactionInfo) return;
-
-    const now = new Date().toISOString();
-    const interactionData = {
-      likes: interactionInfo.likes || [],
-      comments: interactionInfo.comments || [],
-      shares: interactionInfo.shares || [],
-      follows: interactionInfo.follows || [],
-      messages: this.settings.anonymizeData ? 
-        this.anonymizeMessages(interactionInfo.messages) : 
-        interactionInfo.messages || [],
-      collectedAt: now
-    };
-
-    if (!this.collectedData.interactionData) {
-      this.collectedData.interactionData = [];
-    }
-    this.collectedData.interactionData.push(interactionData);
-    this.saveCollectedData();
-  }
-
-  /**
-   * Collect preference data with caching
-   */
-  collectPreferenceData(preferenceInfo) {
-    if (!this.settings.collectPreferenceData || !preferenceInfo) return;
-
-    const now = new Date().toISOString();
-    const preferenceData = {
-      theme: preferenceInfo.theme,
-      language: preferenceInfo.language,
-      notifications: preferenceInfo.notifications,
-      privacy: preferenceInfo.privacy,
-      accessibility: preferenceInfo.accessibility,
-      contentPreferences: preferenceInfo.contentPreferences || [],
-      collectedAt: now
-    };
-
-    this.collectedData.preferenceData = preferenceData;
-    this.saveCollectedData();
-  }
-
-  /**
-   * Collect location data
-   */
-  collectLocationData(locationInfo) {
-    if (!this.settings.collectLocationData) return;
-
-    const locationData = {
-      country: locationInfo.country,
-      region: locationInfo.region,
-      city: this.settings.anonymizeData ? null : locationInfo.city,
-      timezone: locationInfo.timezone,
-      coordinates: this.settings.anonymizeData ? null : locationInfo.coordinates,
-      collectedAt: new Date().toISOString()
-    };
-
-    if (!this.collectedData.locationData) {
-      this.collectedData.locationData = [];
-    }
-    this.collectedData.locationData.push(locationData);
-    this.saveCollectedData();
-  }
-
-  /**
-   * Collect device data with caching for performance
-   */
-  collectDeviceData() {
-    if (!this.settings.collectDeviceData) return;
-
-    // Use cached device data if available and recent
-    if (this._deviceDataCache && (Date.now() - this._deviceDataCache.timestamp) < 300000) { // 5 minutes
-      return;
-    }
-
-    const now = new Date().toISOString();
-    const deviceData = {
-      userAgent: navigator.userAgent,
-      platform: navigator.platform,
-      language: navigator.language,
-      cookieEnabled: navigator.cookieEnabled,
-      screenResolution: `${screen.width}x${screen.height}`,
-      colorDepth: screen.colorDepth,
-      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      collectedAt: now
-    };
-
-    this._deviceDataCache = {
-      data: deviceData,
-      timestamp: Date.now()
-    };
-
-    this.collectedData.deviceData = deviceData;
-    this.saveCollectedData();
-  }
-
-  /**
-   * Get analytics data
-   */
-  getAnalyticsData() {
-    if (!this.settings.enableAnalytics) return null;
-
-    return {
-      totalDataPoints: this.getTotalDataPoints(),
-      collectionFrequency: this.getCollectionFrequency(),
-      dataTypes: this.getCollectedDataTypes(),
-      privacyScore: this.calculatePrivacyScore(),
-      lastActivity: this.getLastActivityDate(),
-      retentionStatus: this.getRetentionStatus()
-    };
-  }
-
-  /**
-   * Export collected data
-   */
-  exportData(format = 'json') {
-    const exportData = {
-      settings: this.settings,
-      collectedData: this.collectedData,
-      consentRecords: this.consentRecords,
-      exportedAt: new Date().toISOString(),
-      version: '1.0'
-    };
-
-    switch (format) {
-      case 'json':
-        return JSON.stringify(exportData, null, 2);
-      case 'csv':
-        return this.convertToCSV(exportData);
-      default:
-        return exportData;
-    }
-  }
-
-  /**
-   * Import data
-   */
-  importData(data) {
-    try {
-      const importedData = typeof data === 'string' ? JSON.parse(data) : data;
-      
-      if (importedData.settings) {
-        this.settings = { ...DEFAULT_PROFILE_VISIBILITY_SETTINGS, ...importedData.settings };
-        this.saveSettings();
-      }
-      
-      if (importedData.collectedData) {
-        this.collectedData = importedData.collectedData;
-        this.saveCollectedData();
-      }
-      
-      if (importedData.consentRecords) {
-        this.consentRecords = importedData.consentRecords;
-        this.saveConsentRecords();
-      }
-      
-      return true;
-    } catch (error) {
-      console.error('Error importing profile visibility data:', error);
-      return false;
-    }
-  }
-
-  /**
-   * Clear all collected data with optimized cleanup
-   */
-  clearAllData() {
-    this.collectedData = {};
-    this.consentRecords = [];
-    this._invalidateCache();
-    
-    // Clear device data cache
-    this._deviceDataCache = null;
-    
-    // Use requestIdleCallback for non-blocking storage cleanup
-    if (window.requestIdleCallback) {
-      window.requestIdleCallback(() => {
-        localStorage.removeItem(STORAGE_KEYS.DATA);
-        localStorage.removeItem(STORAGE_KEYS.CONSENT);
-      });
-    } else {
-      setTimeout(() => {
-        localStorage.removeItem(STORAGE_KEYS.DATA);
-        localStorage.removeItem(STORAGE_KEYS.CONSENT);
-      }, 0);
-    }
-  }
-
-  /**
-   * Get data summary with cached calculations
-   */
-  getDataSummary() {
-    return {
-      totalDataPoints: this.getTotalDataPoints(),
-      dataTypes: this.getCollectedDataTypes(),
-      lastUpdated: this.settings.lastUpdated,
-      consentStatus: this.getConsentStatus(),
-      retentionPeriod: this.settings.dataRetentionPeriod,
-      anonymized: this.settings.anonymizeData
-    };
-  }
-
-  // ==============================
-  // UTILITY METHODS
-  // ==============================
-
-  /**
-   * Get total data points with caching for performance
-   */
-  getTotalDataPoints() {
-    // Return cached value if available and cache is valid
-    if (!this._cacheInvalidated && this._cachedTotalDataPoints !== null) {
-      return this._cachedTotalDataPoints;
-    }
-
-    let count = 0;
-    for (const data of Object.values(this.collectedData)) {
-      if (Array.isArray(data)) {
-        count += data.length;
-      } else if (data && typeof data === 'object') {
-        count += 1;
-      }
-    }
-
-    // Cache the result
-    this._cachedTotalDataPoints = count;
-    this._cacheInvalidated = false;
-    
-    return count;
-  }
-
-  /**
-   * Get collected data types with memoization
-   */
-  getCollectedDataTypes() {
-    return Object.keys(this.collectedData);
-  }
-
-  /**
-   * Get consent status with optimized lookup
-   */
-  getConsentStatus() {
-    if (this.consentRecords.length === 0) return CONSENT_STATUS.PENDING;
-    
-    // Get last record directly without array methods for better performance
-    const lastRecord = this.consentRecords[this.consentRecords.length - 1];
-    return lastRecord.settings.collectBasicInfo ? CONSENT_STATUS.GRANTED : CONSENT_STATUS.DENIED;
-  }
-
-  /**
-   * Get last activity date with optimized date parsing
-   */
-  getLastActivityDate() {
-    let maxDate = 0;
-    
-    for (const data of Object.values(this.collectedData)) {
-      if (Array.isArray(data)) {
-        for (const item of data) {
-          if (item.collectedAt) {
-            const timestamp = new Date(item.collectedAt).getTime();
-            if (timestamp > maxDate) {
-              maxDate = timestamp;
-            }
-          }
-        }
-      } else if (data && data.collectedAt) {
-        const timestamp = new Date(data.collectedAt).getTime();
-        if (timestamp > maxDate) {
-          maxDate = timestamp;
-        }
-      }
-    }
-    
-    return maxDate > 0 ? new Date(maxDate) : null;
-  }
-
-  /**
-   * Calculate privacy score with optimized scoring
-   */
-  calculatePrivacyScore() {
-    let score = 100;
-    const { settings } = this;
-    
-    if (settings.collectActivityData) score -= 15;
-    if (settings.collectLocationData) score -= 20;
-    if (settings.collectDeviceData) score -= 10;
-    if (settings.shareWithThirdParties) score -= 25;
-    if (!settings.anonymizeData) score -= 15;
-    
-    return Math.max(0, score);
-  }
-
-  getRetentionStatus() {
-    const cutoffDate = new Date();
-    cutoffDate.setDate(cutoffDate.getDate() - this.settings.dataRetentionPeriod);
-    
-    const expiredData = [];
-    Object.entries(this.collectedData).forEach(([type, data]) => {
-      if (Array.isArray(data)) {
-        data.forEach((item, index) => {
-          if (item.collectedAt && new Date(item.collectedAt) < cutoffDate) {
-            expiredData.push({ type, index, date: item.collectedAt });
-          }
-        });
-      } else if (data && data.collectedAt && new Date(data.collectedAt) < cutoffDate) {
-        expiredData.push({ type, date: data.collectedAt });
-      }
-    });
-    
-    return {
-      hasExpiredData: expiredData.length > 0,
-      expiredItems: expiredData,
-      retentionPeriod: this.settings.dataRetentionPeriod
-    };
-  }
-
-  /**
-   * Anonymize email with optimized regex
-   */
-  anonymizeEmail(email) {
-    if (!email || typeof email !== 'string') return '';
-    
-    const atIndex = email.indexOf('@');
-    if (atIndex === -1) return email;
-    
-    const username = email.substring(0, atIndex);
-    const domain = email.substring(atIndex);
-    
-    if (username.length <= 2) return email;
-    
-    const anonymizedUsername = username[0] + '*'.repeat(username.length - 2) + username[username.length - 1];
-    return anonymizedUsername + domain;
-  }
-
-  /**
-   * Anonymize search queries with pre-compiled regex
-   */
-  anonymizeSearchQueries(queries) {
-    if (!Array.isArray(queries)) return [];
-    
-    return queries.map(query => {
-      if (typeof query === 'string') {
-        return query.replace(ANONYMIZATION_PATTERNS.WORD_PATTERN, word => 
-          word[0] + '*'.repeat(Math.max(0, word.length - 1))
-        );
-      }
-      return query;
-    });
-  }
-
-  /**
-   * Anonymize messages with optimized object creation
-   */
-  anonymizeMessages(messages) {
-    if (!Array.isArray(messages)) return [];
-    
-    return messages.map(message => ({
-      ...message,
-      content: message.content ? '[ANONYMIZED]' : '',
-      timestamp: message.timestamp
-    }));
-  }
-
-  getUserIPAddress() {
-    // This would typically be obtained from a server-side API
-    return 'xxx.xxx.xxx.xxx';
-  }
-
-  getCollectionFrequency() {
-    const dates = [];
-    Object.values(this.collectedData).forEach(data => {
-      if (Array.isArray(data)) {
-        data.forEach(item => {
-          if (item.collectedAt) dates.push(new Date(item.collectedAt));
-        });
-      }
-    });
-    
-    if (dates.length < 2) return 'insufficient_data';
-    
-    dates.sort((a, b) => a - b);
-    const intervals = [];
-    for (let i = 1; i < dates.length; i++) {
-      intervals.push(dates[i] - dates[i - 1]);
-    }
-    
-    const avgInterval = intervals.reduce((sum, interval) => sum + interval, 0) / intervals.length;
-    const avgDays = avgInterval / (1000 * 60 * 60 * 24);
-    
-    if (avgDays < 1) return 'multiple_per_day';
-    if (avgDays < 7) return 'daily';
-    if (avgDays < 30) return 'weekly';
-    return 'monthly';
-  }
-
-  convertToCSV(data) {
-    // Basic CSV conversion - would need more sophisticated implementation for complex nested data
-    const headers = Object.keys(data);
-    const values = Object.values(data).map(value => 
-      typeof value === 'object' ? JSON.stringify(value) : value
-    );
-    return [headers.join(','), values.join(',')].join('\n');
-  }
-
-  setupEventListeners() {
-    // Setup event listeners for automatic data collection
-    if (this.settings.collectActivityData) {
-      window.addEventListener('beforeunload', () => {
-        this.collectActivityData({
-          timeSpent: { [window.location.pathname]: Date.now() - this.pageLoadTime },
-          pageViews: [window.location.pathname]
-        });
-      });
-      
-      this.pageLoadTime = Date.now();
-    }
-  }
-
-  /**
-   * Check if data collection is enabled for a specific type
-   */
-  isCollectionEnabled(dataType) {
-    switch (dataType) {
-      case DATA_COLLECTION_TYPES.BASIC_INFO:
-        return this.settings.collectBasicInfo;
-      case DATA_COLLECTION_TYPES.ACTIVITY_DATA:
-        return this.settings.collectActivityData;
-      case DATA_COLLECTION_TYPES.INTERACTION_DATA:
-        return this.settings.collectInteractionData;
-      case DATA_COLLECTION_TYPES.PREFERENCE_DATA:
-        return this.settings.collectPreferenceData;
-      case DATA_COLLECTION_TYPES.LOCATION_DATA:
-        return this.settings.collectLocationData;
-      case DATA_COLLECTION_TYPES.DEVICE_DATA:
-        return this.settings.collectDeviceData;
-      default:
-        return false;
-    }
-  }
-
-  /**
-   * Get privacy compliance status
-   */
-  getPrivacyCompliance() {
-    return {
-      hasConsent: this.consentRecords.length > 0,
-      dataMinimization: this.calculateDataMinimizationScore(),
-      transparency: this.getTransparencyScore(),
-      userControl: this.getUserControlScore(),
-      dataRetention: this.settings.dataRetentionPeriod <= 365,
-      anonymization: this.settings.anonymizeData
-    };
-  }
-
-  calculateDataMinimizationScore() {
-    const enabledTypes = Object.values(DATA_COLLECTION_TYPES).filter(type => 
-      this.isCollectionEnabled(type)
-    );
-    return Math.max(0, 100 - (enabledTypes.length * 15));
-  }
-
-  getTransparencyScore() {
-    // Score based on how transparent the data collection is
-    let score = 0;
-    if (this.settings.consentTimestamp) score += 25;
-    if (this.consentRecords.length > 0) score += 25;
-    if (!this.settings.shareWithThirdParties) score += 25;
-    if (this.settings.enableAnalytics) score += 25;
-    return score;
-  }
-
-  getUserControlScore() {
-    // Score based on user control over their data
-    let score = 0;
-    if (this.settings.dataRetentionPeriod <= 365) score += 20;
-    if (this.settings.anonymizeData) score += 20;
-    if (!this.settings.shareWithThirdParties) score += 20;
-    if (this.settings.visibilityLevel !== VISIBILITY_LEVELS.PUBLIC) score += 20;
-    score += 20; // Base score for having control options
-    return score;
+  clear() {
+    this.data.clear();
   }
 }
 
 // ==============================
-// REACT HOOK FOR PROFILE VISIBILITY (Optimized)
+// PROFILE VISIBILITY DATA COLLECTOR
 // ==============================
 
-export const useProfileVisibilityData = () => {
-  const [collector] = useState(() => new ProfileVisibilityDataCollector());
-  const [settings, setSettings] = useState(() => ({ ...DEFAULT_PROFILE_VISIBILITY_SETTINGS }));
+const createProfileVisibilityCollector = () => {
+  const storage = new InMemoryStorage();
+
+  return {
+    settings: { ...DEFAULT_SETTINGS },
+    collectedData: {},
+    consentRecords: [],
+    analyticsData: {},
+
+    // Cache for performance
+    _cachedTotalDataPoints: null,
+    _cacheInvalidated: true,
+    _lastCacheUpdate: null,
+    _deviceDataCache: null,
+    _timeouts: new Set(),
+    _eventListeners: [],
+
+    async initialize() {
+      try {
+        await Promise.all([
+          this.loadSettings(),
+          this.loadCollectedData(),
+          this.loadConsentRecords(),
+        ]);
+        this.setupEventListeners();
+        this._invalidateCache();
+        console.log(
+          "Profile Visibility Data Collector initialized successfully"
+        );
+      } catch (error) {
+        console.error(
+          "Failed to initialize Profile Visibility Data Collector:",
+          error
+        );
+      }
+    },
+
+    async loadSettings() {
+      try {
+        const savedSettings = storage.getItem("profileVisibilitySettings");
+        if (savedSettings) {
+          this.settings = { ...DEFAULT_SETTINGS, ...JSON.parse(savedSettings) };
+        }
+      } catch (error) {
+        console.error("Error loading profile visibility settings:", error);
+      }
+    },
+
+    async saveSettings() {
+      this._debounce(
+        "saveSettings",
+        () => {
+          try {
+            this.settings.lastUpdated = new Date().toISOString();
+            storage.setItem(
+              "profileVisibilitySettings",
+              JSON.stringify(this.settings)
+            );
+          } catch (error) {
+            console.error("Error saving profile visibility settings:", error);
+          }
+        },
+        100
+      );
+    },
+
+    async loadCollectedData() {
+      try {
+        const savedData = storage.getItem("profileVisibilityData");
+        if (savedData) {
+          this.collectedData = JSON.parse(savedData);
+        }
+      } catch (error) {
+        console.error(
+          "Error loading collected profile visibility data:",
+          error
+        );
+      }
+    },
+
+    async saveCollectedData() {
+      this._debounce(
+        "saveData",
+        () => {
+          try {
+            storage.setItem(
+              "profileVisibilityData",
+              JSON.stringify(this.collectedData)
+            );
+            this._invalidateCache();
+          } catch (error) {
+            console.error(
+              "Error saving collected profile visibility data:",
+              error
+            );
+          }
+        },
+        200
+      );
+    },
+
+    async loadConsentRecords() {
+      try {
+        const savedConsent = storage.getItem("profileVisibilityConsent");
+        if (savedConsent) {
+          this.consentRecords = JSON.parse(savedConsent);
+        }
+      } catch (error) {
+        console.error("Error loading consent records:", error);
+      }
+    },
+
+    saveConsentRecords() {
+      this._debounce(
+        "saveConsent",
+        () => {
+          try {
+            storage.setItem(
+              "profileVisibilityConsent",
+              JSON.stringify(this.consentRecords)
+            );
+          } catch (error) {
+            console.error("Error saving consent records:", error);
+          }
+        },
+        100
+      );
+    },
+
+    _debounce(key, func, delay) {
+      const timeoutKey = `${key}Timeout`;
+      if (this[timeoutKey]) {
+        clearTimeout(this[timeoutKey]);
+        this._timeouts.delete(this[timeoutKey]);
+      }
+      this[timeoutKey] = setTimeout(() => {
+        func();
+        this._timeouts.delete(this[timeoutKey]);
+        delete this[timeoutKey];
+      }, delay);
+      this._timeouts.add(this[timeoutKey]);
+    },
+
+    _invalidateCache() {
+      if (!this._cacheInvalidated) {
+        this._cachedTotalDataPoints = null;
+        this._cacheInvalidated = true;
+        this._lastCacheUpdate = Date.now();
+      }
+    },
+
+    updateSettings(newSettings) {
+      this.settings = { ...this.settings, ...newSettings };
+      this.saveSettings();
+      this.recordConsentChange(newSettings);
+    },
+
+    recordConsentChange(settings) {
+      const consentRecord = {
+        timestamp: new Date().toISOString(),
+        settings: { ...settings },
+        ipAddress: "xxx.xxx.xxx.xxx",
+        userAgent: navigator.userAgent,
+      };
+
+      this.consentRecords.push(consentRecord);
+      this.saveConsentRecords();
+    },
+
+    collectBasicInfo(userInfo) {
+      if (!this.settings.collectBasicInfo || !userInfo) return;
+
+      const now = new Date().toISOString();
+      const basicInfo = {
+        userId: userInfo.id,
+        username: userInfo.username,
+        email: this.settings.anonymizeData
+          ? this.anonymizeEmail(userInfo.email)
+          : userInfo.email,
+        profilePicture: userInfo.profilePicture,
+        joinDate: userInfo.joinDate,
+        lastLogin: now,
+        collectedAt: now,
+      };
+
+      this.collectedData.basicInfo = basicInfo;
+      this.saveCollectedData();
+    },
+
+    collectActivityData(activityInfo) {
+      if (!this.settings.collectActivityData || !activityInfo) return;
+
+      const now = new Date().toISOString();
+      const activityData = {
+        pageViews: activityInfo.pageViews || [],
+        timeSpent: activityInfo.timeSpent || {},
+        featuresUsed: activityInfo.featuresUsed || [],
+        searchQueries: this.settings.anonymizeData
+          ? this.anonymizeSearchQueries(activityInfo.searchQueries)
+          : activityInfo.searchQueries || [],
+        clickEvents: activityInfo.clickEvents || [],
+        collectedAt: now,
+      };
+
+      if (!this.collectedData.activityData) {
+        this.collectedData.activityData = [];
+      }
+      this.collectedData.activityData.push(activityData);
+      this.saveCollectedData();
+    },
+
+    collectDeviceData() {
+      if (!this.settings.collectDeviceData) return;
+
+      if (
+        this._deviceDataCache &&
+        Date.now() - this._deviceDataCache.timestamp < 300000
+      ) {
+        return;
+      }
+
+      const now = new Date().toISOString();
+      const deviceData = {
+        userAgent: navigator.userAgent,
+        platform: navigator.platform,
+        language: navigator.language,
+        cookieEnabled: navigator.cookieEnabled,
+        screenResolution: `${screen.width}x${screen.height}`,
+        colorDepth: screen.colorDepth,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        collectedAt: now,
+      };
+
+      this._deviceDataCache = {
+        data: deviceData,
+        timestamp: Date.now(),
+      };
+
+      this.collectedData.deviceData = deviceData;
+      this.saveCollectedData();
+    },
+
+    getTotalDataPoints() {
+      if (!this._cacheInvalidated && this._cachedTotalDataPoints !== null) {
+        return this._cachedTotalDataPoints;
+      }
+
+      let count = 0;
+      for (const data of Object.values(this.collectedData)) {
+        if (Array.isArray(data)) {
+          count += data.length;
+        } else if (data && typeof data === "object") {
+          count += 1;
+        }
+      }
+
+      this._cachedTotalDataPoints = count;
+      this._cacheInvalidated = false;
+
+      return count;
+    },
+
+    getDataSummary() {
+      return {
+        totalDataPoints: this.getTotalDataPoints(),
+        dataTypes: Object.keys(this.collectedData),
+        lastUpdated: this.settings.lastUpdated,
+        consentStatus: this.getConsentStatus(),
+        retentionPeriod: this.settings.dataRetentionPeriod,
+        anonymized: this.settings.anonymizeData,
+      };
+    },
+
+    getConsentStatus() {
+      if (this.consentRecords.length === 0) return CONSENT_STATUS.PENDING;
+      const lastRecord = this.consentRecords[this.consentRecords.length - 1];
+      return lastRecord.settings.collectBasicInfo
+        ? CONSENT_STATUS.GRANTED
+        : CONSENT_STATUS.DENIED;
+    },
+
+    calculatePrivacyScore() {
+      let score = 100;
+      const { settings } = this;
+
+      if (settings.collectActivityData) score -= 15;
+      if (settings.collectLocationData) score -= 20;
+      if (settings.collectDeviceData) score -= 10;
+      if (settings.shareWithThirdParties) score -= 25;
+      if (!settings.anonymizeData) score -= 15;
+
+      return Math.max(0, score);
+    },
+
+    anonymizeEmail(email) {
+      if (!email || typeof email !== "string") return "";
+
+      const atIndex = email.indexOf("@");
+      if (atIndex === -1) return email;
+
+      const username = email.substring(0, atIndex);
+      const domain = email.substring(atIndex);
+
+      if (username.length <= 2) return email;
+
+      const anonymizedUsername =
+        username[0] +
+        "*".repeat(username.length - 2) +
+        username[username.length - 1];
+      return anonymizedUsername + domain;
+    },
+
+    anonymizeSearchQueries(queries) {
+      if (!Array.isArray(queries)) return [];
+
+      return queries.map((query) => {
+        if (typeof query === "string") {
+          return query.replace(
+            /\b\w{3,}\b/g,
+            (word) => word[0] + "*".repeat(Math.max(0, word.length - 1))
+          );
+        }
+        return query;
+      });
+    },
+
+    exportData(format = "json") {
+      const exportData = {
+        settings: this.settings,
+        collectedData: this.collectedData,
+        consentRecords: this.consentRecords,
+        exportedAt: new Date().toISOString(),
+        version: "1.0",
+      };
+
+      if (format === "json") {
+        return JSON.stringify(exportData, null, 2);
+      }
+      return exportData;
+    },
+
+    clearAllData() {
+      this.collectedData = {};
+      this.consentRecords = [];
+      this._invalidateCache();
+      this._deviceDataCache = null;
+
+      storage.removeItem("profileVisibilityData");
+      storage.removeItem("profileVisibilityConsent");
+    },
+
+    setupEventListeners() {
+      if (this.settings.collectActivityData) {
+        const handleBeforeUnload = () => {
+          this.collectActivityData({
+            timeSpent: {
+              [window.location.pathname]: Date.now() - this.pageLoadTime,
+            },
+            pageViews: [window.location.pathname],
+          });
+        };
+
+        window.addEventListener("beforeunload", handleBeforeUnload);
+        this._eventListeners.push({
+          element: window,
+          event: "beforeunload",
+          handler: handleBeforeUnload,
+        });
+
+        this.pageLoadTime = Date.now();
+      }
+    },
+
+    cleanup() {
+      // Clear timeouts
+      this._timeouts.forEach((timeout) => clearTimeout(timeout));
+      this._timeouts.clear();
+
+      // Remove event listeners
+      this._eventListeners.forEach(({ element, event, handler }) => {
+        element.removeEventListener(event, handler);
+      });
+      this._eventListeners = [];
+    },
+  };
+};
+
+// ==============================
+// REACT HOOK
+// ==============================
+
+const useProfileVisibilityData = () => {
+  const [collector] = useState(() => createProfileVisibilityCollector());
+  const [settings, setSettings] = useState(() => ({ ...DEFAULT_SETTINGS }));
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Memoized initialization to prevent unnecessary re-runs
   const initializeCollector = useCallback(async () => {
     try {
       setIsLoading(true);
@@ -807,96 +498,678 @@ export const useProfileVisibilityData = () => {
 
   useEffect(() => {
     initializeCollector();
-  }, [initializeCollector]);
 
-  // Memoized callbacks for better performance
-  const updateSettings = useCallback((newSettings) => {
-    collector.updateSettings(newSettings);
-    setSettings({ ...collector.settings });
-  }, [collector]);
-
-  const collectData = useCallback((dataType, data) => {
-    // Use lookup table for better performance than switch statement
-    const collectionMethods = {
-      [DATA_COLLECTION_TYPES.BASIC_INFO]: () => collector.collectBasicInfo(data),
-      [DATA_COLLECTION_TYPES.ACTIVITY_DATA]: () => collector.collectActivityData(data),
-      [DATA_COLLECTION_TYPES.INTERACTION_DATA]: () => collector.collectInteractionData(data),
-      [DATA_COLLECTION_TYPES.PREFERENCE_DATA]: () => collector.collectPreferenceData(data),
-      [DATA_COLLECTION_TYPES.LOCATION_DATA]: () => collector.collectLocationData(data),
-      [DATA_COLLECTION_TYPES.DEVICE_DATA]: () => collector.collectDeviceData()
+    return () => {
+      collector.cleanup();
     };
+  }, [initializeCollector, collector]);
 
-    const method = collectionMethods[dataType];
-    if (method) {
-      method();
-    } else {
-      console.warn('Unknown data collection type:', dataType);
-    }
-  }, [collector]);
-
-  // Memoized utility functions
-  const exportData = useCallback((format = 'json') => {
-    return collector.exportData(format);
-  }, [collector]);
-
-  const importData = useCallback((data) => {
-    const result = collector.importData(data);
-    if (result) {
+  const updateSettings = useCallback(
+    (newSettings) => {
+      collector.updateSettings(newSettings);
       setSettings({ ...collector.settings });
+    },
+    [collector]
+  );
+
+  const collectData = useCallback(
+    (dataType, data) => {
+      const collectionMethods = {
+        [DATA_COLLECTION_TYPES.BASIC_INFO]: () =>
+          collector.collectBasicInfo(data),
+        [DATA_COLLECTION_TYPES.ACTIVITY_DATA]: () =>
+          collector.collectActivityData(data),
+        [DATA_COLLECTION_TYPES.DEVICE_DATA]: () =>
+          collector.collectDeviceData(),
+      };
+
+      const method = collectionMethods[dataType];
+      if (method) {
+        method();
+      }
+    },
+    [collector]
+  );
+
+  return {
+    settings,
+    updateSettings,
+    collectData,
+    exportData: useCallback(
+      (format) => collector.exportData(format),
+      [collector]
+    ),
+    clearAllData: useCallback(() => {
+      collector.clearAllData();
+      setSettings({ ...collector.settings });
+    }, [collector]),
+    getDataSummary: useCallback(() => collector.getDataSummary(), [collector]),
+    isLoading,
+    error,
+    collector,
+  };
+};
+
+// ==============================
+// MAIN COMPONENT
+// ==============================
+
+const ProfileVisibilityDataCollectionComponent = () => {
+  const {
+    settings,
+    updateSettings,
+    collectData,
+    exportData,
+    clearAllData,
+    getDataSummary,
+    isLoading,
+    error,
+  } = useProfileVisibilityData();
+
+  const [activeTab, setActiveTab] = useState("settings");
+  const [showExportModal, setShowExportModal] = useState(false);
+
+  const dataSummary = useMemo(() => {
+    try {
+      return getDataSummary();
+    } catch {
+      return null;
     }
-    return result;
-  }, [collector]);
+  }, [getDataSummary, settings]);
 
-  const clearAllData = useCallback(() => {
-    collector.clearAllData();
-    setSettings({ ...collector.settings });
-  }, [collector]);
+  const privacyScore = useMemo(() => {
+    let score = 100;
+    if (settings.collectActivityData) score -= 15;
+    if (settings.collectLocationData) score -= 20;
+    if (settings.collectDeviceData) score -= 10;
+    if (settings.shareWithThirdParties) score -= 25;
+    if (!settings.anonymizeData) score -= 15;
+    return Math.max(0, score);
+  }, [settings]);
 
-  // Memoized getter functions with stable references
-  const getDataSummary = useCallback(() => collector.getDataSummary(), [collector]);
-  const getAnalyticsData = useCallback(() => collector.getAnalyticsData(), [collector]);
-  const getPrivacyCompliance = useCallback(() => collector.getPrivacyCompliance(), [collector]);
+  const handleSettingChange = useCallback(
+    (key, value) => {
+      updateSettings({ [key]: value });
+    },
+    [updateSettings]
+  );
 
-  // Memoized return object for stable reference
-  return useMemo(() => ({
-    settings,
-    updateSettings,
-    collectData,
-    exportData,
-    importData,
-    clearAllData,
-    getDataSummary,
-    getAnalyticsData,
-    getPrivacyCompliance,
-    isLoading,
-    error,
-    collector
-  }), [
-    settings,
-    updateSettings,
-    collectData,
-    exportData,
-    importData,
-    clearAllData,
-    getDataSummary,
-    getAnalyticsData,
-    getPrivacyCompliance,
-    isLoading,
-    error,
-    collector
-  ]);
+  const handleCollectSampleData = useCallback(() => {
+    collectData(DATA_COLLECTION_TYPES.BASIC_INFO, {
+      id: "user123",
+      username: "john_doe",
+      email: "john@example.com",
+      joinDate: "2024-01-15",
+      profilePicture: "/api/placeholder/80/80",
+    });
+  }, [collectData]);
+
+  const handleExport = useCallback(() => {
+    const data = exportData("json");
+    const blob = new Blob([data], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "profile-visibility-data.json";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    setShowExportModal(false);
+  }, [exportData]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-slate-600">
+            Loading Profile Visibility Manager...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
+        <div className="bg-white rounded-xl shadow-lg p-8 max-w-md">
+          <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-gray-900 text-center mb-2">
+            Error
+          </h2>
+          <p className="text-gray-600 text-center">{error}</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+      {/* Header */}
+      <div className="bg-white/80 backdrop-blur-md border-b border-slate-200/50 sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg">
+                <Shield className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-xl font-bold text-gray-900">
+                  Profile Visibility Manager
+                </h1>
+                <p className="text-sm text-gray-600">
+                  Data Collection & Privacy Controls
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
+                Privacy Score: {privacyScore}%
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <div className="bg-white/70 backdrop-blur-sm rounded-xl shadow-sm border border-slate-200/50 p-6 hover:shadow-lg transition-all duration-300">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Data Points</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {dataSummary?.totalDataPoints || 0}
+                </p>
+              </div>
+              <BarChart3 className="h-8 w-8 text-blue-500" />
+            </div>
+          </div>
+          <div className="bg-white/70 backdrop-blur-sm rounded-xl shadow-sm border border-slate-200/50 p-6 hover:shadow-lg transition-all duration-300">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Data Types</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {dataSummary?.dataTypes?.length || 0}
+                </p>
+              </div>
+              <Eye className="h-8 w-8 text-green-500" />
+            </div>
+          </div>
+          <div className="bg-white/70 backdrop-blur-sm rounded-xl shadow-sm border border-slate-200/50 p-6 hover:shadow-lg transition-all duration-300">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">
+                  Privacy Score
+                </p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {privacyScore}%
+                </p>
+              </div>
+              <Lock className="h-8 w-8 text-purple-500" />
+            </div>
+          </div>
+          <div className="bg-white/70 backdrop-blur-sm rounded-xl shadow-sm border border-slate-200/50 p-6 hover:shadow-lg transition-all duration-300">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">
+                  Consent Status
+                </p>
+                <p className="text-lg font-bold text-gray-900 capitalize">
+                  {dataSummary?.consentStatus || "Pending"}
+                </p>
+              </div>
+              <CheckCircle className="h-8 w-8 text-emerald-500" />
+            </div>
+          </div>
+        </div>
+
+        {/* Tabs */}
+        <div className="bg-white/70 backdrop-blur-sm rounded-xl shadow-sm border border-slate-200/50 mb-8">
+          <div className="border-b border-slate-200/50">
+            <nav className="flex space-x-8 px-6">
+              {["settings", "data", "privacy"].map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`py-4 px-2 border-b-2 font-medium text-sm capitalize transition-colors ${
+                    activeTab === tab
+                      ? "border-blue-500 text-blue-600"
+                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  }`}
+                >
+                  {tab}
+                </button>
+              ))}
+            </nav>
+          </div>
+
+          <div className="p-6">
+            {activeTab === "settings" && (
+              <div className="space-y-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                  Data Collection Settings
+                </h3>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Basic Info */}
+                  <div className="flex items-center justify-between p-4 bg-slate-50/50 rounded-lg">
+                    <div className="flex items-center space-x-3">
+                      <User className="h-5 w-5 text-blue-500" />
+                      <div>
+                        <p className="font-medium text-gray-900">
+                          Basic Information
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          Username, email, profile data
+                        </p>
+                      </div>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={settings.collectBasicInfo}
+                        onChange={(e) =>
+                          handleSettingChange(
+                            "collectBasicInfo",
+                            e.target.checked
+                          )
+                        }
+                        className="sr-only peer"
+                      />
+                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                    </label>
+                  </div>
+
+                  {/* Activity Data */}
+                  <div className="flex items-center justify-between p-4 bg-slate-50/50 rounded-lg">
+                    <div className="flex items-center space-x-3">
+                      <BarChart3 className="h-5 w-5 text-green-500" />
+                      <div>
+                        <p className="font-medium text-gray-900">
+                          Activity Data
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          Page views, time spent, clicks
+                        </p>
+                      </div>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={settings.collectActivityData}
+                        onChange={(e) =>
+                          handleSettingChange(
+                            "collectActivityData",
+                            e.target.checked
+                          )
+                        }
+                        className="sr-only peer"
+                      />
+                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                    </label>
+                  </div>
+
+                  {/* Device Data */}
+                  <div className="flex items-center justify-between p-4 bg-slate-50/50 rounded-lg">
+                    <div className="flex items-center space-x-3">
+                      <Settings className="h-5 w-5 text-purple-500" />
+                      <div>
+                        <p className="font-medium text-gray-900">Device Data</p>
+                        <p className="text-sm text-gray-500">
+                          Browser, OS, screen resolution
+                        </p>
+                      </div>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={settings.collectDeviceData}
+                        onChange={(e) =>
+                          handleSettingChange(
+                            "collectDeviceData",
+                            e.target.checked
+                          )
+                        }
+                        className="sr-only peer"
+                      />
+                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                    </label>
+                  </div>
+
+                  {/* Anonymize Data */}
+                  <div className="flex items-center justify-between p-4 bg-slate-50/50 rounded-lg">
+                    <div className="flex items-center space-x-3">
+                      <Lock className="h-5 w-5 text-red-500" />
+                      <div>
+                        <p className="font-medium text-gray-900">
+                          Anonymize Data
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          Mask sensitive information
+                        </p>
+                      </div>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={settings.anonymizeData}
+                        onChange={(e) =>
+                          handleSettingChange("anonymizeData", e.target.checked)
+                        }
+                        className="sr-only peer"
+                      />
+                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                    </label>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex flex-wrap gap-4 pt-6 border-t border-slate-200/50">
+                  <button
+                    onClick={handleCollectSampleData}
+                    className="px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg hover:from-blue-600 hover:to-indigo-700 transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                  >
+                    Collect Sample Data
+                  </button>
+                  <button
+                    onClick={() => setShowExportModal(true)}
+                    className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 flex items-center space-x-2"
+                  >
+                    <Download className="h-4 w-4" />
+                    <span>Export Data</span>
+                  </button>
+                  <button
+                    onClick={clearAllData}
+                    className="px-6 py-3 bg-gradient-to-r from-red-500 to-pink-600 text-white rounded-lg hover:from-red-600 hover:to-pink-700 transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 flex items-center space-x-2"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    <span>Clear All Data</span>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {activeTab === "data" && (
+              <div className="space-y-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                  Collected Data Overview
+                </h3>
+
+                {dataSummary && dataSummary.totalDataPoints > 0 ? (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="bg-gradient-to-br from-blue-50 to-indigo-100 rounded-lg p-4 border border-blue-200/50">
+                        <h4 className="font-medium text-blue-900 mb-2">
+                          Data Points
+                        </h4>
+                        <p className="text-2xl font-bold text-blue-600">
+                          {dataSummary.totalDataPoints}
+                        </p>
+                        <p className="text-sm text-blue-700">
+                          Total collected entries
+                        </p>
+                      </div>
+                      <div className="bg-gradient-to-br from-green-50 to-emerald-100 rounded-lg p-4 border border-green-200/50">
+                        <h4 className="font-medium text-green-900 mb-2">
+                          Data Types
+                        </h4>
+                        <p className="text-2xl font-bold text-green-600">
+                          {dataSummary.dataTypes.length}
+                        </p>
+                        <p className="text-sm text-green-700">
+                          Different data categories
+                        </p>
+                      </div>
+                      <div className="bg-gradient-to-br from-purple-50 to-violet-100 rounded-lg p-4 border border-purple-200/50">
+                        <h4 className="font-medium text-purple-900 mb-2">
+                          Retention
+                        </h4>
+                        <p className="text-2xl font-bold text-purple-600">
+                          {dataSummary.retentionPeriod}
+                        </p>
+                        <p className="text-sm text-purple-700">
+                          Days retention period
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
+                      <div className="px-6 py-4 bg-slate-50 border-b border-slate-200">
+                        <h4 className="font-medium text-gray-900">
+                          Data Types Collected
+                        </h4>
+                      </div>
+                      <div className="p-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {dataSummary.dataTypes.map((type, index) => (
+                            <div
+                              key={index}
+                              className="flex items-center space-x-3 p-3 bg-slate-50 rounded-lg"
+                            >
+                              <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                              <span className="font-medium text-gray-700 capitalize">
+                                {type.replace(/([A-Z])/g, " $1").toLowerCase()}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-12 bg-slate-50 rounded-lg border-2 border-dashed border-slate-300">
+                    <BarChart3 className="h-12 w-12 text-slate-400 mx-auto mb-4" />
+                    <h4 className="text-lg font-medium text-gray-900 mb-2">
+                      No Data Collected Yet
+                    </h4>
+                    <p className="text-gray-600 mb-4">
+                      Start collecting data to see insights here.
+                    </p>
+                    <button
+                      onClick={handleCollectSampleData}
+                      className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      Collect Sample Data
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeTab === "privacy" && (
+              <div className="space-y-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                  Privacy & Compliance
+                </h3>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Privacy Score */}
+                  <div className="bg-gradient-to-br from-green-50 to-emerald-100 rounded-xl p-6 border border-green-200/50">
+                    <div className="flex items-center justify-between mb-4">
+                      <h4 className="font-semibold text-green-900">
+                        Privacy Score
+                      </h4>
+                      <Lock className="h-6 w-6 text-green-600" />
+                    </div>
+                    <div className="flex items-end space-x-2 mb-2">
+                      <span className="text-3xl font-bold text-green-600">
+                        {privacyScore}
+                      </span>
+                      <span className="text-green-700 font-medium">/ 100</span>
+                    </div>
+                    <div className="w-full bg-green-200 rounded-full h-2 mb-3">
+                      <div
+                        className="bg-gradient-to-r from-green-500 to-emerald-600 h-2 rounded-full transition-all duration-500"
+                        style={{ width: `${privacyScore}%` }}
+                      ></div>
+                    </div>
+                    <p className="text-sm text-green-700">
+                      {privacyScore >= 80
+                        ? "Excellent privacy protection"
+                        : privacyScore >= 60
+                        ? "Good privacy protection"
+                        : privacyScore >= 40
+                        ? "Moderate privacy protection"
+                        : "Consider improving privacy settings"}
+                    </p>
+                  </div>
+
+                  {/* Data Protection Status */}
+                  <div className="bg-gradient-to-br from-blue-50 to-indigo-100 rounded-xl p-6 border border-blue-200/50">
+                    <div className="flex items-center justify-between mb-4">
+                      <h4 className="font-semibold text-blue-900">
+                        Data Protection
+                      </h4>
+                      <Shield className="h-6 w-6 text-blue-600" />
+                    </div>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-blue-700">
+                          Anonymization
+                        </span>
+                        <div
+                          className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            settings.anonymizeData
+                              ? "bg-green-100 text-green-800"
+                              : "bg-red-100 text-red-800"
+                          }`}
+                        >
+                          {settings.anonymizeData ? "Enabled" : "Disabled"}
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-blue-700">
+                          Third-party Sharing
+                        </span>
+                        <div
+                          className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            !settings.shareWithThirdParties
+                              ? "bg-green-100 text-green-800"
+                              : "bg-red-100 text-red-800"
+                          }`}
+                        >
+                          {!settings.shareWithThirdParties
+                            ? "Blocked"
+                            : "Allowed"}
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-blue-700">
+                          Data Retention
+                        </span>
+                        <span className="text-sm font-medium text-blue-900">
+                          {settings.dataRetentionPeriod} days
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Compliance Checklist */}
+                <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+                  <div className="px-6 py-4 bg-slate-50 border-b border-slate-200">
+                    <h4 className="font-medium text-gray-900">
+                      Privacy Compliance Checklist
+                    </h4>
+                  </div>
+                  <div className="p-6 space-y-4">
+                    {[
+                      {
+                        label: "User consent obtained",
+                        status: dataSummary?.consentStatus === "granted",
+                      },
+                      {
+                        label: "Data anonymization enabled",
+                        status: settings.anonymizeData,
+                      },
+                      {
+                        label: "Third-party sharing disabled",
+                        status: !settings.shareWithThirdParties,
+                      },
+                      {
+                        label: "Reasonable retention period",
+                        status: settings.dataRetentionPeriod <= 365,
+                      },
+                      {
+                        label: "Location data collection disabled",
+                        status: !settings.collectLocationData,
+                      },
+                    ].map((item, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center space-x-3 p-3 bg-slate-50 rounded-lg"
+                      >
+                        <div
+                          className={`w-5 h-5 rounded-full flex items-center justify-center ${
+                            item.status ? "bg-green-500" : "bg-red-500"
+                          }`}
+                        >
+                          <CheckCircle
+                            className={`h-3 w-3 text-white ${
+                              item.status ? "" : "hidden"
+                            }`}
+                          />
+                          <X
+                            className={`h-3 w-3 text-white ${
+                              !item.status ? "" : "hidden"
+                            }`}
+                          />
+                        </div>
+                        <span className="text-gray-700">{item.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Export Modal */}
+      {showExportModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-semibold text-gray-900">
+                Export Data
+              </h3>
+              <button
+                onClick={() => setShowExportModal(false)}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <X className="h-5 w-5 text-gray-500" />
+              </button>
+            </div>
+
+            <p className="text-gray-600 mb-6">
+              This will export all your collected data, settings, and consent
+              records in JSON format.
+            </p>
+
+            <div className="flex space-x-3">
+              <button
+                onClick={handleExport}
+                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2"
+              >
+                <Download className="h-4 w-4" />
+                <span>Export</span>
+              </button>
+              <button
+                onClick={() => setShowExportModal(false)}
+                className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 };
 
-// ==============================
-// EXPORTS
-// ==============================
-
-export {
-  ProfileVisibilityDataCollector,
-  VISIBILITY_LEVELS,
-  DATA_COLLECTION_TYPES,
-  CONSENT_STATUS,
-  DEFAULT_PROFILE_VISIBILITY_SETTINGS
-};
-
-export default ProfileVisibilityDataCollector;
+export default ProfileVisibilityDataCollectionComponent;
