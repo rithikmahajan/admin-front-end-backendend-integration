@@ -523,7 +523,7 @@ const SendNotificationInApp = memo(() => {
 
   return (
     <div className="bg-white min-h-screen font-montserrat">
-      <div className="max-w-6xl mx-auto py-10 grid grid-cols-1 xl:grid-cols-3 gap-10">
+      <div className="w-full py-10 grid grid-cols-1 xl:grid-cols-3 gap-10">
         {/* Left Column - Form Section (2/3 Width) */}
         <div className="xl:col-span-2 px-6">
           <h2 className="text-3xl font-bold text-black mb-8">Notification</h2>

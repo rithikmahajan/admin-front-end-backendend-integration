@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useMemo, memo } from "react";
-import { Filter, Download, Mail, Eye, Trash2, Users, Plus } from "lucide-react";
+import { Filter, Download, Mail, Eye, Trash2, Plus } from "lucide-react";
 import BulkSMS from "./BulkSMS";
 
 // Constant data moved outside component to prevent recreation on each render
@@ -249,18 +249,11 @@ const CartAbandonmentRecovery = memo(() => {
 
         <div className="flex flex-wrap gap-3">
           <button
-            onClick={handleBulkEmail}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold text-sm flex items-center gap-2 transition"
-          >
-            <Mail className="h-4 w-4" />
-            Bulk Email
-          </button>
-          <button
             onClick={handleBulkSMS}
             className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold text-sm flex items-center gap-2 transition"
           >
             <Plus className="h-4 w-4" />
-            Bulk SMS
+            Bulk SMS/Email
           </button>
           <button
             onClick={handleExportCSV}

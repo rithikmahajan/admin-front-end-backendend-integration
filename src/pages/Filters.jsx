@@ -711,7 +711,7 @@ const ZaraDesktopManagementInterface = React.memo(
     filtersDispatch,
   }) => {
     return (
-      <div className="p-8 max-w-7xl mx-auto bg-white">
+      <div className="2xl:max-w-7xl xl:max-w-5xl p-4">
         {/* Zara-style Header */}
         <div className="flex items-center justify-between mb-8 pb-6 border-b-2 border-black">
           <div>
@@ -744,7 +744,7 @@ const ZaraDesktopManagementInterface = React.memo(
         </div>
 
         {/* Main Content Grid - Zara Style */}
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+        <div className="grid xl:grid-cols-2 sm:grid-cols-1 gap-4">
           {/* Create Filters Section */}
           <div className="space-y-6">
             <ZaraCreateFiltersSection
@@ -771,7 +771,7 @@ const ZaraDesktopManagementInterface = React.memo(
           </div>
 
           {/* Saved Filters Section */}
-          <div className="space-y-6">
+          <div className="space-y-6 xl:min-w-[700px]">
             <ZaraSavedFiltersSection
               filters={filters}
               editingFilter={editingFilter}
@@ -810,12 +810,12 @@ const ZaraCreateFiltersSection = React.memo(
     onToggle,
   }) => {
     return (
-      <div className="bg-gray-50 border-2 border-black">
-        <div className="flex items-center justify-between p-6 bg-black text-white">
+      <div className="bg-gray-50 border-2 border-black rounded-xl overflow-hidden">
+        <div className="flex items-center justify-between px-5 py-2.5 bg-black text-white">
           <h2 className="text-xl font-bold tracking-wide">CREATE FILTERS</h2>
           <button
             onClick={onToggle}
-            className="p-2 hover:bg-gray-800 transition-colors"
+            className="p-2 hover:bg-gray-800 transition-colors rounded-full"
           >
             {isActive ? (
               <ChevronUp className="h-6 w-6" />
@@ -1007,14 +1007,14 @@ const ZaraCreateFilterValuesSection = React.memo(
     );
 
     return (
-      <div className="bg-gray-50 border-2 border-black">
-        <div className="flex items-center justify-between p-6 bg-black text-white">
-          <h2 className="text-xl font-bold tracking-wide">
+      <div className="bg-gray-50 border-2 border-black rounded-xl overflow-hidden">
+        <div className="flex items-center justify-between px-5 py-2.5 bg-black text-white">
+          <h2 className="text-lg font-bold tracking-wide">
             CREATE FILTER VALUE
           </h2>
           <button
             onClick={onToggle}
-            className="p-2 hover:bg-gray-800 transition-colors"
+            className="p-2 hover:bg-gray-800 transition-colors rounded-full"
           >
             {isActive ? (
               <ChevronUp className="h-6 w-6" />
@@ -1237,12 +1237,12 @@ const ZaraSavedFiltersSection = React.memo(
     filtersDispatch,
   }) => {
     return (
-      <div className="bg-gray-50 border-2 border-black">
-        <div className="flex items-center justify-between p-6 bg-black text-white">
-          <h2 className="text-xl font-bold tracking-wide">SAVED FILTERS</h2>
+      <div className="bg-gray-50 border-2 border-black max-w-7xl rounded-xl overflow-hidden">
+        <div className="flex items-center justify-between px-5 py-2.5 bg-black text-white">
+          <h2 className="text-lg font-bold tracking-wide">SAVED FILTERS</h2>
           <button
             onClick={onToggle}
-            className="p-2 hover:bg-gray-800 transition-colors"
+            className="p-2 hover:bg-gray-800 transition-colors rounded-full"
           >
             {isActive ? (
               <ChevronUp className="h-6 w-6" />
@@ -1624,7 +1624,7 @@ const MobileFilterSection = React.memo(({ filter }) => {
 // Separate component for filter summary cards
 const FilterSummaryCard = React.memo(({ filter }) => {
   return (
-    <div className="flex items-center justify-between p-4 bg-white border-2 border-gray-200">
+    <div className="flex gap-12 p-4 bg-white border-2 border-gray-200">
       <div>
         <div className="font-bold text-lg uppercase tracking-wide">
           {filter.key}

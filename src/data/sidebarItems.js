@@ -1,13 +1,11 @@
 const sidebarItems = [
   {
     title: "Dashboard",
-    items: ["Dashboard", "Database Dashboard"],
+    items: ["Dashboard"],
   },
   {
     title: "App order area",
-    items: [
-      "orders",
-    ],
+    items: ["orders"],
   },
   {
     title: "App uploading area",
@@ -36,7 +34,6 @@ const sidebarItems = [
       "Points management and issue",
       "Invite a friend with promo code",
       "Cart abandonment recovery",
-      "(bulk message and email)",
     ],
   },
   {

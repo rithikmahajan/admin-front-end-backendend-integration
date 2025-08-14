@@ -4,6 +4,7 @@ import {
   Filter,
   Calendar,
   ChevronDown,
+  RotateCw,
   Eye,
   Edit,
   Download,
@@ -1591,7 +1592,9 @@ const ExchangeWindowScreen = React.memo(({ exchangeId, onBack }) => {
   const handleVendorConfirm = useCallback(() => {
     if (selectedVendor) {
       setShowVendorSelection(false);
-      console.log(`Vendor ${selectedVendor} confirmed for exchange ${exchangeId}`);
+      console.log(
+        `Vendor ${selectedVendor} confirmed for exchange ${exchangeId}`
+      );
       alert(
         `Vendor "${selectedVendor}" has been successfully assigned to exchange ${exchangeId}`
       );
@@ -2293,7 +2296,7 @@ const Orders = React.memo(() => {
       }
 
       setAllottedVendorNames(initialAllottedVendors);
-      setSelectedVendors(prev => ({ ...prev, ...initialSelectedVendors }));
+      setSelectedVendors((prev) => ({ ...prev, ...initialSelectedVendors }));
     };
 
     initializeVendorData();
@@ -2535,7 +2538,9 @@ const Orders = React.memo(() => {
     };
 
     // Use passive listener for better performance
-    document.addEventListener("mousedown", handleClickOutside, { passive: true });
+    document.addEventListener("mousedown", handleClickOutside, {
+      passive: true,
+    });
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
@@ -2628,7 +2633,9 @@ const Orders = React.memo(() => {
     // Pre-compute filter conditions for better performance
     const hasOrderStatusFilter = orderStatus !== "Order Status";
     const hasOrderTypeFilter = orderType !== "Order Type";
-    const lowerOrderStatus = hasOrderStatusFilter ? orderStatus.toLowerCase() : null;
+    const lowerOrderStatus = hasOrderStatusFilter
+      ? orderStatus.toLowerCase()
+      : null;
     const lowerOrderType = hasOrderTypeFilter ? orderType.toLowerCase() : null;
 
     return currentData.filter((order) => {
@@ -2644,7 +2651,14 @@ const Orders = React.memo(() => {
 
       return true;
     });
-  }, [orders, returnRequests, exchangeRequests, activeTab, orderStatus, orderType]);
+  }, [
+    orders,
+    returnRequests,
+    exchangeRequests,
+    activeTab,
+    orderStatus,
+    orderType,
+  ]);
 
   /**
    * Print handler for order list - optimized with better string concatenation
@@ -2652,19 +2666,20 @@ const Orders = React.memo(() => {
   const handlePrintOrderList = useCallback(() => {
     // Create a formatted table for printing
     const currentData = filteredOrders;
-    
+
     // Pre-compute title to avoid repeated checks
     const titles = {
       orders: "Orders List",
-      returns: "Return Requests", 
-      exchanges: "Exchange Requests"
+      returns: "Return Requests",
+      exchanges: "Exchange Requests",
     };
     const title = titles[activeTab] || "Orders List";
 
     // Generate rows more efficiently using map instead of template literals
-    const tableRows = currentData.map(order => {
-      const statusClass = order.status.toLowerCase().replace(/\s+/g, "-");
-      return `
+    const tableRows = currentData
+      .map((order) => {
+        const statusClass = order.status.toLowerCase().replace(/\s+/g, "-");
+        return `
         <tr>
           <td>${order.orderId}</td>
           <td>${order.productName}</td>
@@ -2678,7 +2693,8 @@ const Orders = React.memo(() => {
           <td>${order.deliveryStatus}</td>
         </tr>
       `;
-    }).join('');
+      })
+      .join("");
 
     const printContent = `
       <html>
@@ -2784,7 +2800,7 @@ const Orders = React.memo(() => {
           {[
             { key: "orders", label: "orders list" },
             { key: "returns", label: "return requests" },
-            { key: "exchanges", label: "Exchange requests" }
+            { key: "exchanges", label: "Exchange requests" },
           ].map(({ key, label }) => (
             <button
               key={key}
@@ -2801,73 +2817,64 @@ const Orders = React.memo(() => {
         </div>
 
         {/* Header Section - Title and date in one line */}
-        <div className="flex justify-between items-center mb-6">
-          <div className="flex items-center space-x-3">
-            {/* Removed print icon from here - moved to filter section */}
-          </div>
-          <div className="relative">
-            <button
-              onClick={handleDateRangeToggle}
-              className="dropdown-container flex items-center space-x-2 bg-gray-50 px-3 py-1 rounded hover:bg-gray-100 transition-colors"
-            >
-              <span className="text-sm text-gray-600 font-medium">
-                {selectedStartDate}
-              </span>
-              <span className="text-sm text-gray-400">-</span>
-              <span className="text-sm text-gray-600 font-medium">
-                {selectedEndDate}
-              </span>
-              <Calendar className="h-4 w-4 text-gray-400" />
-            </button>
+        <div className="w-full flex justify-end mb-6">
+          <button
+            onClick={handleDateRangeToggle}
+            className="flex items-center gap-2 text-sm text-white bg-blue-600 px-4 py-2 rounded-lg shadow-inner border border-slate-200 hover:bg-blue-700 transition-colors duration-200"
+          >
+            {selectedStartDate}
+            <span>-</span>
+            {selectedEndDate}
+            <Calendar className="h-4 w-4" />
+          </button>
 
-            {/* Date Range Picker Dropdown */}
-            {showDateRangePicker && (
-              <div className="dropdown-container absolute right-0 top-full mt-2 bg-white rounded-lg shadow-lg border border-gray-200 p-4 z-50 min-w-[300px]">
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Start Date
-                    </label>
-                    <input
-                      type="date"
-                      value={selectedStartDate}
-                      onChange={handleStartDateChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      End Date
-                    </label>
-                    <input
-                      type="date"
-                      value={selectedEndDate}
-                      onChange={handleEndDateChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    />
-                  </div>
-                  <div className="flex justify-end space-x-2 pt-2">
-                    <button
-                      onClick={() => setShowDateRangePicker(false)}
-                      className="px-3 py-1 text-sm text-gray-600 hover:text-gray-800"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={() => setShowDateRangePicker(false)}
-                      className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
-                    >
-                      Apply
-                    </button>
-                  </div>
+          {/* Date Range Picker Dropdown */}
+          {showDateRangePicker && (
+            <div className="dropdown-container absolute right-0 top-full mt-2 bg-white rounded-lg shadow-lg border border-gray-200 p-4 z-50 min-w-[300px]">
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Start Date
+                  </label>
+                  <input
+                    type="date"
+                    value={selectedStartDate}
+                    onChange={handleStartDateChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    End Date
+                  </label>
+                  <input
+                    type="date"
+                    value={selectedEndDate}
+                    onChange={handleEndDateChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                <div className="flex justify-end space-x-2 pt-2">
+                  <button
+                    onClick={() => setShowDateRangePicker(false)}
+                    className="px-3 py-1 text-sm text-gray-600 hover:text-gray-800"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => setShowDateRangePicker(false)}
+                    className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
+                  >
+                    Apply
+                  </button>
                 </div>
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
 
         {/* Filter Controls Section */}
-        <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
+        <div className="flex items-center justify-between mb-6 p-4 rounded-lg border border-gray-200 shadow-md">
           <div className="flex items-center space-x-4">
             {/* Filter Icon and Label */}
             <div className="flex items-center space-x-2">
@@ -3076,10 +3083,10 @@ const Orders = React.memo(() => {
           {/* Reset Filter Button */}
           <button
             onClick={handleResetFilter}
-            className="flex items-center space-x-1 text-red-500 hover:text-red-700 text-sm font-medium"
+            className="flex items-center space-x-1 bg-red-600 border border-slate-200 shadow-sm p-2 rounded-md text-white hover:bg-red-700 text-sm font-medium"
             aria-label="Reset all filters"
           >
-            <X className="h-4 w-4" />
+            <RotateCw className="h-4 w-4" />
             <span>Reset Filter</span>
           </button>
         </div>
@@ -3087,62 +3094,62 @@ const Orders = React.memo(() => {
         {/* Orders Table */}
         <section className="w-full">
           <div className="overflow-x-auto rounded-lg border border-gray-200">
-            <table className="min-w-[1300px] w-full">
+            <table className="w-full">
               {/* Table Header */}
               <thead className="bg-gray-50">
                 <tr className="border-b border-gray-200">
-                  <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider border-r border-gray-200">
                     {activeTab === "returns" ? "return id" : "order id"}
                   </th>
-                  <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider border-r border-gray-200">
                     Image
                   </th>
-                  <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider border-r border-gray-200">
                     Product Name
                   </th>
-                  <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider border-r border-gray-200">
                     name
                   </th>
-                  <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider border-r border-gray-200">
                     date
                   </th>
-                  <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider border-r border-gray-200">
                     HSN
                   </th>
-                  <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider border-r border-gray-200">
                     size
                   </th>
-                  <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider border-r border-gray-200">
                     quantity
                   </th>
-                  <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider border-r border-gray-200">
                     Price
                   </th>
-                  <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider border-r border-gray-200">
                     Sale Price
                   </th>
-                  <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider border-r border-gray-200">
                     SKU
                   </th>
-                  <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider border-r border-gray-200">
                     barcode no.
                   </th>
-                  <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider border-r border-gray-200">
                     status
                   </th>
                   {activeTab === "returns" ? (
-                    <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider border-r border-gray-200">
                       return to vendor
                     </th>
                   ) : (
-                    <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider border-r border-gray-200">
                       vendor allotment
                     </th>
                   )}
-                  <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider border-r border-gray-200">
                     courier alloted
                   </th>
-                  <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider border-r border-gray-200">
                     delivery status
                   </th>
                   <th className="py-3 px-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
@@ -3220,30 +3227,34 @@ const OrderRow = React.memo(
     const availableVendors = useMemo(() => ["ven 1", "ven 2", "ven 3"], []);
 
     // Memoized computed values for better performance
-    const computedValues = useMemo(() => ({
-      isVendorAllotted: selectedVendors[order.orderId],
-      isCourierAllotted: courierAllotments[order.orderId],
-      currentDeliveryStatus: deliveryStatuses[order.orderId] || order.deliveryStatus,
-      vendorDropdownVisible: showVendorDropdown[order.orderId],
-      selectedVendorName: selectedVendorNames[order.orderId],
-      allottedVendorName: allottedVendorNames[order.orderId],
-      paymentStatusClass: getPaymentStatusColor(order.paymentStatus),
-      statusClass: getStatusColor(order.status),
-      isPendingStatus: order.status.toLowerCase() === "pending"
-    }), [
-      order.orderId,
-      order.paymentStatus,
-      order.status,
-      order.deliveryStatus,
-      selectedVendors,
-      courierAllotments,
-      deliveryStatuses,
-      showVendorDropdown,
-      selectedVendorNames,
-      allottedVendorNames,
-      getPaymentStatusColor,
-      getStatusColor
-    ]);
+    const computedValues = useMemo(
+      () => ({
+        isVendorAllotted: selectedVendors[order.orderId],
+        isCourierAllotted: courierAllotments[order.orderId],
+        currentDeliveryStatus:
+          deliveryStatuses[order.orderId] || order.deliveryStatus,
+        vendorDropdownVisible: showVendorDropdown[order.orderId],
+        selectedVendorName: selectedVendorNames[order.orderId],
+        allottedVendorName: allottedVendorNames[order.orderId],
+        paymentStatusClass: getPaymentStatusColor(order.paymentStatus),
+        statusClass: getStatusColor(order.status),
+        isPendingStatus: order.status.toLowerCase() === "pending",
+      }),
+      [
+        order.orderId,
+        order.paymentStatus,
+        order.status,
+        order.deliveryStatus,
+        selectedVendors,
+        courierAllotments,
+        deliveryStatuses,
+        showVendorDropdown,
+        selectedVendorNames,
+        allottedVendorNames,
+        getPaymentStatusColor,
+        getStatusColor,
+      ]
+    );
 
     /**
      * Action button handlers - memoized to prevent unnecessary re-renders
@@ -3259,7 +3270,13 @@ const OrderRow = React.memo(
         default:
           onOrderIdClick(order.orderId);
       }
-    }, [order.orderId, onOrderIdClick, onReturnIdClick, onExchangeIdClick, activeTab]);
+    }, [
+      order.orderId,
+      onOrderIdClick,
+      onReturnIdClick,
+      onExchangeIdClick,
+      activeTab,
+    ]);
 
     const handleEdit = useCallback(() => {
       console.log("Edit order:", order.orderId);
@@ -3274,7 +3291,7 @@ const OrderRow = React.memo(
     const handleShare = useCallback(() => {
       console.log("Share order:", order.orderId);
       const orderUrl = `${window.location.origin}/order-details/${order.orderId}`;
-      
+
       if (navigator.share) {
         navigator
           .share({
@@ -3346,38 +3363,45 @@ const OrderRow = React.memo(
     }, [order.orderId, onRejectOrder]);
 
     // Memoized size and quantity display for better performance
-    const sizeDisplay = useMemo(() => (
-      <div className="space-y-1">
-        {order.size.map((size) => (
-          <div key={size} className="text-xs text-gray-600">
-            {size}
-          </div>
-        ))}
-      </div>
-    ), [order.size]);
+    const sizeDisplay = useMemo(
+      () => (
+        <div className="space-y-1">
+          {order.size.map((size) => (
+            <div key={size} className="text-xs text-gray-600">
+              {size}
+            </div>
+          ))}
+        </div>
+      ),
+      [order.size]
+    );
 
-    const quantityDisplay = useMemo(() => (
-      <div className="space-y-1">
-        {order.sizeQuantity.map((qty, i) => (
-          <div key={i} className="text-xs font-semibold text-gray-800">
-            {qty}
-          </div>
-        ))}
-      </div>
-    ), [order.sizeQuantity]);
+    const quantityDisplay = useMemo(
+      () => (
+        <div className="space-y-1">
+          {order.sizeQuantity.map((qty, i) => (
+            <div key={i} className="text-xs font-semibold text-gray-800">
+              {qty}
+            </div>
+          ))}
+        </div>
+      ),
+      [order.sizeQuantity]
+    );
 
     // Memoized vendor selection dropdown
     const vendorDropdown = useMemo(() => {
-      if (!computedValues.isVendorAllotted || !computedValues.vendorDropdownVisible) {
+      if (
+        !computedValues.isVendorAllotted ||
+        !computedValues.vendorDropdownVisible
+      ) {
         return null;
       }
 
       return (
         <div className="relative mt-2 z-10">
           <div className="bg-white border rounded-xl shadow-lg p-4">
-            <div className="text-gray-400 mb-2 font-semibold">
-              Vendor Name
-            </div>
+            <div className="text-gray-400 mb-2 font-semibold">Vendor Name</div>
             {availableVendors.map((vendor) => (
               <label
                 key={vendor}
@@ -3423,13 +3447,13 @@ const OrderRow = React.memo(
       computedValues.selectedVendorName,
       availableVendors,
       handleVendorSelect,
-      handleVendorConfirm
+      handleVendorConfirm,
     ]);
 
     return (
       <tr className="border-b border-gray-200 hover:bg-gray-50 text-sm">
         {/* Order ID + Payment Status */}
-        <td className="py-4 px-3 min-w-[160px]">
+        <td className="py-3 px-6 w-48 border-r border-gray-200">
           <div className="space-y-1">
             <button
               onClick={handleView}
@@ -3449,7 +3473,7 @@ const OrderRow = React.memo(
         </td>
 
         {/* Product Image */}
-        <td className="py-4 px-3">
+        <td className="py-3 px-4 w-16 border-r border-gray-200">
           <div className="w-12 h-12 bg-gray-100 rounded flex items-center justify-center">
             <div className="w-10 h-10 bg-blue-200 rounded flex items-center justify-center">
               <div
@@ -3461,45 +3485,57 @@ const OrderRow = React.memo(
         </td>
 
         {/* Product Name */}
-        <td className="py-4 px-3 font-medium text-gray-900">
+        <td className="py-3 px-4 w-40 font-medium text-gray-900 break-words border-r border-gray-200">
           {order.productName}
         </td>
 
         {/* Customer Name */}
-        <td className="py-4 px-3 text-gray-700">{order.name}</td>
+        <td className="py-3 px-4 w-32 text-gray-700 border-r border-gray-200">
+          {order.name}
+        </td>
 
         {/* Order Date */}
-        <td className="py-4 px-3 text-gray-700">{order.date}</td>
+        <td className="py-3 px-4 w-28 text-gray-700 border-r border-gray-200">
+          {order.date}
+        </td>
 
         {/* HSN */}
-        <td className="py-4 px-3 text-gray-700">{order.hsn}</td>
+        <td className="py-3 px-4 w-24 text-gray-700 border-r border-gray-200">
+          {order.hsn}
+        </td>
 
         {/* Sizes */}
-        <td className="py-4 px-3">{sizeDisplay}</td>
+        <td className="py-3 px-4 w-32 border-r border-gray-200">
+          {sizeDisplay}
+        </td>
 
         {/* Quantities */}
-        <td className="py-4 px-3">{quantityDisplay}</td>
+        <td className="py-3 px-4 w-32 border-r border-gray-200">
+          {quantityDisplay}
+        </td>
 
         {/* Price */}
-        <td className="py-4 px-3 font-semibold text-gray-700">
+        <td className="py-3 px-4 w-24 font-semibold text-gray-700 border-r border-gray-200">
           ₹{order.price}
         </td>
 
         {/* Sale Price */}
-        <td className="py-4 px-3 font-semibold text-gray-700">
+        <td className="py-3 px-4 w-24 font-semibold text-gray-700 border-r border-gray-200">
           ₹{order.salePrice}
         </td>
 
         {/* SKU */}
-        <td className="py-4 px-3 text-gray-700">{order.sku}</td>
+        <td className="py-3 px-4 w-28 text-gray-700 border-r border-gray-200">
+          {order.sku}
+        </td>
 
         {/* Barcode */}
-        <td className="py-4 px-3 text-xs font-mono text-gray-700 break-all">
+        <td className="py-3 px-3 w-40 text-xs font-mono text-gray-700 break-words border-r border-gray-200">
           {order.barcodeNo}
         </td>
 
         {/* Status */}
-        <td className="py-4 px-3">
+        <td className="py-3 px-4 w-32 border-r border-gray-200">
           {computedValues.isPendingStatus ? (
             <div className="space-y-2">
               <button
@@ -3525,9 +3561,9 @@ const OrderRow = React.memo(
         </td>
 
         {/* Vendor Allotment */}
-        <td className="py-4 px-3 text-xs">
-          <div className="space-y-2">
-            <div className="text-gray-600 font-medium text-center">
+        <td className="py-3 px-4 w-48 text-xs border-r border-gray-200">
+          <div className="space-y-2 text-center">
+            <div className="text-gray-600 font-medium">
               {activeTab === "returns" ? "Return to Vendor" : "Allot Vendor"}
             </div>
             <div className="flex justify-center gap-2">
@@ -3550,7 +3586,7 @@ const OrderRow = React.memo(
             {(computedValues.isVendorAllotted ||
               order.allottedVendorName ||
               computedValues.allottedVendorName) && (
-              <div className="text-center">
+              <div>
                 <span className="inline-block px-2 py-1 bg-blue-100 text-blue-800 font-medium rounded-full">
                   {computedValues.allottedVendorName ||
                     order.allottedVendorName ||
@@ -3563,8 +3599,8 @@ const OrderRow = React.memo(
         </td>
 
         {/* Courier Allotment */}
-        <td className="py-4 px-3 text-xs">
-          <div className="space-y-2">
+        <td className="py-3 px-4 w-40 text-xs border-r border-gray-200">
+          <div className="space-y-2 text-center">
             <div className="flex justify-center gap-2">
               {[false, true].map((value) => (
                 <button
@@ -3581,7 +3617,7 @@ const OrderRow = React.memo(
               ))}
             </div>
             {computedValues.isCourierAllotted && (
-              <div className="text-green-600 font-medium text-center">
+              <div className="text-green-600 font-medium">
                 <Package className="inline w-4 h-4 mr-1" /> Shiprocket
               </div>
             )}
@@ -3589,7 +3625,7 @@ const OrderRow = React.memo(
         </td>
 
         {/* Delivery Status */}
-        <td className="py-4 px-3">
+        <td className="py-3 px-4 w-32 text-center border-r border-gray-200">
           <span
             className={`inline-block px-2 py-1 text-xs rounded-full font-medium ${getDeliveryStatusColor(
               computedValues.currentDeliveryStatus
@@ -3600,7 +3636,7 @@ const OrderRow = React.memo(
         </td>
 
         {/* Action Buttons */}
-        <td className="py-4 px-3">
+        <td className="py-3 px-4 w-40">
           <div className="flex flex-wrap gap-2">
             <button
               onClick={handleBarcodeScan}
@@ -3642,12 +3678,18 @@ const OrderRow = React.memo(
       prevProps.order.orderId === nextProps.order.orderId &&
       prevProps.order.status === nextProps.order.status &&
       prevProps.order.paymentStatus === nextProps.order.paymentStatus &&
-      prevProps.selectedVendors[prevProps.order.orderId] === nextProps.selectedVendors[nextProps.order.orderId] &&
-      prevProps.courierAllotments[prevProps.order.orderId] === nextProps.courierAllotments[nextProps.order.orderId] &&
-      prevProps.showVendorDropdown[prevProps.order.orderId] === nextProps.showVendorDropdown[nextProps.order.orderId] &&
-      prevProps.selectedVendorNames[prevProps.order.orderId] === nextProps.selectedVendorNames[nextProps.order.orderId] &&
-      prevProps.allottedVendorNames[prevProps.order.orderId] === nextProps.allottedVendorNames[nextProps.order.orderId] &&
-      prevProps.deliveryStatuses[prevProps.order.orderId] === nextProps.deliveryStatuses[nextProps.order.orderId] &&
+      prevProps.selectedVendors[prevProps.order.orderId] ===
+        nextProps.selectedVendors[nextProps.order.orderId] &&
+      prevProps.courierAllotments[prevProps.order.orderId] ===
+        nextProps.courierAllotments[nextProps.order.orderId] &&
+      prevProps.showVendorDropdown[prevProps.order.orderId] ===
+        nextProps.showVendorDropdown[nextProps.order.orderId] &&
+      prevProps.selectedVendorNames[prevProps.order.orderId] ===
+        nextProps.selectedVendorNames[nextProps.order.orderId] &&
+      prevProps.allottedVendorNames[prevProps.order.orderId] ===
+        nextProps.allottedVendorNames[nextProps.order.orderId] &&
+      prevProps.deliveryStatuses[prevProps.order.orderId] ===
+        nextProps.deliveryStatuses[nextProps.order.orderId] &&
       prevProps.activeTab === nextProps.activeTab
     );
   }

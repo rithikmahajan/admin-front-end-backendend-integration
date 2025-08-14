@@ -440,11 +440,11 @@ const ProductBundling = () => {
     () =>
       ({ placeholder, value, onChange, options = [] }) =>
         (
-          <div className="relative w-80 h-12">
+          <div className="relative w-80 h-14">
             <select
               value={value}
               onChange={(e) => onChange(e.target.value)}
-              className="w-full h-full px-4 border border-[#979797] rounded-xl text-[#000000] text-[15px] font-montserrat appearance-none bg-white focus:outline-none focus:border-[#979797] hover:border-[#666666] transition-colors"
+              className="w-full h-full px-6 border-2 border-gray-200 rounded-xl text-gray-800 text-base font-medium appearance-none bg-white focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-50 hover:border-gray-300 transition-all duration-200 shadow-sm"
             >
               <option value="">{placeholder}</option>
               {options.map((option, index) => (
@@ -453,7 +453,7 @@ const ProductBundling = () => {
                 </option>
               ))}
             </select>
-            <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#979797] pointer-events-none" />
+            <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
           </div>
         ),
     []
@@ -813,7 +813,11 @@ const ProductBundling = () => {
               className="bg-[#202224] text-white px-5 py-2.5 rounded-lg flex items-center gap-2 hover:bg-[#333537] transition-colors font-montserrat text-sm border border-[#7280FF] shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Plus size={18} />
-              Assign
+              {isMain
+                ? "Assign Item"
+                : title.includes("1")
+                ? "Assign 1"
+                : "Assign 2"}
             </button>
           </div>
         </div>
@@ -842,9 +846,9 @@ const ProductBundling = () => {
           <div className="mt-8">
             <button
               onClick={handleBundleWith}
-              className="bg-[#202224] text-white px-10 py-3.5 rounded-full text-base font-medium hover:bg-[#333537] transition-colors font-montserrat border border-black shadow-sm"
+              className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-12 py-4 rounded-xl text-lg font-semibold hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
             >
-              Bundle with
+              Create Bundle
             </button>
           </div>
         )}
@@ -856,14 +860,17 @@ const ProductBundling = () => {
     <div className="bg-gradient-to-b from-gray-50 to-white min-h-screen font-montserrat">
       <div className="max-w-[1600px] mx-auto px-8 py-12">
         {/* Page Title */}
-        <div className="mb-14">
-          <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight capitalize">
-            Manage Product Bundling
+        <div className="mb-16">
+          <h1 className="text-4xl font-bold text-gray-900 mb-4 tracking-tight">
+            Product Bundle Manager
           </h1>
+          <p className="text-lg text-gray-600 max-w-2xl">
+            Create and manage product bundles with drag-and-drop functionality
+          </p>
         </div>
 
         {/* Main Product Section */}
-        <div className="mb-12 bg-white shadow-sm rounded-xl p-6 border border-gray-100">
+        <div className="mb-16 shadow-md rounded-2xl p-8 border border-slate-100">
           <ProductSection
             title="Main Product"
             isMain={true}
@@ -880,11 +887,20 @@ const ProductBundling = () => {
         </div>
 
         {/* Bundle Items */}
-        <div className="space-y-8">
+        <div className="space-y-6">
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              Bundle Items
+            </h2>
+            <p className="text-gray-600">
+              Add complementary products to your bundle
+            </p>
+          </div>
+
           {bundleItems.map((item, index) => (
             <div
               key={item.id}
-              className="bg-white shadow-sm rounded-xl p-6 border border-gray-100"
+              className="shadow-md rounded-2xl p-8 border border-green-100 hover:shadow-xl transition-shadow duration-300"
             >
               <ProductSection
                 title={`Bundle Item ${index + 1}`}
@@ -906,28 +922,22 @@ const ProductBundling = () => {
 
         {/* Bundle Preview */}
         {dragItems.length > 0 && (
-          <div className="mt-16 mb-12">
-            <div className="flex items-center gap-3 mb-8">
-              <h2 className="text-2xl font-bold text-gray-900">
-                Bundle Preview & Arrange
-              </h2>
-              <span className="w-6 h-6 bg-gray-100 rounded flex items-center justify-center text-gray-500">
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.5}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M3.75 6.75h16.5M3.75 12h16.5M3.75 17.25h16.5"
-                  />
-                </svg>
-              </span>
+          <div className="mt-20 mb-16 bg-gradient-to-b from-purple-50 to-pink-50 rounded-2xl p-10 border border-purple-100">
+            <div className="text-center mb-10">
+              <div className="flex items-center justify-center gap-3 mb-4">
+                <div className="w-12 h-12 bg-purple-500 rounded-xl flex items-center justify-center">
+                  <GripVertical className="w-6 h-6 text-white" />
+                </div>
+                <h2 className="text-3xl font-bold text-gray-900">
+                  Bundle Preview
+                </h2>
+              </div>
+              <p className="text-lg text-gray-600">
+                Drag and drop to arrange your bundle items
+              </p>
             </div>
 
+            {/* DndContext content with enhanced styling */}
             <DndContext
               sensors={sensors}
               collisionDetection={closestCenter}
@@ -937,10 +947,10 @@ const ProductBundling = () => {
                 items={dragItems.map((item) => item.id)}
                 strategy={verticalListSortingStrategy}
               >
-                <div className="grid grid-cols-3 gap-10">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                   {dragItems.map((item, index) => (
                     <SortableItem key={item.id} id={item.id}>
-                      <div className="text-center bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                      <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
                         <h3 className="text-lg font-semibold text-gray-900 mb-4 capitalize">
                           {item.id === "main"
                             ? "Main Product"
@@ -999,14 +1009,17 @@ const ProductBundling = () => {
         )}
 
         {/* Bundle List Button */}
-        <div className="flex justify-center mt-14">
-          <button
-            onClick={() => setShowBundleList(!showBundleList)}
-            className="bg-gray-900 text-white px-10 py-4 rounded-full text-lg font-medium hover:bg-gray-800 transition-all shadow-sm"
-          >
-            Bundle List ({bundleList.length})
-          </button>
-        </div>
+        <button
+          onClick={() => setShowBundleList(!showBundleList)}
+          className="bg-black text-white px-8 py-3 rounded-2xl text-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 relative mt-12"
+        >
+          <span className="flex items-center gap-3">
+            View Bundle List
+            <span className="bg-white text-gray-900 px-3 py-1 rounded-full text-sm">
+              {bundleList.length}
+            </span>
+          </span>
+        </button>
 
         {/* Modals */}
         <EditBundleModal />

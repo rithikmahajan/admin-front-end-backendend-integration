@@ -324,25 +324,25 @@ const BlockUser = () => {
   });
 
   return (
-    <div className="min-h-screen w-full bg-white relative">
+    <div className="min-h-screen w-full bg-white p-6">
       {/* Page Title */}
-      <header className="absolute left-16 top-[87px] -translate-y-1/2">
-        <h1 className="text-2xl font-bold text-black font-montserrat leading-[22px]">
+      <header className="pb-4 border-b border-gray-200">
+        <h1 className="font-bold text-gray-900 text-2xl leading-tight">
           Block User
         </h1>
       </header>
 
       {/* Main Content */}
-      <main className="pt-[120px] w-full">
+      <main className="w-full">
         {/* Users Table */}
         <div className="overflow-x-auto">
           <table className="w-full min-w-full">
             <thead>
-              <tr className="border-b border-gray-200">
+              <tr className="border-2 border-gray-200 rounded-3xl">
                 {TABLE_HEADERS.map(({ key, label }) => (
                   <th
                     key={key}
-                    className="text-left py-4 px-4 font-bold text-[#010101] text-base font-montserrat"
+                    className="text-left py-4 px-4 font-bold text-[#010101] text-base font-montserrat rounded-3xl border-2 border-gray-200 w-1/4"
                   >
                     {label}
                   </th>

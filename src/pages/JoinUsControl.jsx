@@ -840,8 +840,8 @@ const JoinUsControl = memo(() => {
       <div className="p-6">
         
         {/* Main Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-black mb-6">join us control screen</h1>
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-black mb-6">join us control screen</h1>
         </div>
 
         {/* Add Header Details Section */}

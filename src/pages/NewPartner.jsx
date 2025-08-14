@@ -315,10 +315,10 @@ const NewPartner = () => {
       </div>
 
       {/* Form Section */}
-      <div className="max-w-3xl mx-auto mt-10">
+      <div className="max-w-3xl m-10">
         <form
           onSubmit={handleSubmit}
-          className="grid grid-cols-1 sm:grid-cols-2 gap-8 bg-white p-8 rounded-xl shadow-lg border border-gray-100"
+          className="grid grid-cols-1 sm:grid-cols-2 gap-8 bg-white p-8 rounded-xl shadow-sm border-2 border-gray-200"
         >
           {/* Name Field */}
           <div>
@@ -397,9 +397,9 @@ const NewPartner = () => {
       </div>
 
       {/* Vendors Table Section */}
-      <div className="mt-16 px-8">
+      <div className="px-8">
         {vendors.length > 0 ? (
-          <div className="max-w-6xl bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="max-w-6xl bg-white rounded-xl shadow-sm border-2 border-gray-200 overflow-hidden">
             {/* Table Headers */}
             <div className="grid grid-cols-5 gap-8 py-4 px-6 bg-gray-50 border-b border-gray-200">
               <div className="text-gray-800 text-lg font-semibold text-left">

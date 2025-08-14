@@ -189,7 +189,7 @@ const PushNotification = () => {
   }, []);
 
   return (
-    <div className="flex-1 p-4 sm:p-6">
+    <div className="p-4">
       <div className="flex flex-col xl:flex-row gap-6">
         {/* Left Column - Form */}
         <div className="flex-1">
