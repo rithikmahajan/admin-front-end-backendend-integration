@@ -236,15 +236,15 @@ const GetAutoInvoiceMailing = () => {
     const baseClasses = "px-4 py-2 rounded-full text-[16px] font-medium transition-colors";
     const widthClass = isOnButton ? "min-w-[69px]" : "min-w-[76px]";
     const isActive = isOnButton ? enabled : !enabled;
-    const activeClasses = "bg-[#000aff] text-white border border-black";
-    const inactiveClasses = "bg-transparent text-black border border-[#e4e4e4]";
+    const activeClasses = "bg-blue-600 text-white";
+    const inactiveClasses = "bg-gray-200 text-black";
     
     return `${baseClasses} ${widthClass} ${isActive ? activeClasses : inactiveClasses}`;
   }, []);
 
   const ToggleSwitch = useCallback(({ enabled, label, settingKey }) => (
     <div className="flex items-center justify-between py-4">
-      <span className="font-bold text-[#010101] text-[20px] font-montserrat">{label}</span>
+      <span className="font-bold text-black text-lg font-montserrat">{label}</span>
       <div className="flex items-center space-x-2">
         <button
           onClick={() => handleToggleSetting(settingKey, 'on')}
@@ -363,10 +363,10 @@ const GetAutoInvoiceMailing = () => {
   
   return (
     <div className="bg-white min-h-screen p-8">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-4xl">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-[24px] font-bold text-[#010101] font-montserrat">Auto Invoice Mailing</h1>
+          <h1 className="text-3xl font-bold text-black font-montserrat">Auto Invoice Mailing</h1>
           <p className="text-gray-600 mt-2">
             Configure automatic invoice mailing settings for your business operations.
           </p>

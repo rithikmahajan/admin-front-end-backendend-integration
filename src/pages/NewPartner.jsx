@@ -388,7 +388,7 @@ const NewPartner = () => {
           <div className="sm:col-span-2 flex justify-end">
             <button
               type="submit"
-              className="bg-[#202224] text-white text-sm font-semibold px-10 py-3 rounded-full hover:bg-[#333537] transition-all shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[#7280FF] focus:ring-offset-2 font-montserrat"
+              className="bg-black text-white text-sm font-semibold px-10 py-3 rounded-lg hover:bg-[#333537] font-montserrat"
             >
               Create Partner
             </button>

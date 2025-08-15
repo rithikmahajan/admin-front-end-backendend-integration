@@ -1,93 +1,157 @@
-import React, { useState, useCallback, memo, useMemo, useRef } from 'react';
-import { Plus, Upload, X, Edit2, Trash2, Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight, Image as ImageIcon, Type, Palette, Save, Send } from 'lucide-react';
+import React, { useState, useCallback, memo, useMemo, useRef } from "react";
+import {
+  Plus,
+  Upload,
+  X,
+  Edit2,
+  Trash2,
+  Bold,
+  Italic,
+  Underline,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  Image as ImageIcon,
+  Type,
+  Palette,
+  Save,
+  Send,
+} from "lucide-react";
 
-/**
- * Email and SMS Template Management Screen
- * Based on Figma design: https://www.figma.com/design/IpSbkzNdQaSYHeyCNBefrh/YORAA--rithik-mahajan-final-screens-with-try-on--Copy-?node-id=8451-63907&t=bFpoF1lZLkWiW3wy-4
- * 
- * Features:
- * - Create email templates with drag-and-drop functionality  
- * - Real-time editing with basic and advanced tools
- * - Image upload and text input with rearrangement
- * - Template saving and management
- * - Red "send now" action buttons for settings/view mode
- * - Responsive design with Montserrat font following design system
- */
-
-// Constants - Memoized to prevent recreation on each render
 const DEFAULT_TEMPLATE = Object.freeze({
   id: null,
-  name: '',
+  name: "",
   content: Object.freeze({
     images: Object.freeze([]),
     texts: Object.freeze([]),
-    layout: 'default'
+    layout: "default",
   }),
-  preview: '',
+  preview: "",
   createdAt: new Date(),
-  updatedAt: new Date()
+  updatedAt: new Date(),
 });
 
 const SAMPLE_TEMPLATES = Object.freeze([
   Object.freeze({
     id: 1,
-    name: 'Promotional Offer',
+    name: "Promotional Offer",
     content: Object.freeze({
-      backgroundColor: '#000000',
+      backgroundColor: "#000000",
       texts: Object.freeze([
-        Object.freeze({ id: 'text1', content: 'WANT', fontSize: '12px', color: '#ffffff', position: Object.freeze({ x: 50, y: 20 }) }),
-        Object.freeze({ id: 'text2', content: '10% OFF', fontSize: '64px', color: '#ffffff', position: Object.freeze({ x: 50, y: 40 }) }),
-        Object.freeze({ id: 'text3', content: 'YOUR NEXT PURCHASE?', fontSize: '20px', color: '#ffffff', position: Object.freeze({ x: 50, y: 60 }) }),
-        Object.freeze({ id: 'text4', content: 'PLUS REWARD GIVEAWAY AND MORE!', fontSize: '12px', color: '#ffffff', position: Object.freeze({ x: 50, y: 75 }) }),
-        Object.freeze({ id: 'text5', content: 'What are you waiting for?', fontSize: '12px', color: '#ffffff', position: Object.freeze({ x: 50, y: 85 }) }),
-        Object.freeze({ id: 'text6', content: 'Become a Rewards member today!', fontSize: '12px', color: '#ffffff', position: Object.freeze({ x: 50, y: 92 }) })
+        Object.freeze({
+          id: "text1",
+          content: "WANT",
+          fontSize: "12px",
+          color: "#ffffff",
+          position: Object.freeze({ x: 50, y: 20 }),
+        }),
+        Object.freeze({
+          id: "text2",
+          content: "10% OFF",
+          fontSize: "64px",
+          color: "#ffffff",
+          position: Object.freeze({ x: 50, y: 40 }),
+        }),
+        Object.freeze({
+          id: "text3",
+          content: "YOUR NEXT PURCHASE?",
+          fontSize: "20px",
+          color: "#ffffff",
+          position: Object.freeze({ x: 50, y: 60 }),
+        }),
+        Object.freeze({
+          id: "text4",
+          content: "PLUS REWARD GIVEAWAY AND MORE!",
+          fontSize: "12px",
+          color: "#ffffff",
+          position: Object.freeze({ x: 50, y: 75 }),
+        }),
+        Object.freeze({
+          id: "text5",
+          content: "What are you waiting for?",
+          fontSize: "12px",
+          color: "#ffffff",
+          position: Object.freeze({ x: 50, y: 85 }),
+        }),
+        Object.freeze({
+          id: "text6",
+          content: "Become a Rewards member today!",
+          fontSize: "12px",
+          color: "#ffffff",
+          position: Object.freeze({ x: 50, y: 92 }),
+        }),
       ]),
-      images: Object.freeze([])
+      images: Object.freeze([]),
     }),
-    preview: '#000000',
-    createdAt: new Date('2024-01-15'),
-    updatedAt: new Date('2024-01-15')
+    preview: "#000000",
+    createdAt: new Date("2024-01-15"),
+    updatedAt: new Date("2024-01-15"),
   }),
   Object.freeze({
     id: 2,
-    name: 'Concert Giveaway',
+    name: "Concert Giveaway",
     content: Object.freeze({
-      backgroundColor: '#fffb25',
+      backgroundColor: "#fffb25",
       texts: Object.freeze([
-        Object.freeze({ id: 'text1', content: 'Expires in 8 days', fontSize: '12px', color: '#000000', position: Object.freeze({ x: 50, y: 10 }) }),
-        Object.freeze({ id: 'text2', content: 'YORAA Concert Giveaways', fontSize: '14px', color: '#000000', position: Object.freeze({ x: 50, y: 25 }) }),
-        Object.freeze({ id: 'text3', content: 'MEMBERS EXCLUSIVE', fontSize: '12px', color: '#000000', position: Object.freeze({ x: 50, y: 85 }) })
+        Object.freeze({
+          id: "text1",
+          content: "Expires in 8 days",
+          fontSize: "12px",
+          color: "#000000",
+          position: Object.freeze({ x: 50, y: 10 }),
+        }),
+        Object.freeze({
+          id: "text2",
+          content: "YORAA Concert Giveaways",
+          fontSize: "14px",
+          color: "#000000",
+          position: Object.freeze({ x: 50, y: 25 }),
+        }),
+        Object.freeze({
+          id: "text3",
+          content: "MEMBERS EXCLUSIVE",
+          fontSize: "12px",
+          color: "#000000",
+          position: Object.freeze({ x: 50, y: 85 }),
+        }),
       ]),
-      images: Object.freeze([])
+      images: Object.freeze([]),
     }),
-    preview: '#fffb25',
-    createdAt: new Date('2024-01-10'),
-    updatedAt: new Date('2024-01-12')
-  })
+    preview: "#fffb25",
+    createdAt: new Date("2024-01-10"),
+    updatedAt: new Date("2024-01-12"),
+  }),
 ]);
 
 const BASIC_TOOLS = Object.freeze([
-  Object.freeze({ id: 'bold', icon: Bold, label: 'Bold' }),
-  Object.freeze({ id: 'italic', icon: Italic, label: 'Italic' }),
-  Object.freeze({ id: 'underline', icon: Underline, label: 'Underline' }),
-  Object.freeze({ id: 'align-left', icon: AlignLeft, label: 'Align Left' }),
-  Object.freeze({ id: 'align-center', icon: AlignCenter, label: 'Align Center' }),
-  Object.freeze({ id: 'align-right', icon: AlignRight, label: 'Align Right' })
+  Object.freeze({ id: "bold", icon: Bold, label: "Bold" }),
+  Object.freeze({ id: "italic", icon: Italic, label: "Italic" }),
+  Object.freeze({ id: "underline", icon: Underline, label: "Underline" }),
+  Object.freeze({ id: "align-left", icon: AlignLeft, label: "Align Left" }),
+  Object.freeze({
+    id: "align-center",
+    icon: AlignCenter,
+    label: "Align Center",
+  }),
+  Object.freeze({ id: "align-right", icon: AlignRight, label: "Align Right" }),
 ]);
 
 const ADVANCED_TOOLS = Object.freeze([
-  Object.freeze({ id: 'text-color', icon: Palette, label: 'Text Color' }),
-  Object.freeze({ id: 'background-color', icon: Palette, label: 'Background Color' }),
-  Object.freeze({ id: 'font-size', icon: Type, label: 'Font Size' }),
-  Object.freeze({ id: 'font-family', icon: Type, label: 'Font Family' })
+  Object.freeze({ id: "text-color", icon: Palette, label: "Text Color" }),
+  Object.freeze({
+    id: "background-color",
+    icon: Palette,
+    label: "Background Color",
+  }),
+  Object.freeze({ id: "font-size", icon: Type, label: "Font Size" }),
+  Object.freeze({ id: "font-family", icon: Type, label: "Font Family" }),
 ]);
 
-// Custom Hooks
 const useTemplateEditor = () => {
   const [currentTemplate, setCurrentTemplate] = useState(() => ({
     ...DEFAULT_TEMPLATE,
     createdAt: new Date(),
-    updatedAt: new Date()
+    updatedAt: new Date(),
   }));
   const [savedTemplates, setSavedTemplates] = useState(SAMPLE_TEMPLATES);
   const [isEditing, setIsEditing] = useState(false);
@@ -95,10 +159,10 @@ const useTemplateEditor = () => {
   const [selectedElement, setSelectedElement] = useState(null);
 
   const updateTemplate = useCallback((updates) => {
-    setCurrentTemplate(prev => ({
+    setCurrentTemplate((prev) => ({
       ...prev,
       ...updates,
-      updatedAt: new Date()
+      updatedAt: new Date(),
     }));
   }, []);
 
@@ -106,24 +170,24 @@ const useTemplateEditor = () => {
     const newText = {
       id: `text_${Date.now()}`,
       content: text,
-      fontSize: '16px',
-      color: '#000000',
+      fontSize: "16px",
+      color: "#000000",
       position: { x: 50, y: 50 },
       style: {
-        fontWeight: 'normal',
-        fontStyle: 'normal',
-        textDecoration: 'none',
-        textAlign: 'left'
-      }
+        fontWeight: "normal",
+        fontStyle: "normal",
+        textDecoration: "none",
+        textAlign: "left",
+      },
     };
 
-    setCurrentTemplate(prev => ({
+    setCurrentTemplate((prev) => ({
       ...prev,
       content: {
         ...prev.content,
-        texts: [...(prev.content.texts || []), newText]
+        texts: [...(prev.content.texts || []), newText],
       },
-      updatedAt: new Date()
+      updatedAt: new Date(),
     }));
   }, []);
 
@@ -136,16 +200,16 @@ const useTemplateEditor = () => {
         id: `image_${Date.now()}`,
         src: e.target.result,
         position: { x: 20, y: 20 },
-        size: { width: 100, height: 100 }
+        size: { width: 100, height: 100 },
       };
 
-      setCurrentTemplate(prev => ({
+      setCurrentTemplate((prev) => ({
         ...prev,
         content: {
           ...prev.content,
-          images: [...(prev.content.images || []), newImage]
+          images: [...(prev.content.images || []), newImage],
         },
-        updatedAt: new Date()
+        updatedAt: new Date(),
       }));
     };
     reader.readAsDataURL(imageFile);
@@ -153,18 +217,18 @@ const useTemplateEditor = () => {
 
   const saveTemplate = useCallback(() => {
     if (!currentTemplate.name.trim()) {
-      alert('Please enter a template name');
+      alert("Please enter a template name");
       return;
     }
 
-    setSavedTemplates(prev => {
+    setSavedTemplates((prev) => {
       const templateToSave = {
         ...currentTemplate,
         id: currentTemplate.id || Date.now(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
 
-      const existingIndex = prev.findIndex(t => t.id === templateToSave.id);
+      const existingIndex = prev.findIndex((t) => t.id === templateToSave.id);
       if (existingIndex >= 0) {
         const updated = [...prev];
         updated[existingIndex] = templateToSave;
@@ -173,12 +237,12 @@ const useTemplateEditor = () => {
       return [...prev, templateToSave];
     });
 
-    alert('Template saved successfully!');
+    alert("Template saved successfully!");
     setIsEditing(false);
   }, [currentTemplate]);
 
   const deleteTemplate = useCallback((templateId) => {
-    setSavedTemplates(prev => prev.filter(t => t.id !== templateId));
+    setSavedTemplates((prev) => prev.filter((t) => t.id !== templateId));
   }, []);
 
   const editTemplate = useCallback((template) => {
@@ -202,7 +266,7 @@ const useTemplateEditor = () => {
     addImage,
     saveTemplate,
     deleteTemplate,
-    editTemplate
+    editTemplate,
   };
 };
 
@@ -215,22 +279,34 @@ const useDragAndDrop = () => {
     const rect = e.currentTarget.getBoundingClientRect();
     dragOffset.current = {
       x: e.clientX - rect.left,
-      y: e.clientY - rect.top
+      y: e.clientY - rect.top,
     };
   }, []);
 
-  const handleMouseMove = useCallback((e, onPositionChange) => {
-    if (!isDragging) return;
+  const handleMouseMove = useCallback(
+    (e, onPositionChange) => {
+      if (!isDragging) return;
 
-    const container = e.currentTarget.closest('.template-preview');
-    if (!container) return;
+      const container = e.currentTarget.closest(".template-preview");
+      if (!container) return;
 
-    const containerRect = container.getBoundingClientRect();
-    const x = ((e.clientX - containerRect.left - dragOffset.current.x) / containerRect.width) * 100;
-    const y = ((e.clientY - containerRect.top - dragOffset.current.y) / containerRect.height) * 100;
+      const containerRect = container.getBoundingClientRect();
+      const x =
+        ((e.clientX - containerRect.left - dragOffset.current.x) /
+          containerRect.width) *
+        100;
+      const y =
+        ((e.clientY - containerRect.top - dragOffset.current.y) /
+          containerRect.height) *
+        100;
 
-    onPositionChange({ x: Math.max(0, Math.min(100, x)), y: Math.max(0, Math.min(100, y)) });
-  }, [isDragging]);
+      onPositionChange({
+        x: Math.max(0, Math.min(100, x)),
+        y: Math.max(0, Math.min(100, y)),
+      });
+    },
+    [isDragging]
+  );
 
   const handleMouseUp = useCallback(() => {
     setIsDragging(false);
@@ -240,381 +316,460 @@ const useDragAndDrop = () => {
     isDragging,
     handleMouseDown,
     handleMouseMove,
-    handleMouseUp
+    handleMouseUp,
   };
 };
 
-// Components
 const ImageUploadSection = memo(({ onImageUpload }) => {
   const fileInputRef = useRef(null);
 
-  const handleFileChange = useCallback((e) => {
-    const file = e.target.files[0];
-    if (file && file.type.startsWith('image/')) {
-      onImageUpload(file);
-    }
-  }, [onImageUpload]);
+  const handleFileChange = useCallback(
+    (e) => {
+      const file = e.target.files[0];
+      if (file && file.type.startsWith("image/")) {
+        onImageUpload(file);
+      }
+    },
+    [onImageUpload]
+  );
 
   const triggerFileInput = useCallback(() => {
     fileInputRef.current?.click();
   }, []);
 
   return (
-    <div className="space-y-4">
-      <h3 className="text-[24px] font-bold text-[#000000] font-['Montserrat'] text-center leading-[22px]">
-        Add image
-      </h3>
-      
-      <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center bg-gray-50 h-[594px] w-[296px] flex flex-col items-center justify-center">
-        <div className="w-32 h-32 bg-gray-200 rounded-lg flex items-center justify-center mb-4">
-          <ImageIcon className="h-16 w-16 text-gray-400" />
+    <div className="bg-white rounded-2xl border border-gray-100 shadow-lg">
+      <div className="p-6">
+        <h3 className="text-2xl font-bold text-gray-900 mb-6">Add Image</h3>
+
+        <div className="border-2 border-dashed border-gray-200 rounded-xl p-8 hover:border-blue-300 transition-colors duration-200">
+          <div className="flex flex-col items-center text-center">
+            <div className="w-20 h-20 bg-gray-50 rounded-xl flex items-center justify-center mb-4">
+              <ImageIcon className="h-10 w-10 text-gray-400" />
+            </div>
+
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleFileChange}
+              className="hidden"
+            />
+
+            <button
+              onClick={triggerFileInput}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl flex items-center gap-2 font-medium transition-colors duration-200 shadow-md"
+            >
+              <Plus className="w-5 h-5" />
+              Upload Image
+            </button>
+
+            <p className="text-sm text-gray-500 mt-3">
+              Drop your image here or click to browse
+            </p>
+          </div>
         </div>
-        
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          onChange={handleFileChange}
-          className="hidden"
-        />
-        
+      </div>
+    </div>
+  );
+});
+
+ImageUploadSection.displayName = "ImageUploadSection";
+
+const TextInputSection = memo(({ onTextAdd }) => {
+  const [inputText, setInputText] = useState("");
+
+  const handleAddText = useCallback(() => {
+    if (inputText.trim()) {
+      onTextAdd(inputText);
+      setInputText("");
+    }
+  }, [inputText, onTextAdd]);
+
+  const handleKeyPress = useCallback(
+    (e) => {
+      if (e.key === "Enter") {
+        handleAddText();
+      }
+    },
+    [handleAddText]
+  );
+
+  return (
+    <div className="bg-white rounded-2xl border border-gray-100 shadow-lg">
+      <div className="p-6">
+        <h3 className="text-2xl font-bold text-gray-900 mb-6">Input Text</h3>
+
+        <div className="border border-gray-200 rounded-xl overflow-hidden">
+          <textarea
+            value={inputText}
+            onChange={(e) => setInputText(e.target.value)}
+            onKeyPress={handleKeyPress}
+            placeholder="Type your text here..."
+            className="w-full h-80 p-4 border-none outline-none resize-none text-gray-700 placeholder-gray-400 focus:ring-0"
+          />
+        </div>
+
         <button
-          onClick={triggerFileInput}
-          className="bg-[#000aff] text-white px-4 py-2.5 rounded-lg flex items-center gap-2 text-[14px] font-['Montserrat'] hover:bg-blue-700 transition-colors shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] border border-[#7280ff]"
+          onClick={handleAddText}
+          disabled={!inputText.trim()}
+          className="w-full mt-4 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-300 text-white px-4 py-3 rounded-xl font-medium transition-colors duration-200"
         >
-          <Plus className="w-5 h-5" />
-          upload image
+          Add Text
         </button>
       </div>
     </div>
   );
 });
 
-ImageUploadSection.displayName = 'ImageUploadSection';
+TextInputSection.displayName = "TextInputSection";
 
-const TextInputSection = memo(({ onTextAdd }) => {
-  const [inputText, setInputText] = useState('');
+const TemplatePreview = memo(
+  ({ template, onElementSelect, selectedElement, onPositionUpdate }) => {
+    const { handleMouseDown, handleMouseMove, handleMouseUp } =
+      useDragAndDrop();
 
-  const handleAddText = useCallback(() => {
-    if (inputText.trim()) {
-      onTextAdd(inputText);
-      setInputText('');
-    }
-  }, [inputText, onTextAdd]);
+    const updateElementPosition = useCallback(
+      (elementId, newPosition) => {
+        onPositionUpdate(elementId, newPosition);
+      },
+      [onPositionUpdate]
+    );
 
-  const handleKeyPress = useCallback((e) => {
-    if (e.key === 'Enter') {
-      handleAddText();
-    }
-  }, [handleAddText]);
+    const hasNoContent = useMemo(
+      () =>
+        !template.content?.texts?.length && !template.content?.images?.length,
+      [template.content?.texts?.length, template.content?.images?.length]
+    );
 
-  return (
-    <div className="space-y-4">
-      <h3 className="text-[24px] font-bold text-[#000000] font-['Montserrat'] text-center leading-[22px]">
-        Input Text
-      </h3>
-      
-      <div className="border-2 border-solid border-gray-300 rounded-xl p-4 h-[594px] w-[296px]">
-        <textarea
-          value={inputText}
-          onChange={(e) => setInputText(e.target.value)}
-          onKeyPress={handleKeyPress}
-          placeholder="Type your text here..."
-          className="w-full h-full border-none outline-none resize-none font-['Montserrat'] text-[14px] bg-transparent"
-        />
-      </div>
-    </div>
-  );
-});
+    const backgroundColor = useMemo(
+      () => template.content?.backgroundColor || "#000000",
+      [template.content?.backgroundColor]
+    );
 
-TextInputSection.displayName = 'TextInputSection';
+    const renderedImages = useMemo(
+      () =>
+        template.content?.images?.map((image) => (
+          <div
+            key={image.id}
+            className={`absolute cursor-move transition-all duration-200 ${
+              selectedElement?.id === image.id
+                ? "ring-2 ring-blue-500 ring-offset-2"
+                : ""
+            }`}
+            style={{
+              left: `${image.position.x}%`,
+              top: `${image.position.y}%`,
+              width: `${image.size.width}px`,
+              height: `${image.size.height}px`,
+            }}
+            onMouseDown={(e) => {
+              onElementSelect(image);
+              handleMouseDown(e, image);
+            }}
+          >
+            <img
+              src={image.src}
+              alt="Template"
+              className="w-full h-full object-cover rounded-lg shadow-sm"
+              draggable={false}
+            />
+          </div>
+        )) || [],
+      [
+        template.content?.images,
+        selectedElement?.id,
+        onElementSelect,
+        handleMouseDown,
+      ]
+    );
 
-const TemplatePreview = memo(({ template, onElementSelect, selectedElement, onPositionUpdate }) => {
-  const { handleMouseDown, handleMouseMove, handleMouseUp } = useDragAndDrop();
+    const renderedTexts = useMemo(
+      () =>
+        template.content?.texts?.map((text) => (
+          <div
+            key={text.id}
+            className={`absolute cursor-move transition-all duration-200 ${
+              selectedElement?.id === text.id
+                ? "ring-2 ring-blue-500 ring-offset-2 rounded"
+                : ""
+            }`}
+            style={{
+              left: `${text.position.x}%`,
+              top: `${text.position.y}%`,
+              transform: "translate(-50%, -50%)",
+              fontSize: text.fontSize,
+              color: text.color,
+              fontWeight: text.style?.fontWeight || "normal",
+              fontStyle: text.style?.fontStyle || "normal",
+              textDecoration: text.style?.textDecoration || "none",
+              textAlign: text.style?.textAlign || "left",
+              fontFamily: "Montserrat, sans-serif",
+            }}
+            onMouseDown={(e) => {
+              onElementSelect(text);
+              handleMouseDown(e, text);
+            }}
+          >
+            {text.content}
+          </div>
+        )) || [],
+      [
+        template.content?.texts,
+        selectedElement?.id,
+        onElementSelect,
+        handleMouseDown,
+      ]
+    );
 
-  const updateElementPosition = useCallback((elementId, newPosition) => {
-    onPositionUpdate(elementId, newPosition);
-  }, [onPositionUpdate]);
+    return (
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-lg">
+        <div className="p-6">
+          <h3 className="text-2xl font-bold text-gray-900 mb-6">
+            Email Template Preview
+          </h3>
 
-  const hasNoContent = useMemo(() => 
-    (!template.content?.texts?.length && !template.content?.images?.length),
-    [template.content?.texts?.length, template.content?.images?.length]
-  );
+          <div className="bg-gray-50 p-4 rounded-xl">
+            <div
+              className="template-preview relative mx-auto rounded-lg overflow-hidden cursor-crosshair border border-gray-200 shadow-inner"
+              style={{ backgroundColor, width: "320px", height: "480px" }}
+              onMouseMove={(e) =>
+                handleMouseMove(e, (pos) => {
+                  if (selectedElement) {
+                    updateElementPosition(selectedElement.id, pos);
+                  }
+                })
+              }
+              onMouseUp={handleMouseUp}
+              onMouseLeave={handleMouseUp}
+            >
+              {renderedImages}
+              {renderedTexts}
 
-  const backgroundColor = useMemo(() => 
-    template.content?.backgroundColor || '#000000',
-    [template.content?.backgroundColor]
-  );
-
-  const renderedImages = useMemo(() =>
-    template.content?.images?.map((image) => (
-      <div
-        key={image.id}
-        className={`absolute cursor-move ${selectedElement?.id === image.id ? 'ring-2 ring-blue-500' : ''}`}
-        style={{
-          left: `${image.position.x}%`,
-          top: `${image.position.y}%`,
-          width: `${image.size.width}px`,
-          height: `${image.size.height}px`
-        }}
-        onMouseDown={(e) => {
-          onElementSelect(image);
-          handleMouseDown(e, image);
-        }}
-      >
-        <img
-          src={image.src}
-          alt="Template"
-          className="w-full h-full object-cover rounded"
-          draggable={false}
-        />
-      </div>
-    )) || [],
-    [template.content?.images, selectedElement?.id, onElementSelect, handleMouseDown]
-  );
-
-  const renderedTexts = useMemo(() =>
-    template.content?.texts?.map((text) => (
-      <div
-        key={text.id}
-        className={`absolute cursor-move ${selectedElement?.id === text.id ? 'ring-2 ring-blue-500' : ''}`}
-        style={{
-          left: `${text.position.x}%`,
-          top: `${text.position.y}%`,
-          transform: 'translate(-50%, -50%)',
-          fontSize: text.fontSize,
-          color: text.color,
-          fontWeight: text.style?.fontWeight || 'normal',
-          fontStyle: text.style?.fontStyle || 'normal',
-          textDecoration: text.style?.textDecoration || 'none',
-          textAlign: text.style?.textAlign || 'left',
-          fontFamily: 'Montserrat, sans-serif'
-        }}
-        onMouseDown={(e) => {
-          onElementSelect(text);
-          handleMouseDown(e, text);
-        }}
-      >
-        {text.content}
-      </div>
-    )) || [],
-    [template.content?.texts, selectedElement?.id, onElementSelect, handleMouseDown]
-  );
-
-  return (
-    <div className="space-y-4">
-      <h3 className="text-[24px] font-bold text-[#010101] font-['Montserrat'] leading-[1.2]">
-        create an email template
-      </h3>
-      
-      <div 
-        className="template-preview relative bg-black h-[594px] w-[374px] overflow-hidden cursor-crosshair"
-        style={{ backgroundColor }}
-        onMouseMove={(e) => handleMouseMove(e, (pos) => {
-          if (selectedElement) {
-            updateElementPosition(selectedElement.id, pos);
-          }
-        })}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
-      >
-        {/* Render Images */}
-        {renderedImages}
-
-        {/* Render Texts */}
-        {renderedTexts}
-
-        {/* Default template content if no custom content */}
-        {hasNoContent && (
-          <div className="absolute inset-0 flex items-center justify-center text-white text-center font-['Montserrat'] leading-none">
-            <div className="tracking-[-0.3px]">
-              <p className="text-[12px] mb-0 block">WANT</p>
-              <p className="text-[64px] mb-0 block font-bold">10% OFF</p>
-              <p className="text-[20px] mb-0 block">YOUR NEXT PURCHASE?</p>
-              <p className="text-[12px] mb-0 block">PLUS REWARD GIVEAWAY AND MORE!</p>
-              <p className="text-[12px] mb-0 block">&nbsp;</p>
-              <p className="text-[12px] mb-0 block">What are you waiting for?</p>
-              <p className="text-[12px] block">Become a Rewards member today!</p>
+              {hasNoContent && (
+                <div className="absolute inset-0 flex items-center justify-center text-white text-center font-['Montserrat'] leading-none">
+                  <div className="tracking-[-0.3px] px-4">
+                    <p className="text-[12px] mb-0 block opacity-90">WANT</p>
+                    <p className="text-[48px] mb-0 block font-bold">10% OFF</p>
+                    <p className="text-[16px] mb-0 block">
+                      YOUR NEXT PURCHASE?
+                    </p>
+                    <p className="text-[10px] mb-0 block opacity-80">
+                      PLUS REWARD GIVEAWAY AND MORE!
+                    </p>
+                    <p className="text-[10px] mb-0 block">&nbsp;</p>
+                    <p className="text-[10px] mb-0 block opacity-80">
+                      What are you waiting for?
+                    </p>
+                    <p className="text-[10px] block opacity-80">
+                      Become a Rewards member today!
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
-        )}
+        </div>
       </div>
-    </div>
-  );
-});
+    );
+  }
+);
 
-TemplatePreview.displayName = 'TemplatePreview';
+TemplatePreview.displayName = "TemplatePreview";
 
 const BasicEditingTools = memo(({ onToolApply, selectedElement }) => {
   const isDisabled = useMemo(() => !selectedElement, [selectedElement]);
-  
-  const renderedTools = useMemo(() => 
-    BASIC_TOOLS.map((tool) => (
-      <button
-        key={tool.id}
-        onClick={() => onToolApply(tool.id, selectedElement.id)}
-        className="p-2 hover:bg-gray-100 rounded transition-colors"
-        title={tool.label}
-        disabled={isDisabled}
-      >
-        <tool.icon className="w-5 h-5" />
-      </button>
-    )),
+
+  const renderedTools = useMemo(
+    () =>
+      BASIC_TOOLS.map((tool) => (
+        <button
+          key={tool.id}
+          onClick={() => onToolApply(tool.id, selectedElement.id)}
+          className="p-3 hover:bg-blue-50 rounded-xl transition-colors duration-200 border border-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+          title={tool.label}
+          disabled={isDisabled}
+        >
+          <tool.icon className="w-5 h-5 text-gray-700" />
+        </button>
+      )),
     [onToolApply, selectedElement?.id, isDisabled]
   );
 
   return (
-    <div className="bg-white border border-black rounded-[100px] px-12 py-4 w-[1042px] shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)]">
-      <h4 className="text-[24px] font-bold text-[#010101] font-['Montserrat'] mb-4 text-center leading-[1.2]">
-        editing tools
-      </h4>
-      <div className="flex items-center justify-center gap-4">
-        <span className="text-[16px] font-medium text-[#000000] font-['Montserrat'] leading-[1.2]">
-          place basic editing tools in here
-        </span>
-        <div className="flex gap-2 ml-4">
-          {renderedTools}
+    <div className="bg-white border border-gray-100 rounded-2xl shadow-lg">
+      <div className="p-6">
+        <h4 className="text-xl font-bold text-gray-900 mb-4">
+          Basic Editing Tools
+        </h4>
+        <div className="flex items-center gap-3">
+          <span className="text-gray-600 font-medium">
+            {isDisabled ? "Select an element to edit" : "Edit selected element"}
+          </span>
+          <div className="flex gap-2 ml-auto">{renderedTools}</div>
         </div>
       </div>
     </div>
   );
 });
 
-BasicEditingTools.displayName = 'BasicEditingTools';
+BasicEditingTools.displayName = "BasicEditingTools";
 
 const AdvancedEditingTools = memo(({ onToolApply, selectedElement }) => {
   const isDisabled = useMemo(() => !selectedElement, [selectedElement]);
-  
-  const renderedTools = useMemo(() => 
-    ADVANCED_TOOLS.map((tool) => (
-      <button
-        key={tool.id}
-        onClick={() => onToolApply(tool.id, selectedElement.id)}
-        className="p-2 hover:bg-gray-100 rounded transition-colors"
-        title={tool.label}
-        disabled={isDisabled}
-      >
-        <tool.icon className="w-5 h-5" />
-      </button>
-    )),
+
+  const renderedTools = useMemo(
+    () =>
+      ADVANCED_TOOLS.map((tool) => (
+        <button
+          key={tool.id}
+          onClick={() => onToolApply(tool.id, selectedElement.id)}
+          className="p-3 hover:bg-blue-50 rounded-xl transition-colors duration-200 border border-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+          title={tool.label}
+          disabled={isDisabled}
+        >
+          <tool.icon className="w-5 h-5 text-gray-700" />
+        </button>
+      )),
     [onToolApply, selectedElement?.id, isDisabled]
   );
 
   return (
-    <div className="absolute right-0 top-[142px] transform rotate-90 origin-center">
-      <div className="bg-white border border-black rounded-[100px] px-12 py-4 w-[602px] shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)]">
-        <div className="flex items-center justify-center gap-4">
-          <span className="text-[16px] font-medium text-[#000000] font-['Montserrat'] leading-[1.2]">
-            place advanced editing tools in here
+    <div className="mt-6 bg-white border border-gray-100 rounded-2xl shadow-lg">
+      <div className="p-6">
+        <h4 className="text-xl font-bold text-gray-900 mb-4">
+          Advanced Editing Tools
+        </h4>
+        <div className="flex items-center gap-3">
+          <span className="text-gray-600 font-medium">
+            Style and formatting options
           </span>
-          <div className="flex gap-2 ml-4">
-            {renderedTools}
+          <div className="flex gap-2 ml-auto">{renderedTools}</div>
+        </div>
+      </div>
+    </div>
+  );
+});
+
+AdvancedEditingTools.displayName = "AdvancedEditingTools";
+
+const SavedTemplatesSection = memo(
+  ({ templates, onEdit, onDelete, onSend }) => {
+    const templateCount = useMemo(() => templates.length, [templates.length]);
+
+    const renderedTemplates = useMemo(
+      () =>
+        templates.map((template) => (
+          <TemplateRow
+            key={template.id}
+            template={template}
+            onEdit={onEdit}
+            onDelete={onDelete}
+            onSend={onSend}
+          />
+        )),
+      [templates, onEdit, onDelete, onSend]
+    );
+
+    return (
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-lg">
+        <div className="p-6">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h3 className="text-2xl font-bold text-gray-900">
+                Saved Templates
+              </h3>
+              <p className="text-gray-600 mt-1">
+                {templateCount} templates saved
+              </p>
+            </div>
+            <div className="text-sm text-gray-500 font-medium">Actions</div>
+          </div>
+
+          <div className="space-y-6">
+            {renderedTemplates}
+            {templateCount === 0 && (
+              <div className="text-center py-12">
+                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <ImageIcon className="w-8 h-8 text-gray-400" />
+                </div>
+                <p className="text-gray-500 text-lg">No templates saved yet</p>
+                <p className="text-gray-400">
+                  Create your first template to get started
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>
-    </div>
-  );
-});
+    );
+  }
+);
 
-AdvancedEditingTools.displayName = 'AdvancedEditingTools';
-
-const SavedTemplatesSection = memo(({ templates, onEdit, onDelete, onSend }) => {
-  const templateCount = useMemo(() => templates.length, [templates.length]);
-  
-  const renderedTemplates = useMemo(() =>
-    templates.map((template) => (
-      <TemplateRow
-        key={template.id}
-        template={template}
-        onEdit={onEdit}
-        onDelete={onDelete}
-        onSend={onSend}
-      />
-    )),
-    [templates, onEdit, onDelete, onSend]
-  );
-
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-[24px] font-bold text-[#010101] font-['Montserrat'] leading-[1.2]">
-            saved templates
-          </h3>
-          <p className="text-[24px] font-bold text-[#010101] font-['Montserrat'] leading-[1.2]">
-            templates {templateCount}
-          </p>
-        </div>
-        <h4 className="text-[24px] font-bold text-[#010101] font-['Montserrat'] leading-[1.2]">
-          action
-        </h4>
-      </div>
-
-      <div className="space-y-8">
-        {renderedTemplates}
-      </div>
-    </div>
-  );
-});
-
-// New optimized component for individual template rows
 const TemplateRow = memo(({ template, onEdit, onDelete, onSend }) => {
-  const handleSend = useCallback(() => onSend(template.id), [onSend, template.id]);
+  const handleSend = useCallback(
+    () => onSend(template.id),
+    [onSend, template.id]
+  );
   const handleEdit = useCallback(() => onEdit(template), [onEdit, template]);
-  const handleDelete = useCallback(() => onDelete(template.id), [onDelete, template.id]);
+  const handleDelete = useCallback(
+    () => onDelete(template.id),
+    [onDelete, template.id]
+  );
 
-  const backgroundColor = useMemo(() => 
-    template.content?.backgroundColor || '#000000',
+  const backgroundColor = useMemo(
+    () => template.content?.backgroundColor || "#000000",
     [template.content?.backgroundColor]
   );
 
-  const renderedTexts = useMemo(() =>
-    template.content?.texts?.map((text) => (
-      <div
-        key={text.id}
-        className="absolute font-['Montserrat'] leading-none tracking-[-0.3px]"
-        style={{
-          left: `${text.position.x}%`,
-          top: `${text.position.y}%`,
-          transform: 'translate(-50%, -50%)',
-          fontSize: text.fontSize,
-          color: text.color
-        }}
-      >
-        {text.content}
-      </div>
-    )) || [],
+  const renderedTexts = useMemo(
+    () =>
+      template.content?.texts?.map((text) => (
+        <div
+          key={text.id}
+          className="absolute font-['Montserrat'] leading-none tracking-[-0.3px]"
+          style={{
+            left: `${text.position.x}%`,
+            top: `${text.position.y}%`,
+            transform: "translate(-50%, -50%)",
+            fontSize: text.fontSize,
+            color: text.color,
+          }}
+        >
+          {text.content}
+        </div>
+      )) || [],
     [template.content?.texts]
   );
 
-  const renderedImages = useMemo(() =>
-    template.content?.images?.map((image) => (
-      <div
-        key={image.id}
-        className="absolute"
-        style={{
-          left: `${image.position.x}%`,
-          top: `${image.position.y}%`,
-          width: `${image.size.width}px`,
-          height: `${image.size.height}px`
-        }}
-      >
-        <img
-          src={image.src}
-          alt="Template"
-          className="w-full h-full object-cover"
-        />
-      </div>
-    )) || [],
+  const renderedImages = useMemo(
+    () =>
+      template.content?.images?.map((image) => (
+        <div
+          key={image.id}
+          className="absolute"
+          style={{
+            left: `${image.position.x}%`,
+            top: `${image.position.y}%`,
+            width: `${image.size.width}px`,
+            height: `${image.size.height}px`,
+          }}
+        >
+          <img
+            src={image.src}
+            alt="Template"
+            className="w-full h-full object-cover rounded"
+          />
+        </div>
+      )) || [],
     [template.content?.images]
   );
 
   return (
-    <div className="flex items-center gap-8">
-      {/* Template Preview */}
-      <div 
-        className="w-[374px] h-[594px] overflow-hidden"
-        style={{ backgroundColor }}
+    <div className="flex items-center gap-6 p-4 rounded-xl border border-gray-100 hover:border-gray-200 transition-colors duration-200">
+      <div
+        className="rounded-lg overflow-hidden border border-gray-200 shadow-sm"
+        style={{ backgroundColor, width: "120px", height: "160px" }}
       >
         <div className="relative h-full">
           {renderedTexts}
@@ -622,56 +777,64 @@ const TemplateRow = memo(({ template, onEdit, onDelete, onSend }) => {
         </div>
       </div>
 
-      {/* Send Button */}
-      <button
-        onClick={handleSend}
-        className="bg-[#ef3826] text-white px-12 py-4 rounded-[100px] font-['Montserrat'] font-medium hover:bg-red-600 transition-colors border border-[#000000] leading-[1.2]"
-      >
-        send now
-      </button>
+      <div className="flex-1">
+        <h4 className="text-lg font-semibold text-gray-900">{template.name}</h4>
+        <p className="text-sm text-gray-500 mt-1">
+          Created {template.createdAt.toLocaleDateString()}
+        </p>
+      </div>
 
-      {/* Action Buttons */}
-      <div className="flex gap-2 ml-auto">
+      <div className="flex items-center gap-3">
+        <button
+          onClick={handleSend}
+          className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg font-medium transition-colors duration-200 shadow-sm"
+        >
+          Send Now
+        </button>
+
         <button
           onClick={handleEdit}
-          className="p-2 hover:bg-gray-100 rounded transition-colors"
+          className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200"
           title="Edit Template"
         >
           <Edit2 className="w-5 h-5 text-gray-600" />
         </button>
+
         <button
           onClick={handleDelete}
-          className="p-2 hover:bg-gray-100 rounded transition-colors"
+          className="p-2 hover:bg-red-50 rounded-lg transition-colors duration-200"
           title="Delete Template"
         >
-          <Trash2 className="w-5 h-5 text-gray-600" />
+          <Trash2 className="w-5 h-5 text-red-500" />
         </button>
       </div>
     </div>
   );
 });
 
-TemplateRow.displayName = 'TemplateRow';
+TemplateRow.displayName = "TemplateRow";
 
-SavedTemplatesSection.displayName = 'SavedTemplatesSection';
+SavedTemplatesSection.displayName = "SavedTemplatesSection";
 
 const TemplateNameInput = memo(({ value, onChange }) => {
   return (
-    <div className="mb-4">
+    <div className="mb-6">
+      <label className="block text-sm font-medium text-gray-700 mb-2">
+        Template Name
+      </label>
       <input
         type="text"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder="Enter template name..."
-        className="w-full px-4 py-2 border border-gray-300 rounded-lg font-['Montserrat'] text-[14px] focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="w-full px-4 py-3 border border-gray-200 rounded-xl font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
       />
     </div>
   );
 });
 
-TemplateNameInput.displayName = 'TemplateNameInput';
+TemplateNameInput.displayName = "TemplateNameInput";
 
-// Main Component
 const EmailAndSmsTemplateManagementScreenPage = () => {
   const {
     currentTemplate,
@@ -686,14 +849,14 @@ const EmailAndSmsTemplateManagementScreenPage = () => {
     addImage,
     saveTemplate,
     deleteTemplate,
-    editTemplate
+    editTemplate,
   } = useTemplateEditor();
 
   const handleNewTemplate = useCallback(() => {
     setCurrentTemplate({
       ...DEFAULT_TEMPLATE,
       createdAt: new Date(),
-      updatedAt: new Date()
+      updatedAt: new Date(),
     });
     setIsEditing(true);
     setSelectedElement(null);
@@ -708,107 +871,107 @@ const EmailAndSmsTemplateManagementScreenPage = () => {
   }, []);
 
   const handleToolApply = useCallback((toolId, elementId) => {
-    // Implement tool functionality based on toolId
     console.log(`Applying tool ${toolId} to element ${elementId}`);
   }, []);
 
   const handlePositionUpdate = useCallback((elementId, newPosition) => {
-    setCurrentTemplate(prev => ({
+    setCurrentTemplate((prev) => ({
       ...prev,
       content: {
         ...prev.content,
-        texts: prev.content?.texts?.map(text => 
-          text.id === elementId ? { ...text, position: newPosition } : text
-        ) || [],
-        images: prev.content?.images?.map(image => 
-          image.id === elementId ? { ...image, position: newPosition } : image
-        ) || []
+        texts:
+          prev.content?.texts?.map((text) =>
+            text.id === elementId ? { ...text, position: newPosition } : text
+          ) || [],
+        images:
+          prev.content?.images?.map((image) =>
+            image.id === elementId ? { ...image, position: newPosition } : image
+          ) || [],
       },
-      updatedAt: new Date()
+      updatedAt: new Date(),
     }));
   }, []);
 
-  const handleTemplateNameChange = useCallback((name) => {
-    updateTemplate({ name });
-  }, [updateTemplate]);
+  const handleTemplateNameChange = useCallback(
+    (name) => {
+      updateTemplate({ name });
+    },
+    [updateTemplate]
+  );
 
   return (
-    <div className="bg-white min-h-screen font-['Montserrat']">
-      {/* Header */}
-      <div className="text-center py-8">
-        <h1 className="text-[24px] font-bold text-[#000000] font-['Montserrat'] leading-[22px]">
-          Email and sms template mgt screen
-        </h1>
-      </div>
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        <div className="mb-12">
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">
+            Email & SMS Templates
+          </h1>
+          <p className="text-gray-600 text-lg">
+            Create and manage your marketing templates
+          </p>
+        </div>
 
-      {/* Create/Edit Template Section */}
-      {isEditing && (
-        <div className="px-8 mb-12">
-          <TemplateNameInput
-            value={currentTemplate.name}
-            onChange={handleTemplateNameChange}
-          />
-          
-          <div className="flex gap-8 mb-8">
-            {/* Left Side - Image Upload and Text Input */}
-            <div className="flex gap-8">
-              <ImageUploadSection onImageUpload={addImage} />
-              <TextInputSection onTextAdd={addText} />
-            </div>
-
-            {/* Center - Template Preview */}
-            <div className="flex-1">
-              <TemplatePreview
-                template={currentTemplate}
-                onElementSelect={setSelectedElement}
-                selectedElement={selectedElement}
-                onPositionUpdate={handlePositionUpdate}
+        {isEditing && (
+          <div className="mb-12">
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-lg p-6 mb-8">
+              <TemplateNameInput
+                value={currentTemplate.name}
+                onChange={handleTemplateNameChange}
               />
+
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="space-y-6">
+                  <ImageUploadSection onImageUpload={addImage} />
+                  <TextInputSection onTextAdd={addText} />
+                </div>
+
+                <div className="lg:col-span-2">
+                  <TemplatePreview
+                    template={currentTemplate}
+                    onElementSelect={setSelectedElement}
+                    selectedElement={selectedElement}
+                    onPositionUpdate={handlePositionUpdate}
+                  />
+                </div>
+              </div>
+
+              <div className="mt-8 flex justify-center">
+                <button
+                  onClick={handleSave}
+                  className="bg-gray-900 hover:bg-gray-800 text-white px-8 py-3 rounded-xl font-semibold flex items-center gap-2 transition-colors duration-200 shadow-md"
+                >
+                  <Save className="w-5 h-5" />
+                  Save Template
+                </button>
+              </div>
             </div>
-          </div>
 
-          {/* Save Button */}
-          <div className="text-center mb-8">
-            <button
-              onClick={handleSave}
-              className="bg-black text-white px-12 py-4 rounded-[100px] font-['Montserrat'] font-medium hover:bg-gray-800 transition-colors leading-[1.2]"
-            >
-              save
-            </button>
-          </div>
+            <div className="space-y-6">
+              <BasicEditingTools
+                onToolApply={handleToolApply}
+                selectedElement={selectedElement}
+              />
 
-          {/* Editing Tools */}
-          <div className="relative">
-            <div className="flex justify-center mb-8">
-              <BasicEditingTools 
+              <AdvancedEditingTools
                 onToolApply={handleToolApply}
                 selectedElement={selectedElement}
               />
             </div>
-            
-            <AdvancedEditingTools 
-              onToolApply={handleToolApply}
-              selectedElement={selectedElement}
-            />
           </div>
-        </div>
-      )}
+        )}
 
-      {/* New Template Button */}
-      {!isEditing && (
-        <div className="text-center mb-8">
-          <button
-            onClick={handleNewTemplate}
-            className="bg-[#000aff] text-white px-8 py-3 rounded-lg font-['Montserrat'] font-medium hover:bg-blue-700 transition-colors flex items-center gap-2 mx-auto shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] border border-[#7280ff]"
-          >
-            <Plus className="w-5 h-5" />
-            Create New Template
-          </button>
-        </div>
-      )}
+        {!isEditing && (
+          <div className="mb-8">
+            <button
+              onClick={handleNewTemplate}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-semibold flex items-center gap-2 transition-colors duration-200 shadow-md"
+            >
+              <Plus className="w-5 h-5" />
+              Create New Template
+            </button>
+          </div>
+        )}
 
-      {/* Saved Templates Section */}
-      <div className="px-8">
         <SavedTemplatesSection
           templates={savedTemplates}
           onEdit={editTemplate}

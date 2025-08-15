@@ -209,7 +209,7 @@ const UploadCategory = () => {
       </button>
       <button
         onClick={onCancel}
-        className="text-gray-600 hover:text-gray-800 font-medium py-3 px-12 transition-colors focus:outline-none"
+        className="text-gray-600 hover:text-gray-800 border-2 rounded-xl border-black font-medium py-3 px-12 transition-colors focus:outline-none"
       >
         {cancelText}
       </button>
@@ -303,7 +303,7 @@ const UploadCategory = () => {
         <div className="px-6 pb-6">
           
           {/* Table Header */}
-          <div className="bg-white border border-gray-200 rounded-t-lg">
+          <div className="border-2 border-gray-200 rounded-2xl overflow-hidden">
             <div className="grid grid-cols-12 gap-6 p-4 bg-gray-50 border-b border-gray-200 rounded-t-lg">
               <div className="col-span-3">
                 <h3 className="text-sm font-semibold text-gray-800">Image</h3>
@@ -317,7 +317,7 @@ const UploadCategory = () => {
             </div>
 
             {/* Category Rows */}
-            <div className="divide-y divide-gray-100">
+            <div className="divide-y divide-gray-200">
               {filteredCategories.map((category) => (
                 <div key={category.id} className="grid grid-cols-12 gap-6 p-4 items-center hover:bg-gray-50 transition-colors duration-150">
                   

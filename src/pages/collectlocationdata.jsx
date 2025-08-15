@@ -1,20 +1,3 @@
-/**
- * Location Data Collection Module
- *
- * This module handles all location data collection functionality
- * including geolocation services, IP-based location detection,
- * user location preferences, privacy controls, and location analytics.
- *
- * Features:
- * - Real-time geolocation tracking
- * - IP-based location detection
- * - Location history management
- * - Privacy and consent controls
- * - Location-based analytics
- * - Data export/import functionality
- * - Location accuracy settings
- */
-
 import React, {
   useState,
   useEffect,
@@ -23,15 +6,11 @@ import React, {
   useRef,
 } from "react";
 
-// ==============================
-// CONSTANTS
-// ==============================
-
 const LOCATION_ACCURACY_LEVELS = Object.freeze({
-  HIGH: "high", // GPS accuracy
-  MEDIUM: "medium", // Network accuracy
-  LOW: "low", // IP-based accuracy
-  DISABLED: "disabled", // No location tracking
+  HIGH: "high",
+  MEDIUM: "medium",
+  LOW: "low",
+  DISABLED: "disabled",
 });
 
 const LOCATION_DATA_TYPES = Object.freeze({
@@ -54,11 +33,11 @@ const COLLECTION_METHODS = Object.freeze({
 });
 
 const PRIVACY_LEVELS = Object.freeze({
-  EXACT: "exact", // Exact coordinates
-  APPROXIMATE: "approximate", // Rounded to nearest km
-  CITY_LEVEL: "cityLevel", // City level only
-  COUNTRY_LEVEL: "countryLevel", // Country level only
-  ANONYMOUS: "anonymous", // No location data
+  EXACT: "exact",
+  APPROXIMATE: "approximate",
+  CITY_LEVEL: "cityLevel",
+  COUNTRY_LEVEL: "countryLevel",
+  ANONYMOUS: "anonymous",
 });
 
 const DEFAULT_LOCATION_SETTINGS = Object.freeze({
@@ -66,7 +45,7 @@ const DEFAULT_LOCATION_SETTINGS = Object.freeze({
   accuracyLevel: LOCATION_ACCURACY_LEVELS.MEDIUM,
   collectionMethod: COLLECTION_METHODS.ON_REQUEST,
   privacyLevel: PRIVACY_LEVELS.CITY_LEVEL,
-  retentionPeriod: 30, // days
+  retentionPeriod: 30,
   shareWithThirdParties: false,
   anonymizeData: true,
   enableLocationHistory: false,
@@ -77,10 +56,6 @@ const DEFAULT_LOCATION_SETTINGS = Object.freeze({
   consentTimestamp: null,
   lastUpdated: null,
 });
-
-// ==============================
-// MEMOIZED HELPER FUNCTIONS
-// ==============================
 
 const GEOLOCATION_OPTIONS_CACHE = new Map();
 
@@ -118,10 +93,6 @@ const getGeolocationOptions = (accuracyLevel) => {
 const RADIAN_CONVERSION = Math.PI / 180;
 const EARTH_RADIUS_KM = 6371;
 
-// ==============================
-// LOCATION DATA COLLECTION CLASS
-// ==============================
-
 class LocationDataCollector {
   constructor() {
     this.settings = { ...DEFAULT_LOCATION_SETTINGS };
@@ -131,20 +102,15 @@ class LocationDataCollector {
     this.analyticsData = {};
     this.consentRecords = [];
     this.isTracking = false;
-
-    // Performance optimizations
     this.saveTimeout = null;
     this.lastSaveTime = 0;
     this.SAVE_DEBOUNCE_MS = 1000;
     this.eventListeners = new Map();
     this.permissionCache = null;
     this.permissionCacheTime = 0;
-    this.PERMISSION_CACHE_DURATION = 60000; // 1 minute
+    this.PERMISSION_CACHE_DURATION = 60000;
   }
 
-  /**
-   * Initialize the location data collector
-   */
   async initialize() {
     try {
       await this.loadSettings();
@@ -164,29 +130,18 @@ class LocationDataCollector {
     }
   }
 
-  /**
-   * Load settings from storage with error handling
-   */
   async loadSettings() {
     try {
-      const savedSettings = localStorage.getItem("locationDataSettings");
-      if (savedSettings) {
-        const parsed = JSON.parse(savedSettings);
-        this.settings = Object.assign({}, DEFAULT_LOCATION_SETTINGS, parsed);
-      }
+      this.settings = { ...DEFAULT_LOCATION_SETTINGS };
     } catch (error) {
       console.error("Error loading location settings:", error);
       this.settings = { ...DEFAULT_LOCATION_SETTINGS };
     }
   }
 
-  /**
-   * Save settings to storage with debouncing
-   */
   async saveSettings() {
     const now = Date.now();
 
-    // Debounce saves to prevent excessive localStorage writes
     if (this.saveTimeout) {
       clearTimeout(this.saveTimeout);
     }
@@ -194,10 +149,6 @@ class LocationDataCollector {
     this.saveTimeout = setTimeout(() => {
       try {
         this.settings.lastUpdated = new Date().toISOString();
-        localStorage.setItem(
-          "locationDataSettings",
-          JSON.stringify(this.settings)
-        );
         this.lastSaveTime = now;
       } catch (error) {
         console.error("Error saving location settings:", error);
@@ -205,38 +156,22 @@ class LocationDataCollector {
     }, this.SAVE_DEBOUNCE_MS);
   }
 
-  /**
-   * Load location history from storage
-   */
   async loadLocationHistory() {
     try {
-      const savedHistory = localStorage.getItem("locationDataHistory");
-      if (savedHistory) {
-        this.locationHistory = JSON.parse(savedHistory);
-        this.cleanupExpiredData();
-      }
+      this.locationHistory = [];
+      this.cleanupExpiredData();
     } catch (error) {
       console.error("Error loading location history:", error);
     }
   }
 
-  /**
-   * Save location history to storage
-   */
   async saveLocationHistory() {
     try {
-      localStorage.setItem(
-        "locationDataHistory",
-        JSON.stringify(this.locationHistory)
-      );
     } catch (error) {
       console.error("Error saving location history:", error);
     }
   }
 
-  /**
-   * Update location settings with shallow comparison
-   */
   updateSettings(newSettings) {
     const oldSettings = this.settings;
     const hasChanges = Object.keys(newSettings).some(
@@ -249,7 +184,6 @@ class LocationDataCollector {
     this.saveSettings();
     this.recordConsentChange(newSettings);
 
-    // Handle tracking state changes
     if (oldSettings.collectionEnabled !== this.settings.collectionEnabled) {
       if (this.settings.collectionEnabled) {
         this.startLocationTracking();
@@ -259,9 +193,6 @@ class LocationDataCollector {
     }
   }
 
-  /**
-   * Record consent change
-   */
   recordConsentChange(settings) {
     const consentRecord = {
       timestamp: new Date().toISOString(),
@@ -275,33 +206,21 @@ class LocationDataCollector {
     this.saveConsentRecords();
   }
 
-  /**
-   * Save consent records
-   */
   saveConsentRecords() {
     try {
-      localStorage.setItem(
-        "locationDataConsent",
-        JSON.stringify(this.consentRecords)
-      );
     } catch (error) {
       console.error("Error saving consent records:", error);
     }
   }
 
-  /**
-   * Start location tracking
-   */
   async startLocationTracking() {
     if (!this.settings.collectionEnabled || this.isTracking) return;
 
     try {
-      // Check if geolocation is supported
       if (!navigator.geolocation) {
         throw new Error("Geolocation is not supported by this browser");
       }
 
-      // Request permission
       const permission = await this.requestLocationPermission();
       if (permission !== "granted") {
         throw new Error("Location permission denied");
@@ -313,14 +232,12 @@ class LocationDataCollector {
         this.settings.collectionMethod === COLLECTION_METHODS.PERIODIC ||
         this.settings.backgroundTracking
       ) {
-        // Start watching position
         this.watchId = navigator.geolocation.watchPosition(
           (position) => this.handleLocationSuccess(position),
           (error) => this.handleLocationError(error),
           options
         );
       } else {
-        // Get current position once
         navigator.geolocation.getCurrentPosition(
           (position) => this.handleLocationSuccess(position),
           (error) => this.handleLocationError(error),
@@ -336,9 +253,6 @@ class LocationDataCollector {
     }
   }
 
-  /**
-   * Stop location tracking
-   */
   stopLocationTracking() {
     if (this.watchId !== null) {
       navigator.geolocation.clearWatch(this.watchId);
@@ -348,14 +262,10 @@ class LocationDataCollector {
     console.log("Location tracking stopped");
   }
 
-  /**
-   * Request location permission with caching
-   */
   async requestLocationPermission() {
     try {
       const now = Date.now();
 
-      // Use cached permission if still valid
       if (
         this.permissionCache &&
         now - this.permissionCacheTime < this.PERMISSION_CACHE_DURATION
@@ -372,7 +282,7 @@ class LocationDataCollector {
         return permission.state;
       }
 
-      this.permissionCache = "granted"; // Assume granted if permissions API not available
+      this.permissionCache = "granted";
       this.permissionCacheTime = now;
       return this.permissionCache;
     } catch (error) {
@@ -383,16 +293,10 @@ class LocationDataCollector {
     }
   }
 
-  /**
-   * Get geolocation options based on settings (memoized)
-   */
   getGeolocationOptions() {
     return getGeolocationOptions(this.settings.accuracyLevel);
   }
 
-  /**
-   * Handle successful location retrieval
-   */
   async handleLocationSuccess(position) {
     const locationData = await this.processLocationData(position);
     this.currentLocation = locationData;
@@ -405,18 +309,14 @@ class LocationDataCollector {
       this.updateAnalytics(locationData);
     }
 
-    // Trigger location update event
     this.dispatchLocationEvent("locationUpdate", locationData);
   }
 
-  /**
-   * Handle location retrieval errors with memoized error messages
-   */
   handleLocationError(error) {
     const errorMessages = {
-      [1]: "Location access denied by user", // PERMISSION_DENIED
-      [2]: "Location information unavailable", // POSITION_UNAVAILABLE
-      [3]: "Location request timed out", // TIMEOUT
+      [1]: "Location access denied by user",
+      [2]: "Location information unavailable",
+      [3]: "Location request timed out",
       "Location permission denied": "Location access denied by user",
     };
 
@@ -432,13 +332,9 @@ class LocationDataCollector {
       code: error.code,
     });
 
-    // Try fallback methods
     this.tryFallbackLocation();
   }
 
-  /**
-   * Process and privacy-filter location data
-   */
   async processLocationData(position) {
     const { latitude, longitude, accuracy, altitude, heading, speed } =
       position.coords;
@@ -451,7 +347,6 @@ class LocationDataCollector {
       collectedAt: new Date().toISOString(),
     };
 
-    // Apply privacy filtering
     switch (this.settings.privacyLevel) {
       case PRIVACY_LEVELS.EXACT:
         processedData = {
@@ -467,7 +362,7 @@ class LocationDataCollector {
       case PRIVACY_LEVELS.APPROXIMATE:
         processedData = {
           ...processedData,
-          latitude: this.roundCoordinate(latitude, 3), // ~111m accuracy
+          latitude: this.roundCoordinate(latitude, 3),
           longitude: this.roundCoordinate(longitude, 3),
           altitude: altitude ? Math.round(altitude / 10) * 10 : null,
         };
@@ -476,13 +371,12 @@ class LocationDataCollector {
       case PRIVACY_LEVELS.CITY_LEVEL:
         processedData = {
           ...processedData,
-          latitude: this.roundCoordinate(latitude, 1), // ~11km accuracy
+          latitude: this.roundCoordinate(latitude, 1),
           longitude: this.roundCoordinate(longitude, 1),
         };
         break;
 
       case PRIVACY_LEVELS.COUNTRY_LEVEL:
-        // Only store country-level data
         processedData = {
           ...processedData,
           country: await this.getCountryFromCoordinates(latitude, longitude),
@@ -490,7 +384,6 @@ class LocationDataCollector {
         break;
 
       case PRIVACY_LEVELS.ANONYMOUS:
-        // No coordinate data, only metadata
         processedData = {
           timestamp,
           source: "gps",
@@ -502,24 +395,16 @@ class LocationDataCollector {
     return processedData;
   }
 
-  /**
-   * Round coordinates for privacy (optimized with lookup table)
-   */
   roundCoordinate(coord, decimals) {
     const factor = Math.pow(10, decimals);
     return Math.round(coord * factor) / factor;
   }
 
-  /**
-   * Add location data to history with size management
-   */
   addToLocationHistory(locationData) {
     this.locationHistory.push(locationData);
 
-    // Limit history size efficiently
     const maxSize = 1000;
     if (this.locationHistory.length > maxSize) {
-      // Remove from beginning in chunks for better performance
       const removeCount = Math.min(200, this.locationHistory.length - maxSize);
       this.locationHistory.splice(0, removeCount);
     }
@@ -527,12 +412,8 @@ class LocationDataCollector {
     this.saveLocationHistory();
   }
 
-  /**
-   * Try fallback location methods
-   */
   async tryFallbackLocation() {
     try {
-      // Try IP-based location
       const ipLocation = await this.getIPBasedLocation();
       if (ipLocation) {
         this.handleLocationSuccess({
@@ -545,12 +426,8 @@ class LocationDataCollector {
     }
   }
 
-  /**
-   * Get IP-based location
-   */
   async getIPBasedLocation() {
     try {
-      // Using a free IP geolocation service
       const response = await fetch("https://ipapi.co/json/");
       const data = await response.json();
 
@@ -558,7 +435,7 @@ class LocationDataCollector {
         return {
           latitude: parseFloat(data.latitude),
           longitude: parseFloat(data.longitude),
-          accuracy: 10000, // IP location is typically less accurate
+          accuracy: 10000,
           city: data.city,
           region: data.region,
           country: data.country_name,
@@ -571,13 +448,8 @@ class LocationDataCollector {
     return null;
   }
 
-  /**
-   * Get country from coordinates (reverse geocoding)
-   */
   async getCountryFromCoordinates(lat, lng) {
     try {
-      // This would typically use a geocoding service
-      // For demo purposes, return a placeholder
       return "Unknown Country";
     } catch (error) {
       console.error("Reverse geocoding failed:", error);
@@ -585,16 +457,12 @@ class LocationDataCollector {
     }
   }
 
-  /**
-   * Update analytics data with memoization
-   */
   updateAnalytics(locationData) {
     this.analyticsData.totalLocations =
       (this.analyticsData.totalLocations || 0) + 1;
     this.analyticsData.lastLocation = locationData;
     this.analyticsData.lastUpdated = new Date().toISOString();
 
-    // Calculate distance traveled if we have previous location
     const historyLength = this.locationHistory.length;
     if (historyLength > 0) {
       const lastLocation = this.locationHistory[historyLength - 1];
@@ -617,9 +485,6 @@ class LocationDataCollector {
     }
   }
 
-  /**
-   * Calculate distance between two coordinates (optimized Haversine formula)
-   */
   calculateDistance(lat1, lon1, lat2, lon2) {
     const dLat = (lat2 - lat1) * RADIAN_CONVERSION;
     const dLon = (lon2 - lon1) * RADIAN_CONVERSION;
@@ -634,29 +499,20 @@ class LocationDataCollector {
         Math.sin(dLon * 0.5);
 
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return EARTH_RADIUS_KM * c; // Distance in kilometers
+    return EARTH_RADIUS_KM * c;
   }
 
-  /**
-   * Dispatch location events with event pooling
-   */
   dispatchLocationEvent(eventType, data) {
     const eventName = `locationData${eventType}`;
 
-    // Reuse event objects to reduce GC pressure
     if (!this.eventListeners.has(eventName)) {
       this.eventListeners.set(eventName, new CustomEvent(eventName));
     }
 
-    const event = this.eventListeners.get(eventName);
-    // Create new event with updated detail
     const newEvent = new CustomEvent(eventName, { detail: data });
     window.dispatchEvent(newEvent);
   }
 
-  /**
-   * Setup event listeners with cleanup tracking
-   */
   setupEventListeners() {
     const visibilityHandler = () => {
       if (document.hidden && this.settings.backgroundTracking === false) {
@@ -670,13 +526,9 @@ class LocationDataCollector {
       passive: true,
     });
 
-    // Store reference for cleanup
     this._visibilityHandler = visibilityHandler;
   }
 
-  /**
-   * Cleanup event listeners
-   */
   cleanup() {
     if (this._visibilityHandler) {
       document.removeEventListener("visibilitychange", this._visibilityHandler);
@@ -692,9 +544,6 @@ class LocationDataCollector {
     this.eventListeners.clear();
   }
 
-  /**
-   * Clean up expired location data with batch processing
-   */
   cleanupExpiredData() {
     if (!this.settings.retentionPeriod) return;
 
@@ -705,7 +554,6 @@ class LocationDataCollector {
     let i = 0;
     const originalLength = this.locationHistory.length;
 
-    // Find first valid entry
     while (
       i < originalLength &&
       new Date(this.locationHistory[i].collectedAt).getTime() <= cutoffTime
@@ -713,16 +561,12 @@ class LocationDataCollector {
       i++;
     }
 
-    // Remove expired entries in one operation
     if (i > 0) {
       this.locationHistory.splice(0, i);
       this.saveLocationHistory();
     }
   }
 
-  /**
-   * Export location data
-   */
   exportData(format = "json") {
     const exportData = {
       settings: this.settings,
@@ -746,9 +590,6 @@ class LocationDataCollector {
     }
   }
 
-  /**
-   * Convert locations to CSV format
-   */
   convertLocationsToCsv(locations) {
     if (locations.length === 0) return "";
 
@@ -766,9 +607,6 @@ class LocationDataCollector {
     return [headers.join(","), ...csvData].join("\n");
   }
 
-  /**
-   * Convert locations to GPX format
-   */
   convertToGpx(locations) {
     const gpxHeader = `<?xml version="1.0" encoding="UTF-8"?>
 <gpx version="1.1" creator="LocationDataCollector">
@@ -793,9 +631,6 @@ class LocationDataCollector {
     return gpxHeader + "\n" + trackPoints + "\n" + gpxFooter;
   }
 
-  /**
-   * Import location data
-   */
   importData(data) {
     try {
       const importedData = typeof data === "string" ? JSON.parse(data) : data;
@@ -825,9 +660,6 @@ class LocationDataCollector {
     }
   }
 
-  /**
-   * Clear all location data
-   */
   clearAllData() {
     this.locationHistory = [];
     this.currentLocation = null;
@@ -836,17 +668,10 @@ class LocationDataCollector {
 
     this.stopLocationTracking();
 
-    localStorage.removeItem("locationDataHistory");
-    localStorage.removeItem("locationDataConsent");
-    localStorage.removeItem("locationDataSettings");
-
     this.saveLocationHistory();
     this.saveConsentRecords();
   }
 
-  /**
-   * Get location data summary
-   */
   getDataSummary() {
     return {
       isTrackingEnabled: this.settings.collectionEnabled,
@@ -861,9 +686,6 @@ class LocationDataCollector {
     };
   }
 
-  /**
-   * Get privacy compliance status
-   */
   getPrivacyCompliance() {
     return {
       hasConsent: this.consentRecords.length > 0,
@@ -872,13 +694,10 @@ class LocationDataCollector {
       dataRetention: this.settings.retentionPeriod <= 365,
       thirdPartySharing: !this.settings.shareWithThirdParties,
       anonymization: this.settings.anonymizeData,
-      userControl: true, // User has control over all settings
+      userControl: true,
     };
   }
 
-  /**
-   * Get current location (one-time request)
-   */
   async getCurrentLocation() {
     return new Promise((resolve, reject) => {
       if (!navigator.geolocation) {
@@ -905,28 +724,13 @@ class LocationDataCollector {
     });
   }
 
-  /**
-   * Get user IP address (helper method)
-   */
   getUserIPAddress() {
-    // This would typically be obtained from a server-side API
     return "xxx.xxx.xxx.xxx";
   }
 }
 
-// ==============================
-// REACT HOOK FOR LOCATION DATA
-// ==============================
-
 export const useLocationData = () => {
   const collectorRef = useRef(null);
-
-  if (!collectorRef.current) {
-    collectorRef.current = new LocationDataCollector();
-  }
-
-  const collector = collectorRef.current;
-
   const [settings, setSettings] = useState(DEFAULT_LOCATION_SETTINGS);
   const [currentLocation, setCurrentLocation] = useState(null);
   const [isTracking, setIsTracking] = useState(false);
@@ -934,13 +738,17 @@ export const useLocationData = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    if (!collectorRef.current) {
+      collectorRef.current = new LocationDataCollector();
+    }
+
     const initializeCollector = async () => {
       try {
         setIsLoading(true);
-        await collector.initialize();
-        setSettings(collector.settings);
-        setCurrentLocation(collector.currentLocation);
-        setIsTracking(collector.isTracking);
+        await collectorRef.current.initialize();
+        setSettings(collectorRef.current.settings);
+        setCurrentLocation(collectorRef.current.currentLocation);
+        setIsTracking(collectorRef.current.isTracking);
         setError(null);
       } catch (err) {
         setError(err.message);
@@ -951,7 +759,6 @@ export const useLocationData = () => {
 
     initializeCollector();
 
-    // Setup event listeners with cleanup
     const handleLocationUpdate = (event) => {
       setCurrentLocation(event.detail);
     };
@@ -978,72 +785,89 @@ export const useLocationData = () => {
         "locationDataLocationError",
         handleLocationError
       );
-      collector.cleanup();
+      if (collectorRef.current) {
+        collectorRef.current.cleanup();
+      }
     };
-  }, []); // Remove collector dependency to prevent recreation
+  }, []);
 
   const updateSettings = useCallback((newSettings) => {
-    collector.updateSettings(newSettings);
-    setSettings(collector.settings);
-    setIsTracking(collector.isTracking);
-  }, []); // Remove collector dependency
+    if (collectorRef.current) {
+      collectorRef.current.updateSettings(newSettings);
+      setSettings(collectorRef.current.settings);
+      setIsTracking(collectorRef.current.isTracking);
+    }
+  }, []);
 
   const startTracking = useCallback(async () => {
-    try {
-      await collector.startLocationTracking();
-      setIsTracking(collector.isTracking);
-      setError(null);
-    } catch (err) {
-      setError(err.message);
+    if (collectorRef.current) {
+      try {
+        await collectorRef.current.startLocationTracking();
+        setIsTracking(collectorRef.current.isTracking);
+        setError(null);
+      } catch (err) {
+        setError(err.message);
+      }
     }
-  }, []); // Remove collector dependency
+  }, []);
 
   const stopTracking = useCallback(() => {
-    collector.stopLocationTracking();
-    setIsTracking(collector.isTracking);
-  }, []); // Remove collector dependency
+    if (collectorRef.current) {
+      collectorRef.current.stopLocationTracking();
+      setIsTracking(collectorRef.current.isTracking);
+    }
+  }, []);
 
   const getCurrentLocation = useCallback(async () => {
-    try {
-      const location = await collector.getCurrentLocation();
-      setCurrentLocation(location);
-      return location;
-    } catch (err) {
-      setError(err.message);
-      throw err;
+    if (collectorRef.current) {
+      try {
+        const location = await collectorRef.current.getCurrentLocation();
+        setCurrentLocation(location);
+        return location;
+      } catch (err) {
+        setError(err.message);
+        throw err;
+      }
     }
-  }, []); // Remove collector dependency
+  }, []);
 
-  // Memoize functions that don't need re-creation
   const exportData = useCallback((format = "json") => {
-    return collector.exportData(format);
-  }, []); // Remove collector dependency
+    return collectorRef.current
+      ? collectorRef.current.exportData(format)
+      : null;
+  }, []);
 
   const importData = useCallback((data) => {
-    const success = collector.importData(data);
-    if (success) {
-      setSettings(collector.settings);
-      setCurrentLocation(collector.currentLocation);
+    if (collectorRef.current) {
+      const success = collectorRef.current.importData(data);
+      if (success) {
+        setSettings(collectorRef.current.settings);
+        setCurrentLocation(collectorRef.current.currentLocation);
+      }
+      return success;
     }
-    return success;
-  }, []); // Remove collector dependency
+    return false;
+  }, []);
 
   const clearAllData = useCallback(() => {
-    collector.clearAllData();
-    setSettings(collector.settings);
-    setCurrentLocation(null);
-    setIsTracking(false);
-  }, []); // Remove collector dependency
+    if (collectorRef.current) {
+      collectorRef.current.clearAllData();
+      setSettings(collectorRef.current.settings);
+      setCurrentLocation(null);
+      setIsTracking(false);
+    }
+  }, []);
 
   const getDataSummary = useCallback(() => {
-    return collector.getDataSummary();
-  }, []); // Remove collector dependency
+    return collectorRef.current ? collectorRef.current.getDataSummary() : null;
+  }, []);
 
   const getPrivacyCompliance = useCallback(() => {
-    return collector.getPrivacyCompliance();
-  }, []); // Remove collector dependency
+    return collectorRef.current
+      ? collectorRef.current.getPrivacyCompliance()
+      : null;
+  }, []);
 
-  // Memoize the return object to prevent unnecessary re-renders
   return useMemo(
     () => ({
       settings,
@@ -1060,7 +884,7 @@ export const useLocationData = () => {
       clearAllData,
       getDataSummary,
       getPrivacyCompliance,
-      collector,
+      collector: collectorRef.current,
     }),
     [
       settings,
@@ -1081,10 +905,6 @@ export const useLocationData = () => {
   );
 };
 
-// ==============================
-// EXPORTS
-// ==============================
-
 export {
   LocationDataCollector,
   LOCATION_ACCURACY_LEVELS,
@@ -1094,4 +914,114 @@ export {
   DEFAULT_LOCATION_SETTINGS,
 };
 
-export default LocationDataCollector;
+export default function LocationDemo() {
+  const {
+    settings,
+    currentLocation,
+    isTracking,
+    isLoading,
+    error,
+    updateSettings,
+    startTracking,
+    stopTracking,
+    getCurrentLocation,
+    getDataSummary,
+  } = useLocationData();
+
+  if (isLoading) {
+    return <div className="p-4">Loading location collector...</div>;
+  }
+
+  return (
+    <div className="p-8 bg-white text-gray-800">
+      {/* Page Title */}
+      <h1 className="text-2xl font-semibold mb-6">Location Data Collector</h1>
+
+      {/* Error Message */}
+      {error && (
+        <div className="mb-6 px-4 py-3 border border-red-300 bg-red-50 text-red-700 rounded">
+          <strong>Error:</strong> {error}
+        </div>
+      )}
+
+      {/* Status Section */}
+      <section className="mb-8">
+        <h2 className="text-lg font-medium mb-3">Status</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="bg-gray-50 p-4 rounded border text-sm">
+            <p>
+              <span className="font-semibold">Tracking Enabled:</span>{" "}
+              {settings.collectionEnabled ? "Yes" : "No"}
+            </p>
+          </div>
+          <div className="bg-gray-50 p-4 rounded border text-sm">
+            <p>
+              <span className="font-semibold">Currently Tracking:</span>{" "}
+              {isTracking ? "Yes" : "No"}
+            </p>
+          </div>
+          <div className="bg-gray-50 p-4 rounded border text-sm">
+            <p>
+              <span className="font-semibold">Privacy Level:</span>{" "}
+              {settings.privacyLevel}
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Action Buttons */}
+      <section className="mb-8">
+        <div className="flex flex-wrap gap-3">
+          <button
+            onClick={() =>
+              updateSettings({ collectionEnabled: !settings.collectionEnabled })
+            }
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+          >
+            {settings.collectionEnabled ? "Disable" : "Enable"} Collection
+          </button>
+
+          <button
+            onClick={startTracking}
+            disabled={!settings.collectionEnabled}
+            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:bg-gray-300 disabled:text-gray-600 transition"
+          >
+            Start Tracking
+          </button>
+
+          <button
+            onClick={stopTracking}
+            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition"
+          >
+            Stop Tracking
+          </button>
+
+          <button
+            onClick={getCurrentLocation}
+            className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition"
+          >
+            Get Current Location
+          </button>
+        </div>
+      </section>
+
+      {/* Current Location Section */}
+      {currentLocation && (
+        <section className="mb-8">
+          <h2 className="text-lg font-medium mb-2">Current Location</h2>
+          <div className="bg-gray-100 border p-4 rounded text-sm overflow-auto">
+            <pre>{JSON.stringify(currentLocation, null, 2)}</pre>
+          </div>
+        </section>
+      )}
+
+      {/* Data Summary Section */}
+      <section>
+        <h2 className="text-lg font-medium mb-2">Data Summary</h2>
+        <div className="bg-gray-100 border p-4 rounded text-sm overflow-auto">
+          <pre>{JSON.stringify(getDataSummary(), null, 2)}</pre>
+        </div>
+      </section>
+    </div>
+  );
+}

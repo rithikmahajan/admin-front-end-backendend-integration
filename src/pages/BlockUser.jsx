@@ -48,7 +48,7 @@ const BlockUser = () => {
       id: 1,
       name: "Rithik mahajan",
       email: "Rithikmahajan27@gmail.com",
-      phone: "+91 7006114695",
+      phone: "+917006114695",
       dateOfBirth: "28/august/1998",
       address:
         "House NO. 19, new kaleeth nagar, Upper gummat bazar, jammu,180001",
@@ -66,7 +66,7 @@ const BlockUser = () => {
       id: 2,
       name: "Rithik mahajan",
       email: "Rithikmahajan27@gmail.com",
-      phone: "+91 7006114695",
+      phone: "+917006114695",
       dateOfBirth: "28/august/1998",
       address:
         "House NO. 19, new kaleeth nagar, Upper gummat bazar, jammu,180001",
@@ -225,14 +225,13 @@ const BlockUser = () => {
    * @param {Object} user - User object with all required fields
    */
   const UserRow = React.memo(({ user }) => {
-    const cellBase =
-      "py-4 px-4 text-gray-900 text-center tracking-[-0.4px] align-middle";
+    const cellBase = "px-6 py-2 border-2 text-gray-900 text-center";
     const cellLeft = `${cellBase} text-left`;
     const fontMedium = "font-medium";
     const maxText = "leading-[1.2]";
 
     return (
-      <tr className="border-b border-gray-100 hover:bg-gray-50">
+      <tr className="border-2 border-gray-200">
         {/* Name */}
         <td className={`${cellBase} ${fontMedium}`}>{user.name}</td>
 
@@ -324,7 +323,7 @@ const BlockUser = () => {
   });
 
   return (
-    <div className="min-h-screen w-full bg-white p-6">
+    <div className="min-h-screen w-full p-6">
       {/* Page Title */}
       <header className="pb-4 border-b border-gray-200">
         <h1 className="font-bold text-gray-900 text-2xl leading-tight">
@@ -342,7 +341,7 @@ const BlockUser = () => {
                 {TABLE_HEADERS.map(({ key, label }) => (
                   <th
                     key={key}
-                    className="text-left py-4 px-4 font-bold text-[#010101] text-base font-montserrat rounded-3xl border-2 border-gray-200 w-1/4"
+                    className="text-left py-4 px-4 font-bold text-[#010101] text-base font-montserrat rounded-3xl border-2 border-gray-200"
                   >
                     {label}
                   </th>

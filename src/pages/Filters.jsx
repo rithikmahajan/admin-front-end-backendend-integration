@@ -711,7 +711,7 @@ const ZaraDesktopManagementInterface = React.memo(
     filtersDispatch,
   }) => {
     return (
-      <div className="2xl:max-w-7xl xl:max-w-5xl p-4">
+      <div className="2xl:max-w-7xl xl:w-full p-4">
         {/* Zara-style Header */}
         <div className="flex items-center justify-between mb-8 pb-6 border-b-2 border-black">
           <div>
@@ -735,7 +735,7 @@ const ZaraDesktopManagementInterface = React.memo(
             </div>
             <button
               onClick={onToggleView}
-              className="px-6 py-3 bg-black text-white font-medium hover:bg-gray-800 transition-colors flex items-center gap-3 text-lg"
+              className="px-5 py-3 bg-black text-white font-medium hover:bg-gray-800 transition-colors flex items-center gap-3 text-lg"
             >
               <Smartphone className="h-5 w-5" />
               PREVIEW APP

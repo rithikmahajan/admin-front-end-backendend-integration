@@ -209,7 +209,7 @@ const SubCategory = () => {
       </button>
       <button
         onClick={onCancel}
-        className="text-gray-600 hover:text-gray-800 font-medium py-3 px-12 transition-colors focus:outline-none"
+        className="text-gray-600 hover:text-gray-800 border-2 border-black rounded-xl font-medium py-3 px-12 transition-colors focus:outline-none"
       >
         {cancelText}
       </button>
@@ -320,7 +320,7 @@ const SubCategory = () => {
         <div className="px-6 pb-6">
           
           {/* Table Header */}
-          <div className="bg-white border border-gray-200 rounded-t-lg">
+          <div className="border-2 border-gray-200 rounded-2xl overflow-hidden">
             <div className="grid grid-cols-12 gap-6 p-4 bg-gray-50 border-b border-gray-200 rounded-t-lg">
               <div className="col-span-2">
                 <h3 className="text-sm font-semibold text-gray-800">Image</h3>
@@ -337,7 +337,7 @@ const SubCategory = () => {
             </div>
 
             {/* SubCategory Rows */}
-            <div className="divide-y divide-gray-100">
+            <div className="divide-y divide-gray-200">
               {filteredSubCategories.map((subCategory) => (
                 <div key={subCategory.id} className="grid grid-cols-12 gap-6 p-4 items-center hover:bg-gray-50 transition-colors duration-150">
                   

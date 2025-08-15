@@ -96,20 +96,20 @@ const ProductRow = React.memo(({
         <div className="flex space-x-2">
           <button
             onClick={() => handleToggleReviews(product.id, product.reviewsEnabled)}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors border ${
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
               product.reviewsEnabled
                 ? 'bg-blue-600 text-white border-black'
-                : 'bg-white text-black border-gray-300 hover:bg-gray-50'
+                : 'bg-gray-200 text-black '
             }`}
           >
             On
           </button>
           <button
             onClick={() => handleToggleReviews(product.id, product.reviewsEnabled)}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors border ${
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
               !product.reviewsEnabled
-                ? 'bg-blue-600 text-white border-black'
-                : 'bg-white text-black border-gray-300 hover:bg-gray-50'
+                ? 'bg-blue-600 text-white'
+                : 'bg-gray-200 text-black'
             }`}
           >
             Off

@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useMemo, useRef } from "react";
+import { X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import CollectCommunicationPreferences from "./Collect communication preferences";
 import GetAutoInvoiceMailing from "./get auto invoice mailing";
@@ -1823,21 +1824,9 @@ const Settings = () => {
           <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-md mx-4 overflow-clip">
             <button
               onClick={onClose}
-              className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700"
+              className="absolute right-5 top-5 w-6 h-6 text-gray-500 hover:text-gray-700 z-10"
             >
-              <svg
-                className="w-full h-full"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
+              <X />
             </button>
 
             <div className="p-8 text-center">
@@ -1896,21 +1885,9 @@ const Settings = () => {
           <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-md mx-4 overflow-clip">
             <button
               onClick={onCancel}
-              className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700"
+              className="absolute right-5 top-5 w-6 h-6 text-gray-500 hover:text-gray-700 z-10"
             >
-              <svg
-                className="w-full h-full"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
+              <X />
             </button>
 
             <div className="p-8">
@@ -1994,21 +1971,9 @@ const Settings = () => {
               <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-md mx-4 overflow-clip">
                 <button
                   onClick={() => handleCancelToggle(settingKey, "On")}
-                  className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700"
+                  className="absolute right-5 top-5 w-6 h-6 text-gray-500 hover:text-gray-700 z-10"
                 >
-                  <svg
-                    className="w-full h-full"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
+                  <X />
                 </button>
                 <div className="absolute top-[60px] left-1/2 transform -translate-x-1/2 w-[165px] text-center">
                   <p className="font-bold text-black text-[18px] leading-[22px] tracking-[-0.41px] font-['Montserrat']">
@@ -2040,21 +2005,9 @@ const Settings = () => {
               <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-md mx-4 overflow-clip">
                 <button
                   onClick={() => handleCancelToggle(settingKey, "Off")}
-                  className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700"
+                  className="absolute right-5 top-5 w-6 h-6 text-gray-500 hover:text-gray-700 z-10"
                 >
-                  <svg
-                    className="w-full h-full"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
+                  <X />
                 </button>
                 <div className="absolute top-[60px] left-1/2 transform -translate-x-1/2 w-[165px] text-center">
                   <p className="font-bold text-black text-[18px] leading-[22px] tracking-[-0.41px] font-['Montserrat']">
@@ -2106,21 +2059,9 @@ const Settings = () => {
               <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-md mx-4 overflow-clip">
                 <button
                   onClick={() => handleCloseSuccessModal(settingKey, "On")}
-                  className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700"
+                  className="absolute right-5 top-5 w-6 h-6 text-gray-500 hover:text-gray-700 z-10"
                 >
-                  <svg
-                    className="w-full h-full"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
+                  <X />
                 </button>
                 <div className="p-8 text-center">
                   <div className="mb-6">
@@ -2163,21 +2104,9 @@ const Settings = () => {
               <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-md mx-4 overflow-clip">
                 <button
                   onClick={() => handleCloseSuccessModal(settingKey, "Off")}
-                  className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700"
+                  className="absolute right-5 top-5 w-6 h-6 text-gray-500 hover:text-gray-700 z-10"
                 >
-                  <svg
-                    className="w-full h-full"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
+                  <X />
                 </button>
                 <div className="p-8 text-center">
                   <div className="mb-6">
@@ -2220,21 +2149,9 @@ const Settings = () => {
               <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-md mx-4 overflow-clip">
                 <button
                   onClick={() => handleCloseFinalSuccessModal(settingKey, "On")}
-                  className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700"
+                  className="absolute right-5 top-5 w-6 h-6 text-gray-500 hover:text-gray-700 z-10"
                 >
-                  <svg
-                    className="w-full h-full"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
+                  <X />
                 </button>
                 <div className="p-8 text-center">
                   <div className="mb-6">
@@ -2281,21 +2198,9 @@ const Settings = () => {
                   onClick={() =>
                     handleCloseFinalSuccessModal(settingKey, "Off")
                   }
-                  className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700"
+                  className="absolute right-5 top-5 w-6 h-6 text-gray-500 hover:text-gray-700 z-10"
                 >
-                  <svg
-                    className="w-full h-full"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
+                  <X />
                 </button>
                 <div className="p-8 text-center">
                   <div className="mb-6">
@@ -3799,7 +3704,7 @@ const Settings = () => {
         <span className="font-semibold text-[#010101] text-lg font-montserrat">
           {label}
         </span>
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-6">
           <button
             onClick={() =>
               onClick ? onClick("on") : handleToggleSetting(settingKey, "on")
@@ -4490,21 +4395,9 @@ const Settings = () => {
           <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-7xl mx-4 overflow-clip max-h-[90vh] overflow-y-auto">
             <button
               onClick={handleCloseDiscountModal}
-              className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700 z-10"
+              className="absolute right-5 top-5 w-6 h-6 text-gray-500 hover:text-gray-700 z-10"
             >
-              <svg
-                className="w-full h-full"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
+              <X />
             </button>
 
             <div className="p-8">
@@ -4933,21 +4826,9 @@ const Settings = () => {
           <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-7xl mx-4 overflow-clip max-h-[90vh] overflow-y-auto">
             <button
               onClick={handleCloseShippingModal}
-              className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700 z-10"
+              className="absolute right-5 top-5 w-6 h-6 text-gray-500 hover:text-gray-700 z-10"
             >
-              <svg
-                className="w-full h-full"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
+              <X />
             </button>
 
             <div className="p-8">
@@ -5292,21 +5173,9 @@ const Settings = () => {
           <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-4xl mx-4 overflow-clip max-h-[90vh] overflow-y-auto">
             <button
               onClick={handleCloseHsnCodeModal}
-              className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700 z-10"
+              className="absolute right-5 top-5 w-6 h-6 text-gray-500 hover:text-gray-700 z-10"
             >
-              <svg
-                className="w-full h-full"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
+              <X />
             </button>
 
             <div className="p-8">
@@ -6600,401 +6469,222 @@ const Settings = () => {
           <div className="bg-white rounded-xl shadow-[0px_4px_120px_2px_rgba(0,0,0,0.25)] relative w-full max-w-7xl mx-4 overflow-clip max-h-[95vh] overflow-y-auto">
             <button
               onClick={handleCloseWebhookModal}
-              className="absolute right-[33px] top-[33px] w-6 h-6 text-gray-500 hover:text-gray-700 z-10"
+              className="absolute right-5 top-5 w-6 h-6 text-gray-500 hover:text-gray-700 z-10"
             >
-              <svg
-                className="w-full h-full"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
+              <X />
             </button>
 
-            <div className="p-8">
-              <div className="grid grid-cols-3 gap-12">
+            <div className="bg-white rounded-3xl shadow-2xl border border-gray-100 p-12">
+              <div className="space-y-6">
                 {/* API Access and Integration */}
-                <div className="space-y-6">
-                  <h3 className="font-bold text-[#111111] text-[24px] mb-6 font-montserrat">
-                    API Access and Integration
-                  </h3>
+                <div className="space-y-4">
+                  <div className="rounded-2xl p-6 border-2 border-gray-200">
+                    <h3 className="font-bold text-gray-900 text-2xl mb-8 font-montserrat">
+                      API Access and Integration
+                    </h3>
 
-                  <div className="space-y-6">
-                    <div>
-                      <h4 className="font-bold text-[#202224] text-[24px] mb-4 font-montserrat">
-                        API Keys
-                      </h4>
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[#202224] text-[20px] font-bold font-montserrat">
-                            API Key
-                          </span>
-                          <span className="text-[#202224] text-[20px] font-montserrat">
-                            •••••••••••••
-                          </span>
+                    <div className="space-y-4">
+                      <div className="rounded-xl p-6 shadow-md border border-gray-200">
+                        <h1 className="font-bold text-gray-800 text-xl mb-2 font-montserrat flex items-center">
+                          API Keys
+                        </h1>
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg font-montserrat">
+                            <span className="text-gray-700 text-lg font-semibold">
+                              API Key
+                            </span>
+                            <span className="text-gray-600 text-lg bg-white px-3 py-1 rounded-md border">
+                              •••••••••••••
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                            <span className="text-gray-700 text-lg font-semibold font-montserrat">
+                              Auth Method
+                            </span>
+                            <span className="text-gray-600 text-lg bg-green-100 px-3 py-1 rounded-full">
+                              OAuth
+                            </span>
+                          </div>
+                          <button className="text-blue-600 text-lg font-semibold hover:text-blue-700 transition-colors border-b-2 border-transparent hover:border-blue-600 pb-1">
+                            Reauthenticate
+                          </button>
                         </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-[#202224] text-[20px] font-bold font-montserrat">
-                            Auth Method
-                          </span>
-                          <span className="text-[#202224] text-[20px] font-montserrat">
-                            OAuth
-                          </span>
+                      </div>
+
+                      <div className="rounded-xl p-6 shadow-md border border-gray-200">
+                        <h4 className="font-bold text-gray-800 text-xl mb-6 font-montserrat flex items-center">
+                          API Permission
+                        </h4>
+                        <div className="flex flex-wrap items-center gap-4">
+                          {Object.entries(webhookSettings.apiPermissions).map(
+                            ([permission, enabled]) => (
+                              <label
+                                key={permission}
+                                className="flex items-center gap-4 p-3 w-fit cursor-pointer"
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={enabled}
+                                  onChange={() =>
+                                    handleToggleApiPermission(permission)
+                                  }
+                                  className="w-5 h-5 border-2 border-gray-300 rounded-md text-blue-600 focus:ring-blue-500 focus:ring-2"
+                                />
+                                <span className="text-gray-700 text-base capitalize font-montserrat font-medium">
+                                  {permission}
+                                </span>
+                              </label>
+                            )
+                          )}
                         </div>
-                        <button className="text-[#202224] text-[20px] font-bold font-montserrat hover:underline">
-                          Reauthenticate
-                        </button>
                       </div>
-                    </div>
 
-                    <div>
-                      <h4 className="font-bold text-[#202224] text-[24px] mb-4 font-montserrat">
-                        API Permission
-                      </h4>
-                      <div className="space-y-3">
-                        {Object.entries(webhookSettings.apiPermissions).map(
-                          ([permission, enabled]) => (
-                            <label
-                              key={permission}
-                              className="flex items-center gap-3"
-                            >
-                              <input
-                                type="checkbox"
-                                checked={enabled}
-                                onChange={() =>
-                                  handleToggleApiPermission(permission)
-                                }
-                                className="w-5 h-5 border border-[#bcbcbc] rounded"
-                              />
-                              <span className="text-[#111111] text-[15px] capitalize font-montserrat">
-                                {permission}
-                              </span>
-                            </label>
-                          )
-                        )}
-                      </div>
-                    </div>
-
-                    <div>
-                      <h4 className="font-bold text-[#202224] text-[24px] mb-4 font-montserrat">
-                        API Call Logs
-                      </h4>
-                      <div className="grid grid-cols-3 gap-4 text-[#202224] text-[20px] font-bold mb-3 font-montserrat">
-                        <span>Date</span>
-                        <span>Export</span>
-                        <span>IP Address</span>
-                      </div>
-                      <div className="text-[#202224] text-[14px] tracking-wide font-montserrat">
-                        Nov 11, 2025
+                      <div className="rounded-xl p-6 shadow-md border border-gray-100">
+                        <h4 className="font-bold text-gray-800 text-xl mb-6 font-montserrat flex items-center">
+                          API Call Logs
+                        </h4>
+                        <div className="bg-gray-50 border-2 border-gray-200 rounded-lg p-4">
+                          <div className="grid grid-cols-3 gap-4 text-gray-600 text-sm font-semibold mb-3 font-montserrat uppercase tracking-wider">
+                            <span>Date</span>
+                            <span>Export</span>
+                            <span>IP Address</span>
+                          </div>
+                          <div className="text-gray-800 text-base font-medium font-montserrat bg-white p-3 rounded-md border">
+                            Nov 11, 2025
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
 
                 {/* Webhook Management */}
-                <div className="space-y-6">
-                  <h3 className="font-bold text-[#111111] text-[24px] mb-6 font-montserrat">
-                    Webhook Management
-                  </h3>
+                <div className="space-y-4">
+                  <div className="rounded-2xl p-6 border-2 border-gray-200">
+                    <h3 className="font-bold text-gray-900 text-2xl mb-8 font-montserrat">
+                      Webhook Management
+                    </h3>
 
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-[#202224] text-[24px] font-bold mb-2 font-montserrat">
-                        Event
-                      </label>
-                      <select
-                        value={webhookForm.event}
-                        onChange={(e) =>
-                          handleWebhookFormChange("event", e.target.value)
-                        }
-                        className="w-full px-4 py-3 border border-[#979797] rounded-xl text-[#202224] text-[20px] focus:outline-none focus:border-blue-500 font-montserrat"
-                      >
-                        <option value="">Order placed</option>
-                        <option value="order placed">Order Placed</option>
-                        <option value="payment successful">
-                          Payment Successful
-                        </option>
-                        <option value="payment failed">Payment Failed</option>
-                        <option value="order shipped">Order Shipped</option>
-                        <option value="order delivered">Order Delivered</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-[#202224] text-[20px] font-bold mb-2 font-montserrat">
-                        URL
-                      </label>
-                      <input
-                        type="url"
-                        value={webhookForm.webhookUrl}
-                        onChange={(e) =>
-                          handleWebhookFormChange("webhookUrl", e.target.value)
-                        }
-                        placeholder="webhook URL"
-                        className="w-full px-4 py-3 border border-[#979797] rounded-xl text-[#202224] text-[20px] focus:outline-none focus:border-blue-500 font-montserrat"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-[#202224] text-[20px] font-bold mb-2 font-montserrat">
-                        Last Triggered
-                      </label>
-                      <input
-                        type="password"
-                        value={webhookForm.secretKey}
-                        onChange={(e) =>
-                          handleWebhookFormChange("secretKey", e.target.value)
-                        }
-                        placeholder="secret key(mandatory)"
-                        className="w-full px-4 py-3 border border-[#979797] rounded-xl text-[#202224] text-[20px] focus:outline-none focus:border-blue-500 font-montserrat"
-                      />
-                    </div>
-
-                    <button
-                      onClick={
-                        editingWebhook
-                          ? handleSaveEditedWebhook
-                          : handleCreateWebhook
-                      }
-                      disabled={
-                        !webhookForm.event ||
-                        !webhookForm.webhookUrl ||
-                        !webhookForm.secretKey
-                      }
-                      className="w-full bg-[#202224] text-white py-4 px-12 rounded-full font-medium text-[16px] hover:bg-gray-800 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed font-montserrat"
-                    >
-                      {editingWebhook ? "Update webhook" : "Add webhook"}
-                    </button>
-
-                    {editingWebhook && (
-                      <button
-                        onClick={handleCancelEditWebhook}
-                        className="w-full border border-gray-300 text-black py-4 px-12 rounded-full font-medium text-[16px] hover:bg-gray-50 transition-colors font-montserrat"
-                      >
-                        Cancel
-                      </button>
-                    )}
-                  </div>
-
-                  {/* Webhook Management Table Headers */}
-                  <div className="mt-8">
-                    <div className="grid grid-cols-6 gap-3 text-[#202224] text-[20px] font-bold mb-4 font-montserrat">
-                      <span>Event</span>
-                      <span>URL</span>
-                      <span>Last Triggered</span>
-                      <span>Status</span>
-                      <span>Response</span>
-                      <span>Actions</span>
-                    </div>
-
-                    {/* Sample webhook entries matching Figma design */}
-                    <div className="space-y-3">
-                      <div className="grid grid-cols-6 gap-3 items-center text-[#202224] text-[20px] font-montserrat">
-                        <span>order placed</span>
-                        <span className="truncate">http//hdddhdhd</span>
-                        <span>2 am</span>
-                        <span className="flex items-center">
-                          <svg
-                            className="w-4 h-4 text-green-500 mr-1"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
-                          >
-                            <path
-                              fillRule="evenodd"
-                              d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                              clipRule="evenodd"
-                            />
-                          </svg>
-                        </span>
-                        <span>300kb</span>
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => handleEditWebhook(1)}
-                            className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-                          >
-                            <svg
-                              className="w-5 h-5 text-[#667085]"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                              />
-                            </svg>
-                          </button>
-                          <button
-                            onClick={() => handleDeleteWebhook(1)}
-                            className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-                          >
-                            <svg
-                              className="w-5 h-5 text-[#667085]"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                              />
-                            </svg>
-                          </button>
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-6 gap-3 items-center text-[#202224] text-[20px] font-montserrat">
-                        <span>payment successful</span>
-                        <span className="truncate">http//hdddhdhd</span>
-                        <span>Nov 11,2025</span>
-                        <span className="flex items-center">
-                          <svg
-                            className="w-4 h-4 text-red-500 mr-1"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
-                          >
-                            <path
-                              fillRule="evenodd"
-                              d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                              clipRule="evenodd"
-                            />
-                          </svg>
-                        </span>
-                        <span>300kb</span>
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => handleEditWebhook(2)}
-                            className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-                          >
-                            <svg
-                              className="w-5 h-5 text-[#667085]"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                              />
-                            </svg>
-                          </button>
-                          <button
-                            onClick={() => handleDeleteWebhook(2)}
-                            className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-                          >
-                            <svg
-                              className="w-5 h-5 text-[#667085]"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                              />
-                            </svg>
-                          </button>
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-6 gap-3 items-center text-[#202224] text-[20px] font-montserrat">
-                        <span>payment failed</span>
-                        <span className="truncate">http//hdddhdhd</span>
-                        <span>Nov 11,2025</span>
-                        <span className="flex items-center">
-                          <svg
-                            className="w-4 h-4 text-red-500 mr-1"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
-                          >
-                            <path
-                              fillRule="evenodd"
-                              d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                              clipRule="evenodd"
-                            />
-                          </svg>
-                        </span>
-                        <span>300kb</span>
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => handleEditWebhook(3)}
-                            className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-                          >
-                            <svg
-                              className="w-5 h-5 text-[#667085]"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                              />
-                            </svg>
-                          </button>
-                          <button
-                            onClick={() => handleDeleteWebhook(3)}
-                            className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-                          >
-                            <svg
-                              className="w-5 h-5 text-[#667085]"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                              />
-                            </svg>
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Dynamic webhook entries from state */}
-                      {webhookSettings.webhooks.map((webhook) => (
-                        <div
-                          key={webhook.id}
-                          className="grid grid-cols-6 gap-3 items-center text-[#202224] text-[20px] font-montserrat"
+                    <div className="rounded-xl p-6 border border-gray-200 space-y-4">
+                      <div>
+                        <label className="block text-gray-700 text-lg font-semibold mb-3 font-montserrat">
+                          Event
+                        </label>
+                        <select
+                          value={webhookForm.event}
+                          onChange={(e) =>
+                            handleWebhookFormChange("event", e.target.value)
+                          }
+                          className="w-full px-4 py-4 border-2 border-gray-200 rounded-xl text-gray-700 text-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 font-montserrat transition-all"
                         >
-                          <span>{webhook.event}</span>
-                          <span className="truncate">{webhook.webhookUrl}</span>
-                          <span>{webhook.lastTriggered || "Never"}</span>
-                          <span className="flex items-center">
-                            <div
-                              className={`w-3 h-3 rounded-full mr-2 ${
-                                webhook.status === "active"
-                                  ? "bg-green-500"
-                                  : "bg-red-500"
-                              }`}
-                            ></div>
+                          <option value="">Order placed</option>
+                          <option value="order placed">Order Placed</option>
+                          <option value="payment successful">
+                            Payment Successful
+                          </option>
+                          <option value="payment failed">Payment Failed</option>
+                          <option value="order shipped">Order Shipped</option>
+                          <option value="order delivered">
+                            Order Delivered
+                          </option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-gray-700 text-lg font-semibold mb-3 font-montserrat">
+                          URL
+                        </label>
+                        <input
+                          type="url"
+                          value={webhookForm.webhookUrl}
+                          onChange={(e) =>
+                            handleWebhookFormChange(
+                              "webhookUrl",
+                              e.target.value
+                            )
+                          }
+                          placeholder="webhook URL"
+                          className="w-full px-4 py-4 border-2 border-gray-200 rounded-xl text-gray-700 text-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 font-montserrat transition-all"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-gray-700 text-lg font-semibold mb-3 font-montserrat">
+                          Last Triggered
+                        </label>
+                        <input
+                          type="password"
+                          value={webhookForm.secretKey}
+                          onChange={(e) =>
+                            handleWebhookFormChange("secretKey", e.target.value)
+                          }
+                          placeholder="secret key(mandatory)"
+                          className="w-full px-4 py-4 border-2 border-gray-200 rounded-xl text-gray-700 text-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 font-montserrat transition-all"
+                        />
+                      </div>
+
+                      <button
+                        onClick={
+                          editingWebhook
+                            ? handleSaveEditedWebhook
+                            : handleCreateWebhook
+                        }
+                        disabled={
+                          !webhookForm.event ||
+                          !webhookForm.webhookUrl ||
+                          !webhookForm.secretKey
+                        }
+                        className="w-full bg-gray-900 text-white py-4 px-12 rounded-xl font-semibold text-lg hover:bg-gray-800 transition-all shadow-md disabled:bg-gray-300 disabled:cursor-not-allowed font-montserrat"
+                      >
+                        {editingWebhook ? "Update webhook" : "Add webhook"}
+                      </button>
+
+                      {editingWebhook && (
+                        <button
+                          onClick={handleCancelEditWebhook}
+                          className="w-full border-2 border-gray-300 text-gray-700 py-4 px-12 rounded-xl font-semibold text-lg hover:bg-gray-50 transition-all font-montserrat"
+                        >
+                          Cancel
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Webhook Management Table Headers */}
+                    <div className="mt-8 bg-white rounded-xl border-2 border-gray-200 overflow-hidden">
+                      <div className="py-4">
+                        <div className="grid grid-cols-6 gap-3 text-gray-600 text-sm font-bold font-montserrat uppercase tracking-wider border-b-2 border-gray-200 px-6">
+                          <span>Event</span>
+                          <span>URL</span>
+                          <span>Last Triggered</span>
+                          <span>Status</span>
+                          <span>Response</span>
+                          <span>Actions</span>
+                        </div>
+                      </div>
+
+                      <div className="divide-y divide-gray-200">
+                        <div className="grid grid-cols-6 gap-3 items-center px-6 py-4 text-gray-700 text-base font-montserrat hover:bg-gray-50 transition-colors">
+                          <span className="font-medium">order placed</span>
+                          <span className="truncate text-blue-600 hover:text-blue-700">
+                            http//hdddhdhd
                           </span>
-                          <span>{webhook.responseSize}</span>
+                          <span className="text-sm text-gray-500">2 am</span>
+                          <span className="flex items-center">
+                            <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+                            <span className="text-green-700 font-medium text-sm">
+                              Success
+                            </span>
+                          </span>
+                          <span className="text-sm bg-gray-100 px-2 py-1 rounded-full">
+                            300kb
+                          </span>
                           <div className="flex gap-2">
                             <button
-                              onClick={() => handleEditWebhook(webhook.id)}
-                              className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                              onClick={() => handleEditWebhook(1)}
+                              className="p-2 rounded-lg hover:bg-blue-50 transition-colors group"
                             >
                               <svg
-                                className="w-5 h-5 text-[#667085]"
+                                className="w-5 h-5 text-gray-400 group-hover:text-blue-600"
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"
@@ -7008,11 +6698,11 @@ const Settings = () => {
                               </svg>
                             </button>
                             <button
-                              onClick={() => handleDeleteWebhook(webhook.id)}
-                              className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                              onClick={() => handleDeleteWebhook(1)}
+                              className="p-2 rounded-lg hover:bg-red-50 transition-colors group"
                             >
                               <svg
-                                className="w-5 h-5 text-[#667085]"
+                                className="w-5 h-5 text-gray-400 group-hover:text-red-600"
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"
@@ -7027,119 +6717,301 @@ const Settings = () => {
                             </button>
                           </div>
                         </div>
-                      ))}
+
+                        <div className="grid grid-cols-6 gap-3 items-center px-6 py-4 text-gray-700 text-base font-montserrat hover:bg-gray-50 transition-colors">
+                          <span className="font-medium">
+                            payment successful
+                          </span>
+                          <span className="truncate text-blue-600 hover:text-blue-700">
+                            http//hdddhdhd
+                          </span>
+                          <span className="text-sm text-gray-500">
+                            Nov 11,2025
+                          </span>
+                          <span className="flex items-center">
+                            <div className="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
+                            <span className="text-red-700 font-medium text-sm">
+                              Failed
+                            </span>
+                          </span>
+                          <span className="text-sm bg-gray-100 px-2 py-1 rounded-full">
+                            300kb
+                          </span>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => handleEditWebhook(2)}
+                              className="p-2 rounded-lg hover:bg-blue-50 transition-colors group"
+                            >
+                              <svg
+                                className="w-5 h-5 text-gray-400 group-hover:text-blue-600"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                                />
+                              </svg>
+                            </button>
+                            <button
+                              onClick={() => handleDeleteWebhook(2)}
+                              className="p-2 rounded-lg hover:bg-red-50 transition-colors group"
+                            >
+                              <svg
+                                className="w-5 h-5 text-gray-400 group-hover:text-red-600"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                />
+                              </svg>
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-6 gap-3 items-center px-6 py-4 text-gray-700 text-base font-montserrat hover:bg-gray-50 transition-colors">
+                          <span className="font-medium">payment failed</span>
+                          <span className="truncate text-blue-600 hover:text-blue-700">
+                            http//hdddhdhd
+                          </span>
+                          <span className="text-sm text-gray-500">
+                            Nov 11,2025
+                          </span>
+                          <span className="flex items-center">
+                            <div className="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
+                            <span className="text-red-700 font-medium text-sm">
+                              Failed
+                            </span>
+                          </span>
+                          <span className="text-sm bg-gray-100 px-2 py-1 rounded-full">
+                            300kb
+                          </span>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => handleEditWebhook(3)}
+                              className="p-2 rounded-lg hover:bg-blue-50 transition-colors group"
+                            >
+                              <svg
+                                className="w-5 h-5 text-gray-400 group-hover:text-blue-600"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                                />
+                              </svg>
+                            </button>
+                            <button
+                              onClick={() => handleDeleteWebhook(3)}
+                              className="p-2 rounded-lg hover:bg-red-50 transition-colors group"
+                            >
+                              <svg
+                                className="w-5 h-5 text-gray-400 group-hover:text-red-600"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                />
+                              </svg>
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Dynamic webhook entries from state */}
+                        {webhookSettings.webhooks.map((webhook) => (
+                          <div
+                            key={webhook.id}
+                            className="grid grid-cols-6 gap-3 items-center px-6 py-4 text-gray-700 text-base font-montserrat hover:bg-gray-50 transition-colors"
+                          >
+                            <span className="font-medium">{webhook.event}</span>
+                            <span className="truncate text-blue-600 hover:text-blue-700">
+                              {webhook.webhookUrl}
+                            </span>
+                            <span className="text-sm text-gray-500">
+                              {webhook.lastTriggered || "Never"}
+                            </span>
+                            <span className="flex items-center">
+                              <div
+                                className={`w-3 h-3 rounded-full mr-2 ${
+                                  webhook.status === "active"
+                                    ? "bg-green-500"
+                                    : "bg-red-500"
+                                }`}
+                              ></div>
+                              <span
+                                className={`font-medium text-sm ${
+                                  webhook.status === "active"
+                                    ? "text-green-700"
+                                    : "text-red-700"
+                                }`}
+                              >
+                                {webhook.status === "active"
+                                  ? "Active"
+                                  : "Inactive"}
+                              </span>
+                            </span>
+                            <span className="text-sm bg-gray-100 px-2 py-1 rounded-full">
+                              {webhook.responseSize}
+                            </span>
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => handleEditWebhook(webhook.id)}
+                                className="p-2 rounded-lg hover:bg-blue-50 transition-colors group"
+                              >
+                                <svg
+                                  className="w-5 h-5 text-gray-400 group-hover:text-blue-600"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                                  />
+                                </svg>
+                              </button>
+                              <button
+                                onClick={() => handleDeleteWebhook(webhook.id)}
+                                className="p-2 rounded-lg hover:bg-red-50 transition-colors group"
+                              >
+                                <svg
+                                  className="w-5 h-5 text-gray-400 group-hover:text-red-600"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                  />
+                                </svg>
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 </div>
 
                 {/* Webhook Logs */}
-                <div className="space-y-6">
-                  <h3 className="font-bold text-[#111111] text-[24px] mb-6 font-montserrat">
-                    Webhook Logs
-                  </h3>
+                <div className="col-span-2 mt-8">
+                  <div className="rounded-2xl p-6 border-2 border-gray-200">
+                    <h3 className="font-bold text-gray-900 text-2xl mb-8 font-montserrat">
+                      Webhook Logs
+                    </h3>
 
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-4">
-                      <select className="flex-1 px-4 py-3 border border-[#979797] rounded-xl text-[#202224] text-[20px] focus:outline-none focus:border-blue-500 font-montserrat">
-                        <option>All Events</option>
-                        <option>Order Placed</option>
-                        <option>Payment Successful</option>
-                        <option>Payment Failed</option>
-                      </select>
-                      <div className="flex items-center gap-2 text-[#202224] text-[14px] tracking-wide font-montserrat">
-                        <svg
-                          className="w-6 h-6"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                          />
-                        </svg>
-                        Nov 11, 2025 - Nov 27, 2025
-                      </div>
-                    </div>
-
-                    <div className="mt-6 space-y-2">
-                      <div className="text-[#202224] text-[20px] font-montserrat">
-                        Frequency
-                      </div>
-                      <div className="text-[#202224] text-[20px] font-montserrat">
-                        Response
-                      </div>
-                    </div>
-
-                    {/* Log Entries */}
-                    <div className="space-y-4 mt-6">
-                      <div className="grid grid-cols-4 gap-4 text-[#202224] text-[20px] font-bold font-montserrat">
-                        <span>Date</span>
-                        <span>Event</span>
-                        <span>Status</span>
-                        <span>Response</span>
-                      </div>
-
-                      {/* Sample log entries */}
-                      <div className="space-y-3 text-[#202224] text-[14px] tracking-wide font-montserrat">
-                        <div className="grid grid-cols-4 gap-4 py-2">
-                          <span>Nov 11, 2025</span>
-                          <span>order placed</span>
-                          <span className="flex items-center">
-                            <svg
-                              className="w-4 h-4 text-green-500 mr-1"
-                              fill="currentColor"
-                              viewBox="0 0 20 20"
-                            >
-                              <path
-                                fillRule="evenodd"
-                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                clipRule="evenodd"
-                              />
-                            </svg>
-                            300kb
-                          </span>
-                          <span>300kb</span>
+                    <div className="rounded-xl p-6 shadow-md border-2 border-gray-200 space-y-6">
+                      <div className="flex items-center gap-6">
+                        <select className="flex-1 px-4 py-4 border-2 border-gray-200 rounded-xl text-gray-700 text-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 font-montserrat transition-all">
+                          <option>All Events</option>
+                          <option>Order Placed</option>
+                          <option>Payment Successful</option>
+                          <option>Payment Failed</option>
+                        </select>
+                        <div className="flex items-center gap-3 text-gray-600 text-base font-medium font-montserrat bg-gray-50 px-4 py-3 rounded-xl border border-gray-200">
+                          <svg
+                            className="w-6 h-6 text-gray-500"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                            />
+                          </svg>
+                          Nov 11, 2025 - Nov 27, 2025
                         </div>
-                        <div className="grid grid-cols-4 gap-4 py-2">
-                          <span>Nov 11, 2025</span>
-                          <span>payment success</span>
-                          <span className="flex items-center">
-                            <svg
-                              className="w-4 h-4 text-green-500 mr-1"
-                              fill="currentColor"
-                              viewBox="0 0 20 20"
-                            >
-                              <path
-                                fillRule="evenodd"
-                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                clipRule="evenodd"
-                              />
-                            </svg>
-                            300kb
-                          </span>
-                          <span>300kb</span>
+                      </div>
+
+                      <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+                        <div className="text-gray-700 text-lg font-semibold font-montserrat">
+                          Frequency
                         </div>
-                        <div className="grid grid-cols-4 gap-4 py-2">
-                          <span>Nov 11, 2025</span>
-                          <span>payment failed</span>
-                          <span className="flex items-center">
-                            <svg
-                              className="w-4 h-4 text-red-500 mr-1"
-                              fill="currentColor"
-                              viewBox="0 0 20 20"
-                            >
-                              <path
-                                fillRule="evenodd"
-                                d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                                clipRule="evenodd"
-                              />
-                            </svg>
-                            Failed
-                          </span>
-                          <span>300kb</span>
+                        <div className="text-gray-700 text-lg font-semibold font-montserrat">
+                          Response
+                        </div>
+                      </div>
+
+                      {/* Log Entries */}
+                      <div className="bg-gray-50 rounded-lg overflow-hidden border-2 border-gray-200">
+                        <div className="bg-gray-100 px-6 py-4">
+                          <div className="grid grid-cols-4 gap-4 text-gray-600 text-sm font-bold font-montserrat uppercase tracking-wider">
+                            <span>Date</span>
+                            <span>Event</span>
+                            <span>Status</span>
+                            <span>Response</span>
+                          </div>
+                        </div>
+
+                        <div className="divide-y divide-gray-200">
+                          <div className="grid grid-cols-4 gap-4 px-6 py-4 text-gray-700 text-base font-montserrat hover:bg-gray-50 transition-colors">
+                            <span className="font-medium">Nov 11, 2025</span>
+                            <span className="text-gray-600">order placed</span>
+                            <span className="flex items-center">
+                              <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+                              <span className="text-green-700 font-medium text-sm">
+                                Success
+                              </span>
+                            </span>
+                            <span className="text-sm bg-gray-100 px-2 py-1 rounded-full w-fit">
+                              300kb
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-4 gap-4 px-6 py-4 text-gray-700 text-base font-montserrat hover:bg-gray-50 transition-colors">
+                            <span className="font-medium">Nov 11, 2025</span>
+                            <span className="text-gray-600">
+                              payment success
+                            </span>
+                            <span className="flex items-center">
+                              <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+                              <span className="text-green-700 font-medium text-sm">
+                                Success
+                              </span>
+                            </span>
+                            <span className="text-sm bg-gray-100 px-2 py-1 rounded-full w-fit">
+                              300kb
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-4 gap-4 px-6 py-4 text-gray-700 text-base font-montserrat hover:bg-gray-50 transition-colors">
+                            <span className="font-medium">Nov 11, 2025</span>
+                            <span className="text-gray-600">
+                              payment failed
+                            </span>
+                            <span className="flex items-center">
+                              <div className="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
+                              <span className="text-red-700 font-medium text-sm">
+                                Failed
+                              </span>
+                            </span>
+                            <span className="text-sm bg-gray-100 px-2 py-1 rounded-full w-fit">
+                              300kb
+                            </span>
+                          </div>
                         </div>
                       </div>
                     </div>
