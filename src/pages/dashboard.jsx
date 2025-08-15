@@ -533,7 +533,7 @@ const FilterSelect = memo(({ icon, label, value, onChange, options }) => (
     <select
       value={value}
       onChange={onChange}
-      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+      className="w-full px-3 py-2 border-2 border-gray-300 rounded-md text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
     >
       {options.map((opt) => (
         <option key={opt.value} value={opt.value}>
@@ -755,7 +755,7 @@ const HourDropdown = ({ value, onChange, label }) => (
     <select
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+      className="bg-white border-2 border-gray-300 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
     >
       <option value="1hr">1 hour</option>
       <option value="3hr">3 hours</option>
@@ -908,7 +908,7 @@ const DateRangePicker = memo(({ selectedRange, onRangeChange, dateRange }) => {
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 text-sm text-white bg-blue-600 px-4 py-2 rounded-lg shadow-inner border border-slate-200 hover:bg-blue-700 transition-colors duration-200"
+        className="flex items-center gap-2 text-sm text-white bg-blue-600 px-4 py-2 rounded-lg shadow-inner border-2 border-slate-200 hover:bg-blue-700 transition-colors duration-200"
       >
         <CalendarRange className="h-4 w-4" />
         <span className="font-medium tracking-wide">{formatDateRange()}</span>
@@ -920,7 +920,7 @@ const DateRangePicker = memo(({ selectedRange, onRangeChange, dateRange }) => {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 top-full mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-50 min-w-[280px] date-picker-dropdown">
+        <div className="absolute right-0 top-full mt-2 bg-white border-2 border-gray-200 rounded-lg shadow-lg z-50 min-w-[280px] date-picker-dropdown">
           {!showCustomPicker ? (
             <div className="p-2">
               {DATE_RANGE_OPTIONS.map((option) => (
@@ -951,7 +951,7 @@ const DateRangePicker = memo(({ selectedRange, onRangeChange, dateRange }) => {
                     type="date"
                     value={customStartDate}
                     onChange={(e) => setCustomStartDate(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border-2 border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
                 <div>
@@ -963,13 +963,13 @@ const DateRangePicker = memo(({ selectedRange, onRangeChange, dateRange }) => {
                     value={customEndDate}
                     onChange={(e) => setCustomEndDate(e.target.value)}
                     min={customStartDate}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border-2 border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
                 <div className="flex gap-2 pt-2">
                   <button
                     onClick={() => setShowCustomPicker(false)}
-                    className="flex-1 px-3 py-2 text-sm text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors duration-150"
+                    className="flex-1 px-3 py-2 text-sm text-gray-600 border-2 border-gray-300 rounded-md hover:bg-gray-50 transition-colors duration-150"
                   >
                     Cancel
                   </button>
@@ -2153,7 +2153,7 @@ const InventoryTab = memo(
                 placeholder="Search products..."
                 value={searchTerm}
                 onChange={onSearchChange}
-                className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 hover:bg-white focus:bg-white transition-all duration-200"
+                className="w-full pl-10 pr-4 py-2.5 border-2 border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 hover:bg-white focus:bg-white transition-all duration-200"
               />
             </div>
 
@@ -2171,7 +2171,7 @@ const InventoryTab = memo(
             <div className="relative" ref={filterDropdownRef}>
               <button
                 onClick={() => setFilterDropdownOpen(!filterDropdownOpen)}
-                className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                className="flex items-center space-x-2 px-4 py-2 border-2 border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
               >
                 <Filter className="h-4 w-4" />
                 <span>Filter</span>
@@ -2183,7 +2183,7 @@ const InventoryTab = memo(
               </button>
 
               {filterDropdownOpen && (
-                <div className="absolute left-0 top-full mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-50 min-w-[200px]">
+                <div className="absolute left-0 top-full mt-2 bg-white border-2 border-gray-200 rounded-lg shadow-lg z-50 min-w-[200px]">
                   <div className="p-3">
                     <h4 className="text-sm font-medium text-gray-900 mb-3">
                       Sort By
@@ -2218,7 +2218,7 @@ const InventoryTab = memo(
                 onFilterChange("category", e.target.value);
                 onFilterChange("subcategory", ""); // Reset subcategory when category changes
               }}
-              className="border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white hover:bg-gray-50 transition-colors duration-200"
+              className="border-2 border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white hover:bg-gray-50 transition-colors duration-200"
             >
               <option value="">Choose DB Category</option>
               {FILTER_OPTIONS.categories.map((option) => (
@@ -2233,7 +2233,7 @@ const InventoryTab = memo(
               <select
                 value={filters.subcategory}
                 onChange={(e) => onFilterChange("subcategory", e.target.value)}
-                className="border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white hover:bg-gray-50 transition-colors duration-200"
+                className="border-2 border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white hover:bg-gray-50 transition-colors duration-200"
               >
                 <option value="">Choose Sub Category</option>
                 {getSubcategories().map((option) => (
@@ -2268,7 +2268,7 @@ const InventoryTab = memo(
             <div className="relative" ref={exportDropdownRef}>
               <button
                 onClick={() => setExportDropdownOpen(!exportDropdownOpen)}
-                className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                className="flex items-center space-x-2 px-4 py-2 border-2 border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
               >
                 <Download className="h-4 w-4" />
                 <span>Export</span>
@@ -2280,7 +2280,7 @@ const InventoryTab = memo(
               </button>
 
               {exportDropdownOpen && (
-                <div className="absolute right-0 top-full mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-50 min-w-[160px]">
+                <div className="absolute right-0 top-full mt-2 bg-white border-2 border-gray-200 rounded-lg shadow-lg z-50 min-w-[160px]">
                   <div className="p-1">
                     <button
                       onClick={() => handleExport("excel")}
@@ -2348,7 +2348,7 @@ const InventoryTab = memo(
 
         {/* Inventory Results */}
         <div className="bg-white rounded-lg shadow-sm">
-          <div className="p-6 border-b">
+          <div className="p-6">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <div>
                 <h2 className="text-xl font-semibold text-gray-900">
@@ -2362,10 +2362,10 @@ const InventoryTab = memo(
             </div>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="min-w-full">
-              <thead className="bg-white border-b border-gray-200">
-                <tr>
+          <div className="overflow-x-auto rounded-xl border-2 border-gray-200">
+            <table className="w-full table-auto">
+              <thead>
+                <tr className="bg-gray-50">
                   {INVENTORY_HEADERS.map((header) => (
                     <th
                       key={header}
@@ -2600,7 +2600,7 @@ const AnalyticsTab = memo(
             <div className="relative" ref={exportDropdownRef}>
               <button
                 onClick={() => setExportDropdownOpen(!exportDropdownOpen)}
-                className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                className="flex items-center space-x-2 px-4 py-2 border-2 border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
               >
                 <Download className="h-4 w-4" />
                 <span>Export</span>
@@ -2612,7 +2612,7 @@ const AnalyticsTab = memo(
               </button>
 
               {exportDropdownOpen && (
-                <div className="absolute right-0 top-full mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-50 min-w-[160px]">
+                <div className="absolute right-0 top-full mt-2 bg-white border-2 border-gray-200 rounded-lg shadow-lg z-50 min-w-[160px]">
                   <div className="p-1">
                     <button
                       onClick={() => handleExport("excel")}
@@ -2654,7 +2654,7 @@ const AnalyticsTab = memo(
           {analyticsStats.map((stat, index) => (
             <div
               key={index}
-              className="bg-white p-6 rounded-xl shadow-sm border border-gray-200"
+              className="bg-white p-6 rounded-xl shadow-sm border-2 border-gray-200"
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
@@ -2689,7 +2689,7 @@ const AnalyticsTab = memo(
 
         {/* Charts Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="bg-white rounded-xl shadow-sm border-2 border-gray-200 p-6">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold text-gray-900">
                 Revenue Chart
@@ -2711,7 +2711,7 @@ const AnalyticsTab = memo(
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="bg-white rounded-xl shadow-sm border-2 border-gray-200 p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
               Top Performing Products
             </h3>
@@ -2743,7 +2743,10 @@ const AnalyticsTab = memo(
                   revenue: Math.floor(8000 + Math.random() * 4000),
                 },
               ].map((item, index) => (
-                <div key={index} className="flex items-center justify-between">
+                <div
+                  key={index}
+                  className="flex items-center justify-between border-t-2 pt-2"
+                >
                   <div className="flex items-center space-x-3">
                     <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
                     <span className="text-sm font-medium text-gray-700">
@@ -2763,7 +2766,7 @@ const AnalyticsTab = memo(
         </div>
 
         {/* Quick Insights */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div className="bg-white rounded-xl shadow-sm border-2 border-gray-200 p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">
             Quick Insights
           </h3>
@@ -3428,7 +3431,7 @@ const DatabaseDashboardTab = memo(
       <div className="px-5 py-5 pl-2.5 bg-gray-50 min-h-screen">
         <div className="max-w-none m-0 w-full">
           {/* Header Section */}
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm mb-6 p-6">
+          <div className="bg-white rounded-xl border-2 border-gray-200 shadow-sm mb-6 p-6">
             <h1 className="text-3xl font-bold text-gray-900 mb-6">
               Database Dashboard
             </h1>
@@ -3444,7 +3447,7 @@ const DatabaseDashboardTab = memo(
                   placeholder="Search database..."
                   value={searchTerm}
                   onChange={handleSearchChange}
-                  className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                  className="w-full pl-10 pr-4 py-2.5 border-2 border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
                 />
               </div>
 
@@ -3456,7 +3459,7 @@ const DatabaseDashboardTab = memo(
           </div>
 
           {/* Advanced Filters */}
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm mb-6 p-6">
+          <div className="bg-white rounded-xl border-2 border-gray-200 shadow-sm mb-6 p-6">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
                 <Settings className="w-5 h-5 text-gray-600" />
@@ -3468,7 +3471,7 @@ const DatabaseDashboardTab = memo(
                 <div className="relative" ref={filterDropdownRef}>
                   <button
                     onClick={() => setFilterDropdownOpen(!filterDropdownOpen)}
-                    className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                    className="flex items-center space-x-2 px-4 py-2 border-2 border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                   >
                     <Filter className="h-4 w-4" />
                     <span>Filter</span>
@@ -3480,7 +3483,7 @@ const DatabaseDashboardTab = memo(
                   </button>
 
                   {filterDropdownOpen && (
-                    <div className="absolute left-0 top-full mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-50 min-w-[200px]">
+                    <div className="absolute left-0 top-full mt-2 bg-white border-2 border-gray-200 rounded-lg shadow-lg z-50 min-w-[200px]">
                       <div className="p-3">
                         <h4 className="text-sm font-medium text-gray-900 mb-3">
                           Sort By
@@ -3512,7 +3515,7 @@ const DatabaseDashboardTab = memo(
                 <div className="relative" ref={exportDropdownRef}>
                   <button
                     onClick={() => setExportDropdownOpen(!exportDropdownOpen)}
-                    className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                    className="flex items-center space-x-2 px-4 py-2 border-2 border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                   >
                     <Download className="h-4 w-4" />
                     <span>Export</span>
@@ -3524,7 +3527,7 @@ const DatabaseDashboardTab = memo(
                   </button>
 
                   {exportDropdownOpen && (
-                    <div className="absolute right-0 top-full mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-50 min-w-[160px]">
+                    <div className="absolute right-0 top-full mt-2 bg-white border-2 border-gray-200 rounded-lg shadow-lg z-50 min-w-[160px]">
                       <div className="p-1">
                         <button
                           onClick={() => handleExport("excel")}
@@ -3662,7 +3665,7 @@ const DatabaseDashboardTab = memo(
           </div>
 
           {/* Tab Navigation */}
-          <div className="bg-white rounded-xl border border-gray-200 mb-6 shadow overflow-hidden">
+          <div className="bg-white rounded-xl border-2 border-gray-200 mb-6 shadow overflow-hidden">
             <div className="flex divide-x divide-gray-200">
               {tabConfig.map(({ key, label, icon, desc }) => {
                 const isActive = activeTab === key;
@@ -3698,9 +3701,9 @@ const DatabaseDashboardTab = memo(
           </div>
 
           {/* Content Area */}
-          <div className="bg-white rounded-[8px] border border-gray-200 p-[20px]">
+          <div className="bg-white rounded-[8px] border-2 border-gray-200 p-[20px]">
             {/* Filter Summary */}
-            <div className="bg-slate-50 border border-gray-300 rounded-md p-4 mb-6 flex justify-between items-center flex-wrap gap-3 text-sm">
+            <div className="bg-slate-50 border-2 border-gray-300 rounded-md p-4 mb-6 flex justify-between items-center flex-wrap gap-3 text-sm">
               {/* Left Summary */}
               <div className="flex items-center gap-4 text-gray-700 flex-wrap">
                 <span className="flex items-center gap-1 font-semibold">
@@ -3805,7 +3808,7 @@ const DatabaseDashboardTab = memo(
                 </h2>
 
                 {/* Sensitive Data Protection Controls */}
-                <div className="bg-slate-50 border border-gray-200 rounded-lg p-4 mb-[20px]">
+                <div className="bg-slate-50 border-2 border-gray-200 rounded-lg p-4 mb-[20px]">
                   <div className="flex items-center gap-3 mb-3">
                     <span className="text-[16px] font-semibold flex items-center gap-2 text-slate-800">
                       <Lock /> Data Privacy Controls
@@ -3825,7 +3828,7 @@ const DatabaseDashboardTab = memo(
                         return (
                           <label
                             key={field}
-                            className={`flex items-center gap-2 cursor-pointer p-3 rounded-md border transition-colors ${
+                            className={`flex items-center gap-2 cursor-pointer p-3 rounded-md border-2 transition-colors ${
                               isProtected
                                 ? "bg-green-50 border-green-200 text-green-600"
                                 : "bg-red-50 border-red-200 text-red-600"
@@ -3851,14 +3854,14 @@ const DatabaseDashboardTab = memo(
                     )}
                   </div>
 
-                  <div className="mt-3 p-2 bg-amber-100 border border-amber-500 rounded-md text-[12px] text-amber-900">
+                  <div className="mt-3 p-2 bg-amber-100 border-2 border-amber-500 rounded-md text-[12px] text-amber-900">
                     ⚠️ Protected fields require 2FA authentication to view.
                     Users must verify identity before accessing sensitive data.
                   </div>
                 </div>
 
-                <div className="overflow-x-auto">
-                  <table className="w-full border-collapse text-[14px]">
+                <div className="overflow-x-auto rounded-xl border-2 border-gray-200">
+                  <table className="w-full table-auto">
                     <thead>
                       <tr className="bg-gray-50">
                         <th className="p-3 text-left border-b border-gray-200 min-w-[150px]">
@@ -3899,13 +3902,13 @@ const DatabaseDashboardTab = memo(
                     <tbody>
                       {filteredUsers.map((user) => (
                         <tr key={user.id}>
-                          <td className="p-3 border-b border-gray-100">
+                          <td className="p-3 border-2 border-gray-200">
                             <div className="font-semibold">{user.name}</div>
                             <div className="text-[11px] text-gray-500">
                               Created: {user.accountCreated}
                             </div>
                           </td>
-                          <td className="p-3 border-b border-gray-100">
+                          <td className="p-3 border-2 border-gray-200">
                             <div className="flex items-center gap-2">
                               <span>
                                 {protectedFields.email &&
@@ -3918,7 +3921,7 @@ const DatabaseDashboardTab = memo(
                                   onClick={() =>
                                     toggleSensitiveData(user.id, "email")
                                   }
-                                  className={`px-2 py-1 text-[12px] rounded border cursor-pointer ${
+                                  className={`px-2 py-1 text-[12px] rounded border-2 cursor-pointer ${
                                     authenticated2FAUsers.has(user.id)
                                       ? "border-green-500 bg-green-50 text-green-800"
                                       : "border-gray-300 bg-white text-gray-700"
@@ -3938,10 +3941,10 @@ const DatabaseDashboardTab = memo(
                               Last Login: {user.lastLogin}
                             </div>
                           </td>
-                          <td className="p-3 border-b border-gray-100">
+                          <td className="p-3 border-2 border-gray-200">
                             <div className="flex items-center gap-2">
                               <select
-                                className="px-1 py-[2px] border border-gray-300 rounded text-[12px] bg-gray-50"
+                                className="px-1 py-[2px] border-2 border-gray-300 rounded text-[12px] bg-gray-50"
                                 value={user.phone.countryCode}
                                 disabled
                               >
@@ -3960,7 +3963,7 @@ const DatabaseDashboardTab = memo(
                                   onClick={() =>
                                     toggleSensitiveData(user.id, "phone")
                                   }
-                                  className={`px-2 py-1 text-[12px] rounded border cursor-pointer ${
+                                  className={`px-2 py-1 text-[12px] rounded border-2 cursor-pointer ${
                                     authenticated2FAUsers.has(user.id)
                                       ? "border-green-500 bg-green-50 text-green-800"
                                       : "border-gray-300 bg-white text-gray-700"
@@ -3977,7 +3980,7 @@ const DatabaseDashboardTab = memo(
                               )}
                             </div>
                           </td>
-                          <td className="p-3 border-b border-gray-100">
+                          <td className="p-3 border-2 border-gray-200">
                             <div className="flex items-center gap-2">
                               <div>
                                 <div className="font-medium">
@@ -3998,7 +4001,7 @@ const DatabaseDashboardTab = memo(
                                   onClick={() =>
                                     toggleSensitiveData(user.id, "dateOfBirth")
                                   }
-                                  className={`px-2 py-1 text-[12px] rounded border cursor-pointer ${
+                                  className={`px-2 py-1 text-[12px] rounded border-2 cursor-pointer ${
                                     authenticated2FAUsers.has(user.id)
                                       ? "border-green-500 bg-green-50 text-green-800"
                                       : "border-gray-300 bg-white text-gray-700"
@@ -4018,7 +4021,7 @@ const DatabaseDashboardTab = memo(
                               )}
                             </div>
                           </td>
-                          <td className="p-3 border-b border-gray-100">
+                          <td className="p-3 border-2 border-gray-200">
                             <div className="flex items-start gap-2">
                               <div className="flex-1">
                                 {protectedFields.address &&
@@ -4068,7 +4071,7 @@ const DatabaseDashboardTab = memo(
                                   onClick={() =>
                                     toggleSensitiveData(user.id, "address")
                                   }
-                                  className={`px-2 py-1 text-[12px] rounded border cursor-pointer whitespace-nowrap ${
+                                  className={`px-2 py-1 text-[12px] rounded border-2 cursor-pointer whitespace-nowrap ${
                                     authenticated2FAUsers.has(user.id)
                                       ? "border-green-500 bg-green-50 text-green-800"
                                       : "border-gray-300 bg-white text-gray-700"
@@ -4088,10 +4091,10 @@ const DatabaseDashboardTab = memo(
                               )}
                             </div>
                           </td>
-                          <td className="p-3 border-b border-gray-100 font-medium">
+                          <td className="p-3 border-2 border-gray-200 font-medium">
                             @{user.username}
                           </td>
-                          <td className="p-3 border-b border-gray-100">
+                          <td className="p-3 border-2 border-gray-200">
                             <div className="flex items-center gap-1">
                               <span>
                                 <Star className="w-4 h-4" />
@@ -4108,7 +4111,7 @@ const DatabaseDashboardTab = memo(
                               Last: {user.appReviews.lastReviewDate}
                             </div>
                           </td>
-                          <td className="p-3 border-b border-gray-100">
+                          <td className="p-3 border-2 border-gray-200">
                             <div className="flex items-center gap-1">
                               <span>
                                 {user.gender === "male" ? (
@@ -4120,7 +4123,7 @@ const DatabaseDashboardTab = memo(
                               <span className="capitalize">{user.gender}</span>
                             </div>
                           </td>
-                          <td className="p-3 border-b border-gray-100">
+                          <td className="p-3 border-2 border-gray-200">
                             <div className="flex items-center gap-2 mb-1">
                               <span className="font-mono text-[12px]">
                                 {showPassword[user.id]
@@ -4129,7 +4132,7 @@ const DatabaseDashboardTab = memo(
                               </span>
                               <button
                                 onClick={() => togglePassword(user.id)}
-                                className={`px-2 py-1 text-[12px] rounded border cursor-pointer ${
+                                className={`px-2 py-1 text-[12px] rounded border-2 cursor-pointer ${
                                   authenticated2FAUsers.has(user.id)
                                     ? "border-green-500 bg-green-50 text-green-800"
                                     : "border-gray-300 bg-white text-gray-700"
@@ -4145,7 +4148,7 @@ const DatabaseDashboardTab = memo(
                               </button>
                             </div>
                             <div
-                              className={`text-[10px] px-2 py-[3px] rounded border ${
+                              className={`text-[10px] px-2 py-[3px] rounded border-2 ${
                                 authenticated2FAUsers.has(user.id)
                                   ? "text-green-600 bg-green-50 border-green-200"
                                   : "text-red-500 bg-red-50 border-red-200"
@@ -4156,12 +4159,12 @@ const DatabaseDashboardTab = memo(
                                 : "Requires 2FA Authentication"}
                             </div>
                           </td>
-                          <td className="p-3 border-b border-gray-100">
+                          <td className="p-3 border-2 border-gray-200">
                             {user.pointBalance}
                           </td>
-                          <td className="p-3 border-b border-gray-100">
+                          <td className="p-3 border-2 border-gray-200">
                             <span
-                              className={`px-2 py-1 text-[12px] font-semibold rounded border ${
+                              className={`px-2 py-1 text-[12px] font-semibold rounded border-2 ${
                                 user.deleteAccount
                                   ? "text-red-500 bg-red-50 border-red-200"
                                   : "text-green-600 bg-green-50 border-green-200"
@@ -4189,7 +4192,7 @@ const DatabaseDashboardTab = memo(
                 {filteredOrders.map((order) => (
                   <div
                     key={order.id}
-                    className="border border-gray-200 rounded-lg p-5 mb-5 bg-white"
+                    className="border-2 border-gray-200 rounded-lg p-5 mb-5 bg-white"
                   >
                     {/* Order Header */}
                     <div className="border-b border-gray-200 pb-4 mb-5 flex justify-between items-center">
@@ -4227,7 +4230,7 @@ const DatabaseDashboardTab = memo(
 
                     <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                       {/* Customer Information */}
-                      <div className="bg-slate-50 p-4 rounded-md border border-slate-200">
+                      <div className="bg-slate-50 p-4 rounded-md border-2 border-slate-200">
                         <h4 className="mb-3 text-slate-700 flex items-center gap-2 font-semibold">
                           <User className="h-5 w-5 inline-block mr-1" />{" "}
                           Customer Details
@@ -4246,7 +4249,7 @@ const DatabaseDashboardTab = memo(
                             </div>
                           </div>
                         </div>
-                        <div className="p-2 bg-white border border-gray-300 rounded text-xs">
+                        <div className="p-2 bg-white border-2 border-gray-300 rounded text-xs">
                           <div className="font-semibold mb-1 flex items-center gap-1">
                             <MapPin className="w-h h-4" /> Address:
                           </div>
@@ -4262,14 +4265,14 @@ const DatabaseDashboardTab = memo(
                       </div>
 
                       {/* Product Details */}
-                      <div className="bg-green-50 p-4 rounded-md border border-green-200">
+                      <div className="bg-green-50 p-4 rounded-md border-2 border-green-200">
                         <h4 className="mb-3 text-slate-700 flex items-center gap-2 font-semibold">
                           <Box className="h-5 w-5 inline-block mr-1" /> Product
                           Information
                         </h4>
                         <div className="mb-2">
                           <div className="font-semibold">SKU Format:</div>
-                          <div className="font-mono text-xs p-2 bg-white border border-gray-300 rounded mt-1 break-all">
+                          <div className="font-mono text-xs p-2 bg-white border-2 border-gray-300 rounded mt-1 break-all">
                             {order.sku}
                           </div>
                         </div>
@@ -4290,7 +4293,7 @@ const DatabaseDashboardTab = memo(
                       </div>
 
                       {/* Pricing Information */}
-                      <div className="bg-yellow-50 p-4 rounded-md border border-yellow-300">
+                      <div className="bg-yellow-50 p-4 rounded-md border-2 border-yellow-300">
                         <h4 className="mb-3 text-slate-700 flex items-center gap-2 font-semibold">
                           <IndianRupee className="h-5 w-5 inline-block mr-1" />{" "}
                           Multi-Platform Pricing
@@ -4315,7 +4318,7 @@ const DatabaseDashboardTab = memo(
                     </div>
 
                     {/* Documents Section */}
-                    <div className="mt-5 p-4 bg-slate-100 border border-slate-300 rounded-md">
+                    <div className="mt-5 p-4 bg-slate-100 border-2 border-slate-300 rounded-md">
                       <h4 className="mb-3 flex items-center gap-2">
                         <File className="h-5 w-5 inline-block mr-1" /> Document
                         Management
@@ -4367,7 +4370,7 @@ const DatabaseDashboardTab = memo(
                 {filteredProducts.map((product) => (
                   <div
                     key={product.id}
-                    className="border border-[#e5e7eb] rounded-[8px] p-[20px] mb-[20px] bg-[#fefefe]"
+                    className="border-2 border-[#e5e7eb] rounded-[8px] p-[20px] mb-[20px] bg-[#fefefe]"
                   >
                     {/* Product Header */}
                     <div className="border-b border-[#e5e7eb] pb-[15px] mb-[20px] flex justify-between items-center">
@@ -4433,7 +4436,7 @@ const DatabaseDashboardTab = memo(
                             {product.variants.map((variant, idx) => (
                               <div
                                 key={idx}
-                                className="p-[8px] px-[10px] bg-[#f8fafc] border border-[#e2e8f0] rounded-[6px] text-[11px] text-center"
+                                className="p-[8px] px-[10px] bg-[#f8fafc] border-2 border-[#e2e8f0] rounded-[6px] text-[11px] text-center"
                               >
                                 <div className="font-semibold capitalize">
                                   {variant.color} - {variant.size}
@@ -4463,7 +4466,7 @@ const DatabaseDashboardTab = memo(
                           <h4 className="m-0 mb-[8px] text-[#374151] flex items-center gap-2">
                             <File /> Product Description
                           </h4>
-                          <p className="m-0 text-[#6b7280] text-[13px] leading-[1.5] bg-[#f9fafb] p-[10px] rounded-[4px] border border-[#e5e7eb]">
+                          <p className="m-0 text-[#6b7280] text-[13px] leading-[1.5] bg-[#f9fafb] p-[10px] rounded-[4px] border-2 border-[#e5e7eb]">
                             {product.description}
                           </p>
                         </div>
@@ -4472,7 +4475,7 @@ const DatabaseDashboardTab = memo(
                           <h4 className="m-0 mb-[8px] text-[#374151] flex items-center gap-2">
                             <Factory /> Manufacturing Details
                           </h4>
-                          <p className="m-0 text-[#6b7280] text-[13px] bg-[#f0fdf4] p-[10px] rounded-[4px] border border-[#bbf7d0]">
+                          <p className="m-0 text-[#6b7280] text-[13px] bg-[#f0fdf4] p-[10px] rounded-[4px] border-2 border-[#bbf7d0]">
                             {product.manufacturingDetails}
                           </p>
                         </div>
@@ -4481,13 +4484,13 @@ const DatabaseDashboardTab = memo(
                           <h4 className="m-0 mb-[8px] text-[#374151] flex items-center gap-2">
                             <Truck /> Shipping & Returns Policy
                           </h4>
-                          <p className="m-0 text-[#6b7280] text-[13px] bg-[#fef3c7] p-[10px] rounded-[4px] border border-[#fde047]">
+                          <p className="m-0 text-[#6b7280] text-[13px] bg-[#fef3c7] p-[10px] rounded-[4px] border-2 border-[#fde047]">
                             {product.shippingReturns}
                           </p>
                         </div>
 
                         {/* Action Buttons */}
-                        <div className="flex gap-[10px] flex-wrap p-[15px] bg-[#f8fafc] rounded-[6px] border border-[#e2e8f0]">
+                        <div className="flex gap-[10px] flex-wrap p-[15px] bg-[#f8fafc] rounded-[6px] border-2 border-[#e2e8f0]">
                           <button
                             onClick={() => openSizeChart(product.sizeCharts)}
                             className="px-[16px] py-[10px] bg-[#8b5cf6] text-white border-none rounded-[6px] cursor-pointer text-[12px] font-semibold flex items-center gap-[6px]"
@@ -4546,14 +4549,14 @@ const DatabaseDashboardTab = memo(
               </div>
 
               {/* Document Box */}
-              <div className="border border-[#e5e7eb] rounded-[6px] overflow-hidden mb-[15px]">
+              <div className="border-2 border-[#e5e7eb] rounded-[6px] overflow-hidden mb-[15px]">
                 <div className="h-[450px] bg-[#f3f4f6] flex items-center justify-center text-[72px]">
                   📄
                 </div>
               </div>
 
               {/* Metadata & Actions */}
-              <div className="text-center p-[15px] bg-[#f8fafc] rounded-[6px] border border-[#e2e8f0]">
+              <div className="text-center p-[15px] bg-[#f8fafc] rounded-[6px] border-2 border-[#e2e8f0]">
                 <div className="font-semibold mb-[8px]">
                   {documentPreview.name}
                 </div>
@@ -4599,7 +4602,7 @@ const DatabaseDashboardTab = memo(
                 {sizeChartPreview.map((chart, idx) => (
                   <div
                     key={idx}
-                    className="border border-[#e5e7eb] rounded-[6px] overflow-hidden"
+                    className="border-2 border-[#e5e7eb] rounded-[6px] overflow-hidden"
                   >
                     {/* Chart header */}
                     <div className="p-[12px] bg-[#f8fafc] border-b border-[#e5e7eb] text-center">
@@ -4625,7 +4628,7 @@ const DatabaseDashboardTab = memo(
               </div>
 
               {/* Notes Section */}
-              <div className="mt-[20px] p-[15px] bg-[#f0fdf4] rounded-[6px] border border-[#bbf7d0]">
+              <div className="mt-[20px] p-[15px] bg-[#f0fdf4] rounded-[6px] border-2 border-[#bbf7d0]">
                 <div className="text-sm text-[#374151]">
                   <div className="flex items-center gap-2 font-semibold">
                     <ScrollText className="w-4 h-4" /> Size Chart Notes:
@@ -4712,7 +4715,7 @@ const DatabaseDashboardTab = memo(
                     onChange={(e) =>
                       handleEditFormChange("article", e.target.value)
                     }
-                    className="w-full p-[12px] border border-[#d1d5db] rounded-[6px] text-[14px]"
+                    className="w-full p-[12px] border-2 border-[#d1d5db] rounded-[6px] text-[14px]"
                   />
                 </div>
 
@@ -4727,7 +4730,7 @@ const DatabaseDashboardTab = memo(
                       handleEditFormChange("description", e.target.value)
                     }
                     rows="4"
-                    className="w-full p-[12px] border border-[#d1d5db] rounded-[6px] text-[14px] resize-y"
+                    className="w-full p-[12px] border-2 border-[#d1d5db] rounded-[6px] text-[14px] resize-y"
                   />
                 </div>
 
@@ -4745,7 +4748,7 @@ const DatabaseDashboardTab = memo(
                       )
                     }
                     rows="3"
-                    className="w-full p-[12px] border border-[#d1d5db] rounded-[6px] text-[14px] resize-y"
+                    className="w-full p-[12px] border-2 border-[#d1d5db] rounded-[6px] text-[14px] resize-y"
                   />
                 </div>
 
@@ -4760,7 +4763,7 @@ const DatabaseDashboardTab = memo(
                       handleEditFormChange("shippingReturns", e.target.value)
                     }
                     rows="3"
-                    className="w-full p-[12px] border border-[#d1d5db] rounded-[6px] text-[14px] resize-y"
+                    className="w-full p-[12px] border-2 border-[#d1d5db] rounded-[6px] text-[14px] resize-y"
                   />
                 </div>
 
@@ -4776,7 +4779,7 @@ const DatabaseDashboardTab = memo(
                       onChange={(e) =>
                         handleEditFormChange("status", e.target.value)
                       }
-                      className="w-full p-[12px] border border-[#d1d5db] rounded-[6px] text-[14px]"
+                      className="w-full p-[12px] border-2 border-[#d1d5db] rounded-[6px] text-[14px]"
                     >
                       <option value="returnable">Returnable</option>
                       <option value="non-returnable">Non-Returnable</option>
@@ -4794,7 +4797,7 @@ const DatabaseDashboardTab = memo(
                       onChange={(e) =>
                         handleEditFormChange("brand", e.target.value)
                       }
-                      className="w-full p-[12px] border border-[#d1d5db] rounded-[6px] text-[14px]"
+                      className="w-full p-[12px] border-2 border-[#d1d5db] rounded-[6px] text-[14px]"
                     />
                   </div>
 
@@ -4809,7 +4812,7 @@ const DatabaseDashboardTab = memo(
                       onChange={(e) =>
                         handleEditFormChange("category", e.target.value)
                       }
-                      className="w-full p-[12px] border border-[#d1d5db] rounded-[6px] text-[14px]"
+                      className="w-full p-[12px] border-2 border-[#d1d5db] rounded-[6px] text-[14px]"
                     />
                   </div>
                 </div>
@@ -4863,7 +4866,7 @@ const DatabaseDashboardTab = memo(
                 {editingSizeCharts.map((chart, index) => (
                   <div
                     key={chart.id}
-                    className="p-5 border border-[#e5e7eb] rounded-lg shadow-sm bg-[#f9fafb]"
+                    className="p-5 border-2 border-[#e5e7eb] rounded-lg shadow-sm bg-[#f9fafb]"
                   >
                     <div className="flex justify-between items-center mb-4">
                       <h4 className="text-lg font-semibold">
@@ -4891,7 +4894,7 @@ const DatabaseDashboardTab = memo(
                               e.target.value
                             )
                           }
-                          className="w-full p-[10px] border border-gray-300 rounded-lg text-sm"
+                          className="w-full p-[10px] border-2 border-gray-300 rounded-lg text-sm"
                         >
                           <option value="inch">Inches</option>
                           <option value="cm">Centimeters</option>
@@ -4913,7 +4916,7 @@ const DatabaseDashboardTab = memo(
                               e.target.value
                             )
                           }
-                          className="w-full p-[10px] border border-gray-300 rounded-lg text-sm"
+                          className="w-full p-[10px] border-2 border-gray-300 rounded-lg text-sm"
                         />
                       </div>
 
@@ -4932,7 +4935,7 @@ const DatabaseDashboardTab = memo(
                             )
                           }
                           placeholder="/charts/size_chart.jpg"
-                          className="w-full p-[10px] border border-gray-300 rounded-lg text-sm"
+                          className="w-full p-[10px] border-2 border-gray-300 rounded-lg text-sm"
                         />
                       </div>
                     </div>
@@ -5378,7 +5381,7 @@ StatsGrid.displayName = "StatsGrid";
 const StatCard = memo(({ stat }) => {
   const Icon = stat.icon;
   return (
-    <div className="bg-white rounded-2xl shadow-md p-6 border border-gray-100/50 hover:border-gray-200/60 group backdrop-blur-sm">
+    <div className="bg-white rounded-2xl shadow-md p-6 border-2 border-gray-100/50 hover:border-gray-200/60 group backdrop-blur-sm">
       <div className="flex items-center justify-between mb-4">
         <div
           className={`p-3 rounded-xl ${stat.color} group-hover:scale-105 transition-transform duration-200 shadow-sm`}
@@ -5418,13 +5421,13 @@ const StatCard = memo(({ stat }) => {
 StatCard.displayName = "StatCard";
 
 const SMSStatsSection = memo(({ smsStats }) => (
-  <div className="bg-white rounded-2xl shadow-md p-8 border border-gray-100/50">
+  <div className="bg-white rounded-2xl shadow-md p-8 border-2 border-gray-100/50">
     <h3 className="text-2xl font-bold text-gray-900 mb-6">SMS Analytics</h3>
     <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
       {smsStats.map((stat, index) => (
         <div
           key={`sms-${index}`}
-          className="text-left group bg-gray-50 rounded-xl p-6 border border-gray-100"
+          className="text-left group bg-gray-50 rounded-xl p-6 border-2 border-gray-100"
         >
           <p className="text-sm font-medium text-[#101316] opacity-75 mb-2 group-hover:opacity-90 transition-opacity duration-200">
             {stat.title}
@@ -5533,7 +5536,7 @@ const SalesAnalyticsSection = memo(
             <div className="relative" ref={salesDatePickerRef}>
               <button
                 onClick={() => setIsSalesDatePickerOpen(!isSalesDatePickerOpen)}
-                className="flex items-center gap-2 text-sm text-white bg-blue-600 px-4 py-2 rounded-lg shadow-inner border border-slate-200 hover:bg-blue-700 transition-colors duration-200"
+                className="flex items-center gap-2 text-sm text-white bg-blue-600 px-4 py-2 rounded-lg shadow-inner border-2 border-slate-200 hover:bg-blue-700 transition-colors duration-200"
               >
                 <CalendarRange className="h-4 w-4" />
                 <span className="font-medium tracking-wide">
@@ -5547,7 +5550,7 @@ const SalesAnalyticsSection = memo(
               </button>
 
               {isSalesDatePickerOpen && (
-                <div className="absolute right-0 top-full mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-50 min-w-[280px] date-picker-dropdown">
+                <div className="absolute right-0 top-full mt-2 bg-white border-2 border-gray-200 rounded-lg shadow-lg z-50 min-w-[280px] date-picker-dropdown">
                   {!showSalesCustomPicker ? (
                     <div className="p-2">
                       {DATE_RANGE_OPTIONS.map((option) => (
@@ -5580,7 +5583,7 @@ const SalesAnalyticsSection = memo(
                             onChange={(e) =>
                               setSalesCustomStartDate(e.target.value)
                             }
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            className="w-full px-3 py-2 border-2 border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                           />
                         </div>
                         <div>
@@ -5594,13 +5597,13 @@ const SalesAnalyticsSection = memo(
                               setSalesCustomEndDate(e.target.value)
                             }
                             min={salesCustomStartDate}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            className="w-full px-3 py-2 border-2 border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                           />
                         </div>
                         <div className="flex gap-2 pt-2">
                           <button
                             onClick={() => setShowSalesCustomPicker(false)}
-                            className="flex-1 px-3 py-2 text-sm text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors duration-150"
+                            className="flex-1 px-3 py-2 text-sm text-gray-600 border-2 border-gray-300 rounded-md hover:bg-gray-50 transition-colors duration-150"
                           >
                             Cancel
                           </button>
@@ -5623,7 +5626,7 @@ const SalesAnalyticsSection = memo(
           </div>
         </div>
 
-        <div className="h-64 bg-gradient-to-br from-gray-50 to-gray-100/50 rounded-2xl flex items-center justify-center mb-8 hover:from-gray-50/80 hover:to-gray-100/30 transition-all duration-300 border border-gray-100/50">
+        <div className="h-64 bg-gradient-to-br from-gray-50 to-gray-100/50 rounded-2xl flex items-center justify-center mb-8 hover:from-gray-50/80 hover:to-gray-100/30 transition-all duration-300 border-2 border-gray-100/50">
           <div className="text-center">
             <BarChart3 className="h-16 w-16 text-gray-400 mx-auto mb-3" />
             <p className="text-gray-500 text-sm font-medium">
@@ -5672,7 +5675,7 @@ const SalesAnalyticsSection = memo(
                 className={`px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 ${
                   selectedTimeRange === period
                     ? "bg-zinc-900 text-white shadow-md hover:bg-zinc-800"
-                    : "bg-gray-50 text-zinc-600 border border-gray-200 hover:bg-gray-100 hover:border-gray-300"
+                    : "bg-gray-50 text-zinc-600 border-2 border-gray-200 hover:bg-gray-100 hover:border-gray-300"
                 }`}
                 onClick={() => onTimeRangeChange(period)}
               >
@@ -5761,7 +5764,7 @@ const InventoryProductRow = memo(
     );
 
     return (
-      <tr className="hover:bg-gray-50 transition-colors duration-200 border-b border-gray-200">
+      <tr className="hover:bg-gray-50 transition-colors duration-200 border-t-2 border-gray-200">
         <td className="px-4 py-4">
           <ProductImage
             image={product.image}
@@ -5879,15 +5882,15 @@ const ProductSyncSection = memo(
             placeholder="Search products, marketplace, or SKU..."
             value={searchTerm}
             onChange={onSearchChange}
-            className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 hover:bg-white focus:bg-white transition-all duration-200 text-sm font-medium placeholder:text-gray-400"
+            className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 hover:bg-white focus:bg-white transition-all duration-200 text-sm font-medium placeholder:text-gray-400"
           />
         </div>
       </div>
 
-      <div className="overflow-x-auto rounded-xl border border-gray-100">
+      <div className="overflow-x-auto rounded-xl border-2 border-gray-200">
         <table className="w-full table-auto">
           <thead>
-            <tr className="bg-gray-50 border-b border-gray-200">
+            <tr className="bg-gray-50">
               {PRODUCT_SYNC_HEADERS.map((header) => (
                 <th
                   key={header}
@@ -5902,7 +5905,7 @@ const ProductSyncSection = memo(
             {productSyncData.map((product, index) => (
               <tr
                 key={`sync-product-${product.id}`}
-                className={`border-b border-gray-100 hover:bg-gray-50 transition-colors duration-200 group ${
+                className={`border-t-2 border-gray-200 hover:bg-gray-50 transition-colors duration-200 group ${
                   index % 2 === 0 ? "bg-white" : "bg-gray-50"
                 }`}
               >
@@ -5995,7 +5998,7 @@ const MarketplaceSettingsSection = memo(() => {
         Marketplace Settings
       </h3>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-        <div className="bg-gray-50 rounded-xl p-6 border border-gray-100">
+        <div className="bg-gray-50 rounded-xl p-6 border-2 border-gray-100">
           <h4 className="text-lg font-semibold text-gray-800 mb-6 tracking-tight">
             Orders from marketplace
           </h4>
@@ -6017,7 +6020,7 @@ const MarketplaceSettingsSection = memo(() => {
             />
           </div>
         </div>
-        <div className="bg-gray-50 rounded-xl p-6 border border-gray-100">
+        <div className="bg-gray-50 rounded-xl p-6 border-2 border-gray-100">
           <h4 className="text-lg font-semibold text-gray-800 mb-6 tracking-tight">
             Out series settings
           </h4>
@@ -6052,15 +6055,15 @@ const MarketplaceConnectionsSection = memo(({ marketplaces }) => (
         <h3 className="text-xl font-semibold text-gray-800 mb-5 tracking-tight">
           Available marketplace
         </h3>
-        <div className="space-y-5">
-          <div className="flex justify-between items-center font-semibold border-b border-gray-200 pb-3 text-gray-600 uppercase text-sm tracking-wide">
+        <div className="space-y-2 border-2 p-4 rounded-xl">
+          <div className="flex justify-between items-center font-semibold pb-2 text-gray-600 uppercase text-sm tracking-wide">
             <span>Marketplace</span>
             <span>Status</span>
           </div>
           {marketplaces.map((marketplace) => (
             <div
               key={`available-${marketplace.id}`}
-              className="flex justify-between items-center py-2 border-b border-dashed border-gray-100"
+              className="flex justify-between items-center py-2 border-t-2 border-gray-200"
             >
               <span className="text-base text-gray-800 capitalize">
                 {marketplace.name}
@@ -6085,8 +6088,8 @@ const MarketplaceConnectionsSection = memo(({ marketplaces }) => (
         <h3 className="text-xl font-semibold text-gray-800 mb-5 tracking-tight">
           Connected accounts
         </h3>
-        <div className="space-y-5">
-          <div className="grid grid-cols-3 gap-4 font-semibold border-b border-gray-200 pb-3 text-gray-600 uppercase text-sm tracking-wide">
+        <div className="space-y-2 border-2 p-4 rounded-xl">
+          <div className="grid grid-cols-3 gap-4 font-semibold pb-2 text-gray-600 uppercase text-sm tracking-wide">
             <span>Seller ID</span>
             <span>Last Sync</span>
             <span>Action</span>
@@ -6094,7 +6097,7 @@ const MarketplaceConnectionsSection = memo(({ marketplaces }) => (
           {marketplaces.map((marketplace) => (
             <div
               key={`connected-${marketplace.id}`}
-              className="grid grid-cols-3 gap-4 items-center py-3 border-b border-dashed border-gray-100"
+              className="grid grid-cols-3 gap-4 items-center py-3 border-t-2 border-gray-200"
             >
               <span className="text-sm text-gray-700 font-mono truncate">
                 {marketplace.sellerId || "Not connected"}
@@ -6123,10 +6126,10 @@ const SyncLogsSection = memo(({ syncLogs }) => (
   <div className="bg-white rounded-2xl shadow-md p-8">
     <h2 className="text-3xl font-bold text-gray-900 mb-8">Sync Logs</h2>
 
-    <div className="overflow-x-auto">
-      <table className="w-full table-auto border-collapse">
+    <div className="overflow-x-auto rounded-xl border-2 border-gray-200">
+      <table className="w-full table-auto">
         <thead>
-          <tr className="border-b border-gray-200 bg-gray-50">
+          <tr className="bg-gray-50">
             {SYNC_LOG_HEADERS.map((header) => (
               <th
                 key={header}
@@ -6141,7 +6144,7 @@ const SyncLogsSection = memo(({ syncLogs }) => (
           {syncLogs.map((log) => (
             <tr
               key={`sync-log-${log.id}`}
-              className="border-b border-gray-100 hover:bg-gray-50 transition-colors duration-150"
+              className="border-t-2 border-gray-200 hover:bg-gray-50 transition-colors duration-150"
             >
               <td className="py-4 px-5 text-sm font-medium text-gray-900 whitespace-nowrap">
                 {log.date}
