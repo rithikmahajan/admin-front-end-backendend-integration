@@ -942,6 +942,7 @@ const ManageItems = memo(() => {
   const renderHeader = useCallback(
     () => (
       <div className="px-6 py-6 border-b border-gray-200 bg-gradient-to-b from-white to-gray-50">
+        {/* Header */}
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6">
           <h1 className="text-[24px] font-bold text-[#111111] font-['Montserrat'] tracking-tight">
             Manage Items
@@ -1237,66 +1238,81 @@ const ManageItems = memo(() => {
 
   // Memoized item row component for better performance
   const ItemRow = memo(({ item, index }) => (
-    <div
-      key={item.id}
-      className="even:bg-gray-50 odd:bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
-    >
-      <div className="grid grid-cols-[120px_180px_100px_120px_80px_80px_80px_80px_80px_200px_120px_120px_80px_120px_120px] gap-2 px-4 py-3 items-center min-w-[1350px]">
+    <React.Fragment key={item.id}>
+      <tr className="even:bg-gray-50 odd:bg-white hover:bg-gray-100 transition-colors duration-200">
         {/* Product Image */}
-        <div className="flex justify-center">
-          <div className="w-[120px] h-[116px] bg-gray-200 rounded-md overflow-hidden shadow-inner hover:scale-105 transition-transform duration-200">
-            <img
-              src={item.image}
-              alt={item.productName}
-              className="w-full h-full object-cover"
-            />
+        <td className="px-4 py-3 text-center">
+          <div className="flex justify-center">
+            <div className="w-[120px] h-[116px] bg-gray-200 rounded-md overflow-hidden shadow-inner hover:scale-105 transition-transform duration-200">
+              <img
+                src={item.image}
+                alt={item.productName}
+                className="w-full h-full object-cover"
+              />
+            </div>
           </div>
-        </div>
+        </td>
 
         {/* Product Name */}
-        <div className="text-gray-800 text-[14px] font-semibold font-['Montserrat'] text-center px-2 tracking-wide">
-          {item.productName}
-        </div>
+        <td className="px-4 py-3 text-center">
+          <div className="text-gray-800 text-[14px] font-semibold font-['Montserrat'] tracking-wide">
+            {item.productName}
+          </div>
+        </td>
 
         {/* Category */}
-        <div className="text-gray-800 text-[14px] font-medium font-['Montserrat'] text-center tracking-wide">
-          {item.category}
-        </div>
+        <td className="px-4 py-3 text-center">
+          <div className="text-gray-800 text-[14px] font-medium font-['Montserrat'] tracking-wide">
+            {item.category}
+          </div>
+        </td>
 
         {/* Sub Categories */}
-        <div className="text-gray-800 text-[14px] font-medium font-['Montserrat'] text-center tracking-wide">
-          {item.subCategories}
-        </div>
+        <td className="px-4 py-3 text-center">
+          <div className="text-gray-800 text-[14px] font-medium font-['Montserrat'] tracking-wide">
+            {item.subCategories}
+          </div>
+        </td>
 
         {/* HSN */}
-        <div className="text-gray-700 text-[12px] font-medium font-['Montserrat'] text-center">
-          {item.hsn}
-        </div>
+        <td className="px-4 py-3 text-center">
+          <div className="text-gray-700 text-[12px] font-medium font-['Montserrat']">
+            {item.hsn}
+          </div>
+        </td>
 
         {/* Size */}
-        <div className="flex flex-col gap-1 text-[12px] font-medium text-gray-700 font-['Montserrat'] text-center">
-          {item.size.map((size, idx) => (
-            <div key={idx}>{size}</div>
-          ))}
-        </div>
+        <td className="px-4 py-3 text-center">
+          <div className="flex flex-col gap-1 text-[12px] font-medium text-gray-700 font-['Montserrat']">
+            {item.size.map((size, idx) => (
+              <div key={idx}>{size}</div>
+            ))}
+          </div>
+        </td>
 
         {/* Quantity */}
-        <div className="text-gray-800 text-[14px] font-medium font-['Montserrat'] text-center">
-          {item.quantity}
-        </div>
+        <td className="px-4 py-3 text-center">
+          <div className="text-gray-800 text-[14px] font-medium font-['Montserrat']">
+            {item.quantity}
+          </div>
+        </td>
 
         {/* Price */}
-        <div className="text-gray-700 text-[12px] font-medium font-['Montserrat'] text-center">
-          {item.price}
-        </div>
+        <td className="px-4 py-3 text-center">
+          <div className="text-gray-700 text-[12px] font-medium font-['Montserrat']">
+            {item.price}
+          </div>
+        </td>
 
         {/* Sale Price */}
-        <div className="text-gray-700 text-[12px] font-medium font-['Montserrat'] text-center">
-          {item.salePrice}
-        </div>
+        <td className="px-4 py-3 text-center">
+          <div className="text-gray-700 text-[12px] font-medium font-['Montserrat']">
+            {item.salePrice}
+          </div>
+        </td>
 
         {/* Platform Prices */}
-        <div className="flex items-center justify-center">
+        <td className="px-4 py-3 text-center">
           <div className="grid grid-cols-4 gap-3 text-center text-[10px] font-medium font-['Montserrat']">
             <div>
               {item.platforms.myntra.enabled
@@ -1317,26 +1333,30 @@ const ManageItems = memo(() => {
               {item.platforms.nykaa.enabled ? item.platforms.nykaa.price : "-"}
             </div>
           </div>
-        </div>
+        </td>
 
         {/* SKU */}
-        <div className="text-gray-700 text-[12px] font-medium font-['Montserrat'] text-center">
-          <div className="flex flex-col gap-1">
-            {item.size.map((size, idx) => (
-              <div key={idx} className="text-[10px]">
-                {item.skus[size]}
-              </div>
-            ))}
+        <td className="px-4 py-3 text-center">
+          <div className="text-gray-700 text-[12px] font-medium font-['Montserrat']">
+            <div className="flex flex-col gap-1">
+              {item.size.map((size, idx) => (
+                <div key={idx} className="text-[10px]">
+                  {item.skus[size]}
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
+        </td>
 
         {/* Barcode */}
-        <div className="text-gray-700 text-[12px] font-medium font-['Montserrat'] text-center">
-          {item.barcodeNo}
-        </div>
+        <td className="px-4 py-3 text-center">
+          <div className="text-gray-700 text-[12px] font-medium font-['Montserrat']">
+            {item.barcodeNo}
+          </div>
+        </td>
 
         {/* Status */}
-        <div className="text-center">
+        <td className="px-4 py-3 text-center">
           <span
             className={`${utils.getStatusStyle(
               item.status
@@ -1354,164 +1374,174 @@ const ManageItems = memo(() => {
                 )}
               </div>
             )}
-        </div>
+        </td>
 
         {/* Meta Data */}
-        <div className="text-center">
+        <td className="px-4 py-3 text-center">
           <button
             onClick={() => metaDataHandlers.handleViewMetaData(item)}
             className="bg-black text-white text-[12px] font-medium font-['Montserrat'] px-3 py-1 rounded-md hover:bg-gray-800 transition-colors"
           >
             View Meta Data
           </button>
-        </div>
+        </td>
 
         {/* Action */}
-        <div className="flex justify-center gap-2">
-          {item.status === "draft" ? (
-            <>
-              <button
-                onClick={() => lifecycleHandlers.handleMakeLive(item)}
-                className="px-2 py-1 bg-green-500 text-white text-xs font-medium rounded-md hover:bg-green-600 transition-colors"
-              >
-                Make Live
-              </button>
-              <button
-                onClick={() => lifecycleHandlers.handleScheduleItem(item)}
-                className="px-2 py-1 bg-blue-500 text-white text-xs font-medium rounded-md hover:bg-blue-600 transition-colors"
-              >
-                Schedule
-              </button>
-            </>
-          ) : item.status === "scheduled" ? (
-            <>
-              <button
-                onClick={() => lifecycleHandlers.handleMakeLive(item)}
-                className="px-2 py-1 bg-green-500 text-white text-xs font-medium rounded-md hover:bg-green-600 transition-colors"
-              >
-                Make Live
-              </button>
-              <button
-                onClick={() => lifecycleHandlers.handleCancelScheduleItem(item)}
-                className="px-2 py-1 bg-red-500 text-white text-xs font-medium rounded-md hover:bg-red-600 transition-colors"
-              >
-                Cancel Schedule
-              </button>
-            </>
-          ) : (
-            <>
-              <button
-                onClick={() => actionHandlers.handleEdit(item.id)}
-                className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors"
-                title="Edit"
-              >
-                <Edit2 className="h-4 w-4" />
-              </button>
-              <button
-                onClick={() => deleteHandlers.handleDelete(item.id)}
-                className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors"
-                title="Delete"
-              >
-                <Trash2 className="h-4 w-4" />
-              </button>
-            </>
-          )}
-        </div>
-      </div>
-
-      {/* Row-level Bulk Actions */}
-      <div className="px-4 py-2 bg-gray-50 border-t border-gray-200 text-[12px] font-['Montserrat'] min-w-[1350px] transition-all duration-200">
-        <div className="flex items-center gap-8">
-          <div
-            className={`flex items-center gap-2 ${
-              item.moveToSale ? "bg-blue-50 p-2 rounded-md transition" : ""
-            }`}
-          >
-            <input
-              type="checkbox"
-              id={`move-to-sale-${item.id}`}
-              checked={item.moveToSale}
-              onChange={(e) =>
-                itemActionHandlers.handleItemAction(
-                  item.id,
-                  "moveToSale",
-                  e.target.checked
-                )
-              }
-              className="w-4 h-4 rounded-[3px] border-[#bcbcbc] text-blue-600 focus:ring-blue-500 focus:ring-2"
-            />
-            <label
-              htmlFor={`move-to-sale-${item.id}`}
-              className={`${
-                item.moveToSale ? "text-blue-700 font-medium" : "text-black"
-              }`}
-            >
-              move to sale
-            </label>
+        <td className="px-4 py-3 text-center">
+          <div className="flex justify-center gap-2">
+            {item.status === "draft" ? (
+              <>
+                <button
+                  onClick={() => lifecycleHandlers.handleMakeLive(item)}
+                  className="px-2 py-1 bg-green-500 text-white text-xs font-medium rounded-md hover:bg-green-600 transition-colors"
+                >
+                  Make Live
+                </button>
+                <button
+                  onClick={() => lifecycleHandlers.handleScheduleItem(item)}
+                  className="px-2 py-1 bg-blue-500 text-white text-xs font-medium rounded-md hover:bg-blue-600 transition-colors"
+                >
+                  Schedule
+                </button>
+              </>
+            ) : item.status === "scheduled" ? (
+              <>
+                <button
+                  onClick={() => lifecycleHandlers.handleMakeLive(item)}
+                  className="px-2 py-1 bg-green-500 text-white text-xs font-medium rounded-md hover:bg-green-600 transition-colors"
+                >
+                  Make Live
+                </button>
+                <button
+                  onClick={() =>
+                    lifecycleHandlers.handleCancelScheduleItem(item)
+                  }
+                  className="px-2 py-1 bg-red-500 text-white text-xs font-medium rounded-md hover:bg-red-600 transition-colors"
+                >
+                  Cancel Schedule
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={() => actionHandlers.handleEdit(item.id)}
+                  className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors"
+                  title="Edit"
+                >
+                  <Edit2 className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={() => deleteHandlers.handleDelete(item.id)}
+                  className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors"
+                  title="Delete"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </>
+            )}
           </div>
+        </td>
+      </tr>
 
-          <div
-            className={`flex items-center gap-2 ${
-              item.keepCopyAndMove
-                ? "bg-green-50 p-2 rounded-md transition"
-                : ""
-            }`}
-          >
-            <input
-              type="checkbox"
-              id={`keep-copy-${item.id}`}
-              checked={item.keepCopyAndMove}
-              onChange={(e) =>
-                itemActionHandlers.handleItemAction(
-                  item.id,
-                  "keepCopyAndMove",
-                  e.target.checked
-                )
-              }
-              className="w-4 h-4 rounded-[3px] border-[#bcbcbc] text-blue-600 focus:ring-blue-500 focus:ring-2"
-            />
-            <label
-              htmlFor={`keep-copy-${item.id}`}
-              className={`${
-                item.keepCopyAndMove
-                  ? "text-green-700 font-medium"
-                  : "text-black"
-              }`}
-            >
-              make a copy and move to sale
-            </label>
-          </div>
+      {/* Row-level Bulk Actions - Additional row */}
+      <tr className="bg-gray-50 border-t border-gray-200">
+        <td colSpan="15" className="px-4 py-2">
+          <div className="text-[12px] font-['Montserrat'] transition-all duration-200">
+            <div className="flex items-center gap-8">
+              <div
+                className={`flex items-center gap-2 ${
+                  item.moveToSale ? "bg-blue-50 p-2 rounded-md transition" : ""
+                }`}
+              >
+                <input
+                  type="checkbox"
+                  id={`move-to-sale-${item.id}`}
+                  checked={item.moveToSale}
+                  onChange={(e) =>
+                    itemActionHandlers.handleItemAction(
+                      item.id,
+                      "moveToSale",
+                      e.target.checked
+                    )
+                  }
+                  className="w-4 h-4 rounded-[3px] border-[#bcbcbc] text-blue-600 focus:ring-blue-500 focus:ring-2"
+                />
+                <label
+                  htmlFor={`move-to-sale-${item.id}`}
+                  className={`${
+                    item.moveToSale ? "text-blue-700 font-medium" : "text-black"
+                  }`}
+                >
+                  move to sale
+                </label>
+              </div>
 
-          <div
-            className={`flex items-center gap-2 ${
-              item.moveToEyx ? "bg-purple-50 p-2 rounded-md transition" : ""
-            }`}
-          >
-            <input
-              type="checkbox"
-              id={`move-to-eyx-${item.id}`}
-              checked={item.moveToEyx}
-              onChange={(e) =>
-                itemActionHandlers.handleItemAction(
-                  item.id,
-                  "moveToEyx",
-                  e.target.checked
-                )
-              }
-              className="w-4 h-4 rounded-[3px] border-[#bcbcbc] text-blue-600 focus:ring-blue-500 focus:ring-2"
-            />
-            <label
-              htmlFor={`move-to-eyx-${item.id}`}
-              className={`${
-                item.moveToEyx ? "text-purple-700 font-medium" : "text-black"
-              }`}
-            >
-              move to eyx
-            </label>
+              <div
+                className={`flex items-center gap-2 ${
+                  item.keepCopyAndMove
+                    ? "bg-green-50 p-2 rounded-md transition"
+                    : ""
+                }`}
+              >
+                <input
+                  type="checkbox"
+                  id={`keep-copy-${item.id}`}
+                  checked={item.keepCopyAndMove}
+                  onChange={(e) =>
+                    itemActionHandlers.handleItemAction(
+                      item.id,
+                      "keepCopyAndMove",
+                      e.target.checked
+                    )
+                  }
+                  className="w-4 h-4 rounded-[3px] border-[#bcbcbc] text-blue-600 focus:ring-blue-500 focus:ring-2"
+                />
+                <label
+                  htmlFor={`keep-copy-${item.id}`}
+                  className={`${
+                    item.keepCopyAndMove
+                      ? "text-green-700 font-medium"
+                      : "text-black"
+                  }`}
+                >
+                  make a copy and move to sale
+                </label>
+              </div>
+
+              <div
+                className={`flex items-center gap-2 ${
+                  item.moveToEyx ? "bg-purple-50 p-2 rounded-md transition" : ""
+                }`}
+              >
+                <input
+                  type="checkbox"
+                  id={`move-to-eyx-${item.id}`}
+                  checked={item.moveToEyx}
+                  onChange={(e) =>
+                    itemActionHandlers.handleItemAction(
+                      item.id,
+                      "moveToEyx",
+                      e.target.checked
+                    )
+                  }
+                  className="w-4 h-4 rounded-[3px] border-[#bcbcbc] text-blue-600 focus:ring-blue-500 focus:ring-2"
+                />
+                <label
+                  htmlFor={`move-to-eyx-${item.id}`}
+                  className={`${
+                    item.moveToEyx
+                      ? "text-purple-700 font-medium"
+                      : "text-black"
+                  }`}
+                >
+                  move to eyx
+                </label>
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
-    </div>
+        </td>
+      </tr>
+    </React.Fragment>
   ));
 
   ItemRow.displayName = "ItemRow";
@@ -1527,66 +1557,99 @@ const ManageItems = memo(() => {
 
           {/* Table Container */}
           <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-x-auto">
-            {/* Table Header */}
-            <div className="bg-gray-100 border-b border-gray-200 overflow-x-auto">
-              <div className="grid grid-cols-[120px_180px_100px_120px_80px_80px_80px_80px_80px_200px_120px_120px_80px_120px_120px] gap-1 px-4 py-3 text-[14px] font-semibold text-gray-800 font-['Montserrat'] min-w-[1350px] tracking-wide">
-                <div className="text-center">Image</div>
-                <div className="text-center">Product Name</div>
-                <div className="text-center">Category</div>
-                <div className="text-center">Subcategory</div>
-                <div className="text-center">HSN</div>
-                <div className="text-center">Size</div>
-                <div className="text-center">Quantity</div>
-                <div className="text-center">Price</div>
-                <div className="text-center">Sale Price</div>
-                <div className="text-center">Alternate Price</div>
-                <div className="text-center">SKU</div>
-                <div className="text-center">Barcode No.</div>
-                <div className="text-center">Status</div>
-                <div className="text-center">Meta Data</div>
-                <div className="text-center">Action</div>
-              </div>
-            </div>
-
-            {/* Platform Headers Row */}
-            <div className="bg-white border-b border-gray-200 overflow-x-auto">
-              <div className="grid grid-cols-[120px_180px_100px_120px_80px_80px_80px_80px_80px_200px_120px_120px_80px_120px_120px] gap-1 px-4 py-2 min-w-[1350px]">
-                <div></div>
-                <div></div>
-                <div></div>
-                <div></div>
-                <div></div>
-                <div></div>
-                <div></div>
-                <div></div>
-                <div></div>
-                <div className="flex items-center justify-center gap-4 text-[10px] font-medium font-['Montserrat'] text-gray-600">
-                  {["myntra", "amazon", "flipkart", "nykaa"].map((platform) => (
-                    <div
-                      key={platform}
-                      className="flex flex-col items-center gap-1"
-                    >
-                      <span className="text-green-600 text-lg leading-none">
-                        ✓
-                      </span>
-                      <span className="capitalize">{platform}</span>
+            <table className="w-full min-w-[1350px]">
+              {/* Table Header */}
+              <thead>
+                <tr className="bg-gray-100 border-b border-gray-200">
+                  <th className="px-4 py-3 text-[14px] font-semibold text-gray-800 font-['Montserrat'] text-center tracking-wide">
+                    Image
+                  </th>
+                  <th className="px-4 py-3 text-[14px] font-semibold text-gray-800 font-['Montserrat'] text-center tracking-wide min-w-[180px]">
+                    Product Name
+                  </th>
+                  <th className="px-4 py-3 text-[14px] font-semibold text-gray-800 font-['Montserrat'] text-center tracking-wide min-w-[100px]">
+                    Category
+                  </th>
+                  <th className="px-4 py-3 text-[14px] font-semibold text-gray-800 font-['Montserrat'] text-center tracking-wide min-w-[120px]">
+                    Subcategory
+                  </th>
+                  <th className="px-4 py-3 text-[14px] font-semibold text-gray-800 font-['Montserrat'] text-center tracking-wide min-w-[80px]">
+                    HSN
+                  </th>
+                  <th className="px-4 py-3 text-[14px] font-semibold text-gray-800 font-['Montserrat'] text-center tracking-wide min-w-[80px]">
+                    Size
+                  </th>
+                  <th className="px-4 py-3 text-[14px] font-semibold text-gray-800 font-['Montserrat'] text-center tracking-wide min-w-[80px]">
+                    Quantity
+                  </th>
+                  <th className="px-4 py-3 text-[14px] font-semibold text-gray-800 font-['Montserrat'] text-center tracking-wide min-w-[80px]">
+                    Price
+                  </th>
+                  <th className="px-4 py-3 text-[14px] font-semibold text-gray-800 font-['Montserrat'] text-center tracking-wide min-w-[80px]">
+                    Sale Price
+                  </th>
+                  <th className="px-4 py-3 text-[14px] font-semibold text-gray-800 font-['Montserrat'] text-center tracking-wide min-w-[200px]">
+                    Alternate Price
+                  </th>
+                  <th className="px-4 py-3 text-[14px] font-semibold text-gray-800 font-['Montserrat'] text-center tracking-wide min-w-[120px]">
+                    SKU
+                  </th>
+                  <th className="px-4 py-3 text-[14px] font-semibold text-gray-800 font-['Montserrat'] text-center tracking-wide min-w-[120px]">
+                    Barcode No.
+                  </th>
+                  <th className="px-4 py-3 text-[14px] font-semibold text-gray-800 font-['Montserrat'] text-center tracking-wide min-w-[80px]">
+                    Status
+                  </th>
+                  <th className="px-4 py-3 text-[14px] font-semibold text-gray-800 font-['Montserrat'] text-center tracking-wide min-w-[120px]">
+                    Meta Data
+                  </th>
+                  <th className="px-4 py-3 text-[14px] font-semibold text-gray-800 font-['Montserrat'] text-center tracking-wide min-w-[120px]">
+                    Action
+                  </th>
+                </tr>
+                {/* Platform Headers Row */}
+                <tr className="bg-white border-b border-gray-200">
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td className="px-4 py-2 text-center">
+                    <div className="flex items-center justify-center gap-4 text-[10px] font-medium font-['Montserrat'] text-gray-600">
+                      {["myntra", "amazon", "flipkart", "nykaa"].map(
+                        (platform) => (
+                          <div
+                            key={platform}
+                            className="flex flex-col items-center gap-1"
+                          >
+                            <span className="text-green-600 text-lg leading-none">
+                              ✓
+                            </span>
+                            <span className="capitalize">{platform}</span>
+                          </div>
+                        )
+                      )}
                     </div>
-                  ))}
-                </div>
-                <div></div>
-                <div></div>
-                <div></div>
-                <div></div>
-                <div></div>
-              </div>
-            </div>
+                  </td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                </tr>
+              </thead>
 
-            {/* Table Rows */}
-            <div className="divide-y divide-gray-100 overflow-x-auto">
-              {filteredItems.map((item, index) => (
-                <ItemRow key={item.id} item={item} index={index} />
-              ))}
-            </div>
+              {/* Table Body */}
+              <tbody className="divide-y divide-gray-100">
+                {filteredItems.map((item, index) => (
+                  <ItemRow key={item.id} item={item} index={index} />
+                ))}
+              </tbody>
+            </table>
 
             {/* Empty State */}
             {filteredItems.length === 0 && (
