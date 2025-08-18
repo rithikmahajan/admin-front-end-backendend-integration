@@ -4,6 +4,9 @@ import Layout from "./layout/Layout";
 import MobileFiltersApp from "./pages/MobileFiltersApp";
 import AdvancedMobileFiltersApp from "./pages/AdvancedMobileFiltersApp";
 
+// Import AuthFlow component
+import AuthFlow from "./components/AuthFlow";
+
 // Import all page components
 import Dashboard from "./pages/dashboard";
 // import DatabaseDashboard from "./pages/DatabaseDashboard";
@@ -55,6 +58,11 @@ const App = () => {
   return (
     <>
       <Routes>
+        {/* ===== AUTHENTICATION ROUTES (without Layout) ===== */}
+        <Route path="/login" element={<AuthFlow />} />
+        <Route path="/signup" element={<AuthFlow />} />
+        <Route path="/auth" element={<AuthFlow />} />
+
         {/* Mobile Filters App - standalone route without Layout */}
         <Route path="/mobile-filters-app" element={<MobileFiltersApp />} />
 
