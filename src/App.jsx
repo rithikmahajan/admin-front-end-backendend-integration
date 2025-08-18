@@ -7,6 +7,10 @@ import AdvancedMobileFiltersApp from "./pages/AdvancedMobileFiltersApp";
 // Import AuthFlow component
 import AuthFlow from "./components/AuthFlow";
 
+// Import demo components
+import ProfileModalDemo from "./components/ProfileModalDemo";
+import SimpleModalTest from "./components/SimpleModalTest";
+
 // Import all page components
 import Dashboard from "./pages/dashboard";
 // import DatabaseDashboard from "./pages/DatabaseDashboard";
@@ -62,6 +66,10 @@ const App = () => {
         <Route path="/login" element={<AuthFlow />} />
         <Route path="/signup" element={<AuthFlow />} />
         <Route path="/auth" element={<AuthFlow />} />
+
+        {/* ===== DEMO ROUTES ===== */}
+        <Route path="/profile-modal-demo" element={<ProfileModalDemo />} />
+        <Route path="/simple-modal-test" element={<SimpleModalTest />} />
 
         {/* Mobile Filters App - standalone route without Layout */}
         <Route path="/mobile-filters-app" element={<MobileFiltersApp />} />
