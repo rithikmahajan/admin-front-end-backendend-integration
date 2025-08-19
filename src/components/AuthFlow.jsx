@@ -1,7 +1,9 @@
 import React, { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const AuthFlow = () => {
+  const navigate = useNavigate();
   const [currentScreen, setCurrentScreen] = useState("login");
   const [formData, setFormData] = useState({
     phoneNumber: "",
@@ -560,7 +562,7 @@ const AuthFlow = () => {
           <SuccessScreen
             title="logged in !"
             subtitle="Your YORAA admin account has been logged in successfully"
-            onContinue={() => console.log("Navigate to dashboard")}
+            onContinue={() => navigate("/")}
           />
         );
       case "accountCreated":
